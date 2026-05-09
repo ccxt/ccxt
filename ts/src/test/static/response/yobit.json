@@ -158,7 +158,7 @@
                         "price": 85.75,
                         "amount": 0.00005714,
                         "cost": 0.004899755,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "type": "bid",
                             "price": "85.75",
@@ -312,6 +312,8 @@
                     "average": 71166.5,
                     "baseVolume": 2.10398282,
                     "quoteVolume": 151292.61340729,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "high": "73333",
                         "low": "69000",

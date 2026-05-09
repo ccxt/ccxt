@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class huobi extends \ccxt\pro\htx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'alias' => true,
             'id' => 'huobi',

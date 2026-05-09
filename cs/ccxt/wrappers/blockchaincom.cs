@@ -10,7 +10,7 @@ public partial class blockchaincom
     /// retrieves data on all markets for blockchaincom
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getSymbols"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getsymbols"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class blockchaincom
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getl3orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -46,7 +46,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -57,7 +57,7 @@ public partial class blockchaincom
     /// fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getL3OrderBook"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getl3orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -73,7 +73,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchL3OrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -90,7 +90,7 @@ public partial class blockchaincom
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getTickerBySymbol"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#gettickerbysymbol"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -100,7 +100,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -110,7 +110,7 @@ public partial class blockchaincom
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/unauthenticated/getTickers"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#gettickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -120,7 +120,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -130,12 +130,12 @@ public partial class blockchaincom
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/createOrder"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#createorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -146,7 +146,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -157,7 +157,7 @@ public partial class blockchaincom
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/deleteOrder"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#deleteorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -167,17 +167,17 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/deleteAllOrders"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#deleteallorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -187,17 +187,17 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/getFees"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getfees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -207,7 +207,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -217,7 +217,7 @@ public partial class blockchaincom
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrders"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -239,7 +239,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -251,7 +251,7 @@ public partial class blockchaincom
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrders"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -273,7 +273,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -285,7 +285,7 @@ public partial class blockchaincom
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrders"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -307,7 +307,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -326,7 +326,7 @@ public partial class blockchaincom
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/getFills"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getfills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -348,7 +348,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -360,7 +360,7 @@ public partial class blockchaincom
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/getDepositAddress"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getdepositaddress"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -370,17 +370,17 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/createWithdrawal"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#createwithdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -390,8 +390,8 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -400,7 +400,7 @@ public partial class blockchaincom
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/getWithdrawals"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getwithdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -422,7 +422,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -434,7 +434,7 @@ public partial class blockchaincom
     /// fetch data on a currency withdrawal via the withdrawal id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/getWithdrawalById"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getwithdrawalbyid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -444,7 +444,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<Transaction> FetchWithdrawal(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawal(id, code, parameters);
@@ -454,7 +454,7 @@ public partial class blockchaincom
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/getDeposits"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getdeposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -476,7 +476,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -488,7 +488,7 @@ public partial class blockchaincom
     /// fetch information on a deposit
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/getDepositById"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getdepositbyid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -498,7 +498,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDeposit(id, code, parameters);
@@ -508,7 +508,7 @@ public partial class blockchaincom
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/payments/getAccounts"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getaccounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -518,7 +518,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -528,7 +528,7 @@ public partial class blockchaincom
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api.blockchain.com/v3/#/trading/getOrderById"/>  <br/>
+    /// See <see href="https://api.blockchain.com/v3/#getorderbyid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -538,7 +538,7 @@ public partial class blockchaincom
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);

@@ -26,6 +26,11 @@ public partial class btcbox : Exchange
         return await this.callAsync ("publicGetTicker",parameters);
     }
 
+    public async Task<object> publicGetTickers (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTickers",parameters);
+    }
+
     public async Task<object> privatePostBalance (object parameters = null)
     {
         return await this.callAsync ("privatePostBalance",parameters);
@@ -54,6 +59,11 @@ public partial class btcbox : Exchange
     public async Task<object> privatePostWallet (object parameters = null)
     {
         return await this.callAsync ("privatePostWallet",parameters);
+    }
+
+    public async Task<object> webApiGetAjaxCoinCoinInfo (object parameters = null)
+    {
+        return await this.callAsync ("webApiGetAjaxCoinCoinInfo",parameters);
     }
 
 }

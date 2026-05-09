@@ -10,7 +10,7 @@ use ccxt\abstract\zaif as Exchange;
 
 class zaif extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zaif',
             'name' => 'Zaif',
@@ -26,25 +26,55 @@ class zaif extends Exchange {
                 'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createStopLossOrder' => false,
+                'createTakeProfitOrder' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
+                'setMarginMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -127,6 +157,63 @@ class zaif extends Exchange {
             ),
             'options' => array(
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true, // todo
+                        'triggerPrice' => true, // todo implement
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null, // todo
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true, // todo
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true, // todo
+                        'limit' => 1000,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -140,7 +227,9 @@ class zaif extends Exchange {
 
     public function fetch_markets($params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
+         *
          * retrieves data on all $markets for zaif
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -170,7 +259,7 @@ class zaif extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'currency_pair');
         $name = $this->safe_string($market, 'name');
         list($baseId, $quoteId) = explode('/', $name);
@@ -257,10 +346,12 @@ class zaif extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
+         *
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
@@ -269,23 +360,25 @@ class zaif extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
+         *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetDepthPair (array_merge($request, $params));
+        $response = $this->publicGetDepthPair ($this->extend($request, $params));
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -328,18 +421,20 @@ class zaif extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
+         *
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+        $ticker = $this->publicGetTickerPair ($this->extend($request, $params));
         //
         // {
         //     "last" => 9e-08,
@@ -354,7 +449,7 @@ class zaif extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -394,20 +489,22 @@ class zaif extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
+         *
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradesPair (array_merge($request, $params));
+        $response = $this->publicGetTradesPair ($this->extend($request, $params));
         //
         //      array(
         //          array(
@@ -432,15 +529,17 @@ class zaif extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
+         *
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         if ($type !== 'limit') {
@@ -453,7 +552,7 @@ class zaif extends Exchange {
             'amount' => $amount,
             'price' => $price,
         );
-        $response = $this->privatePostTrade (array_merge($request, $params));
+        $response = $this->privatePostTrade ($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
             'id' => (string) $response['return']['order_id'],
@@ -462,20 +561,38 @@ class zaif extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
+         *
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol not used by zaif cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $request = array(
             'order_id' => $id,
         );
-        return $this->privatePostCancelOrder (array_merge($request, $params));
+        $response = $this->privatePostCancelOrder ($this->extend($request, $params));
+        //
+        //    {
+        //        "success" => 1,
+        //        "return" => {
+        //            "order_id" => 184,
+        //            "funds" => {
+        //                "jpy" => 15320,
+        //                "btc" => 1.392,
+        //                "mona" => 2600,
+        //                "kaori" => 0.1
+        //            }
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'return');
+        return $this->parse_order($data);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
@@ -486,6 +603,18 @@ class zaif extends Exchange {
         //         "comment" : "demo"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id" => 184,
+        //        "funds" => {
+        //            "jpy" => 15320,
+        //            "btc" => 1.392,
+        //            "mona" => 2600,
+        //            "kaori" => 0.1
+        //        }
+        //    }
+        //
         $side = $this->safe_string($order, 'action');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $timestamp = $this->safe_timestamp($order, 'timestamp');
@@ -493,7 +622,7 @@ class zaif extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'amount');
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string_2($order, 'id', 'order_id');
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
@@ -507,7 +636,6 @@ class zaif extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
@@ -522,13 +650,15 @@ class zaif extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
+         *
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -540,19 +670,21 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostActiveOrders (array_merge($request, $params));
+        $response = $this->privatePostActiveOrders ($this->extend($request, $params));
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
+         *
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -570,20 +702,22 @@ class zaif extends Exchange {
             $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
         }
-        $response = $this->privatePostTradeHistory (array_merge($request, $params));
+        $response = $this->privatePostTradeHistory ($this->extend($request, $params));
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
+         *
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
+         *
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
@@ -602,7 +736,7 @@ class zaif extends Exchange {
         if ($tag !== null) {
             $request['message'] = $tag;
         }
-        $result = $this->privatePostWithdraw (array_merge($request, $params));
+        $result = $this->privatePostWithdraw ($this->extend($request, $params));
         //
         //     {
         //         "success" => 1,
@@ -623,7 +757,7 @@ class zaif extends Exchange {
         return $this->parse_transaction($returnData, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "id" => 23634,
@@ -671,7 +805,7 @@ class zaif extends Exchange {
     }
 
     public function custom_nonce() {
-        $num = ($this->milliseconds() / (string) 1000);
+        $num = $this->number_to_string($this->milliseconds() / 1000);
         $nonce = floatval($num);
         return sprintf('%.8f', $nonce);
     }
@@ -692,7 +826,7 @@ class zaif extends Exchange {
                 $url .= 'tapi';
             }
             $nonce = $this->custom_nonce();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'method' => $path,
                 'nonce' => $nonce,
             ), $params));
@@ -705,7 +839,7 @@ class zaif extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

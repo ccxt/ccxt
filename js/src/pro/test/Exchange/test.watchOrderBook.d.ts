@@ -1,2 +1,3 @@
-declare function testWatchOrderBook(exchange: any, skippedProperties: any, symbol: any): Promise<void>;
+import { Exchange } from '../../../../ccxt.js';
+declare function testWatchOrderBook(exchange: Exchange, skippedProperties: object, symbol: string): Promise<boolean>;
 export default testWatchOrderBook;

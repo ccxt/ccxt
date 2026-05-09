@@ -10,14 +10,15 @@ use ccxt\abstract\coinbase as Exchange;
 
 class coinbase extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbase',
-            'name' => 'Coinbase',
+            'name' => 'Coinbase Advanced',
             'countries' => array( 'US' ),
             'pro' => true,
+            'certified' => false,
             // rate-limits:
-            // ADVANCED API => https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-rate-limits
+            // ADVANCED API => https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
             // DATA API    : https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/rate-limiting
             // - max 10000 req/hour (to prevent userland mistakes we apply ~3 req/second RL per call
@@ -35,10 +36,14 @@ class coinbase extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'closeAllPositions' => false,
                 'closePosition' => true,
+                'createConvertTrade' => true,
                 'createDepositAddress' => true,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
@@ -48,6 +53,8 @@ class coinbase extends Exchange {
                 'createMarketSellOrder' => true,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -58,55 +65,92 @@ class coinbase extends Exchange {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchConvertQuote' => true,
+                'fetchConvertTrade' => true,
+                'fetchConvertTradeHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => 'emulated',
-                'fetchDepositAddresses' => false,
+                'fetchDepositAddresses' => true,
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchDepositMethodId' => true,
+                'fetchDepositMethodIds' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
                 'fetchMyBuys' => true,
+                'fetchMyLiquidations' => false,
                 'fetchMySells' => true,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => true,
+                'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFee' => 'emulated',
+                'fetchTradingFees' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'withdraw' => true,
@@ -119,7 +163,7 @@ class coinbase extends Exchange {
                 'www' => 'https://www.coinbase.com',
                 'doc' => array(
                     'https://developers.coinbase.com/api/v2',
-                    'https://docs.cloud.coinbase.com/advanced-trade-api/docs/welcome',
+                    'https://docs.cloud.coinbase.com/advanced-trade/docs/welcome',
                 ),
                 'fees' => array(
                     'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -197,6 +241,11 @@ class coinbase extends Exchange {
                     'public' => array(
                         'get' => array(
                             'brokerage/time' => 3,
+                            'brokerage/market/product_book' => 3,
+                            'brokerage/market/products' => 3,
+                            'brokerage/market/products/{product_id}' => 3,
+                            'brokerage/market/products/{product_id}/candles' => 3,
+                            'brokerage/market/products/{product_id}/ticker' => 3,
                         ),
                     ),
                     'private' => array(
@@ -225,6 +274,7 @@ class coinbase extends Exchange {
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => 1,
                             'brokerage/payment_methods' => 1,
                             'brokerage/payment_methods/{payment_method_id}' => 1,
+                            'brokerage/key_permissions' => 1,
                         ),
                         'post' => array(
                             'brokerage/orders' => 1,
@@ -253,8 +303,8 @@ class coinbase extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'taker' => $this->parse_number('0.006'),
-                    'maker' => $this->parse_number('0.004'),
+                    'taker' => $this->parse_number('0.012'),
+                    'maker' => $this->parse_number('0.006'), // array("pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":"")
                     'tierBased' => true,
                     'percentage' => true,
                     'tiers' => array(
@@ -305,11 +355,14 @@ class coinbase extends Exchange {
                     'rate_limit_exceeded' => '\\ccxt\\RateLimitExceeded', // 429 Rate limit exceeded
                     'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
                     'UNSUPPORTED_ORDER_CONFIGURATION' => '\\ccxt\\BadRequest',
-                    'INSUFFICIENT_FUND' => '\\ccxt\\BadRequest',
+                    'INSUFFICIENT_FUND' => '\\ccxt\\InsufficientFunds',
                     'PERMISSION_DENIED' => '\\ccxt\\PermissionDenied',
                     'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE' => '\\ccxt\\InvalidOrder',
+                    'PREVIEW_INSUFFICIENT_FUND' => '\\ccxt\\InsufficientFunds',
                 ),
                 'broad' => array(
+                    'Insufficient balance in source account' => '\\ccxt\\InsufficientFunds',
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
                     'order with this orderID was not found' => '\\ccxt\\OrderNotFound', // array("error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found")
                 ),
@@ -328,6 +381,7 @@ class coinbase extends Exchange {
                 'CGLD' => 'CELO',
             ),
             'options' => array(
+                'usePrivate' => false,
                 'brokerId' => 'ccxt',
                 'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
                 'fetchCurrencies' => array(
@@ -349,6 +403,8 @@ class coinbase extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => true,
                 'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'timeDifference' => 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
                 'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
@@ -356,13 +412,100 @@ class coinbase extends Exchange {
                 'fetchTime' => 'v2PublicGetTime', // 'v2PublicGetTime' or 'v3PublicGetBrokerageTime'
                 'user_native_currency' => 'USD', // needed to get fees for v3
             ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => true, // todo implement
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 3000,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 10000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -398,11 +541,13 @@ class coinbase extends Exchange {
     public function fetch_accounts($params = array ()): array {
         /**
          * fetch all the accounts associated with a profile
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
         $method = $this->safe_string($this->options, 'fetchAccounts', 'fetchAccountsV3');
         if ($method === 'fetchAccountsV3') {
@@ -421,7 +566,7 @@ class coinbase extends Exchange {
         $request = array(
             'limit' => 100,
         );
-        $response = $this->v2PrivateGetAccounts (array_merge($request, $params));
+        $response = $this->v2PrivateGetAccounts ($this->extend($request, $params));
         //
         //     {
         //         "pagination" => array(
@@ -485,12 +630,12 @@ class coinbase extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'cursor', 'cursor', null, 250);
         }
         $request = array(
-            'limit' => 100,
+            'limit' => 250,
         );
-        $response = $this->v3PrivateGetBrokerageAccounts (array_merge($request, $params));
+        $response = $this->v3PrivateGetBrokerageAccounts ($this->extend($request, $params));
         //
         //     {
         //         "accounts" => array(
@@ -522,11 +667,11 @@ class coinbase extends Exchange {
         //     }
         //
         $accounts = $this->safe_list($response, 'accounts', array());
-        $length = count($accounts);
-        $lastIndex = $length - 1;
-        $last = $this->safe_dict($accounts, $lastIndex);
+        $accountsLength = count($accounts);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
+        if (($accountsLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $accountsLength - 1;
+            $last = $this->safe_dict($accounts, $lastIndex);
             $last['cursor'] = $cursor;
             $accounts[$lastIndex] = $last;
         }
@@ -536,9 +681,11 @@ class coinbase extends Exchange {
     public function fetch_portfolios($params = array ()): array {
         /**
          * fetch all the $portfolios
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
         $response = $this->v3PrivateGetBrokeragePortfolios ($params);
         $portfolios = $this->safe_list($response, 'portfolios', array());
@@ -626,13 +773,15 @@ class coinbase extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a currency deposit $address
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-$address
+         *
          * @param {string} $code unified currency $code of the currency for the deposit $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
         $accountId = $this->safe_string($params, 'account_id');
         $params = $this->omit($params, 'account_id');
@@ -647,12 +796,12 @@ class coinbase extends Exchange {
             }
         }
         if ($accountId === null) {
-            throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code, specify an `account_id` extra param');
+            throw new ExchangeError($this->id . ' createDepositAddress() could not find the $account with matching currency $code ' . $code . ', specify an `account_id` extra param to target specific wallet');
         }
         $request = array(
             'account_id' => $accountId,
         );
-        $response = $this->v2PrivatePostAccountsAccountIdAddresses (array_merge($request, $params));
+        $response = $this->v2PrivatePostAccountsAccountIdAddresses ($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -696,6 +845,7 @@ class coinbase extends Exchange {
             'currency' => $code,
             'tag' => $tag,
             'address' => $address,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -704,18 +854,20 @@ class coinbase extends Exchange {
         /**
          * @ignore
          * fetch $sells
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
+         *
          * @param {string} $symbol not used by coinbase fetchMySells ()
          * @param {int} [$since] timestamp in ms of the earliest sell, default is null
          * @param {int} [$limit] max number of $sells to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=order-structure list of order structures~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=order-structure list of order structures~
          */
         // v2 did't have an endpoint for all historical trades
         $request = $this->prepare_account_request($limit, $params);
         $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
-        $sells = $this->v2PrivateGetAccountsAccountIdSells (array_merge($request, $query));
+        $sells = $this->v2PrivateGetAccountsAccountIdSells ($this->extend($request, $query));
         return $this->parse_trades($sells['data'], null, $since, $limit);
     }
 
@@ -723,18 +875,20 @@ class coinbase extends Exchange {
         /**
          * @ignore
          * fetch $buys
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
+         *
          * @param {string} $symbol not used by coinbase fetchMyBuys ()
          * @param {int} [$since] timestamp in ms of the earliest buy, default is null
          * @param {int} [$limit] max number of $buys to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of  ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} a list of  ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         // v2 did't have an endpoint for all historical trades
         $request = $this->prepare_account_request($limit, $params);
         $this->load_markets();
         $query = $this->omit($params, array( 'account_id', 'accountId' ));
-        $buys = $this->v2PrivateGetAccountsAccountIdBuys (array_merge($request, $query));
+        $buys = $this->v2PrivateGetAccountsAccountIdBuys ($this->extend($request, $query));
         return $this->parse_trades($buys['data'], null, $since, $limit);
     }
 
@@ -742,39 +896,72 @@ class coinbase extends Exchange {
         $request = null;
         list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         $this->load_markets();
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch all withdrawals made from an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals
+         * Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {string} [$params->currencyType] "fiat" or "crypto"
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        // fiat only, for crypto transactions use fetchLedger
+        $currencyType = null;
+        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+        if ($currencyType === 'crypto') {
+            $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
+            return $this->filter_by_array($results, 'type', 'withdrawal', false);
+        }
         return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params);
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch all deposits made to an account
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits
+         * Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+         *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @param {string} [$params->currencyType] "fiat" or "crypto"
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        // fiat only, for crypto transactions use fetchLedger
+        $currencyType = null;
+        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+        if ($currencyType === 'crypto') {
+            $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
+            return $this->filter_by_array($results, 'type', 'deposit', false);
+        }
         return $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $params);
     }
 
-    public function parse_transaction_status($status) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch history of deposits and withdrawals
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+         *
+         * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
+         * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+         * @param {int} [$limit] max number of deposit/withdrawals to return, default = 50, Min => 1, Max => 100
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        $this->load_markets();
+        $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
+        return $this->filter_by_array($results, 'type', array( 'deposit', 'withdrawal' ), false);
+    }
+
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'created' => 'pending',
             'completed' => 'ok',
@@ -783,7 +970,7 @@ class coinbase extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fiat deposit
         //
@@ -898,17 +1085,61 @@ class coinbase extends Exchange {
         //         "hide_native_amount" => false
         //     }
         //
+        //
+        // crypto deposit & withdrawal (using `/transactions` endpoint)
+        //    {
+        //        "amount" => array(
+        //            "amount" => "0.00014200", (negative for withdrawal)
+        //            "currency" => "BTC"
+        //        ),
+        //        "created_at" => "2024-03-29T15:48:30Z",
+        //        "id" => "0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "idem" => "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
+        //        "native_amount" => array(
+        //            "amount" => "9.85", (negative for withdrawal)
+        //            "currency" => "USD"
+        //        ),
+        //        "network" => {
+        //            "status" => "pending", // if $status is `off_blockchain` then no more other fields are property_exists($this, present) object
+        //            "hash" => "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        //            "network_name" => "solana",
+        //            "transaction_fee" => array(
+        //                "amount" => "0.000100000",
+        //                "currency" => "SOL"
+        //            }
+        //        ),
+        //        "resource" => "transaction",
+        //        "resource_path" => "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "status" => "completed",
+        //        "type" => "send",
+        //        "from" => array( // in some cases, field might be present for deposit
+        //            "id" => "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        //            "name" => "Coinbase",
+        //            "resource" => "user"
+        //        ),
+        //        "to" => array( // field only present for withdrawal
+        //            "address" => "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        //            "resource" => "address"
+        //        ),
+        //        "description" => "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
+        //    }
+        //
         $transactionType = $this->safe_string($transaction, 'type');
         $amountAndCurrencyObject = null;
         $feeObject = null;
+        $network = $this->safe_dict($transaction, 'network', array());
         if ($transactionType === 'send') {
-            $network = $this->safe_dict($transaction, 'network', array());
-            $amountAndCurrencyObject = $this->safe_dict($network, 'transaction_amount', array());
+            $amountAndCurrencyObject = $this->safe_dict($network, 'transaction_amount');
             $feeObject = $this->safe_dict($network, 'transaction_fee', array());
         } else {
-            $amountAndCurrencyObject = $this->safe_dict($transaction, 'subtotal', array());
+            $amountAndCurrencyObject = $this->safe_dict($transaction, 'subtotal');
             $feeObject = $this->safe_dict($transaction, 'fee', array());
         }
+        if ($amountAndCurrencyObject === null) {
+            $amountAndCurrencyObject = $this->safe_dict($transaction, 'amount');
+        }
+        $amountString = $this->safe_string($amountAndCurrencyObject, 'amount');
+        $amountStringAbs = Precise::string_abs($amountString);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         if ($status === null) {
             $committed = $this->safe_bool($transaction, 'committed');
@@ -918,23 +1149,33 @@ class coinbase extends Exchange {
         $currencyId = $this->safe_string($amountAndCurrencyObject, 'currency');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
         $datetime = $this->safe_string($transaction, 'created_at');
-        $toObject = $this->safe_dict($transaction, 'to', array());
-        $toAddress = $this->safe_string($toObject, 'address');
+        $resource = $this->safe_string($transaction, 'resource');
+        $type = $resource;
+        if (!$this->in_array($type, array( 'deposit', 'withdrawal' ))) {
+            if (Precise::string_gt($amountString, '0')) {
+                $type = 'deposit';
+            } elseif (Precise::string_lt($amountString, '0')) {
+                $type = 'withdrawal';
+            }
+        }
+        $toObject = $this->safe_dict($transaction, 'to');
+        $addressTo = $this->safe_string($toObject, 'address');
+        $networkId = $this->safe_string($network, 'network_name');
         return array(
             'info' => $transaction,
             'id' => $id,
-            'txid' => $id,
+            'txid' => $this->safe_string($network, 'hash', $id),
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'network' => null,
-            'address' => $toAddress,
-            'addressTo' => $toAddress,
+            'network' => $this->network_id_to_code($networkId),
+            'address' => $addressTo,
+            'addressTo' => $addressTo,
             'addressFrom' => null,
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
-            'type' => $this->safe_string($transaction, 'resource'),
-            'amount' => $this->safe_number($amountAndCurrencyObject, 'amount'),
+            'type' => $type,
+            'amount' => $this->parse_number($amountStringAbs),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'status' => $status,
             'updated' => $this->parse8601($this->safe_string($transaction, 'updated_at')),
@@ -945,7 +1186,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchMyBuys, fetchMySells
         //
@@ -1079,13 +1320,19 @@ class coinbase extends Exchange {
 
     public function fetch_markets($params = array ()): array {
         /**
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+         *
          * retrieves data on all markets for coinbase
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
          * @return {array[]} an array of objects representing market data
          */
+        if ($this->options['adjustForTimeDifference']) {
+            $this->load_time_difference();
+        }
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
         if ($method === 'fetchMarketsV3') {
             return $this->fetch_markets_v3($params);
@@ -1093,7 +1340,7 @@ class coinbase extends Exchange {
         return $this->fetch_markets_v2($params);
     }
 
-    public function fetch_markets_v2($params = array ()) {
+    public function fetch_markets_v2($params = array ()): array {
         $response = $this->fetch_currencies_from_cache($params);
         $currencies = $this->safe_dict($response, 'currencies', array());
         $exchangeRates = $this->safe_dict($response, 'exchangeRates', array());
@@ -1112,7 +1359,7 @@ class coinbase extends Exchange {
                     $quoteCurrency = $data[$j];
                     $quoteId = $this->safe_string($quoteCurrency, 'id');
                     $quote = $this->safe_currency_code($quoteId);
-                    $result[] = array(
+                    $result[] = $this->safe_market_structure(array(
                         'id' => $baseId . '-' . $quoteId,
                         'symbol' => $base . '/' . $quote,
                         'base' => $base,
@@ -1159,28 +1406,101 @@ class coinbase extends Exchange {
                             ),
                         ),
                         'info' => $quoteCurrency,
-                    );
+                    ));
                 }
             }
         }
         return $result;
     }
 
-    public function fetch_markets_v3($params = array ()) {
-        $spotUnresolvedPromises = array(
-            $this->v3PrivateGetBrokerageProducts ($params),
-            $this->v3PrivateGetBrokerageTransactionSummary ($params),
-        );
+    public function fetch_markets_v3($params = array ()): array {
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'usePrivate', false);
+        $spotUnresolvedPromises = array();
+        if ($usePrivate) {
+            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageProducts ($params);
+        } else {
+            $spotUnresolvedPromises[] = $this->v3PublicGetBrokerageMarketProducts ($params);
+        }
+        //
+        //    {
+        //        products => array(
+        //            array(
+        //                product_id => 'BTC-USD',
+        //                price => '67060',
+        //                price_percentage_change_24h => '3.30054960636883',
+        //                volume_24h => '10967.87426597',
+        //                volume_percentage_change_24h => '141.73048325503036',
+        //                base_increment => '0.00000001',
+        //                quote_increment => '0.01',
+        //                quote_min_size => '1',
+        //                quote_max_size => '150000000',
+        //                base_min_size => '0.00000001',
+        //                base_max_size => '3400',
+        //                base_name => 'Bitcoin',
+        //                quote_name => 'US Dollar',
+        //                watched => false,
+        //                is_disabled => false,
+        //                new => false,
+        //                status => 'online',
+        //                cancel_only => false,
+        //                limit_only => false,
+        //                post_only => false,
+        //                trading_disabled => false,
+        //                auction_mode => false,
+        //                product_type => 'SPOT',
+        //                quote_currency_id => 'USD',
+        //                base_currency_id => 'BTC',
+        //                fcm_trading_session_details => null,
+        //                mid_market_price => '',
+        //                alias => '',
+        //                alias_to => array( 'BTC-USDC' ),
+        //                base_display_symbol => 'BTC',
+        //                quote_display_symbol => 'USD',
+        //                view_only => false,
+        //                price_increment => '0.01',
+        //                display_name => 'BTC-USD',
+        //                product_venue => 'CBE'
+        //            ),
+        //            ...
+        //        ),
+        //        num_products => '646'
+        //    }
+        //
+        if ($this->check_required_credentials(false)) {
+            $spotUnresolvedPromises[] = $this->v3PrivateGetBrokerageTransactionSummary ($params);
+        }
+        //
+        //    {
+        //        total_volume => '9.995989116664404',
+        //        total_fees => '0.07996791093331522',
+        //        fee_tier => array(
+        //            pricing_tier => 'Advanced 1',
+        //            usd_from => '0',
+        //            usd_to => '1000',
+        //            taker_fee_rate => '0.008',
+        //            maker_fee_rate => '0.006',
+        //            aop_from => '',
+        //            aop_to => ''
+        //        ),
+        //        margin_rate => null,
+        //        goods_and_services_tax => null,
+        //        advanced_trade_only_volume => '9.995989116664404',
+        //        advanced_trade_only_fees => '0.07996791093331522',
+        //        coinbase_pro_volume => '0',
+        //        coinbase_pro_fees => '0',
+        //        total_balance => '',
+        //        has_promo_fee => false
+        //    }
+        //
         $unresolvedContractPromises = array();
         try {
             $unresolvedContractPromises = array(
-                $this->v3PrivateGetBrokerageProducts (array_merge($params, array( 'product_type' => 'FUTURE' ))),
-                $this->v3PrivateGetBrokerageProducts (array_merge($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
-                $this->v3PrivateGetBrokerageTransactionSummary (array_merge($params, array( 'product_type' => 'FUTURE' ))),
-                $this->v3PrivateGetBrokerageTransactionSummary (array_merge($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
+                $this->v3PublicGetBrokerageMarketProducts ($this->extend($params, array( 'product_type' => 'FUTURE' ))),
+                $this->v3PublicGetBrokerageMarketProducts ($this->extend($params, array( 'product_type' => 'FUTURE', 'contract_expiry_type' => 'PERPETUAL' ))),
             );
         } catch (Exception $e) {
-            $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here
+            $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
         $promises = $spotUnresolvedPromises;
         $contractPromises = null;
@@ -1193,8 +1513,8 @@ class coinbase extends Exchange {
         $fees = $this->safe_dict($promises, 1, array());
         $expiringFutures = $this->safe_dict($contractPromises, 0, array());
         $perpetualFutures = $this->safe_dict($contractPromises, 1, array());
-        $expiringFees = $this->safe_dict($contractPromises, 2, array());
-        $perpetualFees = $this->safe_dict($contractPromises, 3, array());
+        $expiringFees = $this->safe_dict($contractPromises, 0, array());
+        $perpetualFees = $this->safe_dict($contractPromises, 1, array());
         //
         //     {
         //         "total_volume" => 0,
@@ -1230,7 +1550,20 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($perpetualData); $i++) {
             $result[] = $this->parse_contract_market($perpetualData[$i], $perpetualFeeTier);
         }
-        return $result;
+        $newMarkets = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $market = $result[$i];
+            $info = $this->safe_value($market, 'info', array());
+            $realMarketIds = $this->safe_list($info, 'alias_to', array());
+            $length = count($realMarketIds);
+            if ($length > 0) {
+                $market['alias'] = $realMarketIds[0];
+            } else {
+                $market['alias'] = null;
+            }
+            $newMarkets[] = $market;
+        }
+        return $newMarkets;
     }
 
     public function parse_spot_market($market, $feeTier): array {
@@ -1273,6 +1606,10 @@ class coinbase extends Exchange {
         $marketType = $this->safe_string_lower($market, 'product_type');
         $tradingDisabled = $this->safe_bool($market, 'trading_disabled');
         $stablePairs = $this->safe_list($this->options, 'stablePairs', array());
+        $defaultTakerFee = $this->safe_number($this->fees['trading'], 'taker');
+        $defaultMakerFee = $this->safe_number($this->fees['trading'], 'maker');
+        $takerFee = $this->in_array($id, $stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate', $defaultTakerFee);
+        $makerFee = $this->in_array($id, $stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate', $defaultMakerFee);
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -1292,8 +1629,8 @@ class coinbase extends Exchange {
             'contract' => false,
             'linear' => null,
             'inverse' => null,
-            'taker' => $this->in_array($id, $stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate'),
-            'maker' => $this->in_array($id, $stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate'),
+            'taker' => $takerFee,
+            'maker' => $makerFee,
             'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -1450,6 +1787,7 @@ class coinbase extends Exchange {
         $contractSize = $this->safe_number($futureProductDetails, 'contract_size');
         $contractExpire = $this->safe_string($futureProductDetails, 'contract_expiry');
         $expireTimestamp = $this->parse8601($contractExpire);
+        $expireDateTime = $this->iso8601($expireTimestamp);
         $isSwap = ($contractExpiryType === 'PERPETUAL');
         $baseId = $this->safe_string($futureProductDetails, 'contract_root_unit');
         $quoteId = $this->safe_string($market, 'quote_currency_id');
@@ -1492,7 +1830,7 @@ class coinbase extends Exchange {
             'maker' => $maker,
             'contractSize' => $contractSize,
             'expiry' => $expireTimestamp,
-            'expiryDatetime' => $contractExpire,
+            'expiryDatetime' => $expireDateTime,
             'strike' => null,
             'optionType' => null,
             'precision' => array(
@@ -1560,7 +1898,7 @@ class coinbase extends Exchange {
             $fiatData = $this->safe_list($fiatResponse, 'data', array());
             $cryptoData = $this->safe_list($cryptoResponse, 'data', array());
             $exchangeRates = $this->v2PublicGetExchangeRates ($params);
-            $this->options['fetchCurrencies'] = array_merge($options, array(
+            $this->options['fetchCurrencies'] = $this->extend($options, array(
                 'currencies' => $this->array_concat($fiatData, $cryptoData),
                 'exchangeRates' => $exchangeRates,
                 'timestamp' => $now,
@@ -1569,53 +1907,56 @@ class coinbase extends Exchange {
         return $this->safe_dict($this->options, 'fetchCurrencies', array());
     }
 
-    public function fetch_currencies($params = array ()): array {
+    public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$currencies#get-fiat-$currencies
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-$rates#get-exchange-$rates
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->fetch_currencies_from_cache($params);
-        $currencies = $this->safe_list($response, 'currencies', array());
+        $promises = array(
+            $this->v2PublicGetCurrencies ($params),
+            $this->v2PublicGetCurrenciesCrypto ($params),
+            $this->v2PublicGetExchangeRates ($params),
+        );
+        $promisesResult = $promises;
+        $fiatResponse = $this->safe_dict($promisesResult, 0, array());
         //
-        // fiat
+        //    [
+        //        "data" => [
+        //            array(
+        //                $id => 'IMP',
+        //                $name => 'Isle of Man Pound',
+        //                min_size => '0.01'
+        //            ),
+        //        ...
         //
-        //    array(
-        //        $id => 'IMP',
-        //        $name => 'Isle of Man Pound',
-        //        min_size => '0.01'
-        //    ),
+        $cryptoResponse = $this->safe_dict($promisesResult, 1, array());
         //
-        // crypto
+        //     [
+        //        "data" => [
+        //           array(
+        //              asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              $code => 'AERO',
+        //              $name => 'Aerodrome Finance',
+        //              color => '#0433FF',
+        //              sort_index => '340',
+        //              exponent => '8',
+        //              $type => 'crypto',
+        //              address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           ),
+        //          ...
         //
-        //    {
-        //        asset_id => '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        $code => 'AERO',
-        //        $name => 'Aerodrome Finance',
-        //        color => '#0433FF',
-        //        sort_index => '340',
-        //        exponent => '8',
-        //        type => 'crypto',
-        //        address_regex => '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":array(
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             ),
-        //         }
-        //     }
-        //
+        $ratesResponse = $this->safe_dict($promisesResult, 2, array());
+        $fiatData = $this->safe_list($fiatResponse, 'data', array());
+        $cryptoData = $this->safe_list($cryptoResponse, 'data', array());
+        $ratesData = $this->safe_dict($ratesResponse, 'data', array());
+        $rates = $this->safe_dict($ratesData, 'rates', array());
+        $ratesIds = is_array($rates) ? array_keys($rates) : array();
+        $currencies = $this->array_concat($fiatData, $cryptoData);
         $result = array();
         $networks = array();
         $networksById = array();
@@ -1627,17 +1968,19 @@ class coinbase extends Exchange {
             $name = $this->safe_string($currency, 'name');
             $this->options['networks'][$code] = strtolower($name);
             $this->options['networksById'][$code] = strtolower($name);
-            $result[$code] = array(
-                'info' => $currency, // the original payload
+            $type = ($assetId !== null) ? 'crypto' : 'fiat';
+            $result[$code] = $this->safe_currency_structure(array(
+                'info' => $currency,
                 'id' => $id,
                 'code' => $code,
-                'type' => ($assetId !== null) ? 'crypto' : 'fiat',
-                'name' => $this->safe_string($currency, 'name'),
+                'type' => $type,
+                'name' => $name,
                 'active' => true,
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
+                'networks' => array(), // todo
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($currency, 'min_size'),
@@ -1648,26 +1991,43 @@ class coinbase extends Exchange {
                         'max' => null,
                     ),
                 ),
-            );
+            ));
             if ($assetId !== null) {
                 $lowerCaseName = strtolower($name);
                 $networks[$code] = $lowerCaseName;
                 $networksById[$lowerCaseName] = $code;
             }
         }
-        $this->options['networks'] = array_merge($networks, $this->options['networks']);
-        $this->options['networksById'] = array_merge($networksById, $this->options['networksById']);
+        // we have to add other $currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for ($i = 0; $i < count($ratesIds); $i++) {
+            $currencyId = $ratesIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            if (!(is_array($result) && array_key_exists($code, $result))) {
+                $result[$code] = $this->safe_currency_structure(array(
+                    'info' => array(),
+                    'id' => $currencyId,
+                    'code' => $code,
+                    'type' => 'crypto',
+                    'networks' => array(), // todo
+                ));
+            }
+        }
+        $this->options['networks'] = $this->extend($networks, $this->options['networks']);
+        $this->options['networksById'] = $this->extend($networksById, $this->options['networksById']);
         return $result;
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @param {boolean} [$params->usePrivate] use private endpoint for fetching tickers
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $method = $this->safe_string($this->options, 'fetchTickers', 'fetchTickersV3');
         if ($method === 'fetchTickersV3') {
@@ -1676,13 +2036,13 @@ class coinbase extends Exchange {
         return $this->fetch_tickers_v2($symbols, $params);
     }
 
-    public function fetch_tickers_v2(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v2(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array(
             // 'currency' => 'USD',
         );
-        $response = $this->v2PublicGetExchangeRates (array_merge($request, $params));
+        $response = $this->v2PublicGetExchangeRates ($this->extend($request, $params));
         //
         //     {
         //         "data":{
@@ -1711,14 +2071,26 @@ class coinbase extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_tickers_v3(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers_v3(?array $symbols = null, $params = array ()): array {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();
         if ($symbols !== null) {
             $request['product_ids'] = $this->market_ids($symbols);
         }
-        $response = $this->v3PrivateGetBrokerageProducts (array_merge($request, $params));
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $this->get_market_from_symbols($symbols), $params, 'default');
+        if ($marketType !== null && $marketType !== 'default') {
+            $request['product_type'] = ($marketType === 'swap') ? 'FUTURE' : 'SPOT';
+        }
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProducts ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProducts ($this->extend($request, $params));
+        }
         //
         //     {
         //         "products" => array(
@@ -1771,13 +2143,16 @@ class coinbase extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+         *
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @param {boolean} [$params->usePrivate] whether to use the private endpoint for fetching the ticker
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $method = $this->safe_string($this->options, 'fetchTicker', 'fetchTickerV3');
         if ($method === 'fetchTickerV3') {
@@ -1789,7 +2164,7 @@ class coinbase extends Exchange {
     public function fetch_ticker_v2(string $symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array_merge(array(
+        $request = $this->extend(array(
             'symbol' => $market['id'],
         ), $params);
         $spot = $this->v2PublicGetPricesSymbolSpot ($request);
@@ -1822,7 +2197,14 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'limit' => 1,
         );
-        $response = $this->v3PrivateGetBrokerageProductsProductIdTicker (array_merge($request, $params));
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'usePrivate', false);
+        $response = null;
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker ($this->extend($request, $params));
+        }
         //
         //     {
         //         "trades" => array(
@@ -1842,13 +2224,14 @@ class coinbase extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'trades', array());
-        $ticker = $this->parse_ticker($data[0], $market);
+        $first = $this->safe_dict($data, 0, array());
+        $ticker = $this->parse_ticker($first, $market);
         $ticker['bid'] = $this->safe_number($response, 'best_bid');
         $ticker['ask'] = $this->safe_number($response, 'best_ask');
         return $ticker;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickerV2
         //
@@ -1878,34 +2261,44 @@ class coinbase extends Exchange {
         // fetchTickersV3
         //
         //     array(
-        //         array(
-        //             "product_id" => "TONE-USD",
-        //             "price" => "0.01523",
-        //             "price_percentage_change_24h" => "1.94109772423025",
-        //             "volume_24h" => "19773129",
-        //             "volume_percentage_change_24h" => "437.0170530929949",
-        //             "base_increment" => "1",
-        //             "quote_increment" => "0.00001",
-        //             "quote_min_size" => "1",
-        //             "quote_max_size" => "10000000",
-        //             "base_min_size" => "26.7187147229469674",
-        //             "base_max_size" => "267187147.2294696735908216",
-        //             "base_name" => "TE-FOOD",
-        //             "quote_name" => "US Dollar",
-        //             "watched" => false,
-        //             "is_disabled" => false,
-        //             "new" => false,
-        //             "status" => "online",
-        //             "cancel_only" => false,
-        //             "limit_only" => false,
-        //             "post_only" => false,
-        //             "trading_disabled" => false,
-        //             "auction_mode" => false,
-        //             "product_type" => "SPOT",
-        //             "quote_currency_id" => "USD",
-        //             "base_currency_id" => "TONE",
-        //             "fcm_trading_session_details" => null,
-        //             "mid_market_price" => ""
+        //        array(
+        //            "product_id" => "ETH-USD",
+        //            "price" => "4471.59",
+        //            "price_percentage_change_24h" => "0.14243387238731",
+        //            "volume_24h" => "87329.92990204",
+        //            "volume_percentage_change_24h" => "-60.7789801794578",
+        //            "base_increment" => "0.00000001",
+        //            "quote_increment" => "0.01",
+        //            "quote_min_size" => "1",
+        //            "quote_max_size" => "150000000",
+        //            "base_min_size" => "0.00000001",
+        //            "base_max_size" => "42000",
+        //            "base_name" => "Ethereum",
+        //            "quote_name" => "US Dollar",
+        //            "watched" => false,
+        //            "is_disabled" => false,
+        //            "new" => false,
+        //            "status" => "online",
+        //            "cancel_only" => false,
+        //            "limit_only" => false,
+        //            "post_only" => false,
+        //            "trading_disabled" => false,
+        //            "auction_mode" => false,
+        //            "product_type" => "SPOT",
+        //            "quote_currency_id" => "USD",
+        //            "base_currency_id" => "ETH",
+        //            "fcm_trading_session_details" => null,
+        //            "mid_market_price" => "",
+        //            "alias" => "",
+        //            "alias_to" => array( "ETH-USDC" ),
+        //            "base_display_symbol" => "ETH",
+        //            "quote_display_symbol" => "USD",
+        //            "view_only" => false,
+        //            "price_increment" => "0.01",
+        //            "display_name" => "ETH-USD",
+        //            "product_venue" => "CBE",
+        //            "approximate_quote_24h_volume" => "390503641.25",
+        //            "new_at" => "2023-01-01T00:00:00Z"
         //         ),
         //         ...
         //     )
@@ -1936,16 +2329,19 @@ class coinbase extends Exchange {
         if ((is_array($ticker) && array_key_exists('bids', $ticker))) {
             $bids = $this->safe_list($ticker, 'bids', array());
             $asks = $this->safe_list($ticker, 'asks', array());
-            $bid = $this->safe_number($bids[0], 'price');
-            $bidVolume = $this->safe_number($bids[0], 'size');
-            $ask = $this->safe_number($asks[0], 'price');
-            $askVolume = $this->safe_number($asks[0], 'size');
+            $firstBid = $this->safe_dict($bids, 0, array());
+            $firstAsk = $this->safe_dict($asks, 0, array());
+            $bid = $this->safe_number($firstBid, 'price');
+            $bidVolume = $this->safe_number($firstBid, 'size');
+            $ask = $this->safe_number($firstAsk, 'price');
+            $askVolume = $this->safe_number($firstAsk, 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_number($ticker, 'price');
         $datetime = $this->safe_string($ticker, 'time');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $market['symbol'],
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'bid' => $bid,
@@ -1962,8 +2358,8 @@ class coinbase extends Exchange {
             'change' => null,
             'percentage' => $this->safe_number($ticker, 'price_percentage_change_24h'),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => null,
+            'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
+            'quoteVolume' => $this->safe_number($ticker, 'approximate_quote_24h_volume'),
             'info' => $ticker,
         ), $market);
     }
@@ -2024,13 +2420,16 @@ class coinbase extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
-         * @param {array} [$params->type] "spot" (default) or "swap" or "future"
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @param {string} [$params->type] "spot" (default) or "swap" or "future"
+         * @param {int} [$params->limit] default 250, maximum number of accounts to return
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $request = array();
@@ -2041,13 +2440,13 @@ class coinbase extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->safe_string($this->options, 'fetchBalance', 'v3PrivateGetBrokerageAccounts');
         if ($marketType === 'future') {
-            $response = $this->v3PrivateGetBrokerageCfmBalanceSummary (array_merge($request, $params));
+            $response = $this->v3PrivateGetBrokerageCfmBalanceSummary ($this->extend($request, $params));
         } elseif (($isV3) || ($method === 'v3PrivateGetBrokerageAccounts')) {
             $request['limit'] = 250;
-            $response = $this->v3PrivateGetBrokerageAccounts (array_merge($request, $params));
+            $response = $this->v3PrivateGetBrokerageAccounts ($this->extend($request, $params));
         } else {
-            $request['limit'] = 100;
-            $response = $this->v2PrivateGetAccounts (array_merge($request, $params));
+            $request['limit'] = 250;
+            $response = $this->v2PrivateGetAccounts ($this->extend($request, $params));
         }
         //
         // v2PrivateGetAccounts
@@ -2056,7 +2455,7 @@ class coinbase extends Exchange {
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         //             "limit":100,
         //             "order":"desc",
         //             "previous_uri":null,
@@ -2124,16 +2523,18 @@ class coinbase extends Exchange {
         return $this->parse_custom_balance($response, $params);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions
-         * @param {string} $code unified $currency $code, default is null
+         * Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+         *
+         * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
-         * @param {int} [$limit] max number of $ledger entrys to return, default is null
+         * @param {int} [$limit] max number of $ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger-entry-structure $ledger structure~
          */
         $this->load_markets();
         $paginate = false;
@@ -2149,8 +2550,8 @@ class coinbase extends Exchange {
         list($request, $params) = $this->prepare_account_request_with_currency_code($code, $limit, $params);
         // for $pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg => instance.last_json_response.pagination.next_starting_after
-        $response = $this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $params));
+        // eg => instance.last_http_response -> $pagination->next_starting_after
+        $response = $this->v2PrivateGetAccountsAccountIdTransactions ($this->extend($request, $params));
         $ledger = $this->parse_ledger($response['data'], $currency, $since, $limit);
         $length = count($ledger);
         if ($length === 0) {
@@ -2161,7 +2562,7 @@ class coinbase extends Exchange {
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'next_starting_after');
         if (($cursor !== null) && ($cursor !== '')) {
-            $last['next_starting_after'] = $cursor;
+            $last['info']['next_starting_after'] = $cursor;
             $ledger[$lastIndex] = $last;
         }
         return $ledger;
@@ -2189,7 +2590,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // crypto deposit transaction
         //
@@ -2444,6 +2845,7 @@ class coinbase extends Exchange {
         }
         $currencyId = $this->safe_string($amountInfo, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         //
         // the $address and $txid do not belong to the unified ledger structure
         //
@@ -2479,7 +2881,7 @@ class coinbase extends Exchange {
                 $accountId = $parts[3];
             }
         }
-        return array(
+        return $this->safe_ledger_entry(array(
             'info' => $item,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -2495,7 +2897,7 @@ class coinbase extends Exchange {
             'after' => null,
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
     public function find_account_id($code, $params = array ()) {
@@ -2533,7 +2935,7 @@ class coinbase extends Exchange {
             }
             $accountId = $this->find_account_id($code, $params);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code);
+                throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code . '. You might try to generate the deposit address in the website for that coin first.');
             }
         }
         $request = array(
@@ -2548,11 +2950,13 @@ class coinbase extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2566,7 +2970,9 @@ class coinbase extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -2578,8 +2984,8 @@ class coinbase extends Exchange {
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {bool} [$params->postOnly] true or false
-         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO'
-         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
+         * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
@@ -2588,7 +2994,8 @@ class coinbase extends Exchange {
          * @param {string} [$params->retail_portfolio_id] portfolio uid
          * @param {boolean} [$params->is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
          * @param {string} [$params->tradable_balance] $amount of tradable balance
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @param {float} [$params->reduceOnly] set to true for closing a position or use closePosition
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2598,10 +3005,16 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'side' => strtoupper($side),
         );
-        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+        if ($reduceOnly) {
+            $params = $this->omit($params, 'reduceOnly');
+            $params['amount'] = $amount;
+            return $this->close_position($symbol, $side, $params);
+        }
+        $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-        $isStop = $stopPrice !== null;
+        $isStop = $triggerPrice !== null;
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -2621,7 +3034,7 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtd' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                             'end_time' => $endTime,
                         ),
@@ -2631,29 +3044,29 @@ class coinbase extends Exchange {
                         'stop_limit_stop_limit_gtc' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
-                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_price' => $this->price_to_precision($symbol, $triggerPrice),
                             'stop_direction' => $stopDirection,
                         ),
                     );
                 }
             } elseif ($isStopLoss || $isTakeProfit) {
-                $triggerPrice = null;
+                $tpslPrice = null;
                 if ($isStopLoss) {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $stopLossPrice);
                 } else {
                     if ($stopDirection === null) {
                         $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                     }
-                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                    $tpslPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                 }
                 $request['order_configuration'] = array(
                     'stop_limit_stop_limit_gtc' => array(
                         'base_size' => $this->amount_to_precision($symbol, $amount),
                         'limit_price' => $this->price_to_precision($symbol, $price),
-                        'stop_price' => $triggerPrice,
+                        'stop_price' => $tpslPrice,
                         'stop_direction' => $stopDirection,
                     ),
                 );
@@ -2673,6 +3086,13 @@ class coinbase extends Exchange {
                 } elseif ($timeInForce === 'IOC') {
                     $request['order_configuration'] = array(
                         'sor_limit_ioc' => array(
+                            'base_size' => $this->amount_to_precision($symbol, $amount),
+                            'limit_price' => $this->price_to_precision($symbol, $price),
+                        ),
+                    );
+                } elseif ($timeInForce === 'FOK') {
+                    $request['order_configuration'] = array(
+                        'limit_limit_fok' => array(
                             'base_size' => $this->amount_to_precision($symbol, $amount),
                             'limit_price' => $this->price_to_precision($symbol, $price),
                         ),
@@ -2738,9 +3158,9 @@ class coinbase extends Exchange {
         if ($preview) {
             $params = $this->omit($params, array( 'preview', 'test' ));
             $request = $this->omit($request, 'client_order_id');
-            $response = $this->v3PrivatePostBrokerageOrdersPreview (array_merge($request, $params));
+            $response = $this->v3PrivatePostBrokerageOrdersPreview ($this->extend($request, $params));
         } else {
-            $response = $this->v3PrivatePostBrokerageOrders (array_merge($request, $params));
+            $response = $this->v3PrivatePostBrokerageOrders ($this->extend($request, $params));
         }
         //
         // successful order
@@ -2794,7 +3214,7 @@ class coinbase extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2860,7 +3280,7 @@ class coinbase extends Exchange {
         $marketId = $this->safe_string($order, 'product_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         if ($symbol !== null) {
-            $market = $this->market($symbol);
+            $market = $this->safe_market($symbol, $market);
         }
         $orderConfiguration = $this->safe_dict($order, 'order_configuration', array());
         $limitGTC = $this->safe_dict($orderConfiguration, 'limit_limit_gtc');
@@ -2915,7 +3335,6 @@ class coinbase extends Exchange {
             'postOnly' => $postOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $price,
-            'stopPrice' => $triggerPrice,
             'triggerPrice' => $triggerPrice,
             'amount' => $amount,
             'filled' => $this->safe_string($order, 'filled_size'),
@@ -2931,7 +3350,7 @@ class coinbase extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'OPEN' => 'open',
             'FILLED' => 'closed',
@@ -2943,7 +3362,7 @@ class coinbase extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(?string $type) {
         if ($type === 'UNKNOWN_ORDER_TYPE') {
             return null;
         }
@@ -2956,7 +3375,7 @@ class coinbase extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'GOOD_UNTIL_CANCELLED' => 'GTC',
             'GOOD_UNTIL_DATE_TIME' => 'GTD',
@@ -2970,25 +3389,29 @@ class coinbase extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinbase cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $orders = $this->cancel_orders(array( $id ), $symbol, $params);
         return $this->safe_dict($orders, 0, array());
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol not used by coinbase cancelOrders()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -2998,7 +3421,7 @@ class coinbase extends Exchange {
         $request = array(
             'order_ids' => $ids,
         );
-        $response = $this->v3PrivatePostBrokerageOrdersBatchCancel (array_merge($request, $params));
+        $response = $this->v3PrivatePostBrokerageOrdersBatchCancel ($this->extend($request, $params));
         //
         //     {
         //         "results" => array(
@@ -3023,16 +3446,18 @@ class coinbase extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+         *
          * @param {string} $id cancel order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3049,9 +3474,9 @@ class coinbase extends Exchange {
         $response = null;
         if ($preview) {
             $params = $this->omit($params, array( 'preview', 'test' ));
-            $response = $this->v3PrivatePostBrokerageOrdersEditPreview (array_merge($request, $params));
+            $response = $this->v3PrivatePostBrokerageOrdersEditPreview ($this->extend($request, $params));
         } else {
-            $response = $this->v3PrivatePostBrokerageOrdersEdit (array_merge($request, $params));
+            $response = $this->v3PrivatePostBrokerageOrdersEdit ($this->extend($request, $params));
         }
         //
         //     {
@@ -3068,11 +3493,13 @@ class coinbase extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+         *
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $market $symbol that the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = null;
@@ -3082,7 +3509,7 @@ class coinbase extends Exchange {
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalOrderId (array_merge($request, $params));
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalOrderId ($this->extend($request, $params));
         //
         //     {
         //         "order" => {
@@ -3129,14 +3556,16 @@ class coinbase extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         *
          * @param {string} $symbol unified $market $symbol that the $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -3158,12 +3587,12 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch ($this->extend($request, $params));
         //
         //     {
         //         "orders" => array(
@@ -3235,12 +3664,12 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
         }
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params));
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalBatch ($this->extend($request, $params));
         //
         //     {
         //         "orders" => array(
@@ -3296,14 +3725,16 @@ class coinbase extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on all currently open orders
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         *
          * @param {string} $symbol unified market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {int} [$params->until] the latest time in ms to fetch trades for
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -3317,14 +3748,16 @@ class coinbase extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         *
          * @param {string} $symbol unified market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of closed order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {int} [$params->until] the latest time in ms to fetch trades for
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -3338,20 +3771,24 @@ class coinbase extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+         *
          * @param {string} $symbol unified market $symbol of the orders
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of canceled order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('CANCELLED', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -3359,6 +3796,7 @@ class coinbase extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the $candles
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -3374,8 +3812,8 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $until = $this->safe_integer_n($params, array( 'until', 'till', 'end' ));
-        $params = $this->omit($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until', 'end' ));
+        $params = $this->omit($params, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
         $requestedDuration = $limit * $duration;
         $sinceString = null;
@@ -3386,13 +3824,20 @@ class coinbase extends Exchange {
             $sinceString = Precise::string_sub($now, (string) $requestedDuration);
         }
         $request['start'] = $sinceString;
-        $endString = $this->number_to_string($until);
-        if ($until === null) {
+        if ($until !== null) {
+            $request['end'] = $this->number_to_string($this->parse_to_int($until / 1000));
+        } else {
             // 300 $candles max
-            $endString = Precise::string_add($sinceString, (string) $requestedDuration);
+            $request['end'] = Precise::string_add($sinceString, (string) $requestedDuration);
         }
-        $request['end'] = $endString;
-        $response = $this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductsProductIdCandles ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdCandles ($this->extend($request, $params));
+        }
         //
         //     {
         //         "candles" => array(
@@ -3437,12 +3882,15 @@ class coinbase extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+         *
          * @param {string} $symbol unified $market $symbol of the $trades
          * @param {int} [$since] not used by coinbase fetchTrades
          * @param {int} [$limit] the maximum number of trade structures to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the $trades
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3462,7 +3910,14 @@ class coinbase extends Exchange {
         } elseif ($since !== null) {
             throw new ArgumentsRequired($this->id . ' fetchTrades() requires a `$until` parameter when you use `$since` argument');
         }
-        $response = $this->v3PrivateGetBrokerageProductsProductIdTicker (array_merge($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductsProductIdTicker ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductsProductIdTicker ($this->extend($request, $params));
+        }
         //
         //     {
         //         "trades" => array(
@@ -3486,20 +3941,22 @@ class coinbase extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+         *
          * @param {string} $symbol unified $market $symbol of the $trades
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] the maximum number of trade structures to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 250);
         }
         $market = null;
         if ($symbol !== null) {
@@ -3515,12 +3972,12 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_sequence_timestamp'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until', 'till' ));
+        $until = $this->safe_integer_n($params, array( 'until' ));
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until', 'till' ));
+            $params = $this->omit($params, array( 'until' ));
             $request['end_sequence_timestamp'] = $this->iso8601($until);
         }
-        $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params));
+        $response = $this->v3PrivateGetBrokerageOrdersHistoricalFills ($this->extend($request, $params));
         //
         //     {
         //         "fills" => array(
@@ -3557,11 +4014,14 @@ class coinbase extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the order book
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3571,7 +4031,14 @@ class coinbase extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v3PrivateGetBrokerageProductBook (array_merge($request, $params));
+        $response = null;
+        $usePrivate = false;
+        list($usePrivate, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'usePrivate', false);
+        if ($usePrivate) {
+            $response = $this->v3PrivateGetBrokerageProductBook ($this->extend($request, $params));
+        } else {
+            $response = $this->v3PublicGetBrokerageMarketProductBook ($this->extend($request, $params));
+        }
         //
         //     {
         //         "pricebook" => {
@@ -3601,10 +4068,12 @@ class coinbase extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3612,7 +4081,7 @@ class coinbase extends Exchange {
         if ($symbols !== null) {
             $request['product_ids'] = $this->market_ids($symbols);
         }
-        $response = $this->v3PrivateGetBrokerageBestBidAsk (array_merge($request, $params));
+        $response = $this->v3PrivateGetBrokerageBestBidAsk ($this->extend($request, $params));
         //
         //     {
         //         "pricebooks" => array(
@@ -3639,21 +4108,31 @@ class coinbase extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
-         * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} [$tag] an optional $tag for the withdrawal
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @param {string} [$params->network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+         * @param {array} [$params->travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
+        $request = array(
+            'type' => 'send',
+            'to' => $address,
+            'amount' => $this->number_to_string($amount),
+            'currency' => $currency['id'],
+        );
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         $params = $this->omit($params, array( 'account_id', 'accountId' ));
         if ($accountId === null) {
@@ -3664,18 +4143,14 @@ class coinbase extends Exchange {
             if ($accountId === null) {
                 throw new ExchangeError($this->id . ' withdraw() could not find account id for ' . $code);
             }
+            $request['account_id'] = $accountId;
+        } else {
+            $request['account_id'] = $accountId;
         }
-        $request = array(
-            'account_id' => $accountId,
-            'type' => 'send',
-            'to' => $address,
-            'amount' => $amount,
-            'currency' => $currency['id'],
-        );
         if ($tag !== null) {
             $request['destination_tag'] = $tag;
         }
-        $response = $this->v2PrivatePostAccountsAccountIdTransactions (array_merge($request, $params));
+        $response = $this->v2PrivatePostAccountsAccountIdTransactions ($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -3732,19 +4207,21 @@ class coinbase extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = null;
-        list($request, $params) = $this->prepare_account_request_with_currency_code($currency['code']);
-        $response = $this->v2PrivateGetAccountsAccountIdAddresses (array_merge($request, $params));
+        list($request, $params) = $this->prepare_account_request_with_currency_code($currency['code'], null, $params);
+        $response = $this->v2PrivateGetAccountsAccountIdAddresses ($this->extend($request, $params));
         //
         //    {
         //        pagination => array(
@@ -3805,7 +4282,7 @@ class coinbase extends Exchange {
         return $this->index_by($addressStructures, 'network');
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        id => '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -3849,33 +4326,53 @@ class coinbase extends Exchange {
         //        }
         //    }
         //
+        // {
+        //     "id":"3f2434234943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "address":"0x123123126F5921XXXXX",
+        //     "currency":"USDC",
+        //     "name":"",
+        //     "network":"ethereum",
+        //     "created_at":"2022-03-17T09:20:17.002Z",
+        //     "updated_at":"2022-03-17T09:20:17.002Z",
+        //     "resource":"addresses",
+        //     "resource_path":"v2/accounts/b1091c6e-9ef2-5e4d-b352-665d0cf8f742/addresses/32fd0943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "destination_tag":""
+        // }
+        //
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $networkId = $this->safe_string($depositAddress, 'network');
         $code = $this->safe_currency_code(null, $currency);
         $addressLabel = $this->safe_string($depositAddress, 'address_label');
-        $splitAddressLabel = explode(' ', $addressLabel);
-        $marketId = $this->safe_string($splitAddressLabel, 0);
+        $currencyId = null;
+        if ($addressLabel !== null) {
+            $splitAddressLabel = explode(' ', $addressLabel);
+            $currencyId = $this->safe_string($splitAddressLabel, 0);
+        } else {
+            $currencyId = $this->safe_string($depositAddress, 'currency');
+        }
         $addressInfo = $this->safe_dict($depositAddress, 'address_info');
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($addressInfo, 'destination_tag'),
-            'network' => $this->network_id_to_code($networkId, $code),
         );
     }
 
     public function deposit(string $code, float $amount, string $id, $params = array ()) {
         /**
          * make a deposit
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+         *
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to deposit
          * @param {string} $id the payment method $id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] the $id of the account to deposit into
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
@@ -3894,8 +4391,9 @@ class coinbase extends Exchange {
             'amount' => $this->number_to_string($amount),
             'currency' => strtoupper($code), // need to use $code in case depositing USD etc.
             'payment_method' => $id,
+            'commit' => true, // otheriwse the deposit does not go through
         );
-        $response = $this->v2PrivatePostAccountsAccountIdDeposits (array_merge($request, $params));
+        $response = $this->v2PrivatePostAccountsAccountIdDeposits ($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -3932,19 +4430,22 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data', array());
+        // https://github.com/ccxt/ccxt/issues/25484
+        $data = $this->safe_dict_2($response, 'data', 'transfer', array());
         return $this->parse_transaction($data);
     }
 
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+         *
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+         *
          * @param {string} $id deposit $id
          * @param {string} [$code] unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] the $id of the account that the funds were deposited into
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
@@ -3962,7 +4463,7 @@ class coinbase extends Exchange {
             'account_id' => $accountId,
             'deposit_id' => $id,
         );
-        $response = $this->v2PrivateGetAccountsAccountIdDepositsDepositId (array_merge($request, $params));
+        $response = $this->v2PrivateGetAccountsAccountIdDepositsDepositId ($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -3999,26 +4500,218 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data', array());
+        // https://github.com/ccxt/ccxt/issues/25484
+        $data = $this->safe_dict_2($response, 'data', 'transfer', array());
         return $this->parse_transaction($data);
+    }
+
+    public function fetch_deposit_method_ids($params = array ()) {
+        /**
+         * fetch the deposit id for a fiat currency associated with this account
+         *
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=deposit-id-structure deposit id structures~
+         */
+        $this->load_markets();
+        $response = $this->v3PrivateGetBrokeragePaymentMethods ($params);
+        //
+        //     {
+        //         "payment_methods" => array(
+        //             {
+        //                 "id" => "21b39a5d-f7b46876fb2e",
+        //                 "type" => "COINBASE_FIAT_ACCOUNT",
+        //                 "name" => "CAD Wallet",
+        //                 "currency" => "CAD",
+        //                 "verified" => true,
+        //                 "allow_buy" => false,
+        //                 "allow_sell" => true,
+        //                 "allow_deposit" => false,
+        //                 "allow_withdraw" => false,
+        //                 "created_at" => "2023-06-29T19:58:46Z",
+        //                 "updated_at" => "2023-10-30T20:25:01Z"
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->safe_list($response, 'payment_methods', array());
+        return $this->parse_deposit_method_ids($result);
+    }
+
+    public function fetch_deposit_method_id(string $id, $params = array ()) {
+        /**
+         * fetch the deposit $id for a fiat currency associated with this account
+         *
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod
+         *
+         * @param {string} $id the deposit payment method $id
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=deposit-$id-structure deposit $id structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'payment_method_id' => $id,
+        );
+        $response = $this->v3PrivateGetBrokeragePaymentMethodsPaymentMethodId ($this->extend($request, $params));
+        //
+        //     {
+        //         "payment_method" => {
+        //             "id" => "21b39a5d-f7b46876fb2e",
+        //             "type" => "COINBASE_FIAT_ACCOUNT",
+        //             "name" => "CAD Wallet",
+        //             "currency" => "CAD",
+        //             "verified" => true,
+        //             "allow_buy" => false,
+        //             "allow_sell" => true,
+        //             "allow_deposit" => false,
+        //             "allow_withdraw" => false,
+        //             "created_at" => "2023-06-29T19:58:46Z",
+        //             "updated_at" => "2023-10-30T20:25:01Z"
+        //         }
+        //     }
+        //
+        $result = $this->safe_dict($response, 'payment_method', array());
+        return $this->parse_deposit_method_id($result);
+    }
+
+    public function parse_deposit_method_ids($ids, $params = array ()) {
+        $result = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $this->extend($this->parse_deposit_method_id($ids[$i]), $params);
+            $result[] = $id;
+        }
+        return $result;
+    }
+
+    public function parse_deposit_method_id($depositId) {
+        return array(
+            'info' => $depositId,
+            'id' => $this->safe_string($depositId, 'id'),
+            'currency' => $this->safe_string($depositId, 'currency'),
+            'verified' => $this->safe_bool($depositId, 'verified'),
+            'tag' => $this->safe_string($depositId, 'name'),
+        );
+    }
+
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
+        /**
+         * fetch a quote for converting from one currency to another
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+         *
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} [$amount] how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->trade_incentive_metadata] an object to fill in user incentive $data
+         * @param {string} [$params->trade_incentive_metadata.user_incentive_id] the id of the incentive
+         * @param {string} [$params->trade_incentive_metadata.code_val] the code value of the incentive
+         * @return {array} a ~@link https://docs.ccxt.com/?id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'from_account' => $fromCode,
+            'to_account' => $toCode,
+            'amount' => $this->number_to_string($amount),
+        );
+        $response = $this->v3PrivatePostBrokerageConvertQuote ($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'trade', array());
+        return $this->parse_conversion($data);
+    }
+
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
+        /**
+         * convert from one currency to another
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+         *
+         * @param {string} $id the $id of the trade that you want to make
+         * @param {string} $fromCode the currency that you want to sell and convert from
+         * @param {string} $toCode the currency that you want to buy and convert into
+         * @param {float} [$amount] how much you want to trade in units of the from currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'trade_id' => $id,
+            'from_account' => $fromCode,
+            'to_account' => $toCode,
+        );
+        $response = $this->v3PrivatePostBrokerageConvertTradeTradeId ($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'trade', array());
+        return $this->parse_conversion($data);
+    }
+
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
+        /**
+         * fetch the $data for a conversion trade
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+         *
+         * @param {string} $id the $id of the trade that you want to commit
+         * @param {string} $code the unified currency $code that was converted from
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {strng} $params->toCode the unified currency $code that was converted into
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
+         */
+        $this->load_markets();
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $code argument');
+        }
+        $toCode = $this->safe_string($params, 'toCode');
+        if ($toCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchConvertTrade() requires a $toCode parameter');
+        }
+        $params = $this->omit($params, 'toCode');
+        $request = array(
+            'trade_id' => $id,
+            'from_account' => $code,
+            'to_account' => $toCode,
+        );
+        $response = $this->v3PrivateGetBrokerageConvertTradeTradeId ($this->extend($request, $params));
+        $data = $this->safe_dict($response, 'trade', array());
+        return $this->parse_conversion($data);
+    }
+
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
+        $fromCoin = $this->safe_string($conversion, 'source_currency');
+        $fromCode = $this->safe_currency_code($fromCoin, $fromCurrency);
+        $to = $this->safe_string($conversion, 'target_currency');
+        $toCode = $this->safe_currency_code($to, $toCurrency);
+        $fromAmountStructure = $this->safe_dict($conversion, 'user_entered_amount');
+        $feeStructure = $this->safe_dict($conversion, 'total_fee');
+        $feeAmountStructure = $this->safe_dict($feeStructure, 'amount');
+        return array(
+            'info' => $conversion,
+            'timestamp' => null,
+            'datetime' => null,
+            'id' => $this->safe_string($conversion, 'id'),
+            'fromCurrency' => $fromCode,
+            'fromAmount' => $this->safe_number($fromAmountStructure, 'value'),
+            'toCurrency' => $toCode,
+            'toAmount' => null,
+            'price' => null,
+            'fee' => $this->safe_number($feeAmountStructure, 'value'),
+        );
     }
 
     public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
         /**
          * *futures only* closes open positions for a $market
-         * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         *
+         * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
+         *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by coinbase
          * @param {array} [$params] extra parameters specific to the coinbase api endpoint
          * @param {string}  $params->clientOrderId *mandatory* the client $order id of the position to close
          * @param {float} [$params->size] the size of the position to close, optional
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['future']) {
-            throw new NotSupported($this->id . ' closePosition() only supported for futures markets');
-        }
         $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         $params = $this->omit($params, 'clientOrderId');
         $request = array(
@@ -4028,20 +4721,22 @@ class coinbase extends Exchange {
             throw new ArgumentsRequired($this->id . ' closePosition() requires a $clientOrderId parameter');
         }
         $request['client_order_id'] = $clientOrderId;
-        $response = $this->v3PrivatePostBrokerageOrdersClosePosition (array_merge($request, $params));
+        $response = $this->v3PrivatePostBrokerageOrdersClosePosition ($this->extend($request, $params));
         $order = $this->safe_dict($response, 'success_response', array());
         return $this->parse_order($order);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+         *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->portfolio] the $portfolio UUID to fetch $positions for
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -4063,7 +4758,7 @@ class coinbase extends Exchange {
             $request = array(
                 'portfolio_uuid' => $portfolio,
             );
-            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuid (array_merge($request, $params));
+            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuid ($this->extend($request, $params));
         }
         $positions = $this->safe_list($response, 'positions', array());
         return $this->parse_positions($positions, $symbols);
@@ -4072,13 +4767,15 @@ class coinbase extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade $position
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition
-         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+         *
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->product_id] *futures only* the product id of the $position to fetch, required for futures markets only
          * @param {string} [$params->portfolio] *perpetual/swaps only* the $portfolio UUID to fetch the $position for, required for perpetual/swaps markets only
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -4091,7 +4788,7 @@ class coinbase extends Exchange {
             $futureRequest = array(
                 'product_id' => $productId,
             );
-            $response = $this->v3PrivateGetBrokerageCfmPositionsProductId (array_merge($futureRequest, $params));
+            $response = $this->v3PrivateGetBrokerageCfmPositionsProductId ($this->extend($futureRequest, $params));
         } else {
             $portfolio = null;
             list($portfolio, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'portfolio');
@@ -4102,13 +4799,13 @@ class coinbase extends Exchange {
                 'symbol' => $market['id'],
                 'portfolio_uuid' => $portfolio,
             );
-            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (array_merge($request, $params));
+            $response = $this->v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol ($this->extend($request, $params));
         }
         $position = $this->safe_dict($response, 'position', array());
         return $this->parse_position($position, $market);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         // {
         //     "product_id" => "1r4njf84-0-0",
@@ -4245,8 +4942,138 @@ class coinbase extends Exchange {
         ));
     }
 
-    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null) {
-        // it may not work for v2
+    public function fetch_trading_fees($params = array ()): array {
+        /**
+         *
+         * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+         *
+         * fetch the trading fees for multiple markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap'
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
+         */
+        $this->load_markets();
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        $isSpot = ($type === 'spot');
+        $productType = $isSpot ? 'SPOT' : 'FUTURE';
+        $request = array(
+            'product_type' => $productType,
+        );
+        $response = $this->v3PrivateGetBrokerageTransactionSummary ($this->extend($request, $params));
+        //
+        // {
+        //     total_volume => '0',
+        //     total_fees => '0',
+        //     fee_tier => array(
+        //       pricing_tier => 'Advanced 1',
+        //       usd_from => '0',
+        //       usd_to => '1000',
+        //       taker_fee_rate => '0.008',
+        //       maker_fee_rate => '0.006',
+        //       aop_from => '',
+        //       aop_to => ''
+        //     ),
+        //     margin_rate => null,
+        //     goods_and_services_tax => null,
+        //     advanced_trade_only_volume => '0',
+        //     advanced_trade_only_fees => '0',
+        //     coinbase_pro_volume => '0',
+        //     coinbase_pro_fees => '0',
+        //     total_balance => '',
+        //     has_promo_fee => false
+        // }
+        //
+        $data = $this->safe_dict($response, 'fee_tier', array());
+        $taker_fee = $this->safe_number($data, 'taker_fee_rate');
+        $marker_fee = $this->safe_number($data, 'maker_fee_rate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            if (($isSpot && $market['spot']) || (!$isSpot && !$market['spot'])) {
+                $result[$symbol] = array(
+                    'info' => $response,
+                    'symbol' => $symbol,
+                    'maker' => $taker_fee,
+                    'taker' => $marker_fee,
+                    'percentage' => true,
+                );
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_portfolio_details(string $portfolioUuid, $params = array ()): array {
+        /**
+         * Fetch details for a specific portfolio by UUID
+         *
+         * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+         *
+         * @param {string} $portfolioUuid The unique identifier of the portfolio to fetch
+         * @param {Dict} [$params] Extra parameters specific to the exchange API endpoint
+         * @return {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
+         */
+        $this->load_markets();
+        $request = array(
+            'portfolio_uuid' => $portfolioUuid,
+        );
+        $response = $this->v3PrivateGetBrokeragePortfoliosPortfolioUuid ($this->extend($request, $params));
+        $result = $this->parse_portfolio_details($response);
+        return $result;
+    }
+
+    public function parse_portfolio_details(array $portfolioData) {
+        $breakdown = $portfolioData['breakdown'];
+        $portfolioInfo = $this->safe_dict($breakdown, 'portfolio', array());
+        $portfolioName = $this->safe_string($portfolioInfo, 'name', 'Unknown');
+        $portfolioUuid = $this->safe_string($portfolioInfo, 'uuid', '');
+        $spotPositions = $this->safe_list($breakdown, 'spot_positions', array());
+        $parsedPositions = array();
+        for ($i = 0; $i < count($spotPositions); $i++) {
+            $position = $spotPositions[$i];
+            $currencyCode = $this->safe_string($position, 'asset', 'Unknown');
+            $availableBalanceStr = $this->safe_string($position, 'available_to_trade_fiat', '0');
+            $availableBalance = $this->parse_number($availableBalanceStr);
+            $totalBalanceFiatStr = $this->safe_string($position, 'total_balance_fiat', '0');
+            $totalBalanceFiat = $this->parse_number($totalBalanceFiatStr);
+            $holdAmount = $totalBalanceFiat - $availableBalance;
+            $costBasisDict = $this->safe_dict($position, 'cost_basis', array());
+            $costBasisStr = $this->safe_string($costBasisDict, 'value', '0');
+            $averageEntryPriceDict = $this->safe_dict($position, 'average_entry_price', array());
+            $averageEntryPriceStr = $this->safe_string($averageEntryPriceDict, 'value', '0');
+            $positionData = array(
+                'currency' => $currencyCode,
+                'available_balance' => $availableBalance,
+                'hold_amount' => $holdAmount > 0 ? $holdAmount : 0,
+                'wallet_name' => $portfolioName,
+                'account_id' => $portfolioUuid,
+                'account_uuid' => $this->safe_string($position, 'account_uuid', ''),
+                'total_balance_fiat' => $totalBalanceFiat,
+                'total_balance_crypto' => $this->parse_number($this->safe_string($position, 'total_balance_crypto', '0')),
+                'available_to_trade_fiat' => $this->parse_number($this->safe_string($position, 'available_to_trade_fiat', '0')),
+                'available_to_trade_crypto' => $this->parse_number($this->safe_string($position, 'available_to_trade_crypto', '0')),
+                'available_to_transfer_fiat' => $this->parse_number($this->safe_string($position, 'available_to_transfer_fiat', '0')),
+                'available_to_transfer_crypto' => $this->parse_number($this->safe_string($position, 'available_to_trade_crypto', '0')),
+                'allocation' => $this->parse_number($this->safe_string($position, 'allocation', '0')),
+                'cost_basis' => $this->parse_number($costBasisStr),
+                'cost_basis_currency' => $this->safe_string($costBasisDict, 'currency', 'USD'),
+                'is_cash' => $this->safe_bool($position, 'is_cash', false),
+                'average_entry_price' => $this->parse_number($averageEntryPriceStr),
+                'average_entry_price_currency' => $this->safe_string($averageEntryPriceDict, 'currency', 'USD'),
+                'asset_uuid' => $this->safe_string($position, 'asset_uuid', ''),
+                'unrealized_pnl' => $this->parse_number($this->safe_string($position, 'unrealized_pnl', '0')),
+                'asset_color' => $this->safe_string($position, 'asset_color', ''),
+                'account_type' => $this->safe_string($position, 'account_type', ''),
+            );
+            $parsedPositions[] = $positionData;
+        }
+        return $parsedPositions;
+    }
+
+    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false) {
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         $uri = null;
         if ($url !== null) {
             $uri = $method . ' ' . str_replace('https://', '', $url);
@@ -4257,20 +5084,37 @@ class coinbase extends Exchange {
                 $uri = mb_substr($uri, 0, $quesPos - 0);
             }
         }
+        // $this->eddsaarray("sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"])
         $nonce = $this->random_bytes(16);
+        $aud = $useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
+        $iss = $useEddsa ? 'cdp' : 'coinbase-cloud';
         $request = array(
-            'aud' => array( 'retail_rest_api_proxy' ),
-            'iss' => 'coinbase-cloud',
+            'aud' => array( $aud ),
+            'iss' => $iss,
             'nbf' => $seconds,
             'exp' => $seconds + 120,
             'sub' => $this->apiKey,
             'iat' => $seconds,
         );
         if ($uri !== null) {
-            $request['uri'] = $uri;
+            if (!$useEddsa) {
+                $request['uri'] = $uri;
+            } else {
+                $request['uris'] = array( $uri );
+            }
         }
-        $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
-        return $token;
+        if ($useEddsa) {
+            $byteArray = base64_decode($this->secret);
+            $seed = $this->array_slice($byteArray, 0, 32);
+            return $this->jwt($request, $seed, 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'EdDSA' ));
+        } else {
+            // $this->ecdsawith p256
+            return $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+        }
+    }
+
+    public function nonce() {
+        return $this->milliseconds() - $this->options['timeDifference'];
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -4311,12 +5155,14 @@ class coinbase extends Exchange {
                     }
                 }
                 // v3 => 'GET' doesn't need $payload in the $signature-> inside $url is enough
-                // https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#example-$request
+                // https://docs.cloud.coinbase.com/advanced-trade/docs/auth#example-$request
                 // v2 => 'GET' require $payload in the $signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
-                if ($isCloudAPiKey) {
-                    if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                // using the size might be fragile, so we add an option to force v2 cloud $api key if needed
+                $isV2CloudAPiKey = strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
+                if ($isCloudAPiKey || $isV2CloudAPiKey) {
+                    if ($isCloudAPiKey && str_starts_with($this->apiKey, '-----BEGIN')) {
                         throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
                     }
                     // // it may not work for v2
@@ -4337,11 +5183,13 @@ class coinbase extends Exchange {
                     //     'uri' => $uri,
                     //     'iat' => $seconds,
                     // );
-                    $token = $this->create_auth_token($seconds, $method, $url);
+                    $token = $this->create_auth_token($seconds, $method, $url, $isV2CloudAPiKey);
                     // $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
                     $authorizationString = 'Bearer ' . $token;
                 } else {
-                    $timestampString = (string) $this->seconds();
+                    $nonce = $this->nonce();
+                    $timestamp = $this->parse_to_int($nonce / 1000);
+                    $timestampString = (string) $timestamp;
                     $auth = $timestampString . $method . $savedPath . $payload;
                     $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                     $headers = array(
@@ -4367,7 +5215,7 @@ class coinbase extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -4385,17 +5233,43 @@ class coinbase extends Exchange {
         //        }
         //      )
         //    }
+        // or
+        // {
+        //     "success" => false,
+        //     "error_response" => array(
+        //       "error" => "UNKNOWN_FAILURE_REASON",
+        //       "message" => "",
+        //       "error_details" => "",
+        //       "preview_failure_reason" => "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     ),
+        //     "order_configuration" => {
+        //       "stop_limit_stop_limit_gtc" => {
+        //         "base_size" => "0.0001",
+        //         "limit_price" => "2000",
+        //         "stop_price" => "2005",
+        //         "stop_direction" => "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only" => false
+        //       }
+        //     }
+        // }
         //
         $errorCode = $this->safe_string($response, 'error');
         if ($errorCode !== null) {
-            $errorMessage = $this->safe_string($response, 'error_description');
+            $errorMessage = $this->safe_string_2($response, 'error_description', 'error');
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             throw new ExchangeError($feedback);
         }
+        $errorResponse = $this->safe_dict($response, 'error_response');
+        if ($errorResponse !== null) {
+            $errorMessageInner = $this->safe_string_2($errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessageInner, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessageInner, $feedback);
+            throw new ExchangeError($feedback);
+        }
         $errors = $this->safe_list($response, 'errors');
         if ($errors !== null) {
-            if (gettype($errors) === 'array' && array_keys($errors) === array_keys(array_keys($errors))) {
+            if ((gettype($errors) === 'array' && array_keys($errors) === array_keys(array_keys($errors)))) {
                 $numErrors = count($errors);
                 if ($numErrors > 0) {
                     $errorCode = $this->safe_string($errors[0], 'id');
@@ -4413,5 +5287,23 @@ class coinbase extends Exchange {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }
         return null;
+    }
+
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
+        /**
+         * fetch deposit addresses for multiple currencies (when available)
+         *
+         * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+         *
+         * @param {string[]} [$codes] list of unified currency $codes, default is null (all currencies)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountId] account ID to fetch deposit addresses for
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by currency code
+         */
+        $this->load_markets();
+        $request = $this->prepare_account_request(null, $params);
+        $response = $this->v2PrivateGetAccountsAccountIdAddresses ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_deposit_addresses($data, $codes, false, array());
     }
 }

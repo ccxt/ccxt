@@ -26,5 +26,6 @@ async function testFetchPositions(exchange, skippedProperties, symbol) {
         testPosition(exchange, skippedProperties, method, positionsForSymbol[i], symbol, now);
     }
     // testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
+    return true;
 }
 export default testFetchPositions;

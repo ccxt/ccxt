@@ -356,6 +356,11 @@ public partial class digifinex : Exchange
         return await this.callAsync ("privateSwapGetTradeOrderInfo",parameters);
     }
 
+    public async Task<object> privateSwapPostAccountTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privateSwapPostAccountTransfer",parameters);
+    }
+
     public async Task<object> privateSwapPostAccountLeverage (object parameters = null)
     {
         return await this.callAsync ("privateSwapPostAccountLeverage",parameters);

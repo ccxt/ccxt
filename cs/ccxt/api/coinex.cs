@@ -711,6 +711,11 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PublicGetFuturesFundingRateHistory",parameters);
     }
 
+    public async Task<object> v2PublicGetFuturesPremiumIndexHistory (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetFuturesPremiumIndexHistory",parameters);
+    }
+
     public async Task<object> v2PublicGetFuturesPositionLevel (object parameters = null)
     {
         return await this.callAsync ("v2PublicGetFuturesPositionLevel",parameters);
@@ -724,6 +729,16 @@ public partial class coinex : Exchange
     public async Task<object> v2PublicGetFuturesBasisHistory (object parameters = null)
     {
         return await this.callAsync ("v2PublicGetFuturesBasisHistory",parameters);
+    }
+
+    public async Task<object> v2PublicGetAssetsDepositWithdrawConfig (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetAssetsDepositWithdrawConfig",parameters);
+    }
+
+    public async Task<object> v2PublicGetAssetsAllDepositWithdrawConfig (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetAssetsAllDepositWithdrawConfig",parameters);
     }
 
     public async Task<object> v2PrivateGetAccountSubs (object parameters = null)
@@ -751,6 +766,11 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivateGetAccountSubsTransferHistory",parameters);
     }
 
+    public async Task<object> v2PrivateGetAccountSubsBalance (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetAccountSubsBalance",parameters);
+    }
+
     public async Task<object> v2PrivateGetAccountSubsSpotBalance (object parameters = null)
     {
         return await this.callAsync ("v2PrivateGetAccountSubsSpotBalance",parameters);
@@ -759,6 +779,16 @@ public partial class coinex : Exchange
     public async Task<object> v2PrivateGetAccountTradeFeeRate (object parameters = null)
     {
         return await this.callAsync ("v2PrivateGetAccountTradeFeeRate",parameters);
+    }
+
+    public async Task<object> v2PrivateGetAccountFuturesMarketSettings (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetAccountFuturesMarketSettings",parameters);
+    }
+
+    public async Task<object> v2PrivateGetAccountInfo (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetAccountInfo",parameters);
     }
 
     public async Task<object> v2PrivateGetAssetsSpotBalance (object parameters = null)
@@ -791,6 +821,11 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivateGetAssetsCreditInfo",parameters);
     }
 
+    public async Task<object> v2PrivateGetAssetsSpotTranscationHistory (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetAssetsSpotTranscationHistory",parameters);
+    }
+
     public async Task<object> v2PrivateGetAssetsMarginBorrowHistory (object parameters = null)
     {
         return await this.callAsync ("v2PrivateGetAssetsMarginBorrowHistory",parameters);
@@ -816,14 +851,19 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivateGetAssetsWithdraw",parameters);
     }
 
-    public async Task<object> v2PrivateGetAssetsDepositWithdrawConfig (object parameters = null)
-    {
-        return await this.callAsync ("v2PrivateGetAssetsDepositWithdrawConfig",parameters);
-    }
-
     public async Task<object> v2PrivateGetAssetsTransferHistory (object parameters = null)
     {
         return await this.callAsync ("v2PrivateGetAssetsTransferHistory",parameters);
+    }
+
+    public async Task<object> v2PrivateGetAssetsAmmLiquidityPool (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetAssetsAmmLiquidityPool",parameters);
+    }
+
+    public async Task<object> v2PrivateGetAssetsAmmIncomeHistory (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetAssetsAmmIncomeHistory",parameters);
     }
 
     public async Task<object> v2PrivateGetSpotOrderStatus (object parameters = null)
@@ -936,6 +976,36 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivateGetFuturesPositionSettleHistory",parameters);
     }
 
+    public async Task<object> v2PrivateGetReferReferee (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetReferReferee",parameters);
+    }
+
+    public async Task<object> v2PrivateGetReferRefereeRebateRecord (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetReferRefereeRebateRecord",parameters);
+    }
+
+    public async Task<object> v2PrivateGetReferRefereeRebateDetail (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetReferRefereeRebateDetail",parameters);
+    }
+
+    public async Task<object> v2PrivateGetReferAgentReferee (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetReferAgentReferee",parameters);
+    }
+
+    public async Task<object> v2PrivateGetReferAgentRebateRecord (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetReferAgentRebateRecord",parameters);
+    }
+
+    public async Task<object> v2PrivateGetReferAgentRebateDetail (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivateGetReferAgentRebateDetail",parameters);
+    }
+
     public async Task<object> v2PrivatePostAccountSubs (object parameters = null)
     {
         return await this.callAsync ("v2PrivatePostAccountSubs",parameters);
@@ -974,6 +1044,11 @@ public partial class coinex : Exchange
     public async Task<object> v2PrivatePostAccountSettings (object parameters = null)
     {
         return await this.callAsync ("v2PrivatePostAccountSettings",parameters);
+    }
+
+    public async Task<object> v2PrivatePostAccountFuturesMarketSettings (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostAccountFuturesMarketSettings",parameters);
     }
 
     public async Task<object> v2PrivatePostAssetsMarginBorrow (object parameters = null)
@@ -1046,6 +1121,11 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivatePostSpotModifyStopOrder",parameters);
     }
 
+    public async Task<object> v2PrivatePostSpotBatchModifyOrder (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostSpotBatchModifyOrder",parameters);
+    }
+
     public async Task<object> v2PrivatePostSpotCancelAllOrder (object parameters = null)
     {
         return await this.callAsync ("v2PrivatePostSpotCancelAllOrder",parameters);
@@ -1101,6 +1181,16 @@ public partial class coinex : Exchange
         return await this.callAsync ("v2PrivatePostFuturesBatchStopOrder",parameters);
     }
 
+    public async Task<object> v2PrivatePostFuturesCancelPositionStopLoss (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostFuturesCancelPositionStopLoss",parameters);
+    }
+
+    public async Task<object> v2PrivatePostFuturesCancelPositionTakeProfit (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostFuturesCancelPositionTakeProfit",parameters);
+    }
+
     public async Task<object> v2PrivatePostFuturesModifyOrder (object parameters = null)
     {
         return await this.callAsync ("v2PrivatePostFuturesModifyOrder",parameters);
@@ -1109,6 +1199,11 @@ public partial class coinex : Exchange
     public async Task<object> v2PrivatePostFuturesModifyStopOrder (object parameters = null)
     {
         return await this.callAsync ("v2PrivatePostFuturesModifyStopOrder",parameters);
+    }
+
+    public async Task<object> v2PrivatePostFuturesBatchModifyOrder (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostFuturesBatchModifyOrder",parameters);
     }
 
     public async Task<object> v2PrivatePostFuturesCancelAllOrder (object parameters = null)

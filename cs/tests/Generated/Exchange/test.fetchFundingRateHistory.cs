@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchFundingRateHistory(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchFundingRateHistory(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchFundingRateHistory";
         object fundingRatesHistory = await exchange.fetchFundingRateHistory(symbol);
@@ -17,6 +17,7 @@ public partial class testMainClass : BaseTest
             testFundingRateHistory(exchange, skippedProperties, method, getValue(fundingRatesHistory, i), symbol);
         }
         testSharedMethods.assertTimestampOrder(exchange, method, symbol, fundingRatesHistory);
+        return true;
     }
 
 }

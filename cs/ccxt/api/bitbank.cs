@@ -66,6 +66,11 @@ public partial class bitbank : Exchange
         return await this.callAsync ("privateGetUserSpotActiveOrders",parameters);
     }
 
+    public async Task<object> privateGetUserMarginPositions (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserMarginPositions",parameters);
+    }
+
     public async Task<object> privateGetUserSpotTradeHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetUserSpotTradeHistory",parameters);
@@ -74,6 +79,16 @@ public partial class bitbank : Exchange
     public async Task<object> privateGetUserDepositHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetUserDepositHistory",parameters);
+    }
+
+    public async Task<object> privateGetUserUnconfirmedDeposits (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserUnconfirmedDeposits",parameters);
+    }
+
+    public async Task<object> privateGetUserDepositOriginators (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUserDepositOriginators",parameters);
     }
 
     public async Task<object> privateGetUserWithdrawalAccount (object parameters = null)
@@ -114,6 +129,16 @@ public partial class bitbank : Exchange
     public async Task<object> privatePostUserSpotOrdersInfo (object parameters = null)
     {
         return await this.callAsync ("privatePostUserSpotOrdersInfo",parameters);
+    }
+
+    public async Task<object> privatePostUserConfirmDeposits (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUserConfirmDeposits",parameters);
+    }
+
+    public async Task<object> privatePostUserConfirmDepositsAll (object parameters = null)
+    {
+        return await this.callAsync ("privatePostUserConfirmDepositsAll",parameters);
     }
 
     public async Task<object> privatePostUserRequestWithdrawal (object parameters = null)

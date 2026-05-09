@@ -1,7 +1,5 @@
 {
     "BTC": {
-        "id": "92151d82-df98-4d88-9a4d-284fa9eca49f",
-        "code": "BTC",
         "info": {
             "id": "92151d82-df98-4d88-9a4d-284fa9eca49f",
             "status": "CURRENCY_STATUS_ACTIVE",
@@ -16,50 +14,68 @@
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "Bitcoin",
-        "type": "crypto",
-        "active": true,
+        "id": "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        "numericId": null,
+        "code": "BTC",
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USDT": {
-        "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        "code": "USDT",
         "info": {
             "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
             "status": "CURRENCY_STATUS_ACTIVE",
             "type": "CURRENCY_TYPE_CRYPTO",
-            "name": "Tether USD ",
+            "name": "Tether USD",
             "tag": "USDT",
             "description": "",
-            "logo": "",
+            "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
             "decimals": "6",
             "created": "1572912000000",
             "tier": "1",
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "Tether USD ",
-        "type": "crypto",
-        "active": true,
+        "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "numericId": null,
+        "code": "USDT",
         "precision": 0.000001,
+        "type": "crypto",
+        "name": "Tether USD",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "EUR": {
-        "id": "945de89e-e26f-45e9-8df2-5df7502109b8",
-        "code": "EUR",
         "info": {
             "id": "945de89e-e26f-45e9-8df2-5df7502109b8",
             "status": "CURRENCY_STATUS_ACTIVE",
@@ -74,21 +90,30 @@
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "Euro",
-        "type": "crypto",
-        "active": true,
+        "id": "945de89e-e26f-45e9-8df2-5df7502109b8",
+        "numericId": null,
+        "code": "EUR",
         "precision": 0.01,
+        "type": "crypto",
+        "name": "Euro",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "INR": {
-        "id": "45f2a5a5-6a88-44cc-803c-a7bd848f185e",
-        "code": "INR",
         "info": {
             "id": "45f2a5a5-6a88-44cc-803c-a7bd848f185e",
             "status": "CURRENCY_STATUS_ACTIVE",
@@ -103,21 +128,30 @@
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "INERY",
-        "type": "crypto",
-        "active": true,
+        "id": "45f2a5a5-6a88-44cc-803c-a7bd848f185e",
+        "numericId": null,
+        "code": "INR",
         "precision": 1e-18,
+        "type": "crypto",
+        "name": "INERY",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "LTC": {
-        "id": "0d02fdfc-9555-4cd9-8398-006003033a9e",
-        "code": "LTC",
         "info": {
             "id": "0d02fdfc-9555-4cd9-8398-006003033a9e",
             "status": "CURRENCY_STATUS_ACTIVE",
@@ -132,21 +166,30 @@
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "LITECOIN",
-        "type": "crypto",
-        "active": true,
+        "id": "0d02fdfc-9555-4cd9-8398-006003033a9e",
+        "numericId": null,
+        "code": "LTC",
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "LITECOIN",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "ETH": {
-        "id": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
-        "code": "ETH",
         "info": {
             "id": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
             "status": "CURRENCY_STATUS_ACTIVE",
@@ -161,79 +204,106 @@
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "Ethereum",
-        "type": "crypto",
-        "active": true,
+        "id": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        "numericId": null,
+        "code": "ETH",
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "ADA": {
-        "id": "2bbddbd3-b346-4683-b7ed-64190f123c98",
-        "code": "ADA",
         "info": {
             "id": "2bbddbd3-b346-4683-b7ed-64190f123c98",
             "status": "CURRENCY_STATUS_ACTIVE",
             "type": "CURRENCY_TYPE_CRYPTO",
             "name": "Cardano",
             "tag": "ADA",
-            "description": "Cardano",
-            "logo": "",
+            "description": "",
+            "logo": "https://st3.latoken.com/cms2/uploads/ADA_ddcec5b8e1.png",
             "decimals": "6",
             "created": "1582278530819",
             "tier": "1",
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "Cardano",
-        "type": "crypto",
-        "active": true,
+        "id": "2bbddbd3-b346-4683-b7ed-64190f123c98",
+        "numericId": null,
+        "code": "ADA",
         "precision": 0.000001,
+        "type": "crypto",
+        "name": "Cardano",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "XRP": {
-        "id": "f5a0d630-7866-4382-aaf8-77b1222f8139",
-        "code": "XRP",
         "info": {
             "id": "f5a0d630-7866-4382-aaf8-77b1222f8139",
             "status": "CURRENCY_STATUS_ACTIVE",
             "type": "CURRENCY_TYPE_CRYPTO",
-            "name": "Ripple",
+            "name": "XRP",
             "tag": "XRP",
             "description": "",
-            "logo": "",
+            "logo": "https://st3.latoken.com/cms2/uploads/XRP_f94c42810d.png",
             "decimals": "6",
             "created": "1572912000000",
             "tier": "1",
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "Ripple",
-        "type": "crypto",
-        "active": true,
+        "id": "f5a0d630-7866-4382-aaf8-77b1222f8139",
+        "numericId": null,
+        "code": "XRP",
         "precision": 0.000001,
+        "type": "crypto",
+        "name": "XRP",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USDC": {
-        "id": "894f0a35-1f7e-4ff1-b1c1-1705b27d9dc2",
-        "code": "USDC",
         "info": {
             "id": "894f0a35-1f7e-4ff1-b1c1-1705b27d9dc2",
             "status": "CURRENCY_STATUS_ACTIVE",
@@ -241,23 +311,34 @@
             "name": "USD Coin",
             "tag": "USDC",
             "description": "",
-            "logo": "",
+            "logo": "https://st3.latoken.com/cms2/uploads/USDC_8540918fb8.png",
             "decimals": "6",
             "created": "1572912000000",
             "tier": "1",
             "assetClass": "ASSET_CLASS_UNKNOWN",
             "minTransferAmount": "0"
         },
-        "name": "USD Coin",
-        "type": "crypto",
-        "active": true,
+        "id": "894f0a35-1f7e-4ff1-b1c1-1705b27d9dc2",
+        "numericId": null,
+        "code": "USDC",
         "precision": 0.000001,
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0
+                "min": 0,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

@@ -14,21 +14,22 @@ exchange_name="$1"
 
 # Check if the first argument was provided
 if [ -z "$exchange_name" ]; then
-    echo "Exchange name not provided provided."
+    echo "Exchange name not provided."
     exit 1
 fi
 
 if [ "$ws" -eq 1 ]; then
     echo "Transpiling WS version of $exchange_name "
     npm run tsBuildFile ts/src/pro/$exchange_name.ts &
-    node build/transpileWs.js $exchange_name --ws &
-    node --loader ts-node/esm build/csharpTranspiler.ts $exchange_name --ws &
+    npx tsx build/transpileWS.ts $exchange_name --ws &
+    npm run transpileCSWs $exchange_name &
     wait
 else
     echo "Transpiling REST version of $exchange_name"
     npm run tsBuildFile ts/src/$exchange_name.ts &
-    node build/transpile.js $exchange_name &
-    node --loader ts-node/esm build/csharpTranspiler.ts $exchange_name &
+    npx tsx build/transpile.ts $exchange_name &
+    npm run transpileCsSingle $exchange_name &
+    npx tsx build/goTranspiler.ts $exchange_name &
     wait
 fi
 

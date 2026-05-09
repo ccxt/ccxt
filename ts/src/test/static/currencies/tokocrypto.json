@@ -2,7 +2,7 @@
     "BTC": {
         "id": "BTC",
         "code": "BTC",
-        "precision": 8,
+        "precision": 0.00000001,
         "fees": {},
         "networks": {},
         "limits": {
@@ -13,7 +13,7 @@
     "USDT": {
         "id": "USDT",
         "code": "USDT",
-        "precision": 8,
+        "precision": 0.00000001,
         "fees": {},
         "networks": {},
         "limits": {
@@ -24,7 +24,7 @@
     "LTC": {
         "id": "LTC",
         "code": "LTC",
-        "precision": 3,
+        "precision": 0.001,
         "fees": {},
         "networks": {},
         "limits": {
@@ -35,7 +35,7 @@
     "ETH": {
         "id": "ETH",
         "code": "ETH",
-        "precision": 8,
+        "precision": 0.00000001,
         "fees": {},
         "networks": {},
         "limits": {
@@ -46,7 +46,7 @@
     "ADA": {
         "id": "ADA",
         "code": "ADA",
-        "precision": 1,
+        "precision": 0.1,
         "fees": {},
         "networks": {},
         "limits": {
@@ -57,7 +57,7 @@
     "XRP": {
         "id": "XRP",
         "code": "XRP",
-        "precision": 1,
+        "precision": 0.1,
         "fees": {},
         "networks": {},
         "limits": {
@@ -68,7 +68,7 @@
     "USDC": {
         "id": "USDC",
         "code": "USDC",
-        "precision": 8,
+        "precision": 0.00000001,
         "fees": {},
         "networks": {},
         "limits": {

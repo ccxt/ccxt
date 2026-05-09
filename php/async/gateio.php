@@ -10,7 +10,7 @@ use ccxt\async\abstract\gateio as gate;
 
 class gateio extends gate {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gateio',
             'alias' => true,

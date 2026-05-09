@@ -16,6 +16,9 @@ abstract class btcbox extends \ccxt\Exchange {
     public function public_get_ticker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_tickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params, null, null, array());
+    }
     public function private_post_balance($params = array()) {
         return $this->request('balance', 'private', 'POST', $params, null, null, array());
     }
@@ -34,6 +37,9 @@ abstract class btcbox extends \ccxt\Exchange {
     public function private_post_wallet($params = array()) {
         return $this->request('wallet', 'private', 'POST', $params, null, null, array());
     }
+    public function webapi_get_ajax_coin_coininfo($params = array()) {
+        return $this->request('ajax/coin/coinInfo', 'webApi', 'GET', $params, null, null, array());
+    }
     public function publicGetDepth($params = array()) {
         return $this->request('depth', 'public', 'GET', $params, null, null, array());
     }
@@ -42,6 +48,9 @@ abstract class btcbox extends \ccxt\Exchange {
     }
     public function publicGetTicker($params = array()) {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetTickers($params = array()) {
+        return $this->request('tickers', 'public', 'GET', $params, null, null, array());
     }
     public function privatePostBalance($params = array()) {
         return $this->request('balance', 'private', 'POST', $params, null, null, array());
@@ -60,5 +69,8 @@ abstract class btcbox extends \ccxt\Exchange {
     }
     public function privatePostWallet($params = array()) {
         return $this->request('wallet', 'private', 'POST', $params, null, null, array());
+    }
+    public function webApiGetAjaxCoinCoinInfo($params = array()) {
+        return $this->request('ajax/coin/coinInfo', 'webApi', 'GET', $params, null, null, array());
     }
 }

@@ -15,12 +15,10 @@ public partial class Exchange
     {
         public string url; // Replace with your WebSocket server URL
         public ClientWebSocket webSocket = new ClientWebSocket();
-        // public ClientWebSocket webSocket;
-
+        
         public IDictionary<string, Future> futures = new ConcurrentDictionary<string, Future>();
         public IDictionary<string, object> subscriptions = new ConcurrentDictionary<string, object>();
         public IDictionary<string, object> rejections = new ConcurrentDictionary<string, object>();
-
         public bool verbose = false;
         public bool isConnected = false;
         public bool startedConnecting = false;
@@ -54,7 +52,9 @@ public partial class Exchange
 
         public bool error = false;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
+        public bool decompressBinary = true;
+
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -65,7 +65,8 @@ public partial class Exchange
             this.onClose = onClose;
             this.onError = onError;
             this.keepAlive = keepA;
-
+            this.decompressBinary = decompressBinary;
+            this.webSocket.Options.KeepAliveInterval = TimeSpan.Zero; // Disable unsolicited PONG. https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets?#compression
             if (proxy != null)
             {
                 var webProxy = new WebProxy(proxy);
@@ -76,27 +77,18 @@ public partial class Exchange
         public Future future(object messageHash2)
         {
             var messageHash = messageHash2.ToString();
-            // var tcs = new TaskCompletionSource<object>();
-            // this.futures[messageHash] = tcs;
-            // return tcs.Task;
-            if (!this.futures.ContainsKey(messageHash))
+            var future = (this.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => new Future());
+            if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
-                // var tcs = new TaskCompletionSource<object>();
-                var future = new Future();
-                lock (this.futures)
-                {
-                    // Console.WriteLine("Adding future, inside lock");
-                    this.futures[messageHash] = future;
-                }
-                // Console.WriteLine("outside lock");
-                // return future.task;
-                return future;
+                future.reject(rejection);
+                this.rejections.Remove(messageHash);
             }
-            else
-            {
-                // return (Task<object>)this.futures[messageHash].task;
-                return this.futures[messageHash];
-            }
+            return future;
+        }
+
+        public Future reusableFuture(object messageHash)
+        {
+            return this.future(messageHash);  // only used in go
         }
 
         public void resolve(object content, object messageHash2)
@@ -106,10 +98,8 @@ public partial class Exchange
                 Console.WriteLine("resolve received undefined messageHash");
             }
             var messageHash = messageHash2.ToString();
-            if (this.futures.ContainsKey(messageHash))
+            if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
             {
-                var future = this.futures[messageHash];
-                this.futures.Remove(messageHash); // this order matters
                 future.resolve(content);
             }
         }
@@ -119,11 +109,13 @@ public partial class Exchange
             if (messageHash2 != null)
             {
                 var messageHash = messageHash2.ToString();
-                if (this.futures.ContainsKey(messageHash))
+                if ((this.futures as ConcurrentDictionary<string, Future>).TryRemove(messageHash, out Future future))
                 {
-                    var future = this.futures[messageHash];
-                    this.futures.Remove(messageHash); // this order matters
                     future.reject(content);
+                }
+                else
+                {
+                    (this.rejections as ConcurrentDictionary<string, object>).TryAdd(messageHash, content);
                 }
             }
             else
@@ -166,61 +158,83 @@ public partial class Exchange
             return this.connected.Task;
         }
 
-        public async void PingLoop()
+        public void onPong()
         {
-            if (keepAlive != null)
-            {
-                await Task.Delay(Convert.ToInt32(keepAlive));
-            }
-            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            this.lastPong = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (this.verbose)
             {
-                Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
+                Console.WriteLine("Pong received: " + this.lastPong.ToString());
             }
+        }
 
-            while (this.keepAlive != null && this.isConnected)
+        public async void PingLoop()
+        {
+            try
             {
 
-                if (this.lastPong == null)
+                if (this.keepAlive != null)
                 {
-                    this.lastPong = now;
+                    await Task.Delay(Convert.ToInt32(this.keepAlive));
+                }
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (this.verbose)
+                {
+                    Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
                 }
 
-                var lastPongConverted = Convert.ToInt64(this.lastPong);
-                var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
-                if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                while (this.keepAlive != null && this.isConnected)
                 {
-                    this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
-                }
-                else
-                {
-                    if (this.ping != null)
+
+                    if (this.lastPong == null)
                     {
-                        var pingResult = this.ping(this);
-                        if (pingResult != null)
-                        {
-                            // if (this.verbose)
-                            // {
-                            //     Console.WriteLine("Sending ping: " + pingResult);
-                            // }
-                            if (pingResult is string)
-                            {
-                                await this.send((string)pingResult);
-                            }
-                            else
-                            {
-                                await this.send(pingResult);
+                        this.lastPong = now;
+                    }
 
-                            }
-                        }
+                    var lastPongConverted = Convert.ToInt64(this.lastPong);
+                    var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
+                    if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                    {
+                        this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                        break;
                     }
                     else
                     {
-                        // this.webSocket.SendPing(); should we send ping here?
+                        if (this.ping != null)
+                        {
+                            var pingResult = this.ping(this);
+                            if (pingResult != null)
+                            {
+                                // if (this.verbose)
+                                // {
+                                //     Console.WriteLine("Sending ping: " + pingResult);
+                                // }
+                                if (pingResult is string)
+                                {
+                                    await this.send((string)pingResult);
+                                }
+                                else
+                                {
+                                    await this.send(pingResult);
 
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // this.webSocket.SendPing(); should we send ping here?
+
+                        }
                     }
+                    await Task.Delay(Convert.ToInt32(convertedKeepAlive));
                 }
-                await Task.Delay(Convert.ToInt32(convertedKeepAlive));
+            }
+            catch (Exception ex)
+            {
+                if (this.verbose)
+                {
+                    Console.WriteLine($"PingLoop error: {ex.Message}");
+                }
+                this.onError(this, ex);
             }
         }
 
@@ -305,30 +319,52 @@ public partial class Exchange
                                 CancellationToken.None);
         }
 
-        private static async Task Sending(ClientWebSocket webSocket)
-        {
-            try
-            {
-                while (webSocket.State == WebSocketState.Open)
-                {
-                    string message = Console.ReadLine();
+        // private static async Task Sending(ClientWebSocket webSocket)
+        // {
+        //    try
+        //    {
+        //        while (webSocket.State == WebSocketState.Open)
+        //        {
+        //            string message = Console.ReadLine();
 
-                    if (!string.IsNullOrEmpty(message))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(message);
-                        await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-                    }
+        //            if (!string.IsNullOrEmpty(message))
+        //            {
+        //                var bytes = Encoding.UTF8.GetBytes(message);
+        //                await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Sending error: {ex.Message}");
+        //    }
+        // }
+
+        private void TryHandleMessage(string message)
+        {
+            object deserializedMessages = message;
+            if (isValidJson(message))
+            {
+                try
+                {
+                    deserializedMessages = JsonHelper.Deserialize(message);
+                }
+                catch (Exception e)
+                {
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Sending error: {ex.Message}");
-            }
+            this.handleMessage(this, deserializedMessages);
         }
+
+        // private void TryHandleBinaryMessage(string message)
+        // {
+
+        //     this.handleMessage(this, deserializedMessages);
+        // }
 
         private async Task Receiving(ClientWebSocket webSocket)
         {
-            var buffer = new byte[1000000]; // check best size later
+            var buffer = new byte[10485760]; // 10MB, check best size later
             try
             {
                 while (webSocket.State == WebSocketState.Open)
@@ -348,49 +384,75 @@ public partial class Exchange
                     {
                         // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
-                        object deserializedMessages = message;
-
-                        try
-                        {
-                            deserializedMessages = JsonHelper.Deserialize(message);
-                        }
-                        catch (Exception e)
-                        {
-                            // Console.WriteLine(e);
-                        }
-
                         if (this.verbose)
                         {
                             Console.WriteLine($"On message: {message}");
                         }
-
-                        this.handleMessage(this, deserializedMessages);
-
+                        this.TryHandleMessage(message);
                     }
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
 
+                        var msgBinary = buffer.Take(result.Count).ToArray();
+                        // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
+                        var msgBinaryMemory = memory.ToArray();
                         // Handle binary message
-                        // assume gunzip for now
 
-                        using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
-                        using (GZipStream decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-                        using (MemoryStream decompressedStream = new MemoryStream())
+                        if (this.verbose)
                         {
-                            decompressionStream.CopyTo(decompressedStream);
-                            byte[] decompressedData = decompressedStream.ToArray();
+                            Console.WriteLine($"On binary message: {result}");
+                        }
 
-                            string decompressedString = System.Text.Encoding.UTF8.GetString(decompressedData);
+                        if (!this.decompressBinary)
+                        {
+                            this.handleMessage(this, msgBinary);
+                            continue;
+                        }
 
-                            var deserializedJson = JsonHelper.Deserialize(decompressedString);
-
+                        if (this.LooksLikeRawDeflate(msgBinary))
+                        {
+                            string decompressedString = System.Text.Encoding.UTF8.GetString(msgBinary);
                             if (this.verbose)
                             {
-                                Console.WriteLine($"On binary message {decompressedString}");
+                                Console.WriteLine($"On raw binary message decompressed {decompressedString}");
                             }
+                            this.TryHandleMessage(decompressedString);
+                            continue;
 
-                            this.handleMessage(this, deserializedJson);
+                        }
 
+                        // detect zlib magic bytes: 0x78 0x01, 0x78 0x5E, 0x78 0x9C, 0x78 0xDA
+                        bool isZLib = msgBinaryMemory.Length > 2 && msgBinaryMemory[0] == 0x78 && (msgBinaryMemory[1] == 0x01 || msgBinaryMemory[1] == 0x5E || msgBinaryMemory[1] == 0x9C || msgBinaryMemory[1] == 0xDA);
+
+                        if (isZLib)
+                        {
+                            using (var compressedStream = new MemoryStream(msgBinaryMemory, 2, msgBinaryMemory.Length - 2))
+                            using (var decompressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
+                            using (var decompressedStream = new MemoryStream())
+                            {
+                                decompressionStream.CopyTo(decompressedStream);
+                                string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
+                                if (this.verbose)
+                                    Console.WriteLine($"On zlib binary message decompressed {decompressedString}");
+                                this.TryHandleMessage(decompressedString);
+                            }
+                            continue;
+                        }
+
+                        // assume GZip (magic bytes: 0x1F 0x8B)
+                        // use msgBinaryMemory (full reassembled message) not msgBinary (last chunk only)
+                        bool isGZip = msgBinaryMemory.Length > 1 && msgBinaryMemory[0] == 0x1F && msgBinaryMemory[1] == 0x8B;
+
+                        if (isGZip)
+                        using (var compressedStream = new MemoryStream(msgBinaryMemory))
+                        using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+                        using (var decompressedStream = new MemoryStream())
+                        {
+                            decompressionStream.CopyTo(decompressedStream);
+                            string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
+                            if (this.verbose)
+                                Console.WriteLine($"On gzip binary message decompressed {decompressedString}");
+                            this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }
@@ -416,6 +478,15 @@ public partial class Exchange
                 this.isConnected = false;
                 this.onError(this, ex);
             }
+        }
+
+
+        private bool LooksLikeRawDeflate(ReadOnlySpan<byte> b)
+        {
+            if (b.Length < 1) return false;
+            byte first = b[0];
+            int btype = (first >> 1) & 0b11;
+            return btype == 0b01 || btype == 0b10;
         }
 
         public async Task Close()

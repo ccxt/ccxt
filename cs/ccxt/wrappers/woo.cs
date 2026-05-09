@@ -10,7 +10,7 @@ public partial class woo
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-system-maintenance-status-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/systemInfo"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -20,7 +20,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
@@ -30,7 +30,7 @@ public partial class woo
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-system-maintenance-status-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/systemInfo"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,6 +50,7 @@ public partial class woo
     /// retrieves data on all markets for woo
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -69,6 +70,7 @@ public partial class woo
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/marketTrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -90,7 +92,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -99,10 +101,42 @@ public partial class woo
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
+    /// fetch the trading fees for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch trading fees in a portfolio margin account
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-account-information-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/get_account_info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -112,7 +146,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -122,7 +156,7 @@ public partial class woo
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -132,16 +166,37 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
         return new Order(res);
     }
     /// <summary>
+    /// create a market sell order by providing the symbol and cost
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#send-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateMarketSellOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketSellOrderWithCost(symbol, cost, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -157,10 +212,12 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingAmount = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? trailingAmount2 = 0, double? trailingTriggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
+        var trailingAmount = trailingAmount2 == 0 ? null : (object)trailingAmount2;
+        var trailingTriggerPrice = trailingTriggerPrice2 == 0 ? null : (object)trailingTriggerPrice2;
         var res = await this.createTrailingAmountOrder(symbol, type, side, amount, price, trailingAmount, trailingTriggerPrice, parameters);
         return new Order(res);
     }
@@ -168,6 +225,7 @@ public partial class woo
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woox.io/#send-algo-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -183,10 +241,12 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, object trailingPercent = null, object trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? trailingPercent2 = 0, double? trailingTriggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
+        var trailingPercent = trailingPercent2 == 0 ? null : (object)trailingPercent2;
+        var trailingTriggerPrice = trailingTriggerPrice2 == 0 ? null : (object)trailingTriggerPrice2;
         var res = await this.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
         return new Order(res);
     }
@@ -194,19 +254,25 @@ public partial class woo
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#send-algo-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/post_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'cross' or 'isolated', default 'cross'
     /// </description>
     /// </item>
     /// <item>
@@ -230,7 +296,7 @@ public partial class woo
     /// <item>
     /// <term>params.algoType</term>
     /// <description>
-    /// float : 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+    /// float : 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
     /// </description>
     /// </item>
     /// <item>
@@ -257,9 +323,15 @@ public partial class woo
     /// string : the price to trigger a trailing order, default uses the price argument
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.position_side</term>
+    /// <description>
+    /// string : 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -270,15 +342,15 @@ public partial class woo
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#edit-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#edit-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://docs.woo.org/#edit-algo-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#edit-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-algo-order"/>  <br/>
+    /// See <see href="https://docs.woox.io/#edit-algo-order-by-client_order_id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -325,7 +397,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -337,9 +409,8 @@ public partial class woo
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#cancel-algo-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -348,26 +419,25 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#cancel-all-pending-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#cancel-all-pending-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -376,25 +446,45 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// dead man's switch, cancel all orders after the given timeout
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the api result.</returns>
+    public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-algo-order"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -403,14 +493,14 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -420,8 +510,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -442,9 +532,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -460,12 +550,6 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.trailing</term>
-    /// <description>
-    /// boolean : set to true if you want to fetch trailing orders
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : set to true if you want to fetch orders with pagination
@@ -473,7 +557,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -485,8 +569,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -507,9 +591,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -538,7 +622,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -550,8 +634,8 @@ public partial class woo
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-orders"/>  <br/>
-    /// See <see href="https://docs.woo.org/#get-algo-orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_orders"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -572,9 +656,9 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a stop/algo order
+    /// boolean : whether the order is a trigger/algo order
     /// </description>
     /// </item>
     /// <item>
@@ -603,7 +687,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -615,6 +699,7 @@ public partial class woo
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -630,7 +715,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -641,8 +726,7 @@ public partial class woo
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#kline-public"/>  <br/>
-    /// See <see href="https://docs.woo.org/#kline-historical-data-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/klineHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -662,6 +746,12 @@ public partial class woo
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch entries for
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -676,6 +766,7 @@ public partial class woo
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woox.io/#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -697,7 +788,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -709,7 +800,7 @@ public partial class woo
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-trades"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/get_transactions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -737,7 +828,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -749,6 +840,8 @@ public partial class woo
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/get_account_info"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/sub_accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -758,7 +851,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
     public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
@@ -768,7 +861,7 @@ public partial class woo
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-current-holding-get-balance-new"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-current-holding-get-balance-new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -778,7 +871,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -788,6 +881,7 @@ public partial class woo
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -797,17 +891,24 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the history of changes, actions done by the user or operations that altered balance of the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -817,7 +918,7 @@ public partial class woo
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -828,18 +929,19 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -861,7 +963,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -873,6 +975,7 @@ public partial class woo
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -894,7 +997,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -906,6 +1009,7 @@ public partial class woo
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -933,7 +1037,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -945,7 +1049,7 @@ public partial class woo
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-transfer-history"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -955,7 +1059,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
@@ -965,7 +1069,7 @@ public partial class woo
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-transfer-history"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -993,18 +1097,19 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// make a withdrawal
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woox.io/#token-withdraw-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1014,12 +1119,51 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
+    /// <summary>
+    /// fetch the history of funding payments paid and received on this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch funding history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of funding history structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
     public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1027,21 +1171,71 @@ public partial class woo
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch the current funding rate interval
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingInterval(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
-    public async Task<Dictionary<string, object>> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch the funding rate for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-funding-rate-history-for-one-market-public"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1052,7 +1246,7 @@ public partial class woo
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -1075,7 +1269,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1087,7 +1281,7 @@ public partial class woo
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#update-position-mode"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/position_mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1107,7 +1301,79 @@ public partial class woo
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-account-information-new"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/account/get_account_info"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
+    }
+    /// <summary>
+    /// set the level of leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/set_leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol (is mandatory for swap markets)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.positionMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setLeverage(leverage, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch data on an open position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1117,22 +1383,27 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverage(symbol, parameters);
-        return new Leverage(res);
-    }
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
-    }
-    public async Task<Position> FetchPosition(string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/futures/get_positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -1142,7 +1413,7 @@ public partial class woo
     /// fetch a quote for converting from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-quote-rfq"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-quote-rfq"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1158,7 +1429,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -1169,7 +1440,7 @@ public partial class woo
     /// convert from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#send-quote-rft"/>  <br/>
+    /// See <see href="https://docs.woox.io/#send-quote-rft"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1185,7 +1456,7 @@ public partial class woo
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -1193,10 +1464,82 @@ public partial class woo
         return new Conversion(res);
     }
     /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#get-quote-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code of the conversion trade
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the users history of conversion trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#get-quote-trades"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : the unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch conversions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of conversion structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest conversion to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
+    }
+    /// <summary>
     /// fetches all available currencies that can be converted
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woo.org/#get-quote-asset-info"/>  <br/>
+    /// See <see href="https://docs.woox.io/#get-quote-asset-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1211,5 +1554,25 @@ public partial class woo
     {
         var res = await this.fetchConvertCurrencies(parameters);
         return new Currencies(res);
+    }
+    /// <summary>
+    /// fetches the auto deleveraging rank and risk percentage for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woox.io/#get-all-position-info-new"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

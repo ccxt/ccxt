@@ -56,6 +56,11 @@ public partial class coinmetro : Exchange
         return await this.callAsync ("privateGetUsersBalances",parameters);
     }
 
+    public async Task<object> privateGetUsersWallets (object parameters = null)
+    {
+        return await this.callAsync ("privateGetUsersWallets",parameters);
+    }
+
     public async Task<object> privateGetUsersWalletsHistorySince (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersWalletsHistorySince",parameters);

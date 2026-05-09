@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchOHLCV(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchOHLCV(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchOHLCV";
         object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
@@ -28,6 +28,8 @@ public partial class testMainClass : BaseTest
         {
             testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
         }
+        // todo: sorted timestamps check
+        return true;
     }
 
 }

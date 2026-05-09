@@ -5,14 +5,14 @@ import { base16, base58, base64, utf8 } from "../../static_dependencies/scure-ba
 import { numberToBytesBE, numberToBytesLE, concatBytes } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import { serialize } from '../../static_dependencies/messagepack/msgpack.js'
 
-import qs from '../../static_dependencies/qs/index.cjs'
+import qs from '../../static_dependencies/qs/index.js'
 
 /*  ------------------------------------------------------------------------ */
 
 const json =  (data: any, params = undefined) => JSON.stringify (data)
     , isJsonEncodedObject = (object: any) => (
         (typeof object === 'string') &&
-        (object.length >= 2) &&
+        // (object.length >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
         ((object[0] === '{') || (object[0] === '['))
     )
     , binaryToString = utf8.encode
@@ -28,18 +28,21 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
     , binaryConcat = concatBytes
     , binaryConcatArray = (arr: any[]) => concatBytes (...arr)
 
-    , urlencode = (object: object) => qs.stringify (object)
-    , urlencodeNested =  (object: object) => qs.stringify (object) // implemented only in python
+    , urlencode = (object: object, sort = false) => qs.stringify (object)
+    , urlencodeNested =  (object: object) => qs.stringify (object, { encodeValuesOnly: true }) // implemented only in python
     , urlencodeWithArrayRepeat = (object: object) => qs.stringify (object, { arrayFormat: 'repeat' })
-    , rawencode = (object: object) => qs.stringify (object, { encode: false })
+    , rawencode = (object: object, sort = false) => qs.stringify (object, { encode: false })
     , encode = utf8.decode // lol
     , decode = utf8.encode
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
-    , urlencodeBase64 = (base64string: string) => base64string.replace (/[=]+$/, '')
-                                                   .replace (/\+/g, '-')
-                                                   .replace (/\//g, '_')
+    , urlencodeBase64 = (payload: string | Uint8Array) => {
+        const payload64 = (typeof payload === 'string') ? stringToBase64 (payload) : binaryToBase64 (payload)
+        return payload64.replace (/[=]+$/, '')
+            .replace (/\+/g, '-')
+            .replace (/\//g, '_')
+    }
 
     , numberToLE = (n: number, padding: number) => numberToBytesLE (BigInt (n), padding)
 
@@ -48,6 +51,16 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
 
     function packb(req: any) {
         return serialize(req);
+    }
+
+    function base64ToBase64Url(base64: string, stripPadding: boolean = true): string {
+        let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_");
+
+        if (stripPadding) {
+            base64url = base64url.replace(/=+$/, "");
+        }
+
+        return base64url;
     }
 
 export {
@@ -63,6 +76,7 @@ export {
     , binaryToBase16
     , binaryConcat
     , binaryConcatArray
+    , base64ToBase64Url
     , urlencode
     , urlencodeWithArrayRepeat
     , rawencode

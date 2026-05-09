@@ -12,42 +12,59 @@ public partial class whitebit : Exchange
             { "name", "WhiteBit" },
             { "version", "v4" },
             { "countries", new List<object>() {"EE"} },
-            { "rateLimit", 50 },
+            { "rateLimit", 20 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
                 { "margin", true },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "cancelAllOrders", false },
+                { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", false },
+                { "createConvertTrade", true },
+                { "createDepositAddress", true },
+                { "createMarketBuyOrderWithCost", true },
+                { "createMarketOrderWithCost", false },
+                { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createPostOnlyOrder", true },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
-                { "editOrder", false },
+                { "createTriggerOrder", true },
+                { "editOrder", true },
+                { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
-                { "fetchCrossBorrowRate", false },
+                { "fetchConvertQuote", true },
+                { "fetchConvertTrade", false },
+                { "fetchConvertTradeHistory", true },
+                { "fetchCrossBorrowRate", true },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
+                { "fetchFundingLimits", true },
                 { "fetchFundingRate", true },
-                { "fetchFundingRateHistory", false },
+                { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchLedger", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
@@ -55,9 +72,14 @@ public partial class whitebit : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrders", true },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
+                { "fetchOrders", true },
                 { "fetchOrderTrades", true },
+                { "fetchPosition", true },
+                { "fetchPositionHistory", true },
                 { "fetchPositionMode", false },
+                { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
                 { "fetchTicker", true },
@@ -66,7 +88,10 @@ public partial class whitebit : Exchange
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
+                { "fetchTradingLimits", true },
                 { "fetchTransactionFees", true },
+                { "fetchTransactions", true },
+                { "fetchWithdrawals", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
                 { "setLeverage", true },
@@ -129,10 +154,10 @@ public partial class whitebit : Exchange
                 } },
                 { "v4", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures"} },
+                        { "get", new List<object>() {"assets", "collateral/markets", "fee", "funding-history/{market}", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"} },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "trade-account/balance", "trade-account/executed-history", "trade-account/order", "trade-account/order/history", "order/collateral/limit", "order/collateral/market", "order/collateral/trigger_market", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "orders", "profile/websocket_token"} },
+                        { "post", new List<object>() {"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order/history", "trade-account/order", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"} },
                     } },
                 } },
             } },
@@ -145,7 +170,10 @@ public partial class whitebit : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "fiatCurrencies", new List<object>() {"EUR", "USD", "RUB", "UAH"} },
+                { "nonceWindow", false },
                 { "fetchBalance", new Dictionary<string, object>() {
                     { "account", "spot" },
                 } },
@@ -156,11 +184,103 @@ public partial class whitebit : Exchange
                     { "margin", "collateral" },
                     { "trade", "spot" },
                 } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "BEP20", "BSC" },
-                } },
+                { "networksById", new Dictionary<string, object>() {} },
                 { "defaultType", "spot" },
                 { "brokerId", "ccxt" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "checkActive", true },
+                        { "checkExecuted", true },
+                        { "symbolRequired", false },
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                    { "fetchWithdrawals", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
@@ -181,28 +301,36 @@ public partial class whitebit : Exchange
                     { "422", typeof(OrderNotFound) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "limit must be less than or equal to", typeof(BadRequest) },
+                    { "The Price should be less than or equal to", typeof(InvalidOrder) },
+                    { "The Price should be greater than or equal to", typeof(InvalidOrder) },
                     { "This action is unauthorized", typeof(PermissionDenied) },
                     { "Given amount is less than min amount", typeof(InvalidOrder) },
+                    { "Min amount step", typeof(InvalidOrder) },
                     { "Total is less than", typeof(InvalidOrder) },
                     { "fee must be no less than", typeof(InvalidOrder) },
                     { "Enable your key in API settings", typeof(PermissionDenied) },
-                    { "You don\'t have such amount for transfer", typeof(InsufficientFunds) },
+                    { "You don't have such amount for transfer", typeof(InsufficientFunds) },
                 } },
             } },
         });
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchMarkets
+     * @description retrieves data on all markets for whitebit
+     * @see https://docs.whitebit.com/public/http-v4/#market-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchMarkets
-        * @description retrieves data on all markets for whitebit
-        * @see https://docs.whitebit.com/public/http-v4/#market-info
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object markets = await this.v4PublicGetMarkets();
         //
         //    [
@@ -269,6 +397,7 @@ public partial class whitebit : Exchange
         object taker = Precise.stringDiv(takerFeeRate, "100");
         object makerFeeRate = this.safeString(market, "makerFee");
         object maker = Precise.stringDiv(makerFeeRate, "100");
+        object isSpot = !isTrue(swap);
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -279,7 +408,7 @@ public partial class whitebit : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", !isTrue(swap) },
+            { "spot", isSpot },
             { "margin", margin },
             { "swap", swap },
             { "future", false },
@@ -290,7 +419,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", contractSize },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -322,31 +451,82 @@ public partial class whitebit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v4PublicGetAssets(parameters);
         //
-        //      "BTC": {
-        //          "name": "Bitcoin",
-        //          "unified_cryptoasset_id": 1,
-        //          "can_withdraw": true,
-        //          "can_deposit": true,
-        //          "min_withdraw": "0.001",
-        //          "max_withdraw": "2",
-        //          "maker_fee": "0.1",
-        //          "taker_fee": "0.1",
-        //          "min_deposit": "0.0001",
-        //           "max_deposit": "0",
-        //       },
+        // {
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
+        //         name: "United States Dollar",
+        //         unified_cryptoasset_id: "6955",
+        //         can_withdraw: true,
+        //         can_deposit: true,
+        //         min_withdraw: "10",
+        //         max_withdraw: "10000",
+        //         maker_fee: "0.1",
+        //         taker_fee: "0.1",
+        //         min_deposit: "10",
+        //         max_deposit: "10000",
+        //         networks: {
+        //           deposits: [ "USD", ],
+        //           withdraws: [ "USD", ],
+        //           default: "USD",
+        //         },
+        //         providers: {
+        //           deposits: [ "ADVCASH", ],
+        //           withdraws: [ "ADVCASH", ],
+        //         },
+        //         limits: {
+        //           deposit: {
+        //             USD: {  max: "10000", min: "10", },
+        //           },
+        //           withdraw: {
+        //             USD: { max: "10000",  min: "10", },
+        //           },
+        //         },
+        //         currency_precision: "2",
+        //         is_memo: false,
+        //   }
+        // }
         //
         object ids = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
@@ -354,22 +534,55 @@ public partial class whitebit : Exchange
         {
             object id = getValue(ids, i);
             object currency = getValue(response, id);
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
-            object canDeposit = this.safeBool(currency, "can_deposit", true);
-            object canWithdraw = this.safeBool(currency, "can_withdraw", true);
-            object active = isTrue(canDeposit) && isTrue(canWithdraw);
+            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object hasProvider = (inOp(currency, "providers"));
+            object networks = new Dictionary<string, object>() {};
+            object rawNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
+            object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
+            object networkLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
+            object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
+            object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
+            object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+            for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
+            {
+                object networkId = getValue(allNetworks, j);
+                object networkCode = this.networkIdToCode(networkId);
+                object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
+                object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.inArray(networkId, depositsNetworks) },
+                    { "withdraw", this.inArray(networkId, withdrawsNetworks) },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkDepositLimits, "min") },
+                            { "max", this.safeNumber(networkDepositLimits, "max") },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkWithdrawLimits, "min") },
+                            { "max", this.safeNumber(networkWithdrawLimits, "max") },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", null },
-                { "active", active },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
+                { "active", null },
+                { "deposit", this.safeBool(currency, "can_deposit") },
+                { "withdraw", this.safeBool(currency, "can_withdraw") },
                 { "fee", null },
-                { "precision", null },
+                { "networks", networks },
+                { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -379,24 +592,28 @@ public partial class whitebit : Exchange
                         { "min", this.safeNumber(currency, "min_withdraw") },
                         { "max", this.safeNumber(currency, "max_withdraw") },
                     } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(currency, "min_deposit") },
+                        { "max", this.safeNumber(currency, "max_deposit") },
+                    } },
                 } },
-            };
+            });
         }
         return result;
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchTransactionFees
+     * @deprecated
+     * @description please use fetchDepositWithdrawFees instead
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchTransactionFees
-        * @deprecated
-        * @description please use fetchDepositWithdrawFees instead
-        * @see https://docs.whitebit.com/public/http-v4/#fee
-        * @param {string[]|undefined} codes not used by fetchTransactionFees ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v4PublicGetFee(parameters);
@@ -445,17 +662,17 @@ public partial class whitebit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://docs.whitebit.com/public/http-v4/#fee
-        * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v4PublicGetFee(parameters);
@@ -605,16 +822,16 @@ public partial class whitebit : Exchange
         return depositWithdrawFees;
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v4PublicGetAssets(parameters);
@@ -657,17 +874,297 @@ public partial class whitebit : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchTradingLimits
+     * @description fetch the trading limits for a market
+     * @see https://docs.whitebit.com/public/http-v4/#market-info
+     * @param {string[]|undefined} symbols unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
+     */
+    public async override Task<object> fetchTradingLimits(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        //
+        // Trading limits are derived from market information already loaded by loadMarkets()
+        // Market structure includes:
+        //     {
+        //         "id": "BTC_USDT",                    // Market ID
+        //         "symbol": "BTC/USDT",                // Unified symbol
+        //         "base": "BTC",                       // Base currency
+        //         "quote": "USDT",                     // Quote currency
+        //         "active": true,                      // Market active status
+        //         "type": "spot",                      // Market type
+        //         "spot": true,                        // Spot trading enabled
+        //         "margin": false,                     // Margin trading enabled
+        //         "future": false,                     // Futures trading enabled
+        //         "option": false,                     // Options trading enabled
+        //         "contract": false,                   // Contract trading enabled
+        //         "settle": undefined,                 // Settlement currency
+        //         "settleId": undefined,               // Settlement currency ID
+        //         "contractSize": undefined,           // Contract size
+        //         "linear": undefined,                 // Linear contract
+        //         "inverse": undefined,                // Inverse contract
+        //         "limits": {                          // Trading limits
+        //             "amount": {                      // Amount limits
+        //                 "min": 0.00001,              // Minimum amount
+        //                 "max": 1000000               // Maximum amount
+        //             },
+        //             "price": {                       // Price limits
+        //                 "min": 0.01,                 // Minimum price
+        //                 "max": 1000000               // Maximum price
+        //             },
+        //             "cost": {                        // Cost limits
+        //                 "min": 5.0,                  // Minimum cost
+        //                 "max": 10000000              // Maximum cost
+        //             }
+        //         },
+        //         "precision": {                       // Precision settings
+        //             "amount": 5,                     // Amount precision
+        //             "price": 2                       // Price precision
+        //         },
+        //         "taker": 0.001,                      // Taker fee
+        //         "maker": 0.001,                      // Maker fee
+        //         "percentage": true,                  // Fee percentage
+        //         "tierBased": false                   // Tier-based fees
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        // Process all markets from the loaded markets cache
+        object marketIds = new List<object>(((IDictionary<string,object>)this.markets).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object market = getValue(this.markets, marketId);
+            if (isTrue(!isTrue(market) || !isTrue(getValue(market, "symbol"))))
+            {
+                continue;
+            }
+            object symbol = getValue(market, "symbol");
+            // Filter by symbols if specified
+            if (isTrue(symbols))
+            {
+                object symbolFound = false;
+                for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                {
+                    if (isTrue(isEqual(getValue(symbols, j), symbol)))
+                    {
+                        symbolFound = true;
+                        break;
+                    }
+                }
+                if (!isTrue(symbolFound))
+                {
+                    continue;
+                }
+            }
+            // Extract trading limits
+            object limits = this.safeDict(market, "limits");
+            object amountLimits = this.safeDict(limits, "amount");
+            object priceLimits = this.safeDict(limits, "price");
+            object costLimits = this.safeDict(limits, "cost");
+            // Validate that all required limits exist and are valid numbers
+            object hasAmountLimits = isTrue(isTrue(amountLimits) && isTrue(!isEqual(this.safeNumber(amountLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(amountLimits, "max"), null));
+            object hasPriceLimits = isTrue(isTrue(priceLimits) && isTrue(!isEqual(this.safeNumber(priceLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(priceLimits, "max"), null));
+            object hasCostLimits = isTrue(isTrue(costLimits) && isTrue(!isEqual(this.safeNumber(costLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(costLimits, "max"), null));
+            if (isTrue(isTrue(isTrue(hasAmountLimits) && isTrue(hasPriceLimits)) && isTrue(hasCostLimits)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
+                    { "info", market },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(amountLimits, "min") },
+                            { "max", this.safeNumber(amountLimits, "max") },
+                        } },
+                        { "price", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(priceLimits, "min") },
+                            { "max", this.safeNumber(priceLimits, "max") },
+                        } },
+                        { "cost", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(costLimits, "min") },
+                            { "max", this.safeNumber(costLimits, "max") },
+                        } },
+                    } },
+                };
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchFundingLimits
+     * @description fetch the deposit and withdrawal limits for a currency
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
+     */
+    public async virtual Task<object> fetchFundingLimits(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // Fetch both currencies and fees data for comprehensive funding limits
+        var currenciesDatafeesDataVariable = await promiseAll(new List<object> {this.fetchCurrencies(), this.v4PublicGetFee(parameters)});
+        var currenciesData = ((IList<object>) currenciesDatafeesDataVariable)[0];
+        var feesData = ((IList<object>) currenciesDatafeesDataVariable)[1];
+        //
+        // Currencies response structure (from fetchCurrencies):
+        //     {
+        //         "BTC": {
+        //             "id": "BTC",                          // Currency ID
+        //             "code": "BTC",                        // Currency code
+        //             "name": "Bitcoin",                    // Currency name
+        //             "active": true,                       // Currency active status
+        //             "type": "crypto",                     // Currency type
+        //             "precision": 8,                       // Currency precision
+        //             "limits": {                           // Currency limits
+        //                 "deposit": {                      // Deposit limits
+        //                     "min": 0.00001,               // Minimum deposit
+        //                     "max": 1000000                // Maximum deposit
+        //                 },
+        //                 "withdraw": {                     // Withdrawal limits
+        //                     "min": 0.00001,               // Minimum withdrawal
+        //                     "max": 1000000                // Maximum withdrawal
+        //                 }
+        //             },
+        //             "networks": {                         // Network-specific limits
+        //                 "BTC": {
+        //                     "limits": {
+        //                         "deposit": { "min": "0.001" },
+        //                         "withdraw": { "min": "0.002" }
+        //                     }
+        //                 }
+        //             },
+        //             "info": { ... }                       // Original API response
+        //         }
+        //     }
+        //
+        // Fees response structure (from /api/v4/public/fee):
+        //     {
+        //         "USDT (ERC20)": {
+        //             "ticker": "USDT",
+        //             "name": "Tether US",
+        //             "deposit": {
+        //                 "min_amount": "0.0005",
+        //                 "max_amount": "0.1",
+        //                 "fixed": "0.0005",
+        //                 "flex": {
+        //                     "min_fee": "100",
+        //                     "max_fee": "1000",
+        //                     "percent": "10"
+        //                 }
+        //             },
+        //             "withdraw": {
+        //                 "min_amount": "0.001",
+        //                 "max_amount": "0",
+        //                 "fixed": null,
+        //                 "flex": null
+        //             }
+        //         }
+        //     }
+        //
+        object result = new Dictionary<string, object>() {};
+        object currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(currencyKeys, i);
+            object currency = getValue(currenciesData, code);
+            if (!isTrue(currency))
+            {
+                continue;
+            }
+            if (isTrue(isTrue(!isEqual(codes, null)) && !isTrue(this.inArray(code, codes))))
+            {
+                continue;
+            }
+            // Find corresponding fee data for this currency
+            object feeData = null;
+            object feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
+            for (object j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
+            {
+                object feeKey = getValue(feeKeys, j);
+                object fee = getValue(feesData, feeKey);
+                if (isTrue(isTrue(fee) && isTrue(isEqual(getValue(fee, "ticker"), code))))
+                {
+                    feeData = fee;
+                    break;
+                }
+            }
+            // Build comprehensive funding limits
+            object limits = new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", getValue(getValue(getValue(currency, "limits"), "deposit"), "min") },
+                    { "max", getValue(getValue(getValue(currency, "limits"), "deposit"), "max") },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", getValue(getValue(getValue(currency, "limits"), "withdraw"), "min") },
+                    { "max", getValue(getValue(getValue(currency, "limits"), "withdraw"), "max") },
+                } },
+            };
+            // Add fee information if available
+            if (isTrue(feeData))
+            {
+                object depositFee = getValue(feeData, "deposit");
+                object withdrawFee = getValue(feeData, "withdraw");
+                if (isTrue(depositFee))
+                {
+                    object depositFeeData = new Dictionary<string, object>() {
+                        { "fixed", this.safeNumber(depositFee, "fixed") },
+                    };
+                    if (isTrue(getValue(depositFee, "flex")))
+                    {
+                        ((IDictionary<string,object>)depositFeeData)["flex"] = new Dictionary<string, object>() {
+                            { "min", this.safeNumber(getValue(depositFee, "flex"), "min_fee") },
+                            { "max", this.safeNumber(getValue(depositFee, "flex"), "max_fee") },
+                            { "percent", this.safeNumber(getValue(depositFee, "flex"), "percent") },
+                        };
+                    }
+                    ((IDictionary<string,object>)getValue(limits, "deposit"))["fee"] = depositFeeData;
+                }
+                if (isTrue(withdrawFee))
+                {
+                    object withdrawFeeData = new Dictionary<string, object>() {
+                        { "fixed", this.safeNumber(withdrawFee, "fixed") },
+                    };
+                    if (isTrue(getValue(withdrawFee, "flex")))
+                    {
+                        ((IDictionary<string,object>)withdrawFeeData)["flex"] = new Dictionary<string, object>() {
+                            { "min", this.safeNumber(getValue(withdrawFee, "flex"), "min_fee") },
+                            { "max", this.safeNumber(getValue(withdrawFee, "flex"), "max_fee") },
+                            { "percent", this.safeNumber(getValue(withdrawFee, "flex"), "percent") },
+                        };
+                    }
+                    ((IDictionary<string,object>)getValue(limits, "withdraw"))["fee"] = withdrawFeeData;
+                }
+            }
+            // Add network-specific limits if available
+            if (isTrue(getValue(currency, "networks")))
+            {
+                ((IDictionary<string,object>)limits)["networks"] = getValue(currency, "networks");
+            }
+            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                { "info", currency },
+                { "limits", limits },
+            };
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.whitebit.com/public/http-v4/#market-activity
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.whitebit.com/public/http-v4/#market-activity
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -725,58 +1222,301 @@ public partial class whitebit : Exchange
         //        "change": "2.12" // in percent
         //    }
         //
-        market = this.safeMarket(null, market);
-        object last = this.safeString(ticker, "last_price");
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
+        // v2
+        //   {
+        //       lastUpdateTimestamp: '2025-01-02T09:16:36.000Z',
+        //       tradingPairs: 'ARB_USDC',
+        //       lastPrice: '0.7727',
+        //       lowestAsk: '0.7735',
+        //       highestBid: '0.7732',
+        //       baseVolume24h: '1555793.74',
+        //       quoteVolume24h: '1157602.622406',
+        //       tradesEnabled: true
+        //   }
+        //
+        // v4PublicGetFutures
+        //     {
+        //         "ticker_id": "0G_PERP",
+        //         "stock_currency": "0G",
+        //         "money_currency": "USDT",
+        //         "last_price": "0.6065",
+        //         "stock_volume": "2563218",
+        //         "money_volume": "1587952.6137",
+        //         "bid": "0.6065",
+        //         "ask": "0.6077",
+        //         "high": "0.6472",
+        //         "low": "0.6045",
+        //         "product_type": "Perpetual",
+        //         "open_interest": "3721488",
+        //         "index_price": "0.61",
+        //         "index_name": "0G future contract",
+        //         "index_currency": "0G",
+        //         "funding_rate": "-0.00000778",
+        //         "next_funding_rate_timestamp": "1772467200000",
+        //         "brackets": {
+        //             "1": 0,
+        //             "10": 0,
+        //             "100": 0,
+        //             "2": 0,
+        //             "20": 4000,
+        //             "3": 0,
+        //             "5": 0,
+        //             "50": 800
+        //         },
+        //         "max_leverage": 50,
+        //         "funding_interval_minutes": 240
+        //     }
+        //
+        object marketId = this.safeString2(ticker, "tradingPairs", "ticker_id");
+        market = this.safeMarket(marketId, market);
+        // last price is provided as "last" or "last_price"
+        object last = this.safeStringN(ticker, new List<object>() {"last", "last_price", "lastPrice"});
+        // if "close" is provided, use it, otherwise use <last>
+        object close = this.safeString(ticker, "close", last);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", null },
             { "datetime", null },
             { "high", this.safeString(ticker, "high") },
             { "low", this.safeString(ticker, "low") },
-            { "bid", this.safeString(ticker, "bid") },
+            { "bid", this.safeString2(ticker, "bid", "highestBid") },
             { "bidVolume", null },
-            { "ask", this.safeString(ticker, "ask") },
+            { "ask", this.safeString2(ticker, "ask", "lowestAsk") },
             { "askVolume", null },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
-            { "close", last },
+            { "close", close },
             { "last", last },
             { "previousClose", null },
             { "change", null },
             { "percentage", this.safeString(ticker, "change") },
             { "average", null },
-            { "baseVolume", this.safeString2(ticker, "base_volume", "volume") },
-            { "quoteVolume", this.safeString2(ticker, "quote_volume", "deal") },
+            { "baseVolume", this.safeStringN(ticker, new List<object>() {"base_volume", "volume", "baseVolume24h", "stock_volume"}) },
+            { "quoteVolume", this.safeStringN(ticker, new List<object>() {"quote_volume", "deal", "quoteVolume24h", "money_volume"}) },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchOrder
+     * @description fetches information on an order by the id
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+     * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // Extract control parameters from params
+        object checkActive = this.safeBool(parameters, "checkActive", true);
+        object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        object request = new Dictionary<string, object>() {
+            { "orderId", id },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        // Try active orders first (if enabled)
+        if (isTrue(checkActive))
+        {
+            try
+            {
+                object response = await this.v4PrivatePostOrders(this.extend(request, parameters));
+                // Search for order in active orders response (array format)
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    object order = getValue(response, i);
+                    object orderId = this.safeString(order, "orderId");
+                    if (isTrue(isEqual(orderId, id)))
+                    {
+                        object marketId = this.safeString(order, "market");
+                        object marketNew = this.safeMarket(marketId, null, "_");
+                        return this.parseOrder(order, marketNew);
+                    }
+                }
+            } catch(Exception error)
+            {
+                if (!isTrue((error is OrderNotFound)))
+                {
+                    throw error;
+                }
+            }
+        }
+        // Try executed orders (if enabled)
+        if (isTrue(checkExecuted))
+        {
+            try
+            {
+                object response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
+                // Search for order in executed orders response (object format)
+                object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                {
+                    object marketId = getValue(marketIds, i);
+                    object marketNew = this.safeMarket(marketId, null, "_");
+                    object orders = getValue(response, marketId);
+                    for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                    {
+                        object order = getValue(orders, j);
+                        object orderId = this.safeString(order, "id");
+                        if (isTrue(isEqual(orderId, id)))
+                        {
+                            return this.parseOrder(order, marketNew);
+                        }
+                    }
+                }
+            } catch(Exception error)
+            {
+                if (!isTrue((error is OrderNotFound)))
+                {
+                    throw error;
+                }
+            }
+        }
+        throw new OrderNotFound ((string)add(add(this.id, " fetchOrder() order not found: "), id)) ;
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.whitebit.com/public/http-v4/#market-activity
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.whitebit.com/public/http-v4/#market-activity
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object response = await this.v4PublicGetTicker(parameters);
-        //
-        //      "BCH_RUB": {
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12"
-        //      },
-        //
+        object onlyContractSymbols = true;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                if (!isTrue((getValue(market, "contract"))))
+                {
+                    onlyContractSymbols = false;
+                    break;
+                }
+            }
+        } else
+        {
+            onlyContractSymbols = false;
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        if (isTrue(isEqual(method, null)))
+        {
+            // if the user did not specify a method, choose it based on market type and symbols
+            if (isTrue(isTrue(onlyContractSymbols) || isTrue((isEqual(marketType, "swap")))))
+            {
+                method = "v4PublicGetFutures";
+            } else
+            {
+                method = "v4PublicGetTicker";
+            }
+        }
+        object response = null;
+        if (isTrue(isEqual(method, "v4PublicGetTicker")))
+        {
+            //
+            //      "BCH_RUB": {
+            //          "base_id":1831,
+            //          "quote_id":0,
+            //          "last_price":"32830.21",
+            //          "quote_volume":"1494659.8024096",
+            //          "base_volume":"46.1083",
+            //          "isFrozen":false,
+            //          "change":"2.12"
+            //      },
+            //
+            response = await this.v4PublicGetTicker(parameters);
+        } else if (isTrue(isEqual(method, "v4PublicGetFutures")))
+        {
+            //
+            //     {
+            //         "success": true,
+            //         "message": null,
+            //         "result": [
+            //             {
+            //                 "ticker_id": "0G_PERP",
+            //                 "stock_currency": "0G",
+            //                 "money_currency": "USDT",
+            //                 "last_price": "0.6065",
+            //                 "stock_volume": "2563218",
+            //                 "money_volume": "1587952.6137",
+            //                 "bid": "0.6065",
+            //                 "ask": "0.6077",
+            //                 "high": "0.6472",
+            //                 "low": "0.6045",
+            //                 "product_type": "Perpetual",
+            //                 "open_interest": "3721488",
+            //                 "index_price": "0.61",
+            //                 "index_name": "0G future contract",
+            //                 "index_currency": "0G",
+            //                 "funding_rate": "-0.00000778",
+            //                 "next_funding_rate_timestamp": "1772467200000",
+            //                 "brackets": {
+            //                     "1": 0,
+            //                     "10": 0,
+            //                     "100": 0,
+            //                     "2": 0,
+            //                     "20": 4000,
+            //                     "3": 0,
+            //                     "5": 0,
+            //                     "50": 800
+            //                 },
+            //                 "max_leverage": 50,
+            //                 "funding_interval_minutes": 240
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.v4PublicGetFutures(parameters);
+        } else
+        {
+            response = await this.v2PublicGetTicker(parameters);
+        }
+        object resultList = this.safeList(response, "result");
+        if (isTrue(!isEqual(resultList, null)))
+        {
+            return this.parseTickers(resultList, symbols);
+        }
         object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
@@ -790,18 +1530,18 @@ public partial class whitebit : Exchange
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.whitebit.com/public/http-v4/#orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.whitebit.com/public/http-v4/#orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -836,19 +1576,19 @@ public partial class whitebit : Exchange
         return this.parseOrderBook(response, symbol, timestamp);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.whitebit.com/public/http-v4/#recent-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.whitebit.com/public/http-v4/#recent-trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -871,19 +1611,19 @@ public partial class whitebit : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-history
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -977,6 +1717,7 @@ public partial class whitebit : Exchange
         //         "clientOrderId": "customId11",
         //         "role": 2, // 1 = maker, 2 = taker
         //         "deal": "0.00419198" // amount in money
+        //         "feeAsset": "USDT"
         //     }
         //
         // fetchMyTrades
@@ -992,6 +1733,7 @@ public partial class whitebit : Exchange
         //          "deal": "9.981007",
         //          "fee": "0.009981007",
         //          "orderId": 58166729555,
+        //          "feeAsset": "USDT"
         //      }
         //
         market = this.safeMarket(null, market);
@@ -1015,7 +1757,7 @@ public partial class whitebit : Exchange
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeCurrencyCode(this.safeString(trade, "feeAsset")) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1035,20 +1777,20 @@ public partial class whitebit : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.whitebit.com/public/http-v1/#kline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.whitebit.com/public/http-v1/#kline
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1104,16 +1846,16 @@ public partial class whitebit : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.whitebit.com/public/http-v4/#server-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.whitebit.com/public/http-v4/#server-status
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v4PublicGetPing(parameters);
         //
@@ -1131,53 +1873,107 @@ public partial class whitebit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.whitebit.com/public/http-v4/#server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.whitebit.com/public/http-v4/#server-time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v4PublicGetTime(parameters);
         //
         //     {
-        //         "time":1635467280514
+        //         "time":1737380046
         //     }
         //
-        return this.safeInteger(response, "time");
+        return this.safeIntegerProduct(response, "time", 1000);
     }
 
+    /**
+     * @method
+     * @name whitebit#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object req = new Dictionary<string, object>() {
+            { "cost", cost },
+        };
+        // only buy side is supported
+        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
+    }
+
+    /**
+     * @method
+     * @name whitebit#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createMarketOrderWithCost(symbol, "buy", cost, parameters);
+    }
+
+    /**
+     * @method
+     * @name whitebit#createOrder
+     * @description create a trade order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#create-limit-order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#create-market-order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#create-buy-stock-market-order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#create-stop-limit-order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#create-stop-market-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {bool} [params.postOnly] If true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#createOrder
-        * @description create a trade order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#create-limit-order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#create-market-order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#create-buy-stock-market-order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#create-stop-limit-order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#create-stop-market-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", side },
-            { "amount", this.amountToPrecision(symbol, amount) },
         };
+        object cost = null;
+        var costparametersVariable = this.handleParamString(parameters, "cost");
+        cost = ((IList<object>)costparametersVariable)[0];
+        parameters = ((IList<object>)costparametersVariable)[1];
+        if (isTrue(!isEqual(cost, null)))
+        {
+            if (isTrue(isTrue((!isEqual(side, "buy"))) || isTrue((!isEqual(type, "market")))))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrder() cost is only supported for market buy orders")) ;
+            }
+            ((IDictionary<string,object>)request)["amount"] = this.costToPrecision(symbol, cost);
+        } else
+        {
+            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+        }
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -1194,8 +1990,8 @@ public partial class whitebit : Exchange
         object marketType = this.safeString(market, "type");
         object isLimitOrder = isEqual(type, "limit");
         object isMarketOrder = isEqual(type, "market");
-        object stopPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
-        object isStopOrder = (!isEqual(stopPrice, null));
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
+        object isStopOrder = (!isEqual(triggerPrice, null));
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -1213,7 +2009,7 @@ public partial class whitebit : Exchange
         object response = null;
         if (isTrue(isStopOrder))
         {
-            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
             if (isTrue(isLimitOrder))
             {
                 // stop limit order
@@ -1251,25 +2047,107 @@ public partial class whitebit : Exchange
                     response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, parameters));
                 } else
                 {
-                    response = await this.v4PrivatePostOrderStockMarket(this.extend(request, parameters));
+                    if (isTrue(!isEqual(cost, null)))
+                    {
+                        response = await this.v4PrivatePostOrderMarket(this.extend(request, parameters));
+                    } else
+                    {
+                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, parameters));
+                    }
                 }
             }
         }
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name whitebit#editOrder
+     * @description edit a trade order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#modify-order
+     * @param {string} id cancel order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        // Handle clientOrderId vs orderId (clientOrderId takes priority)
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        }
+        // Handle amount vs total parameter based on order type and side
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activationPrice"});
+        object isStopOrder = (!isEqual(triggerPrice, null));
+        // Handle activation price for stop orders
+        if (isTrue(isStopOrder))
+        {
+            ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
+        }
+        object isLimitOrder = isEqual(type, "limit");
+        object total = this.safeNumber(parameters, "total");
+        if (isTrue(!isEqual(total, null)))
+        {
+            ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, total);
+        } else if (isTrue(!isEqual(amount, null)))
+        {
+            if (isTrue(isLimitOrder))
+            {
+                // Limit orders always use amount parameter
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            } else if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
+            {
+                // Market buy orders use total parameter
+                ((IDictionary<string,object>)request)["total"] = this.amountToPrecision(symbol, amount);
+            } else
+            {
+                // Market sell orders use amount parameter
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
+            }
+        }
+        // Handle price parameter for limit orders
+        if (isTrue(!isEqual(price, null)))
+        {
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+        }
+        // Ensure at least one modifiable parameter is provided
+        object hasModifiableParam = isTrue(isTrue(isTrue((!isEqual(amount, null))) || isTrue((!isEqual(price, null)))) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(total, null)));
+        if (!isTrue(hasModifiableParam))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"});
+        object response = await this.v4PrivatePostOrderModify(this.extend(request, parameters));
+        return this.parseOrder(response);
+    }
+
+    /**
+     * @method
+     * @name whitebit#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1281,7 +2159,158 @@ public partial class whitebit : Exchange
             { "market", getValue(market, "id") },
             { "orderId", parseInt(id) },
         };
-        return await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+        object response = await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
+        //
+        //    {
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
+        //    }
+        //
+        return this.parseOrder(response);
+    }
+
+    /**
+     * @method
+     * @name whitebit#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] market type, ['swap', 'spot']
+     * @param {boolean} [params.isMargin] cancel all margin orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object requestType = new List<object>() {};
+        if (isTrue(isEqual(type, "spot")))
+        {
+            object isMargin = null;
+            var isMarginparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
+            isMargin = ((IList<object>)isMarginparametersVariable)[0];
+            parameters = ((IList<object>)isMarginparametersVariable)[1];
+            if (isTrue(isMargin))
+            {
+                ((IList<object>)requestType).Add("margin");
+            } else
+            {
+                ((IList<object>)requestType).Add("spot");
+            }
+        } else if (isTrue(isEqual(type, "swap")))
+        {
+            ((IList<object>)requestType).Add("futures");
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
+        }
+        ((IDictionary<string,object>)request)["type"] = requestType;
+        object response = await this.v4PrivatePostOrderCancelAll(this.extend(request, parameters));
+        //
+        // []
+        //
+        return this.parseOrders(response, market);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchOrders
+     * @description fetches information on multiple orders made by the user (combines open and closed orders)
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        // Fetch both open and closed orders in parallel
+        var openOrdersclosedOrdersVariable = await promiseAll(new List<object> {this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters)});
+        var openOrders = ((IList<object>) openOrdersclosedOrdersVariable)[0];
+        var closedOrders = ((IList<object>) openOrdersclosedOrdersVariable)[1];
+        object allOrders = this.arrayConcat(openOrders, closedOrders);
+        // Sort by timestamp (most recent first)
+        object sortedOrders = this.sortBy(allOrders, "timestamp", true);
+        // Apply limit if specified (since and symbol filtering already handled by individual methods)
+        if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(getArrayLength(sortedOrders), limit))))
+        {
+            return slice(sortedOrders, 0, limit);
+        }
+        return sortedOrders;
+    }
+
+    /**
+     * @method
+     * @name whitebit#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.types] Order types value. Example: "spot", "margin", "futures" or null
+     * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
+     * @returns {object} the api result
+     */
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object symbol = this.safeString(parameters, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+        }
+        object market = this.market(symbol);
+        parameters = this.omit(parameters, "symbol");
+        object isBiggerThanZero = (isGreaterThan(timeout, 0));
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(isBiggerThanZero))
+        {
+            ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
+        } else
+        {
+            ((IDictionary<string,object>)request)["timeout"] = "null";
+        }
+        object response = await this.v4PrivatePostOrderKillSwitch(this.extend(request, parameters));
+        //
+        //     {
+        //         "market": "BTC_USDT", // currency market,
+        //         "startTime": 1662478154, // now timestamp,
+        //         "cancellationTime": 1662478154, // now + timer_value,
+        //         "types": ["spot", "margin"]
+        //     }
+        //
+        return response;
     }
 
     public override object parseBalance(object response)
@@ -1296,7 +2325,7 @@ public partial class whitebit : Exchange
             if (isTrue(isTrue((balance is IDictionary<string, object>)) && isTrue(!isEqual(balance, null))))
             {
                 object account = this.account();
-                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
+                ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "main_balance");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "freeze");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "main_balance");
                 ((IDictionary<string,object>)result)[(string)code] = account;
@@ -1310,17 +2339,17 @@ public partial class whitebit : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.whitebit.com/private/http-main-v4/#main-balance
+     * @see https://docs.whitebit.com/private/http-trade-v4/#trading-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.whitebit.com/private/http-main-v4/#main-balance
-        * @see https://docs.whitebit.com/private/http-trade-v4/#trading-balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
@@ -1370,29 +2399,28 @@ public partial class whitebit : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
-        };
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
@@ -1423,19 +2451,19 @@ public partial class whitebit : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1505,7 +2533,7 @@ public partial class whitebit : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1520,6 +2548,7 @@ public partial class whitebit : Exchange
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }
@@ -1554,9 +2583,14 @@ public partial class whitebit : Exchange
             clientOrderId = null;
         }
         object price = this.safeString(order, "price");
-        object stopPrice = this.safeNumber(order, "activation_price");
+        object triggerPrice = this.safeNumber(order, "activation_price");
         object orderId = this.safeString2(order, "orderId", "id");
         object type = this.safeString(order, "type");
+        object orderType = this.parseOrderType(type);
+        if (isTrue(isEqual(orderType, "market")))
+        {
+            remaining = null;
+        }
         object amount = this.safeString(order, "amount");
         object cost = this.safeString(order, "dealMoney");
         if (isTrue(isTrue((isEqual(side, "buy"))) && isTrue((isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stop market")))))))
@@ -1584,12 +2618,11 @@ public partial class whitebit : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "timeInForce", null },
             { "postOnly", null },
-            { "status", null },
+            { "status", this.parseOrderStatus(this.safeString(order, "status")) },
             { "side", side },
             { "price", price },
-            { "type", this.parseOrderType(type) },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "type", orderType },
+            { "triggerPrice", triggerPrice },
             { "amount", amount },
             { "filled", filled },
             { "remaining", remaining },
@@ -1600,20 +2633,31 @@ public partial class whitebit : Exchange
         }, market);
     }
 
+    public virtual object parseOrderStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "CANCELED", "canceled" },
+            { "OPEN", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "FILLED", "closed" },
+        };
+        return this.safeStringLower(statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-deals
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-order-deals
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1653,18 +2697,135 @@ public partial class whitebit : Exchange
         return this.parseTrades(data, market);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(isTrue(isEqual(limit, null)) || isTrue(isGreaterThan(limit, 100))))
+        {
+            limit = 100;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
+        ((IDictionary<string,object>)request)["transactionMethod"] = "2";
+        object response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "2",                      // Method: 1=deposit, 2=withdrawal (filtered server-side)
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Withdrawal address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More withdrawal transactions
+        //     ]
+        //
+        return this.parseTransactions(this.safeList(response, "records", new List<object>() {}), currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchTransactions
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transactions structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = this.parseToInt(divide(since, 1000));
+        }
+        if (isTrue(isTrue(isEqual(limit, null)) || isTrue(isGreaterThan(limit, 100))))
+        {
+            limit = 100;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
+        object response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More transactions (deposits and withdrawals)
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-cryptocurrency-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
-        * @see https://docs.whitebit.com/private/http-main-v4/#get-cryptocurrency-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1728,26 +2889,132 @@ public partial class whitebit : Exchange
         object tag = this.safeString(account, "memo");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
+    /**
+     * @method
+     * @name whitebit#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @param {string} [params.type] address type, available for specific currencies
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ticker", getValue(currency, "id") },
+        };
+        object response = await this.v4PrivatePostMainAccountCreateNewAddress(this.extend(request, parameters));
+        //
+        //     {
+        //         "account": {
+        //             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //             "memo": "48565488244493"
+        //         },
+        //         "required": {
+        //             "maxAmount": "0",
+        //             "minAmount": "1",
+        //             "fixedFee": "0",
+        //             "flexFee": {
+        //                 "maxFee": "0",
+        //                 "minFee": "0",
+        //                 "percent": "0"
+        //             }
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "account", new Dictionary<string, object>() {});
+        return this.parseDepositAddress(data, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //     {
+        //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        //         "memo": "48565488244493"
+        //     },
+        //
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(null, currency) },
+            { "network", null },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", this.safeString(depositAddress, "memo") },
+        };
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    public async override Task<object> fetchAccounts(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object accounts = new List<object>() {};
+        // Fetch sub-accounts
+        //
+        //     [
+        //         {
+        //             "id": "12345",
+        //             "name": "SubAccount1",
+        //             "status": "active",
+        //             "permissions": ["trade", "withdraw"]
+        //         }
+        //     ]
+        //
+        object subAccounts = await this.v4PrivatePostSubAccountList(parameters);
+        if (isTrue(isTrue(subAccounts) && isTrue(((subAccounts is IList<object>) || (subAccounts.GetType().IsGenericType && subAccounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
+            {
+                object subAccount = this.safeValue(subAccounts, i);
+                object accountId = this.safeString(subAccount, "id");
+                object accountName = this.safeString(subAccount, "name");
+                if (isTrue(accountId))
+                {
+                    ((IList<object>)accounts).Add(new Dictionary<string, object>() {
+                        { "id", accountId },
+                        { "type", "subaccount" },
+                        { "name", isTrue(accountName) || isTrue(add("SubAccount ", accountId)) },
+                        { "code", null },
+                        { "info", subAccount },
+                    });
+                }
+            }
+        }
+        return accounts;
+    }
+
+    /**
+     * @method
+     * @name whitebit#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(!isEqual(symbol, null)))
@@ -1764,20 +3031,20 @@ public partial class whitebit : Exchange
         return await this.v4PrivatePostCollateralAccountLeverage(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name whitebit#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from - main, spot, collateral
+     * @param {string} toAccount account to transfer to - main, spot, collateral
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://docs.whitebit.com/private/http-main-v4/#transfer-between-main-and-trade-balances
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from - main, spot, collateral
-        * @param {string} toAccount account to transfer to - main, spot, collateral
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1816,20 +3083,20 @@ public partial class whitebit : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name whitebit#withdraw
+     * @description make a withdrawal
+     * @see https://docs.whitebit.com/private/http-main-v4/#create-withdraw-request
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#withdraw
-        * @description make a withdrawal
-        * @see https://docs.whitebit.com/private/http-main-v4/#create-withdraw-request
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code); // check if it has canDeposit
@@ -1864,9 +3131,9 @@ public partial class whitebit : Exchange
         //
         //     []
         //
-        return this.extend(new Dictionary<string, object>() {
+        return this.extend(this.parseTransaction(response, currency), new Dictionary<string, object>() {
             { "id", uniqueId },
-        }, this.parseTransaction(response, currency));
+        });
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -1875,6 +3142,7 @@ public partial class whitebit : Exchange
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
         //         "uniqueId": null,                                                                             // unique Id of deposit
+        //         "transactionId": "a6d71d69-2b17-4ad8-8b15-2d686c54a1a5",
         //         "createdAt": 1593437922,                                                                      // timestamp of deposit
         //         "currency": "Bitcoin",                                                                        // deposit currency
         //         "ticker": "BTC",                                                                              // deposit currency ticker
@@ -1898,6 +3166,7 @@ public partial class whitebit : Exchange
         //             "actual": 1,                                                                              // current block confirmations
         //             "required": 2                                                                             // required block confirmation for successful deposit
         //         }
+        //         "centralized": false,
         //     }
         //
         currency = this.safeCurrency(null, currency);
@@ -1908,7 +3177,7 @@ public partial class whitebit : Exchange
         object method = this.safeString(transaction, "method");
         return new Dictionary<string, object>() {
             { "id", this.safeString(transaction, "uniqueId") },
-            { "txid", this.safeString(transaction, "transactionHash") },
+            { "txid", this.safeString(transaction, "transactionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "network", this.safeString(transaction, "network") },
@@ -1921,7 +3190,7 @@ public partial class whitebit : Exchange
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
             { "tagFrom", null },
-            { "tag", null },
+            { "tag", this.safeString(transaction, "memo") },
             { "tagTo", null },
             { "comment", this.safeString(transaction, "description") },
             { "internal", null },
@@ -1956,18 +3225,18 @@ public partial class whitebit : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} id deposit id
+     * @param {string} code not used by whitebit fetchDeposit ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchDeposit
-        * @description fetch information on a deposit
-        * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
-        * @param {string} id deposit id
-        * @param {string} code not used by whitebit fetchDeposit ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -2025,19 +3294,19 @@ public partial class whitebit : Exchange
         return this.parseTransaction(first, currency);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -2097,20 +3366,20 @@ public partial class whitebit : Exchange
         return this.parseTransactions(records, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchBorrowInterest
+     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string} code unified currency code
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchBorrowInterest
-        * @description fetch the interest owed by the user for borrowing currency for margin trading
-        * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
-        * @param {string} code unified currency code
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch borrrow interest for
-        * @param {int} [limit] the maximum number of structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2171,29 +3440,29 @@ public partial class whitebit : Exchange
         object symbol = this.safeSymbol(marketId, market, "_");
         object timestamp = this.safeTimestamp(info, "modifyDate");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", symbol },
-            { "marginMode", "cross" },
             { "currency", "USDT" },
             { "interest", this.safeNumber(info, "unrealizedFunding") },
             { "interestRate", 0.00098 },
             { "amountBorrowed", this.safeNumber(info, "amount") },
+            { "marginMode", "cross" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchFundingRate
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
-        * @description fetch the current funding rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -2201,17 +3470,17 @@ public partial class whitebit : Exchange
         return this.safeValue(response, symbol);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name whitebit#fetchFundingRates
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
-        * @description fetch the funding rate for multiple markets
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -2260,9 +3529,8 @@ public partial class whitebit : Exchange
         //        }
         //    ]
         //
-        object data = this.safeValue(response, "result", new List<object>() {});
-        object result = this.parseFundingRates(data);
-        return this.filterByArray(result, "symbol", symbols);
+        object data = this.safeList(response, "result", new List<object>() {});
+        return this.parseFundingRates(data, symbols);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -2305,7 +3573,7 @@ public partial class whitebit : Exchange
         object indexPrice = this.safeNumber(contract, "indexPrice");
         object interestRate = this.safeNumber(contract, "interestRate");
         object fundingRate = this.safeNumber(contract, "funding_rate");
-        object nextFundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
+        object fundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -2315,14 +3583,644 @@ public partial class whitebit : Exchange
             { "timestamp", null },
             { "datetime", null },
             { "fundingRate", fundingRate },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", this.iso8601(null) },
+            { "fundingTimestamp", fundingTime },
+            { "fundingDatetime", this.iso8601(fundingTime) },
             { "nextFundingRate", null },
-            { "nextFundingTimestamp", nextFundingTime },
-            { "nextFundingDatetime", this.iso8601(nextFundingTime) },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
+        };
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.whitebit.com/private/http-trade-v4/#funding-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch funding history for
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
+        //
+        //     {
+        //         "records": [
+        //             {
+        //                 "market": "BTC_PERP",
+        //                 "fundingTime": "1708704000000",
+        //                 "fundingRate": "0.00017674",
+        //                 "fundingAmount": "-0.171053531892",
+        //                 "positionAmount": "0.019",
+        //                 "settlementPrice": "50938.2",
+        //                 "rateCalculatedTime": "1708675200000"
+        //             },
+        //         ],
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
+        //
+        object data = this.safeList(response, "records", new List<object>() {});
+        return this.parseFundingHistories(data, market, since, limit);
+    }
+
+    public virtual object parseFundingHistory(object contract, object market = null)
+    {
+        //
+        //     {
+        //         "market": "BTC_PERP",
+        //         "fundingTime": "1708704000000",
+        //         "fundingRate": "0.00017674",
+        //         "fundingAmount": "-0.171053531892",
+        //         "positionAmount": "0.019",
+        //         "settlementPrice": "50938.2",
+        //         "rateCalculatedTime": "1708675200000"
+        //     }
+        //
+        object marketId = this.safeString(contract, "market");
+        object timestamp = this.safeInteger(contract, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "code", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", null },
+            { "amount", this.safeNumber(contract, "fundingAmount") },
+        };
+    }
+
+    public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        {
+            object contract = getValue(contracts, i);
+            ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
+        }
+        object sorted = this.sortBy(result, "timestamp");
+        return this.filterBySinceLimit(sorted, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {number} [params.transactionMethod] Method. Example: 1 to display deposits / 2 to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
+     * @param {string} [params.address] Can be used for filtering transactions by specific address or memo.
+     * @param {string[]} [params.addresses] Can be used for filtering transactions by specific addresses or memos (max: 20).
+     * @param {string} [params.uniqueId] Can be used for filtering transactions by specific unique id
+     * @param {int} [params.offset] If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000
+     * @param {string[]} [params.status] Can be used for filtering transactions by status codes. Caution: You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example: "status": [3,7]
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["ticker"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit; // default 1000
+        }
+        object response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
+        //
+        //    {
+        //        "limit": 100,
+        //        "offset": 0,
+        //        "records": [
+        //            {
+        //                "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                        // deposit address
+        //                "uniqueId": null,                                                                       // unique Id of deposit
+        //                "createdAt": 1593437922,                                                                // timestamp of deposit
+        //                "currency": "Bitcoin",                                                                  // deposit currency
+        //                "ticker": "BTC",                                                                        // deposit currency ticker
+        //                "method": 1,                                                                            // called method 1 - deposit, 2 - withdraw
+        //                "amount": "0.0006",                                                                     // amount of deposit
+        //                "description": "",                                                                      // deposit description
+        //                "memo": "",                                                                             // deposit memo
+        //                "fee": "0",                                                                             // deposit fee
+        //                "status": 15,                                                                           // transactions status
+        //                "network": null,                                                                        // if currency is multinetwork
+        //                "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",  // deposit transaction hash
+        //                "transactionId": "5e112b38-9652-11ed-a1eb-0242ac120002",                                // transaction id
+        //                "details": {
+        //                    "partial": {                                                                        // details about partially successful withdrawals
+        //                        "requestAmount": "50000",                                                       // requested withdrawal amount
+        //                        "processedAmount": "39000",                                                     // processed withdrawal amount
+        //                        "processedFee": "273",                                                          // fee for processed withdrawal amount
+        //                        "normalizeTransaction": ""                                                      // deposit id
+        //                    }
+        //                },
+        //                "confirmations": {                                                                      // if transaction status == 15 (Pending) you can see this object
+        //                    "actual": 1,                                                                        // current block confirmations
+        //                    "required": 2                                                                       // required block confirmation for successful deposit
+        //                }
+        //            },
+        //            {...},
+        //        ],
+        //        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
+        //    }
+        //
+        object records = this.safeList(response, "records");
+        return this.parseTransactions(records, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} amount how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+     */
+    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        object request = new Dictionary<string, object>() {
+            { "from", fromCode },
+            { "to", toCode },
+            { "amount", this.numberToString(amount) },
+            { "direction", "from" },
+        };
+        object response = await this.v4PrivatePostConvertEstimate(this.extend(request, parameters));
+        //
+        //     {
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
+        //     }
+        //
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name whitebit#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
+     */
+    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object fromCurrency = this.currency(fromCode);
+        object toCurrency = this.currency(toCode);
+        object request = new Dictionary<string, object>() {
+            { "quoteId", id },
+        };
+        object response = await this.v4PrivatePostConvertConfirm(this.extend(request, parameters));
+        //
+        //     {
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
+        //     }
+        //
+        return this.parseConversion(response, fromCurrency, toCurrency);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://docs.whitebit.com/private/http-trade-v4/#convert-history
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve, default 20, max 200
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.until] the end time in ms
+     * @param {string} [params.fromTicker] the currency that you sold and converted from
+     * @param {string} [params.toTicker] the currency that you bought and converted into
+     * @param {string} [params.quoteId] the quote id of the conversion
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
+     */
+    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)request)["fromTicker"] = code;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            object start = this.parseToInt(divide(since, 1000));
+            ((IDictionary<string,object>)request)["from"] = this.numberToString(start);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v4PrivatePostConvertHistory(this.extend(request, parameters));
+        //
+        //     {
+        //         "records": [
+        //             {
+        //                 "id": "1741105",
+        //                 "path": [
+        //                     {
+        //                         "from": "USDT",
+        //                         "to": "BTC",
+        //                         "rate": "0.00001193"
+        //                     }
+        //                 ],
+        //                 "date": 1741090757,
+        //                 "give": "4",
+        //                 "receive": "0.00004772",
+        //                 "rate": "0.00001193"
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
+        //
+        object rows = this.safeList(response, "records", new List<object>() {});
+        return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
+    }
+
+    public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
+    {
+        //
+        // fetchConvertQuote
+        //
+        //     {
+        //         "give": "4",
+        //         "receive": "0.00004762",
+        //         "rate": "0.0000119",
+        //         "id": "1740889",
+        //         "expireAt": 1741090147,
+        //         "from": "USDT",
+        //         "to": "BTC"
+        //     }
+        //
+        // createConvertTrade
+        //
+        //     {
+        //         "finalGive": "4",
+        //         "finalReceive": "0.00004772"
+        //     }
+        //
+        // fetchConvertTradeHistory
+        //
+        //     {
+        //         "id": "1741105",
+        //         "path": [
+        //             {
+        //                 "from": "USDT",
+        //                 "to": "BTC",
+        //                 "rate": "0.00001193"
+        //             }
+        //         ],
+        //         "date": 1741090757,
+        //         "give": "4",
+        //         "receive": "0.00004772",
+        //         "rate": "0.00001193"
+        //     }
+        //
+        object path = this.safeList(conversion, "path", new List<object>() {});
+        object first = this.safeDict(path, 0, new Dictionary<string, object>() {});
+        object fromPath = this.safeString(first, "from");
+        object toPath = this.safeString(first, "to");
+        object timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
+        object fromCoin = this.safeString(conversion, "from", fromPath);
+        object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        object toCoin = this.safeString(conversion, "to", toPath);
+        object toCode = this.safeCurrencyCode(toCoin, toCurrency);
+        return new Dictionary<string, object>() {
+            { "info", conversion },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(conversion, "id") },
+            { "fromCurrency", fromCode },
+            { "fromAmount", this.safeNumber2(conversion, "give", "finalGive") },
+            { "toCurrency", toCode },
+            { "toAmount", this.safeNumber2(conversion, "receive", "finalReceive") },
+            { "price", this.safeNumber(conversion, "rate") },
+            { "fee", null },
+        };
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#positions-history
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.positionId] the id of the requested position
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = since;
+        }
+        var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.309887,
+        //             "modifyDate": 1741941025.309887,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "realizedFunding": "0",
+        //             "liquidationPrice": "0",
+        //             "liquidationState": null,
+        //             "orderDetail": {
+        //                 "id": 1224727949521,
+        //                 "tradeAmount": "0.001",
+        //                 "price": "82498.7",
+        //                 "tradeFee": "0.028874545",
+        //                 "fundingFee": "0",
+        //                 "realizedPnl": "-0.028874545"
+        //             }
+        //         }
+        //     ]
+        //
+        object positions = this.parsePositions(response);
+        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object response = await this.v4PrivatePostCollateralAccountPositionsOpen(parameters);
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
+        //         }
+        //     ]
+        //
+        return this.parsePositions(response, symbols);
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "positionId": 479975679,
+        //             "market": "BTC_PERP",
+        //             "openDate": 1741941025.3098869,
+        //             "modifyDate": 1741941025.3098869,
+        //             "amount": "0.001",
+        //             "basePrice": "82498.7",
+        //             "liquidationPrice": "70177.2",
+        //             "pnl": "0",
+        //             "pnlPercent": "0.00",
+        //             "margin": "4.2",
+        //             "freeMargin": "9.9",
+        //             "funding": "0",
+        //             "unrealizedFunding": "0",
+        //             "liquidationState": null,
+        //             "tpsl": null
+        //         }
+        //     ]
+        //
+        object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        return this.parsePosition(data, market);
+    }
+
+    public override object parsePosition(object position, object market = null)
+    {
+        //
+        // fetchPosition, fetchPositions
+        //
+        //     {
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.3098869,
+        //         "modifyDate": 1741941025.3098869,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "liquidationPrice": "70177.2",
+        //         "pnl": "0",
+        //         "pnlPercent": "0.00",
+        //         "margin": "4.2",
+        //         "freeMargin": "9.9",
+        //         "funding": "0",
+        //         "unrealizedFunding": "0",
+        //         "liquidationState": null,
+        //         "tpsl": null
+        //     }
+        //
+        // fetchPositionHistory
+        //
+        //     {
+        //         "positionId": 479975679,
+        //         "market": "BTC_PERP",
+        //         "openDate": 1741941025.309887,
+        //         "modifyDate": 1741941025.309887,
+        //         "amount": "0.001",
+        //         "basePrice": "82498.7",
+        //         "realizedFunding": "0",
+        //         "liquidationPrice": "0",
+        //         "liquidationState": null,
+        //         "orderDetail": {
+        //             "id": 1224727949521,
+        //             "tradeAmount": "0.001",
+        //             "price": "82498.7",
+        //             "tradeFee": "0.028874545",
+        //             "fundingFee": "0",
+        //             "realizedPnl": "-0.028874545"
+        //         }
+        //     }
+        //
+        object marketId = this.safeString(position, "market");
+        object timestamp = this.safeTimestamp(position, "openDate");
+        object tpsl = this.safeDict(position, "tpsl", new Dictionary<string, object>() {});
+        object orderDetail = this.safeDict(position, "orderDetail", new Dictionary<string, object>() {});
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", this.safeString(position, "positionId") },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "notional", null },
+            { "marginMode", null },
+            { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
+            { "entryPrice", this.safeNumber(position, "basePrice") },
+            { "unrealizedPnl", this.safeNumber(position, "pnl") },
+            { "realizedPnl", this.safeNumber(orderDetail, "realizedPnl") },
+            { "percentage", this.safeNumber(position, "pnlPercent") },
+            { "contracts", null },
+            { "contractSize", null },
+            { "markPrice", null },
+            { "lastPrice", null },
+            { "side", null },
+            { "hedged", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "lastUpdateTimestamp", this.safeTimestamp(position, "modifyDate") },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", this.safeNumber(position, "margin") },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", null },
+            { "marginRatio", null },
+            { "stopLossPrice", this.safeNumber(tpsl, "stopLoss") },
+            { "takeProfitPrice", this.safeNumber(tpsl, "takeProfit") },
+        });
+    }
+
+    /**
+     * @method
+     * @name whitebit#fetchCrossBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-plans
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "ticker", getValue(currency, "id") },
+        };
+        object response = await this.v4PrivatePostMainAccountSmartPlans(this.extend(request, parameters));
+        //
+        //
+        object data = this.safeList(response, 0, new List<object>() {});
+        return this.parseBorrowRate(data, currency);
+    }
+
+    public override object parseBorrowRate(object info, object currency = null)
+    {
+        //
+        //
+        object currencyId = this.safeString(info, "ticker");
+        object percent = this.safeString(info, "percent");
+        return new Dictionary<string, object>() {
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "rate", this.parseNumber(Precise.stringDiv(percent, "100")) },
+            { "period", this.safeInteger(info, "duration") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "info", info },
         };
     }
 
@@ -2332,9 +4230,82 @@ public partial class whitebit : Exchange
         return this.inArray(currency, fiatCurrencies);
     }
 
+    /**
+     * @method
+     * @name whitebit#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.whitebit.com/api-reference/market-data/funding-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch (default 100, max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+        }
+        object maxLimit = 100;
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit);
+        }
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startDate"] = Math.Round(Convert.ToDouble(divide(since, 1000)));
+        }
+        var requestparametersVariable = this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.v4PublicGetFundingHistoryMarket(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "fundingTime": "1773648000",
+        //             "fundingRate": "-0.00004593",
+        //             "market": "ETH_PERP",
+        //             "settlementPrice": "2248.47",
+        //             "rateCalculatedTime": "1773619200"
+        //         }
+        //     ]
+        //
+        return this.parseFundingRateHistories(response, market, since, limit);
+    }
+
+    public override object parseFundingRateHistory(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "market");
+        market = this.safeMarket(marketId, market);
+        object timestamp = this.safeTimestamp(info, "fundingTime");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", getValue(market, "symbol") },
+            { "fundingRate", this.safeNumber(info, "fundingRate") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        };
+    }
+
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2345,6 +4316,11 @@ public partial class whitebit : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object version = this.safeValue(((object)api), 0);
         object accessibility = this.safeValue(((object)api), 1);
+        if (isTrue(isEqual(headers, null)))
+        {
+            headers = new Dictionary<string, object>() {};
+        }
+        ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);
         object pathWithParams = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(getValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (isTrue(isEqual(accessibility, "public")))
@@ -2360,10 +4336,14 @@ public partial class whitebit : Exchange
             object nonce = ((object)this.nonce()).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
+            var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
+            var nonceWindow = ((IList<object>) nonceWindowrequestParamsVariable)[0];
+            var requestParams = ((IList<object>) nonceWindowrequestParamsVariable)[1];
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "request", request },
                 { "nonce", nonce },
-            }, parameters));
+                { "nonceWindow", nonceWindow },
+            }, requestParams));
             object payload = this.stringToBase64(body);
             object signature = this.hmac(this.encode(payload), secret, sha512);
             headers = new Dictionary<string, object>() {
@@ -2396,12 +4376,13 @@ public partial class whitebit : Exchange
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             object status = this.safeString(response, "status");
+            object errors = this.safeValue(response, "errors");
             // {"code":10,"message":"Unauthorized request."}
             object message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             object codeNew = this.safeInteger(response, "code");
-            object hasErrorStatus = isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"));
+            object hasErrorStatus = isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))) && isTrue(!isEqual(errors, null));
             if (isTrue(isTrue(hasErrorStatus) || isTrue(!isEqual(codeNew, null))))
             {
                 object feedback = add(add(this.id, " "), body);
@@ -2411,15 +4392,37 @@ public partial class whitebit : Exchange
                     errorInfo = status;
                 } else
                 {
-                    object errorObject = this.safeValue(response, "errors");
-                    if (isTrue(!isEqual(errorObject, null)))
+                    object errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
+                    object errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
+                    object errorsLength = getArrayLength(errorKeys);
+                    if (isTrue(isGreaterThan(errorsLength, 0)))
                     {
-                        object errorKey = getValue(new List<object>(((IDictionary<string,object>)errorObject).Keys), 0);
+                        object errorKey = getValue(errorKeys, 0);
                         object errorMessageArray = this.safeValue(errorObject, errorKey, new List<object>() {});
                         object errorMessageLength = getArrayLength(errorMessageArray);
                         errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
                     }
                 }
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            }
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            object success = this.safeBool(response, "success", true);
+            if (!isTrue(success))
+            {
+                object errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
+                object errKeys = new List<object>(((IDictionary<string,object>)errMsg).Keys);
+                object errKeysLength = getArrayLength(errKeys);
+                object errorInfo = body;
+                if (isTrue(isGreaterThan(errKeysLength, 0)))
+                {
+                    object errorKey = getValue(errKeys, 0);
+                    object errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
+                    object errorMessageLength = getArrayLength(errorMessageArray);
+                    errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
+                }
+                object feedback = add(add(this.id, " "), body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 throw new ExchangeError ((string)feedback) ;
