@@ -712,6 +712,11 @@ export default class Exchange {
         this.throttler = new Throttler (this.tokenBucket);
     }
 
+    setRateLimit (rateLimit: number) {
+        this.rateLimit = rateLimit;
+        this.throttler.setRateLimit (rateLimit);
+    }
+
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/);
         const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
@@ -3550,12 +3555,6 @@ export default class Exchange {
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
         this.initThrottler ();
-    }
-
-    setRateLimit (rateLimit: number) {
-        this.rateLimit = rateLimit;
-        const throttler = this.throttler;
-        throttler.setRateLimit (rateLimit);
     }
 
     featuresGenerator () {
