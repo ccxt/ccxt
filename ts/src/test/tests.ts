@@ -65,6 +65,7 @@ class testMainClass {
     onlySpecificTests: string[] = [];
     skippedSettingsForExchange = {};
     skippedMethods = {};
+    checkedPublicTests = {};
     testFiles: any = {};
     publicTests = {};
     ext: string = "";
@@ -241,6 +242,7 @@ class testMainClass {
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
+        this.checkedPublicTests = {};
     }
 
     addPadding (message: string, size) {
@@ -307,6 +309,10 @@ class testMainClass {
         }
         if (this.info) {
             dump (this.addPadding ('[INFO] TESTING DONE', 25), name, methodName);
+        }
+        // add to the list of successed tests
+        if (isPublic) {
+            this.checkedPublicTests[methodName] = true;
         }
         return true;
     }
