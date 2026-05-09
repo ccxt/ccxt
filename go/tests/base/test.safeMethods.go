@@ -188,6 +188,7 @@ func TestSafeMethods() {
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "strNumber", factor), 30))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputList, 1, factor), 20))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "longInt", 0.000001), 123456789))
+	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct(inputDict, "inexistent", 0.000001, 123456789), 123456789))
 	// safeIntegerProduct2
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "i", factor), 10))
 	Assert(ccxt.IsEqual(exchange.SafeIntegerProduct2(inputDict, "a", "f", factor), 1)) // NB the result is 1

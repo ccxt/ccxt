@@ -1006,7 +1006,7 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -1046,7 +1046,7 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -1396,7 +1396,7 @@ public partial class weex : ccxt.weex
      * @see https://www.weex.com/api-doc/contract/Websocket/private/Order-Channel
      * @param {string} [symbol] not used by the exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {

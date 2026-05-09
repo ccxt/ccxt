@@ -5035,7 +5035,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str[] [codes]: list of unified currency codes, default is None(all currencies)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountId]: account ID to fetch deposit addresses for
-        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by currency code
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by currency code
         """
         self.load_markets()
         request = self.prepare_account_request(None, params)

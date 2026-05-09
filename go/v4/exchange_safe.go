@@ -526,7 +526,7 @@ func SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue any) 
 	if multiplier == nil {
 		multiplier = 1
 	}
-	result := SafeValueN(obj, keys, defaultValue)
+	result := SafeValueN(obj, keys)
 	if result == nil {
 		return defaultValue
 	}

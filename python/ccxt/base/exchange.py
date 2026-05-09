@@ -3705,7 +3705,7 @@ class Exchange(object):
         """
         self method is a very deterministic to help users to know what feature is supported by the exchange
         :param str [symbol]: unified symbol
-        :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
+        :param str [methodName]: view currently supported methods: https://docs.ccxt.com/README?id=features
         :param str [paramName]: unified param value, like: `triggerPrice`, `stopLoss.triggerPrice`(check docs for supported param names)
         :param dict [defaultValue]: return default value if no result found
         :returns dict: returns feature value
@@ -3718,7 +3718,7 @@ class Exchange(object):
         self method is a very deterministic to help users to know what feature is supported by the exchange
         :param str [marketType]: supported only: "spot", "swap", "future"
         :param str [subType]: supported only: "linear", "inverse"
-        :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
+        :param str [methodName]: view currently supported methods: https://docs.ccxt.com/README?id=features
         :param str [paramName]: unified param value(check docs for supported param names)
         :param dict [defaultValue]: return default value if no result found
         :returns dict: returns feature value

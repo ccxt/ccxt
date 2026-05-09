@@ -594,6 +594,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/set-auto-earn': 10,
                         'account/set-settle-currency': 1,
                         'account/set-trading-config': 20,
+                        'account/demo-adjust-balance': 20,  # 3 requests per day but we don't use that weight for now, set to 20 to be safe
                         # subaccount
                         'asset/subaccount/transfer': 10,
                         'account/subaccount/set-loan-allocation': 4,  # not documented

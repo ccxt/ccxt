@@ -104,11 +104,12 @@ class bitmart extends bitmart$1["default"] {
             },
         });
     }
-    async subscribe(channel, symbol, type, params = {}) {
+    async subscribe(unifiedName, channel, symbol, type, params = {}) {
         const market = this.market(symbol);
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
         let request = {};
         let messageHash = undefined;
+        let rawHash = undefined;
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let prefix = '';
         let requestOp = 'subscribe';
@@ -117,15 +118,16 @@ class bitmart extends bitmart$1["default"] {
             prefix = 'unsubscribe::';
             requestOp = 'unsubscribe';
         }
+        messageHash = unifiedName + '::' + symbol;
         if (type === 'spot') {
-            messageHash = 'spot/' + channel + ':' + market['id'];
+            rawHash = 'spot/' + channel + ':' + market['id'];
             request = {
                 'op': requestOp,
-                'args': [messageHash],
+                'args': [rawHash],
             };
         }
         else {
-            messageHash = 'futures/' + channel + ':' + market['id'];
+            rawHash = 'futures/' + channel + ':' + market['id'];
             const speed = this.safeString(params, 'speed');
             if (speed !== undefined) {
                 params = this.omit(params, 'speed');
@@ -133,20 +135,19 @@ class bitmart extends bitmart$1["default"] {
             }
             request = {
                 'action': requestOp,
-                'args': [messageHash],
+                'args': [rawHash],
             };
         }
         messageHash = prefix + messageHash;
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
-    async subscribeMultiple(channel, type, symbols = undefined, params = {}) {
+    async subscribeMultiple(unifiedName, channel, type, symbols = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, type, false, true);
         const url = this.implodeHostname(this.urls['api']['ws'][type]['public']);
         const channelType = (type === 'spot') ? 'spot' : 'futures';
         const actionType = (type === 'spot') ? 'op' : 'action';
         const rawSubscriptions = [];
         const messageHashes = [];
-        const subHashes = [];
         const unsubscribe = this.safeBool(params, 'unsubscribe', false);
         let prefix = '';
         let requestOp = 'subscribe';
@@ -157,12 +158,12 @@ class bitmart extends bitmart$1["default"] {
         }
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
-            const message = channelType + '/' + channel + ':' + market['id'];
-            const subHash = prefix + message;
-            const messageHash = prefix + channel + ':' + market['symbol'];
-            rawSubscriptions.push(message);
-            subHashes.push(subHash);
+            const rawHash = channelType + '/' + channel + ':' + market['id'];
+            const messageHash = prefix + unifiedName + '::' + market['symbol'];
             messageHashes.push(messageHash);
+            if (!this.subscriptionExistsForHash(url, messageHash)) {
+                rawSubscriptions.push(rawHash);
+            }
         }
         // as an exclusion, futures "tickers" need one generic request for all symbols
         // if ((type !== 'spot') && (channel === 'ticker')) {
@@ -173,7 +174,7 @@ class bitmart extends bitmart$1["default"] {
             'args': rawSubscriptions,
         };
         request[actionType] = requestOp;
-        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), subHashes);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
     }
     /**
      * @method
@@ -343,7 +344,7 @@ class bitmart extends bitmart$1["default"] {
         let marketType = undefined;
         [symbols, marketType, params] = this.getParamsForMultipleSub('watchTradesForSymbols', symbols, limit, params);
         const channelName = 'trade';
-        const trades = await this.subscribeMultiple(channelName, marketType, symbols, params);
+        const trades = await this.subscribeMultiple('trade', channelName, marketType, symbols, params);
         if (this.newUpdates) {
             const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -365,7 +366,7 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
         return await this.unWatchTradesForSymbols([symbol], params);
@@ -378,7 +379,7 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
         await this.loadMarkets();
@@ -386,7 +387,7 @@ class bitmart extends bitmart$1["default"] {
         [symbols, marketType, params] = this.getParamsForMultipleSub('unWatchTradesForSymbols', symbols, undefined, params);
         const channelName = 'trade';
         params = this.extend(params, { 'unsubscribe': true });
-        return await this.subscribeMultiple(channelName, marketType, symbols, params);
+        return await this.subscribeMultiple('trade', channelName, marketType, symbols, params);
     }
     getParamsForMultipleSub(methodName, symbols, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false, true);
@@ -430,7 +431,7 @@ class bitmart extends bitmart$1["default"] {
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
-        const ticker = await this.subscribeMultiple('ticker', marketType, symbols, params);
+        const ticker = await this.subscribeMultiple('ticker', 'ticker', marketType, symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -446,7 +447,7 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
         return await this.unWatchTickers([symbol], params);
@@ -459,7 +460,7 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -467,7 +468,7 @@ class bitmart extends bitmart$1["default"] {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchTickers', market, params);
         params = this.extend(params, { 'unsubscribe': true });
-        return await this.subscribeMultiple('ticker', marketType, symbols, params);
+        return await this.subscribeMultiple('ticker', 'ticker', marketType, symbols, params);
     }
     /**
      * @method
@@ -492,8 +493,12 @@ class bitmart extends bitmart$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
-            rawSubscriptions.push(channelType + ':' + market['id']);
-            messageHashes.push('bidask:' + symbols[i]);
+            const rawHash = channelType + ':' + market['id'];
+            const messageHash = 'bidask::' + market['symbol'];
+            messageHashes.push(messageHash);
+            if (!this.subscriptionExistsForHash(url, messageHash)) {
+                rawSubscriptions.push(rawHash);
+            }
         }
         if (marketType !== 'spot') {
             rawSubscriptions = [channelType];
@@ -502,7 +507,7 @@ class bitmart extends bitmart$1["default"] {
             'args': rawSubscriptions,
         };
         request[actionType] = 'subscribe';
-        const newTickers = await this.watchMultiple(url, messageHashes, request, rawSubscriptions);
+        const newTickers = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const tickers = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -527,7 +532,7 @@ class bitmart extends bitmart$1["default"] {
             const ticker = this.parseWsBidAsk(rawTickers[i]);
             const symbol = ticker['symbol'];
             this.bidsasks[symbol] = ticker;
-            const messageHash = 'bidask:' + symbol;
+            const messageHash = 'bidask::' + symbol;
             client.resolve(ticker, messageHash);
         }
     }
@@ -606,7 +611,7 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1110,7 +1115,7 @@ class bitmart extends bitmart$1["default"] {
                 symbol = this.handleTradeLoop(data[i]);
             }
         }
-        client.resolve(this.trades[symbol], 'trade:' + symbol);
+        client.resolve(this.trades[symbol], 'trade::' + symbol);
     }
     handleTradeLoop(entry) {
         const trade = this.parseWsTrade(entry);
@@ -1237,7 +1242,7 @@ class bitmart extends bitmart$1["default"] {
             const ticker = isSpot ? this.parseTicker(rawTickers[i]) : this.parseWsSwapTicker(rawTickers[i]);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
-            const messageHash = 'ticker:' + symbol;
+            const messageHash = 'ticker::' + symbol;
             client.resolve(ticker, messageHash);
         }
     }
@@ -1310,7 +1315,7 @@ class bitmart extends bitmart$1["default"] {
         else {
             name = 'klineBin' + interval;
         }
-        const ohlcv = await this.subscribe(name, symbol, type, params);
+        const ohlcv = await this.subscribe('ohlcv', name, symbol, type, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit(symbol, limit);
         }
@@ -1343,7 +1348,7 @@ class bitmart extends bitmart$1["default"] {
             name = 'klineBin' + interval;
         }
         params = this.extend(params, { 'unsubscribe': true });
-        return await this.subscribe(name, symbol, type, params);
+        return await this.subscribe('ohlcv', name, symbol, type, params);
     }
     handleOHLCV(client, message) {
         //
@@ -1414,7 +1419,7 @@ class bitmart extends bitmart$1["default"] {
                     this.ohlcvs[symbol][timeframe] = stored;
                 }
                 stored.append(parsed);
-                const messageHash = channel + ':' + marketId;
+                const messageHash = 'ohlcv::' + symbol;
                 client.resolve(stored, messageHash);
             }
         }
@@ -1435,7 +1440,7 @@ class bitmart extends bitmart$1["default"] {
                 const parsed = this.parseOHLCV(candle, market);
                 stored.append(parsed);
             }
-            client.resolve(stored, channel);
+            client.resolve(stored, 'ohlcv::' + symbol);
         }
     }
     /**
@@ -1462,7 +1467,7 @@ class bitmart extends bitmart$1["default"] {
         if (type === 'swap' && depth === 'depth/increase100') {
             depth = 'depth50';
         }
-        const orderbook = await this.subscribe(depth, symbol, type, params);
+        const orderbook = await this.subscribe('orderbook', depth, symbol, type, params);
         return orderbook.limit();
     }
     /**
@@ -1474,7 +1479,7 @@ class bitmart extends bitmart$1["default"] {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
@@ -1488,7 +1493,7 @@ class bitmart extends bitmart$1["default"] {
             depth = 'depth50';
         }
         params = this.extend(params, { 'unsubscribe': true });
-        return await this.subscribe(depth, symbol, type, params);
+        return await this.subscribe('orderbook', depth, symbol, type, params);
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 0);
@@ -1628,7 +1633,6 @@ class bitmart extends bitmart$1["default"] {
             }
         }
         if (isSpot) {
-            const channel = channelName.replace('spot/', '');
             for (let i = 0; i < datas.length; i++) {
                 const update = datas[i];
                 const marketId = this.safeString(update, 'symbol');
@@ -1649,16 +1653,11 @@ class bitmart extends bitmart$1["default"] {
                     orderbook['timestamp'] = timestamp;
                     orderbook['datetime'] = this.iso8601(timestamp);
                 }
-                const messageHash = channelName + ':' + marketId;
+                const messageHash = 'orderbook::' + symbol;
                 client.resolve(orderbook, messageHash);
-                // resolve ForSymbols
-                const messageHashForMulti = channel + ':' + symbol;
-                client.resolve(orderbook, messageHashForMulti);
             }
         }
         else {
-            const tableParts = channelName.split(':');
-            const channel = tableParts[0].replace('futures/', '');
             const data = datas[0]; // contract markets always contain only one member
             const depths = data['depths'];
             const marketId = this.safeString(data, 'symbol');
@@ -1692,11 +1691,8 @@ class bitmart extends bitmart$1["default"] {
             const timestamp = this.safeInteger(data, 'ms_t');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
-            const messageHash = channelName;
+            const messageHash = 'orderbook::' + symbol;
             client.resolve(orderbook, messageHash);
-            // resolve ForSymbols
-            const messageHashForMulti = channel + ':' + symbol;
-            client.resolve(orderbook, messageHashForMulti);
         }
     }
     /**
@@ -1719,7 +1715,7 @@ class bitmart extends bitmart$1["default"] {
         if (type === 'swap' && channel === 'depth/increase100') {
             channel = 'depth50';
         }
-        const orderbook = await this.subscribeMultiple(channel, type, symbols, params);
+        const orderbook = await this.subscribeMultiple('orderbook', channel, type, symbols, params);
         return orderbook.limit();
     }
     /**
@@ -1730,7 +1726,7 @@ class bitmart extends bitmart$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBookForSymbols(symbols, params = {}) {
         await this.loadMarkets();
@@ -1742,7 +1738,7 @@ class bitmart extends bitmart$1["default"] {
             channel = 'depth50';
         }
         params = this.extend(params, { 'unsubscribe': true });
-        return await this.subscribeMultiple(channel, type, symbols, params);
+        return await this.subscribeMultiple('orderbook', channel, type, symbols, params);
     }
     /**
      * @method
@@ -1776,7 +1772,7 @@ class bitmart extends bitmart$1["default"] {
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchFundingRates', market, params);
-        const fundingRate = await this.subscribeMultiple('fundingRate', marketType, symbols, params);
+        const fundingRate = await this.subscribeMultiple('fundingRate', 'fundingRate', marketType, symbols, params);
         if (this.newUpdates) {
             const fundingRates = {};
             fundingRates[fundingRate['symbol']] = fundingRate;
@@ -1804,7 +1800,7 @@ class bitmart extends bitmart$1["default"] {
         const fundingRate = this.parseFundingRate(data);
         const symbol = fundingRate['symbol'];
         this.fundingRates[symbol] = fundingRate;
-        const messageHash = 'fundingRate:' + symbol;
+        const messageHash = 'fundingRate::' + symbol;
         client.resolve(fundingRate, messageHash);
     }
     async authenticate(type, params = {}) {
@@ -2016,6 +2012,10 @@ class bitmart extends bitmart$1["default"] {
             'futures': 'swap',
         };
         return this.safeString(types, marketType, marketType);
+    }
+    subscriptionExistsForHash(url, hash) {
+        const client = this.client(url);
+        return (hash in client.subscriptions);
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

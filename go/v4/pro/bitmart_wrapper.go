@@ -125,7 +125,7 @@ func (this *Bitmart) WatchTradesForSymbols(symbols []string, options ...ccxt.Wat
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitmart) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
 
@@ -153,7 +153,7 @@ func (this *Bitmart) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitmart) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
 
@@ -242,7 +242,7 @@ func (this *Bitmart) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {
 
@@ -270,7 +270,7 @@ func (this *Bitmart) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {
 
@@ -381,7 +381,7 @@ func (this *Bitmart) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
  * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {
 
@@ -607,7 +607,7 @@ func (this *Bitmart) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
  * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitmart) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
 
@@ -669,7 +669,7 @@ func (this *Bitmart) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {
 

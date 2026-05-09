@@ -2275,7 +2275,8 @@
     "lighter": {
         "skipMethods":{
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "contractSize": "not provided"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",

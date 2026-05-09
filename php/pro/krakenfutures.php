@@ -1534,21 +1534,35 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array ()) {
         return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
             Async\await($this->load_markets());
+            $url = $this->urls['api']['ws'];
             // $symbols are required
             $symbols = $this->market_symbols($symbols, null, false, true, false);
             $messageHashes = array();
+            $rawSubs = array();
             for ($i = 0; $i < count($symbols); $i++) {
-                $messageHashes[] = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
+                $messageHash = $this->get_message_hash($unifiedName, null, $this->symbol($symbols[$i]));
+                $messageHashes[] = $messageHash;
+                $market = $this->market($symbols[$i]);
+                if (!$this->subscription_exists_for_hash($url, $messageHash)) {
+                    $rawSubs[] = $market['id'];
+                }
             }
-            $marketIds = $this->market_ids($symbols);
-            $request = array(
-                'event' => 'subscribe',
-                'feed' => $channelName,
-                'product_ids' => $marketIds,
-            );
-            $url = $this->urls['api']['ws'];
+            $request = array();
+            $length = count($rawSubs);
+            if ($length > 0) {
+                $request = array(
+                    'event' => 'subscribe',
+                    'feed' => $channelName,
+                    'product_ids' => $rawSubs,
+                );
+            }
             return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscriptionArgs));
         }) ();
+    }
+
+    public function subscription_exists_for_hash(string $url, string $hash) {
+        $client = $this->client($url);
+        return (is_array($client->subscriptions) && array_key_exists($hash, $client->subscriptions));
     }
 
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {

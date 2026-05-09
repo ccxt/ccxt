@@ -1794,7 +1794,7 @@ class Exchange extends \ccxt\Exchange {
         /**
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$symbol] unified $symbol
-         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/README?id=features
          * @param {string} [$paramName] unified param value, like => `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value
@@ -1808,7 +1808,7 @@ class Exchange extends \ccxt\Exchange {
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$marketType] supported only => "spot", "swap", "future"
          * @param {string} [$subType] supported only => "linear", "inverse"
-         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/README?id=features
          * @param {string} [$paramName] unified param value (check docs for supported param names)
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value

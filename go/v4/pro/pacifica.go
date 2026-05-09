@@ -1414,7 +1414,7 @@ func  (this *PacificaCore) WatchOrders(optionalArgs ...any) <- chan any {
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *PacificaCore) UnWatchOrders(optionalArgs ...any) <- chan any {
             ch := make(chan any)

@@ -22,7 +22,7 @@ import io.github.ccxt.errors.AuthenticationError;
 
 // import io.github.ccxt.wrappers.Binance;
 import io.github.ccxt.Exchange;
-import io.github.ccxt.Exchanges;
+import io.github.ccxt.MetaData;
 import io.github.ccxt.Version;
 
 
@@ -294,7 +294,7 @@ public class Main {
 
         var params = getParamsFromArgs(args);
 
-        var isProExchange = Exchanges.ProExchanges.contains(exchangeName);
+        var isProExchange = MetaData.ProExchanges.contains(exchangeName);
 
         var instance = Exchange.dynamicallyCreateInstance(exchangeName,  null, isProExchange);
 

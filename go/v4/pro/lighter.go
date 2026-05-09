@@ -247,7 +247,7 @@ func  (this *LighterCore) HandleOrderBook(client any, message any)  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *LighterCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -283,7 +283,7 @@ func  (this *LighterCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#order-book
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *LighterCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -390,7 +390,7 @@ func  (this *LighterCore) HandleTicker(client any, message any)  {
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -423,7 +423,7 @@ func  (this *LighterCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -457,7 +457,7 @@ func  (this *LighterCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) WatchTickers(optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -512,7 +512,7 @@ func  (this *LighterCore) WatchTickers(optionalArgs ...any) <- chan any {
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) UnWatchTickers(optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -546,7 +546,7 @@ func  (this *LighterCore) UnWatchTickers(optionalArgs ...any) <- chan any {
  * @description watches a mark price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) WatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -571,7 +571,7 @@ func  (this *LighterCore) WatchMarkPrice(symbol any, optionalArgs ...any) <- cha
  * @description watches mark prices
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) WatchMarkPrices(optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -598,7 +598,7 @@ func  (this *LighterCore) WatchMarkPrices(optionalArgs ...any) <- chan any {
  * @description unWatches a mark price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -623,7 +623,7 @@ func  (this *LighterCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <- c
  * @description unWatches mark prices
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *LighterCore) UnWatchMarkPrices(optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -768,7 +768,7 @@ func  (this *LighterCore) HandleTrades(client any, message any)  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *LighterCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -806,7 +806,7 @@ func  (this *LighterCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *LighterCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -989,7 +989,7 @@ func  (this *LighterCore) HandleMyTrades(client any, message any) any  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *LighterCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1040,7 +1040,7 @@ func  (this *LighterCore) WatchMyTrades(optionalArgs ...any) <- chan any {
  * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *LighterCore) UnWatchMyTrades(optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1195,7 +1195,7 @@ func  (this *LighterCore) HandleLiquidation(client any, message any)  {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *LighterCore) WatchLiquidations(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
