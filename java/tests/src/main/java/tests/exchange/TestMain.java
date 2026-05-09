@@ -295,6 +295,9 @@ public class TestMain extends BaseTest
             Object isFetchCurrencies = (Helpers.isEqual(methodName, "fetchCurrencies"));
             Object isProxyTest = (Helpers.isEqual(methodName, this.proxyTestFileName));
             Object isFeatureTest = (Helpers.isEqual(methodName, "features"));
+            // close() is a lifecycle test that runs unconditionally on every WS-capable
+            // exchange — it's not advertised via exchange.has and shouldn't be gated on it.
+            Object isCloseTest = (Helpers.isEqual(methodName, "close"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isPublic) && Helpers.isTrue((Helpers.inOp(this.checkedPublicTests, methodName)))) && !Helpers.isTrue(isFetchCurrencies)))
             {
@@ -305,7 +308,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && Helpers.isTrue((Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(this.onlySpecificTests), 0)) && !Helpers.isTrue(exchange.inArray(methodName, this.onlySpecificTests))))))
             {
                 skipMessage = "[INFO] IGNORED_TEST";
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange)) && !Helpers.isTrue(isProxyTest)) && !Helpers.isTrue(isFeatureTest)))
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange)) && !Helpers.isTrue(isProxyTest)) && !Helpers.isTrue(isFeatureTest)) && !Helpers.isTrue(isCloseTest)))
             {
                 skipMessage = "[INFO] UNSUPPORTED_TEST"; // keep it aligned with the longest message
             } else if (Helpers.isTrue((skippedPropertiesForMethod instanceof String)))
@@ -843,6 +846,18 @@ public class TestMain extends BaseTest
                     }
                     Helpers.addElementToObject(exchange.options, "defaultType", "swap");
                     (this.runPublicTests(exchange, swapSymbols)).join();
+                }
+                // WS lifecycle epilogue: close() must run AFTER every spot/swap round,
+                // since it tears down the WS clients other tests depend on. Running
+                // here (after all parallel watch tests have settled) guarantees every
+                // batch finishes on a live channel.
+                if (Helpers.isTrue(this.wsTests))
+                {
+                    Object closeSymbol = ((Helpers.isTrue((!Helpers.isEqual(spotSymbols, null))))) ? Helpers.GetValue(spotSymbols, 0) : (((Helpers.isTrue(!Helpers.isEqual(swapSymbols, null)))) ? Helpers.GetValue(swapSymbols, 0) : null);
+                    if (Helpers.isTrue(!Helpers.isEqual(closeSymbol, null)))
+                    {
+                        (this.testSafe("close", exchange, new java.util.ArrayList<Object>(java.util.Arrays.asList(closeSymbol)), true)).join();
+                    }
                 }
             }
             if (Helpers.isTrue(Helpers.isTrue(this.privateTest) || Helpers.isTrue(this.privateTestOnly)))

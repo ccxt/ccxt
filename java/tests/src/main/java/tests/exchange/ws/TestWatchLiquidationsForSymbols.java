@@ -21,12 +21,14 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         Object skippedExchanges = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
-            System.out.println(String.valueOf(exchange.id) + " " + String.valueOf(Helpers.add(method, "() test skipped")));
+            Object m1 = (Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() test skipped"));
+            System.out.println(m1);
             return false;
         }
         if (!Helpers.isTrue(Helpers.GetValue(exchange.has, method)))
         {
-            System.out.println(String.valueOf(exchange.id) + " " + String.valueOf(Helpers.add(method, "() is not supported")));
+            Object m2 = (Helpers.add(Helpers.add(Helpers.add(exchange.id, " does not support "), method), "() method"));
+            System.out.println(m2);
             return false;
         }
         Object response = null;
@@ -36,11 +38,12 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         {
             try
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, method, new Object[] { new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) })).join();
+                response = (exchange.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
                 now = System.currentTimeMillis();
                 Object isArray = (Helpers.isArrayJs(response));
                 Assert(isArray, "response must be an array");
-                System.out.println(String.valueOf(exchange.iso8601(now)) + " " + String.valueOf(exchange.id) + " " + String.valueOf(symbol) + " " + String.valueOf(method) + " " + String.valueOf(Helpers.getArrayLength(new java.util.ArrayList<Object>(((java.util.Map<String, Object>)response).values()))) + " " + String.valueOf("liquidations"));
+                Object m3 = (Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() returned "), Helpers.getArrayLength(response)), " liquidations"));
+                System.out.println(m3);
                 // log.noLocate (asTable (response))
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {

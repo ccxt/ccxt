@@ -167,6 +167,10 @@ async function getTestFiles (properties, ws = false) {
     // exchange tests
     const tests = {};
     const finalPropList = properties.concat ([ PROXY_TEST_FILE_NAME, 'features' ]);
+    if (ws) {
+        // close() is a lifecycle test (not in exchange.has); auto-load alongside features.
+        finalPropList.push ('close');
+    }
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;

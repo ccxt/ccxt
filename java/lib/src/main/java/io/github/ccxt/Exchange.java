@@ -2694,14 +2694,16 @@ public class Exchange {
      * Mirrors TS Exchange.close() (ts/src/base/Exchange.ts:1537). Tags every
      * tracked WsClient with a typed ExchangeClosedByUser so its in-flight
      * futures reject with that exception (rather than a bare RuntimeException),
-     * then closes each client and clears the tracking map. Always hand-written
-     * — TS source has it above the transpile delimiter.
+     * then closes each client and clears the tracking map. Returns a
+     * CompletableFuture so transpiled tests can `.join()` on it the way the
+     * TS source `await`s — keeps cross-language test code consistent.
+     * Always hand-written: TS source has close() above the transpile delimiter.
      */
     @SuppressWarnings("unchecked")
-    public void close() {
+    public java.util.concurrent.CompletableFuture<Object> close() {
         Map<String, Object> clientsMap = (Map<String, Object>) this.clients;
         if (clientsMap == null || clientsMap.isEmpty()) {
-            return;
+            return java.util.concurrent.CompletableFuture.completedFuture(null);
         }
         // Snapshot first — close() removes entries from the map and we mustn't
         // iterate while mutating.
@@ -2715,6 +2717,7 @@ public class Exchange {
             }
         }
         clientsMap.clear();
+        return java.util.concurrent.CompletableFuture.completedFuture(null);
     }
 
     // ------------------------------------------------------------------------
