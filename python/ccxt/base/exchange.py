@@ -2076,6 +2076,7 @@ class Exchange(object):
     def close(self):
         # Here happens the language-specific cleanup of WS & REST resources
         # [REST]
+        self.clean_rest_data()
         if self.session:
             try:
                 self.session.close()

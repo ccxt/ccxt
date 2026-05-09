@@ -87,6 +87,10 @@ class Exchange extends \ccxt\Exchange {
         return $connector;
     }
 
+    public function __destruct() {
+        $this->close();
+        parent::__destruct();
+    }
 
     public function close() {
         // Here happens the language-specific cleanup of WS & REST resources
@@ -99,6 +103,7 @@ class Exchange extends \ccxt\Exchange {
         }
         parent::close();
         // [WS]
+        $this->close_clients();
     }
 
     private $proxyDictionaries = [];
