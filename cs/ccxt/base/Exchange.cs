@@ -711,8 +711,9 @@ public partial class Exchange
             }
             await Task.WhenAll(tasks);
         }
+        this.cleanWsData();
         // [REST]
-        // todo if any
+        this.cleanRestData();
     }
 
     public async Task close()

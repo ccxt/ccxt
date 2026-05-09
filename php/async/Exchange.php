@@ -104,6 +104,7 @@ class Exchange extends \ccxt\Exchange {
         parent::close();
         // [WS]
         $this->close_clients();
+        $this->clean_ws_data();
     }
 
     private $proxyDictionaries = [];

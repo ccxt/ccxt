@@ -2677,6 +2677,7 @@ class Exchange {
         if ($this->curl !== null) {
             curl_close($this->curl);
         }
+        $this->clean_rest_data();
    }
 
     public function binary_length($binary) {

@@ -2018,6 +2018,8 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 }
 
 func (this *Exchange) Close() []error {
+	// Here happens the language-specific cleanup of WS & REST resources
+	// [WS]
 	this.WsClientsMu.Lock()
 	clients := make([]*WSClient, 0, len(this.Clients))
 	for _, c := range this.Clients {
@@ -2036,6 +2038,9 @@ func (this *Exchange) Close() []error {
 			c.OnError(userClosedError)
 		}
 	}
+	this.CleanWsData()
+	// [REST]
+	this.CleanRestData()
 	return errs
 }
 
