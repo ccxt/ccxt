@@ -19,7 +19,7 @@ def test_base58_to_binary():
         'id': 'sampleexchange',
     })
     # todo: can be implemented stringToBinary in future
-    assert 'GO_SKIP_START'
+    # @SKIP_START_GO
     # Test 1: Simple base58
     b58_1 = 'Cn8eVZg'  # hello
     binary1 = exchange.base58_to_binary(b58_1)
@@ -48,5 +48,5 @@ def test_base58_to_binary():
     b58_7 = '4SoiMiEYtTt5tPdi81Fik'  # {"key":"value"}
     binary7 = exchange.base58_to_binary(b58_7)
     assert exchange.binary_to_base58(binary7) == b58_7
-    assert 'GO_SKIP_END'
+    # @SKIP_END_GO
     assert exchange.parse_number(None) is None, 'GO skip trick'

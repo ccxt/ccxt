@@ -13,15 +13,15 @@ func NewCoinbaseadvancedCore() *CoinbaseadvancedCore {
 	return p
 }
 
-func (this *CoinbaseadvancedCore) Describe() interface{} {
-	return this.DeepExtend(this.CoinbaseCore.Describe(), map[string]interface{}{
+func (this *CoinbaseadvancedCore) Describe() any {
+	return this.DeepExtend(this.CoinbaseCore.Describe(), map[string]any{
 		"id":    "coinbaseadvanced",
 		"name":  "Coinbase Advanced",
 		"alias": true,
 	})
 }
 
-func (this *CoinbaseadvancedCore) Init(userConfig map[string]interface{}) {
+func (this *CoinbaseadvancedCore) Init(userConfig map[string]any) {
 	this.CoinbaseCore.Init(this.DeepExtend(this.Describe(), userConfig))
 	this.Itf = this
 	this.Exchange.DerivedExchange = this

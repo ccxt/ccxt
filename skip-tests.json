@@ -1,7 +1,7 @@
 {
     "aftermath": {
         "skip": "exchange doesn't function for some reasons during last few days",
-        "until": "2026-04-07"
+        "until": "2026-06-07"
     },
     "alp": {
         "skipMethods": {
@@ -263,6 +263,9 @@
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4034",
                 "compareToZero": "sometimes equals to zero: https://app.travis-ci.com/github/ccxt/ccxt/builds/267809189#L2540"
+            },
+            "fetchTicker": {
+                "lastBetweenBidAsk": "very low volume exchange"
             }
         }
     },
@@ -285,6 +288,9 @@
             "ticker": {
                 "spread": "ask equals to bid",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:291"
+            },
+            "fetchTicker": {
+                "lastBetweenBidAsk": "very low volume exchange"
             },
             "fetchTickers": "todo fix parsing"
         }
@@ -547,6 +553,9 @@
             },
             "ticker": {
                 "compareOHLC": "todo fix implementation"
+            },
+            "fetchTicker": {
+                "lastBetweenBidAsk": "very low volume exchange"
             }
         }
     },
@@ -589,7 +598,7 @@
     },
     "btcbox": {
         "skip": "temporary reorg on exchange, lets wait few more weeks",
-        "until":"2026-05-01",
+        "until":"2026-06-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -613,6 +622,9 @@
             },
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchTicker": {
+                "lastBetweenBidAsk": "very low volume exchange"
             }
         }
     },
@@ -2258,7 +2270,8 @@
     "lighter": {
         "skipMethods":{
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "contractSize": "not provided"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",

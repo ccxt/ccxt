@@ -20,7 +20,7 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_order_book($symbol));
+                $response = \React\Async\await($exchange->watch_order_book($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

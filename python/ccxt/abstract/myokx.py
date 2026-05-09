@@ -346,6 +346,7 @@ class ImplicitAPI:
     private_post_account_set_auto_earn = privatePostAccountSetAutoEarn = Entry('account/set-auto-earn', 'private', 'POST', {'cost': 10})
     private_post_account_set_settle_currency = privatePostAccountSetSettleCurrency = Entry('account/set-settle-currency', 'private', 'POST', {'cost': 1})
     private_post_account_set_trading_config = privatePostAccountSetTradingConfig = Entry('account/set-trading-config', 'private', 'POST', {'cost': 20})
+    private_post_account_demo_adjust_balance = privatePostAccountDemoAdjustBalance = Entry('account/demo-adjust-balance', 'private', 'POST', {'cost': 20})
     private_post_asset_subaccount_transfer = privatePostAssetSubaccountTransfer = Entry('asset/subaccount/transfer', 'private', 'POST', {'cost': 10})
     private_post_account_subaccount_set_loan_allocation = privatePostAccountSubaccountSetLoanAllocation = Entry('account/subaccount/set-loan-allocation', 'private', 'POST', {'cost': 4})
     private_post_users_subaccount_create_subaccount = privatePostUsersSubaccountCreateSubaccount = Entry('users/subaccount/create-subaccount', 'private', 'POST', {'cost': 10})

@@ -1336,4 +1336,4 @@ await polonix.close()  # close the exchange instance when you don't need it anym
 
 ### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/README?id=error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/README?id=error-handling) for more details.

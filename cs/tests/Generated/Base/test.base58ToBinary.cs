@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // todo: can be implemented stringToBinary in future
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             // Test 1: Simple base58
             object b58_1 = "Cn8eVZg"; // hello
             object binary1 = exchange.base58ToBinary(b58_1);
@@ -42,7 +42,7 @@ public partial class BaseTest
             object b58_7 = "4SoiMiEYtTt5tPdi81Fik"; // {"key":"value"}
             object binary7 = exchange.base58ToBinary(b58_7);
             Assert(isEqual(exchange.binaryToBase58(binary7), b58_7));
-            Assert("GO_SKIP_END");
+            // @SKIP_END_GO
             Assert(isEqual(exchange.parseNumber(null), null), "GO skip trick");
         }
 }

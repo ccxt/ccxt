@@ -8,21 +8,21 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestBinaryConcat() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// Test 1: Concat two binaries
-	var binary1 interface{} = exchange.StringToBinary("hello")
-	var binary2 interface{} = exchange.StringToBinary(" world")
-	var result1 interface{} = exchange.BinaryConcat(binary1, binary2)
+	var binary1 any = exchange.StringToBinary("hello")
+	var binary2 any = exchange.StringToBinary(" world")
+	var result1 any = exchange.BinaryConcat(binary1, binary2)
 	Assert(ccxt.IsEqual(exchange.BinaryToString(result1), "hello world"))
 	// Test 2: Concat three binaries
-	var binary3 interface{} = exchange.StringToBinary("foo")
-	var binary4 interface{} = exchange.StringToBinary("bar")
-	var binary5 interface{} = exchange.StringToBinary("baz")
-	var result2 interface{} = exchange.BinaryConcat(binary3, binary4, binary5)
+	var binary3 any = exchange.StringToBinary("foo")
+	var binary4 any = exchange.StringToBinary("bar")
+	var binary5 any = exchange.StringToBinary("baz")
+	var result2 any = exchange.BinaryConcat(binary3, binary4, binary5)
 	Assert(ccxt.IsEqual(exchange.BinaryToString(result2), "foobarbaz"))
 	// Test 3: Concat with hex bytes
-	var result3 interface{} = exchange.BinaryConcat(exchange.Base16ToBinary("68656c6c6f"), exchange.StringToBinary(" world"))
+	var result3 any = exchange.BinaryConcat(exchange.Base16ToBinary("68656c6c6f"), exchange.StringToBinary(" world"))
 	Assert(ccxt.IsEqual(exchange.BinaryToString(result3), "hello world"))
 }

@@ -374,7 +374,7 @@ weex.fetchFundingRateHistory (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in positions
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -636,7 +636,7 @@ weex.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -968,7 +968,7 @@ weex.closePosition (symbol[, side, params])
 fetch the trading fees for a contract market
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract  
 
@@ -1074,7 +1074,7 @@ weex.fetchLeverage (symbol[, params])
 fetch the set leverage for all markets
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig  
 
@@ -1624,7 +1624,7 @@ weex.unWatchOrderBookForSymbols (symbols[, params])
 watches best bid & ask for spot symbols
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel  
 
@@ -1645,7 +1645,7 @@ weex.watchBidsAsks (symbols[, params])
 unWatches best bid & ask for spot symbols
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel  
 
@@ -1748,7 +1748,7 @@ weex.watchOrders (symbol[, since, limit, params])
 unWatches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>weex</code>](#weex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 

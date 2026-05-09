@@ -570,6 +570,7 @@ class okx extends okx$1["default"] {
                         'account/set-auto-earn': 10,
                         'account/set-settle-currency': 1,
                         'account/set-trading-config': 20,
+                        'account/demo-adjust-balance': 20,
                         // subaccount
                         'asset/subaccount/transfer': 10,
                         'account/subaccount/set-loan-allocation': 4,

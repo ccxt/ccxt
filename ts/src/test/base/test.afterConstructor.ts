@@ -184,7 +184,7 @@ function helperTestProperties () {
     //
     // common props
     //
-    assert ("GO_SKIP_START");
+    // @SKIP_START_GO
     assert (exchange.id === 'Exch' + 'ange', 'id should be "Exchange"');
     assert (exchange.has !== undefined, 'has should not be undefined');
     assert (exchange.api === undefined, 'api should be undefined');
@@ -299,9 +299,8 @@ function helperTestProperties () {
     assert (exchange.codes === undefined, 'codes should be undefined');
     assert (exchange.accounts === undefined, 'accounts should be undefined');
     assert (testSharedMethods.exchangeProp (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
+    // @SKIP_END_GO
     testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.exchangeProp (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
-    assert ("GO_SKIP_END");
-    //
 }
 
 function testAfterConstructor () {

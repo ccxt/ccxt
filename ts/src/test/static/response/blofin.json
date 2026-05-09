@@ -3,6 +3,89 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "default",
+                "method": "fetchPositionsHistory",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "historyId": "110307402",
+                            "positionId": "1000000722711",
+                            "instId": "BTC-USDT",
+                            "instType": "SWAP",
+                            "marginMode": "cross",
+                            "positionSide": "net",
+                            "closePositions": "0.0006",
+                            "maxPositions": "0.0006",
+                            "liquidationPositions": "0",
+                            "openAveragePrice": "81550.1",
+                            "closeAveragePrice": "81550",
+                            "createTime": "1777995583329",
+                            "updateTime": "1777995588333",
+                            "leverage": "50",
+                            "realizedPnl": "-0.058776036",
+                            "realizedPnlRatio": "-0.060061275216094155",
+                            "fee": "-0.058716036"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "historyId": "110307402",
+                            "positionId": "1000000722711",
+                            "instId": "BTC-USDT",
+                            "instType": "SWAP",
+                            "marginMode": "cross",
+                            "positionSide": "net",
+                            "closePositions": "0.0006",
+                            "maxPositions": "0.0006",
+                            "liquidationPositions": "0",
+                            "openAveragePrice": "81550.1",
+                            "closeAveragePrice": "81550",
+                            "createTime": "1777995583329",
+                            "updateTime": "1777995588333",
+                            "leverage": "50",
+                            "realizedPnl": "-0.058776036",
+                            "realizedPnlRatio": "-0.060061275216094155",
+                            "fee": "-0.058716036"
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "notional": null,
+                        "marginMode": "cross",
+                        "liquidationPrice": null,
+                        "entryPrice": 81550.1,
+                        "exitPrice": 81550,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.058776036,
+                        "percentage": null,
+                        "contracts": null,
+                        "contractSize": 0.001,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "side": "net",
+                        "hedged": false,
+                        "timestamp": 1777995588333,
+                        "datetime": "2026-05-05T15:39:48.333Z",
+                        "lastUpdateTimestamp": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": 0,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": 50,
+                        "marginRatio": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "fetch closed orders",
@@ -685,7 +768,9 @@
                         "marginMode": "cross",
                         "liquidationPrice": 6.588863861975257,
                         "entryPrice": 67.85,
+                        "exitPrice":null,
                         "unrealizedPnl": -0.01856659999999,
+                        "realizedPnl":null,
                         "percentage": -0.0820925571112306,
                         "contracts": 1,
                         "contractSize": 1,

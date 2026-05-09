@@ -13,16 +13,16 @@ func NewWavesexchangeCore() *WavesexchangeCore {
 	return p
 }
 
-func (this *WavesexchangeCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *WavesexchangeCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "wavesexchange",
 		"name":      "Waves.Exchange",
-		"countries": []interface{}{"CH"},
+		"countries": []any{"CH"},
 		"certified": false,
 		"pro":       false,
 		"dex":       true,
 		"rateLimit": 10,
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                           nil,
 			"spot":                           true,
 			"margin":                         false,
@@ -126,7 +126,7 @@ func (this *WavesexchangeCore) Describe() interface{} {
 			"withdraw":                       true,
 			"ws":                             false,
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "1m",
 			"5m":  "5m",
 			"15m": "15m",
@@ -141,9 +141,9 @@ func (this *WavesexchangeCore) Describe() interface{} {
 			"1w":  "1w",
 			"1M":  "1M",
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg",
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"matcher": "https://matcher-testnet.wx.network",
 				"node":    "https://nodes-testnet.wavesnodes.com",
 				"public":  "https://api-testnet.wavesplatform.com/v0",
@@ -151,7 +151,7 @@ func (this *WavesexchangeCore) Describe() interface{} {
 				"forward": "https://testnet.wx.network/api/v1/forward/matcher",
 				"market":  "https://testnet.wx.network/api/v1/forward/marketdata/api/v1",
 			},
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"matcher": "https://matcher.wx.network",
 				"node":    "https://nodes.wx.network",
 				"public":  "https://api.wavesplatform.com/v0",
@@ -159,18 +159,18 @@ func (this *WavesexchangeCore) Describe() interface{} {
 				"forward": "https://wx.network/api/v1/forward/matcher",
 				"market":  "https://wx.network/api/v1/forward/marketdata/api/v1",
 			},
-			"doc": []interface{}{"https://docs.wx.network", "https://docs.waves.tech", "https://api.wavesplatform.com/v0/docs/", "https://nodes.wavesnodes.com/api-docs/index.html", "https://matcher.waves.exchange/api-docs/index.html"},
+			"doc": []any{"https://docs.wx.network", "https://docs.waves.tech", "https://api.wavesplatform.com/v0/docs/", "https://nodes.wavesnodes.com/api-docs/index.html", "https://matcher.waves.exchange/api-docs/index.html"},
 			"www": "https://wx.network",
 		},
-		"api": map[string]interface{}{
-			"matcher": map[string]interface{}{
-				"get":    []interface{}{"matcher", "matcher/settings", "matcher/settings/rates", "matcher/balance/reserved/{publicKey}", "matcher/debug/allSnashotOffsets", "matcher/debug/currentOffset", "matcher/debug/lastOffset", "matcher/debug/oldestSnapshotOffset", "matcher/debug/config", "matcher/debug/address/{address}", "matcher/debug/status", "matcher/debug/address/{address}/check", "matcher/orderbook", "matcher/orderbook/{baseId}/{quoteId}", "matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}", "matcher/orderbook/{baseId}/{quoteId}/{orderId}", "matcher/orderbook/{baseId}/{quoteId}/info", "matcher/orderbook/{baseId}/{quoteId}/status", "matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}", "matcher/orderbook/{publicKey}", "matcher/orderbook/{publicKey}/{orderId}", "matcher/orders/{address}", "matcher/orders/{address}/{orderId}", "matcher/transactions/{orderId}", "api/v1/orderbook/{baseId}/{quoteId}"},
-				"post":   []interface{}{"matcher/orderbook", "matcher/orderbook/market", "matcher/orderbook/cancel", "matcher/orderbook/{baseId}/{quoteId}/cancel", "matcher/orderbook/{baseId}/{quoteId}/calculateFee", "matcher/orderbook/{baseId}/{quoteId}/delete", "matcher/orderbook/{baseId}/{quoteId}/cancelAll", "matcher/debug/saveSnapshots", "matcher/orders/{address}/cancel", "matcher/orders/cancel/{orderId}", "matcher/orders/serialize"},
-				"delete": []interface{}{"matcher/orderbook/{baseId}/{quoteId}", "matcher/settings/rates/{assetId}"},
-				"put":    []interface{}{"matcher/settings/rates/{assetId}"},
+		"api": map[string]any{
+			"matcher": map[string]any{
+				"get":    []any{"matcher", "matcher/settings", "matcher/settings/rates", "matcher/balance/reserved/{publicKey}", "matcher/debug/allSnashotOffsets", "matcher/debug/currentOffset", "matcher/debug/lastOffset", "matcher/debug/oldestSnapshotOffset", "matcher/debug/config", "matcher/debug/address/{address}", "matcher/debug/status", "matcher/debug/address/{address}/check", "matcher/orderbook", "matcher/orderbook/{baseId}/{quoteId}", "matcher/orderbook/{baseId}/{quoteId}/publicKey/{publicKey}", "matcher/orderbook/{baseId}/{quoteId}/{orderId}", "matcher/orderbook/{baseId}/{quoteId}/info", "matcher/orderbook/{baseId}/{quoteId}/status", "matcher/orderbook/{baseId}/{quoteId}/tradableBalance/{address}", "matcher/orderbook/{publicKey}", "matcher/orderbook/{publicKey}/{orderId}", "matcher/orders/{address}", "matcher/orders/{address}/{orderId}", "matcher/transactions/{orderId}", "api/v1/orderbook/{baseId}/{quoteId}"},
+				"post":   []any{"matcher/orderbook", "matcher/orderbook/market", "matcher/orderbook/cancel", "matcher/orderbook/{baseId}/{quoteId}/cancel", "matcher/orderbook/{baseId}/{quoteId}/calculateFee", "matcher/orderbook/{baseId}/{quoteId}/delete", "matcher/orderbook/{baseId}/{quoteId}/cancelAll", "matcher/debug/saveSnapshots", "matcher/orders/{address}/cancel", "matcher/orders/cancel/{orderId}", "matcher/orders/serialize"},
+				"delete": []any{"matcher/orderbook/{baseId}/{quoteId}", "matcher/settings/rates/{assetId}"},
+				"put":    []any{"matcher/settings/rates/{assetId}"},
 			},
-			"node": map[string]interface{}{
-				"get": map[string]interface{}{
+			"node": map[string]any{
+				"get": map[string]any{
 					"addresses":                   5,
 					"addresses/balance/{address}": 1,
 					"addresses/balance/{address}/{confirmations}":          1,
@@ -240,26 +240,26 @@ func (this *WavesexchangeCore) Describe() interface{} {
 					"utils/time":                                           5,
 					"wallet/seed":                                          5,
 				},
-				"post":   []interface{}{"addresses", "addresses/data/{address}", "addresses/sign/{address}", "addresses/signText/{address}", "addresses/verify/{address}", "addresses/verifyText/{address}", "debug/blacklist", "debug/print", "debug/rollback", "debug/validate", "node/stop", "peers/clearblacklist", "peers/connect", "transactions/broadcast", "transactions/calculateFee", "tranasctions/sign", "transactions/sign/{signerAddress}", "tranasctions/status", "utils/hash/fast", "utils/hash/secure", "utils/script/compileCode", "utils/script/compileWithImports", "utils/script/decompile", "utils/script/estimate", "utils/sign/{privateKey}", "utils/transactionsSerialize"},
-				"delete": []interface{}{"addresses/{address}", "debug/rollback-to/{signature}"},
+				"post":   []any{"addresses", "addresses/data/{address}", "addresses/sign/{address}", "addresses/signText/{address}", "addresses/verify/{address}", "addresses/verifyText/{address}", "debug/blacklist", "debug/print", "debug/rollback", "debug/validate", "node/stop", "peers/clearblacklist", "peers/connect", "transactions/broadcast", "transactions/calculateFee", "tranasctions/sign", "transactions/sign/{signerAddress}", "tranasctions/status", "utils/hash/fast", "utils/hash/secure", "utils/script/compileCode", "utils/script/compileWithImports", "utils/script/decompile", "utils/script/estimate", "utils/sign/{privateKey}", "utils/transactionsSerialize"},
+				"delete": []any{"addresses/{address}", "debug/rollback-to/{signature}"},
 			},
-			"public": map[string]interface{}{
-				"get": []interface{}{"assets", "pairs", "candles/{baseId}/{quoteId}", "transactions/exchange"},
+			"public": map[string]any{
+				"get": []any{"assets", "pairs", "candles/{baseId}/{quoteId}", "transactions/exchange"},
 			},
-			"private": map[string]interface{}{
-				"get":  []interface{}{"deposit/addresses/{currency}", "deposit/addresses/{currency}/{platform}", "platforms", "deposit/currencies", "withdraw/currencies", "withdraw/addresses/{currency}/{address}"},
-				"post": []interface{}{"oauth2/token"},
+			"private": map[string]any{
+				"get":  []any{"deposit/addresses/{currency}", "deposit/addresses/{currency}/{platform}", "platforms", "deposit/currencies", "withdraw/currencies", "withdraw/addresses/{currency}/{address}"},
+				"post": []any{"oauth2/token"},
 			},
-			"forward": map[string]interface{}{
-				"get":  []interface{}{"matcher/orders/{address}", "matcher/orders/{address}/{orderId}"},
-				"post": []interface{}{"matcher/orders/{wavesAddress}/cancel"},
+			"forward": map[string]any{
+				"get":  []any{"matcher/orders/{address}", "matcher/orders/{address}/{orderId}"},
+				"post": []any{"matcher/orders/{wavesAddress}/cancel"},
 			},
-			"market": map[string]interface{}{
-				"get": []interface{}{"tickers"},
+			"market": map[string]any{
+				"get": []any{"tickers"},
 			},
 		},
-		"currencies": map[string]interface{}{
-			"WX": this.SafeCurrencyStructure(map[string]interface{}{
+		"currencies": map[string]any{
+			"WX": this.SafeCurrencyStructure(map[string]any{
 				"id":        "EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
 				"numericId": nil,
 				"code":      "WX",
@@ -267,7 +267,7 @@ func (this *WavesexchangeCore) Describe() interface{} {
 			}),
 		},
 		"precisionMode": TICK_SIZE,
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"allowedCandles":                    1440,
 			"accessToken":                       nil,
 			"createMarketBuyOrderRequiresPrice": true,
@@ -279,15 +279,15 @@ func (this *WavesexchangeCore) Describe() interface{} {
 			"withdrawFeeWAVES":                  100000,
 			"wavesPrecision":                    1e-8,
 			"messagePrefix":                     "W",
-			"networks": map[string]interface{}{
+			"networks": map[string]any{
 				"ERC20": "ETH",
 				"BEP20": "BSC",
 			},
 		},
-		"features": map[string]interface{}{
-			"spot": map[string]interface{}{
+		"features": map[string]any{
+			"spot": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerDirection":           false,
@@ -295,7 +295,7 @@ func (this *WavesexchangeCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": false,
 						"FOK": false,
 						"PO":  false,
@@ -310,27 +310,27 @@ func (this *WavesexchangeCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       100000,
 					"untilDays":      100000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": map[string]interface{}{
+				"fetchOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       nil,
@@ -339,7 +339,7 @@ func (this *WavesexchangeCore) Describe() interface{} {
 					"trailing":       false,
 					"symbolRequired": true,
 				},
-				"fetchClosedOrders": map[string]interface{}{
+				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            100,
 					"daysBack":         100000,
@@ -349,24 +349,24 @@ func (this *WavesexchangeCore) Describe() interface{} {
 					"trailing":         false,
 					"symbolRequired":   false,
 				},
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": nil,
 				},
 			},
-			"swap": map[string]interface{}{
+			"swap": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
-		"commonCurrencies": map[string]interface{}{
+		"commonCurrencies": map[string]any{
 			"EGG": "Waves Ducks",
 		},
 		"requiresEddsa": true,
-		"exceptions": map[string]interface{}{
+		"exceptions": map[string]any{
 			"3147270":   InsufficientFunds,
 			"112":       InsufficientFunds,
 			"4":         ExchangeError,
@@ -395,25 +395,25 @@ func (this *WavesexchangeCore) Describe() interface{} {
 		},
 	})
 }
-func (this *WavesexchangeCore) SetSandboxMode(enabled interface{}) {
+func (this *WavesexchangeCore) SetSandboxMode(enabled any) {
 	AddElementToObject(this.Options, "messagePrefix", Ternary(IsTrue(enabled), "T", "W"))
 	AddElementToObject(this.Options, "sandboxMode", enabled)
 	this.Exchange.SetSandboxMode(enabled)
 }
-func (this *WavesexchangeCore) GetFeesForAsset(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) GetFeesForAsset(symbol any, side any, amount any, price any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes5028 := (<-this.LoadMarkets())
 		PanicOnError(retRes5028)
-		var market interface{} = this.Market(symbol)
+		var market any = this.Market(symbol)
 		amount = this.ToRealSymbolAmount(symbol, amount)
 		price = this.ToRealSymbolPrice(symbol, price)
-		var request interface{} = this.Extend(map[string]interface{}{
+		var request any = this.Extend(map[string]any{
 			"baseId":    GetValue(market, "baseId"),
 			"quoteId":   GetValue(market, "quoteId"),
 			"orderType": side,
@@ -429,14 +429,14 @@ func (this *WavesexchangeCore) GetFeesForAsset(symbol interface{}, side interfac
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) CustomCalculateFee(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) CustomCalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		takerOrMaker := GetArg(optionalArgs, 0, "taker")
 		_ = takerOrMaker
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		response := (<-this.GetFeesForAsset(symbol, side, amount, price))
@@ -451,23 +451,23 @@ func (this *WavesexchangeCore) CustomCalculateFee(symbol interface{}, typeVar in
 		//        "matcherFee":"4077612"
 		//     }
 		//  }
-		var isDiscountFee interface{} = this.SafeBool(params, "isDiscountFee", false)
-		var mode interface{} = nil
+		var isDiscountFee any = this.SafeBool(params, "isDiscountFee", false)
+		var mode any = nil
 		if IsTrue(isDiscountFee) {
 			mode = this.SafeValue(response, "discount")
 		} else {
 			mode = this.SafeValue(response, "base")
 		}
-		var matcherFee interface{} = this.SafeString(mode, "matcherFee")
-		var feeAssetId interface{} = this.SafeString(mode, "feeAssetId")
-		var feeAsset interface{} = this.SafeCurrencyCode(feeAssetId)
-		var adjustedMatcherFee interface{} = this.FromRealCurrencyAmount(feeAsset, matcherFee)
-		var amountAsString interface{} = this.NumberToString(amount)
-		var priceAsString interface{} = this.NumberToString(price)
-		var feeCost interface{} = this.FeeToPrecision(symbol, this.ParseNumber(adjustedMatcherFee))
-		var feeRate interface{} = Precise.StringDiv(adjustedMatcherFee, Precise.StringMul(amountAsString, priceAsString))
+		var matcherFee any = this.SafeString(mode, "matcherFee")
+		var feeAssetId any = this.SafeString(mode, "feeAssetId")
+		var feeAsset any = this.SafeCurrencyCode(feeAssetId)
+		var adjustedMatcherFee any = this.FromRealCurrencyAmount(feeAsset, matcherFee)
+		var amountAsString any = this.NumberToString(amount)
+		var priceAsString any = this.NumberToString(price)
+		var feeCost any = this.FeeToPrecision(symbol, this.ParseNumber(adjustedMatcherFee))
+		var feeRate any = Precise.StringDiv(adjustedMatcherFee, Precise.StringMul(amountAsString, priceAsString))
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"type":     takerOrMaker,
 			"currency": feeAsset,
 			"rate":     this.ParseNumber(feeRate),
@@ -478,12 +478,12 @@ func (this *WavesexchangeCore) CustomCalculateFee(symbol interface{}, typeVar in
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) GetQuotes() <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) GetQuotes() <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		var quotes interface{} = this.SafeValue(this.Options, "quotes")
+		var quotes any = this.SafeValue(this.Options, "quotes")
 		if IsTrue(quotes) {
 
 			ch <- quotes
@@ -544,8 +544,8 @@ func (this *WavesexchangeCore) GetQuotes() <-chan interface{} {
 			//     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
 			//   ]
 			// }
-			quotes = map[string]interface{}{}
-			var priceAssets interface{} = this.SafeValue(response, "priceAssets")
+			quotes = map[string]any{}
+			var priceAssets any = this.SafeValue(response, "priceAssets")
 			for i := 0; IsLessThan(i, GetArrayLength(priceAssets)); i++ {
 				AddElementToObject(quotes, GetValue(priceAssets, i), true)
 			}
@@ -566,12 +566,12 @@ func (this *WavesexchangeCore) GetQuotes() <-chan interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *WavesexchangeCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.MarketGetTickers())
@@ -604,20 +604,20 @@ func (this *WavesexchangeCore) FetchMarkets(optionalArgs ...interface{}) <-chan 
 		//       ...
 		//   ]
 		//
-		var result interface{} = []interface{}{}
+		var result any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var entry interface{} = GetValue(response, i)
-			var baseId interface{} = this.SafeString(entry, "amountAssetID")
-			var quoteId interface{} = this.SafeString(entry, "priceAssetID")
-			var id interface{} = Add(Add(baseId, "/"), quoteId)
-			var marketId interface{} = this.SafeString(entry, "symbol")
+			var entry any = GetValue(response, i)
+			var baseId any = this.SafeString(entry, "amountAssetID")
+			var quoteId any = this.SafeString(entry, "priceAssetID")
+			var id any = Add(Add(baseId, "/"), quoteId)
+			var marketId any = this.SafeString(entry, "symbol")
 			basequoteVariable := Split(marketId, "/")
 			base := GetValue(basequoteVariable, 0)
 			quote := GetValue(basequoteVariable, 1)
 			base = this.SafeCurrencyCode(base)
 			quote = this.SafeCurrencyCode(quote)
-			var symbol interface{} = Add(Add(base, "/"), quote)
-			AppendToArray(&result, map[string]interface{}{
+			var symbol any = Add(Add(base, "/"), quote)
+			AppendToArray(&result, map[string]any{
 				"id":             id,
 				"symbol":         symbol,
 				"base":           base,
@@ -641,24 +641,24 @@ func (this *WavesexchangeCore) FetchMarkets(optionalArgs ...interface{}) <-chan 
 				"expiryDatetime": nil,
 				"strike":         nil,
 				"optionType":     nil,
-				"precision": map[string]interface{}{
+				"precision": map[string]any{
 					"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(entry, "amountAssetDecimals"))),
 					"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(entry, "priceAssetDecimals"))),
 				},
-				"limits": map[string]interface{}{
-					"leverage": map[string]interface{}{
+				"limits": map[string]any{
+					"leverage": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"amount": map[string]interface{}{
+					"amount": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"price": map[string]interface{}{
+					"price": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
-					"cost": map[string]interface{}{
+					"cost": map[string]any{
 						"min": nil,
 						"max": nil,
 					},
@@ -685,31 +685,31 @@ func (this *WavesexchangeCore) FetchMarkets(optionalArgs ...interface{}) <-chan 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func (this *WavesexchangeCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		limit := GetArg(optionalArgs, 0, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes7318 := (<-this.LoadMarkets())
 		PanicOnError(retRes7318)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = this.Extend(map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = this.Extend(map[string]any{
 			"baseId":  GetValue(market, "baseId"),
 			"quoteId": GetValue(market, "quoteId"),
 		}, params)
 
 		response := (<-this.MatcherGetMatcherOrderbookBaseIdQuoteId(request))
 		PanicOnError(response)
-		var timestamp interface{} = this.SafeInteger(response, "timestamp")
-		var bids interface{} = this.ParseOrderBookSide(this.SafeValue(response, "bids"), market, limit)
-		var asks interface{} = this.ParseOrderBookSide(this.SafeValue(response, "asks"), market, limit)
+		var timestamp any = this.SafeInteger(response, "timestamp")
+		var bids any = this.ParseOrderBookSide(this.SafeValue(response, "bids"), market, limit)
+		var asks any = this.ParseOrderBookSide(this.SafeValue(response, "asks"), market, limit)
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"symbol":    symbol,
 			"bids":      bids,
 			"asks":      asks,
@@ -722,24 +722,24 @@ func (this *WavesexchangeCore) FetchOrderBook(symbol interface{}, optionalArgs .
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) ParseOrderBookSide(bookSide interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseOrderBookSide(bookSide any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	limit := GetArg(optionalArgs, 1, nil)
 	_ = limit
-	var precision interface{} = GetValue(market, "precision")
-	var wavesPrecision interface{} = this.SafeString(this.Options, "wavesPrecision", "1e-8")
-	var amountPrecisionString interface{} = this.SafeString(precision, "amount")
-	var pricePrecisionString interface{} = this.SafeString(precision, "price")
-	var difference interface{} = Precise.StringDiv(amountPrecisionString, pricePrecisionString)
-	var pricePrecision interface{} = Precise.StringDiv(wavesPrecision, difference)
-	var result interface{} = []interface{}{}
+	var precision any = GetValue(market, "precision")
+	var wavesPrecision any = this.SafeString(this.Options, "wavesPrecision", "1e-8")
+	var amountPrecisionString any = this.SafeString(precision, "amount")
+	var pricePrecisionString any = this.SafeString(precision, "price")
+	var difference any = Precise.StringDiv(amountPrecisionString, pricePrecisionString)
+	var pricePrecision any = Precise.StringDiv(wavesPrecision, difference)
+	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(bookSide)); i++ {
-		var entry interface{} = GetValue(bookSide, i)
-		var entryPrice interface{} = this.SafeString(entry, "price", "0")
-		var entryAmount interface{} = this.SafeString(entry, "amount", "0")
-		var price interface{} = nil
-		var amount interface{} = nil
+		var entry any = GetValue(bookSide, i)
+		var entryPrice any = this.SafeString(entry, "price", "0")
+		var entryAmount any = this.SafeString(entry, "amount", "0")
+		var price any = nil
+		var amount any = nil
 		if IsTrue(IsTrue((!IsEqual(pricePrecision, nil))) && IsTrue((!IsEqual(entryPrice, nil)))) {
 			price = Precise.StringMul(entryPrice, pricePrecision)
 		}
@@ -749,28 +749,28 @@ func (this *WavesexchangeCore) ParseOrderBookSide(bookSide interface{}, optional
 		if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsGreaterThan(i, limit)))) {
 			break
 		}
-		AppendToArray(&result, []interface{}{this.ParseNumber(price), this.ParseNumber(amount)})
+		AppendToArray(&result, []any{this.ParseNumber(price), this.ParseNumber(amount)})
 	}
 	return result
 }
-func (this *WavesexchangeCore) CheckRequiredKeys() interface{} {
+func (this *WavesexchangeCore) CheckRequiredKeys() any {
 	if IsTrue(IsEqual(this.ApiKey, nil)) {
 		panic(AuthenticationError(Add(this.Id, " requires apiKey credential")))
 	}
 	if IsTrue(IsEqual(this.Secret, nil)) {
 		panic(AuthenticationError(Add(this.Id, " requires secret credential")))
 	}
-	var apiKeyBytes interface{} = nil
-	var secretKeyBytes interface{} = nil
+	var apiKeyBytes any = nil
+	var secretKeyBytes any = nil
 
 	{
-		func(this *WavesexchangeCore) (ret_ interface{}) {
+		func(this *WavesexchangeCore) (ret_ any) {
 			defer func() {
 				if e := recover(); e != nil {
 					if e == "break" {
 						return
 					}
-					ret_ = func(this *WavesexchangeCore) interface{} {
+					ret_ = func(this *WavesexchangeCore) any {
 						// catch block:
 						panic(AuthenticationError(Add(this.Id, " apiKey must be a base58 encoded public key")))
 
@@ -785,13 +785,13 @@ func (this *WavesexchangeCore) CheckRequiredKeys() interface{} {
 	}
 
 	{
-		func(this *WavesexchangeCore) (ret_ interface{}) {
+		func(this *WavesexchangeCore) (ret_ any) {
 			defer func() {
 				if e := recover(); e != nil {
 					if e == "break" {
 						return
 					}
-					ret_ = func(this *WavesexchangeCore) interface{} {
+					ret_ = func(this *WavesexchangeCore) any {
 						// catch block:
 						panic(AuthenticationError(Add(this.Id, " secret must be a base58 encoded private key")))
 
@@ -804,8 +804,8 @@ func (this *WavesexchangeCore) CheckRequiredKeys() interface{} {
 		}(this)
 
 	}
-	var hexApiKeyBytes interface{} = this.BinaryToBase16(apiKeyBytes)
-	var hexSecretKeyBytes interface{} = this.BinaryToBase16(secretKeyBytes)
+	var hexApiKeyBytes any = this.BinaryToBase16(apiKeyBytes)
+	var hexSecretKeyBytes any = this.BinaryToBase16(secretKeyBytes)
 	if IsTrue(!IsEqual(GetLength(hexApiKeyBytes), 64)) {
 		panic(AuthenticationError(Add(this.Id, " apiKey must be a base58 encoded public key")))
 	}
@@ -814,27 +814,27 @@ func (this *WavesexchangeCore) CheckRequiredKeys() interface{} {
 	}
 	return true
 }
-func (this *WavesexchangeCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
-	var isCancelOrder interface{} = IsEqual(path, "matcher/orders/{wavesAddress}/cancel")
+	var query any = this.Omit(params, this.ExtractParams(path))
+	var isCancelOrder any = IsEqual(path, "matcher/orders/{wavesAddress}/cancel")
 	path = this.ImplodeParams(path, params)
-	var url interface{} = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
-	var queryString interface{} = this.UrlencodeWithArrayRepeat(query)
+	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
+	var queryString any = this.UrlencodeWithArrayRepeat(query)
 	if IsTrue(IsTrue((IsEqual(api, "private"))) || IsTrue((IsEqual(api, "forward")))) {
-		headers = map[string]interface{}{
+		headers = map[string]any{
 			"Accept": "application/json",
 		}
-		var accessToken interface{} = this.SafeString(this.Options, "accessToken")
+		var accessToken any = this.SafeString(this.Options, "accessToken")
 		if IsTrue(accessToken) {
 			AddElementToObject(headers, "Authorization", Add("Bearer ", accessToken))
 		}
@@ -844,7 +844,7 @@ func (this *WavesexchangeCore) Sign(path interface{}, optionalArgs ...interface{
 			AddElementToObject(headers, "content-type", "application/x-www-form-urlencoded")
 		}
 		if IsTrue(isCancelOrder) {
-			body = this.Json([]interface{}{GetValue(query, "orderId")})
+			body = this.Json([]any{GetValue(query, "orderId")})
 			queryString = ""
 		}
 		if IsTrue(IsGreaterThan(GetArrayLength(queryString), 0)) {
@@ -852,7 +852,7 @@ func (this *WavesexchangeCore) Sign(path interface{}, optionalArgs ...interface{
 		}
 	} else if IsTrue(IsEqual(api, "matcher")) {
 		if IsTrue(IsEqual(method, "POST")) {
-			headers = map[string]interface{}{
+			headers = map[string]any{
 				"Accept":       "application/json",
 				"Content-Type": "application/json",
 			}
@@ -862,12 +862,12 @@ func (this *WavesexchangeCore) Sign(path interface{}, optionalArgs ...interface{
 		}
 	} else {
 		if IsTrue(IsEqual(method, "POST")) {
-			headers = map[string]interface{}{
+			headers = map[string]any{
 				"content-type": "application/json",
 			}
 			body = this.Json(query)
 		} else {
-			headers = map[string]interface{}{
+			headers = map[string]any{
 				"content-type": "application/x-www-form-urlencoded",
 			}
 			if IsTrue(IsGreaterThan(GetArrayLength(queryString), 0)) {
@@ -875,7 +875,7 @@ func (this *WavesexchangeCore) Sign(path interface{}, optionalArgs ...interface{
 			}
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
@@ -891,9 +891,9 @@ func (this *WavesexchangeCore) Sign(path interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns response from exchange
  */
-func (this *WavesexchangeCore) SignIn(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) SignIn(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// W for production, T for testnet
@@ -902,21 +902,21 @@ func (this *WavesexchangeCore) SignIn(optionalArgs ...interface{}) <-chan interf
 		//   "refresh_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzaWciOiJiaTZiMVhMQlo0M1Q4QmRTSlVSejJBZGlQdVlpaFZQYVhhVjc4ZGVIOEpTM3M3NUdSeEU1VkZVOE5LRUI0UXViNkFHaUhpVFpuZ3pzcnhXdExUclRvZTgiLCJhIjoiM1A4VnpMU2EyM0VXNUNWY2tIYlY3ZDVCb043NWZGMWhoRkgiLCJuYiI6IlciLCJ1c2VyX25hbWUiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsInNjb3BlIjpbImdlbmVyYWwiXSwiYXRpIjoiN2JhOTUxMTMtOGI2MS00NjEzLTlkZmYtNTEwYTc0NjlkXWI5IiwibHQiOjYwNDc5OSwicGsiOiJBSFhuOG5CQTRTZkxRRjdoTFFpU24xNmt4eWVoaml6QkdXMVRkcm1TWjFnRiIsImV4cCI6MTU5Mzk2MjI1OCwiZXhwMCI6MTU5MTk3NTA1NywianRpIjoiM2MzZWRlMTktNjI5My00MTNlLWJmMWUtZTRlZDZlYzUzZTgzIiwiY2lkIjoid2F2ZXMuZXhjaGFuZ2UifQ.gD1Qj0jfqayfZpBvNY0t3ccMyK5hdbT7dY-_5L6LxwV0Knan4ndEtvygxlTOczmJUKtnA4T1r5GBFgNMZTvtViKZIbqZNysEg2OY8UxwDaF4VPeGJLg_QXEnn8wBeBQdyMafh9UQdwD2ci7x-saM4tOAGmncAygfTDxy80201gwDhfAkAGerb9kL00oWzSJScldxu--pNLDBUEHZt52MSEel10HGrzvZkkvvSh67vcQo5TOGb5KG6nh65UdJCwr41AVz4fbQPP-N2Nkxqy0TE_bqVzZxExXgvcS8TS0Z82T3ijJa_ct7B9wblpylBnvmyj3VycUzufD6uy8MUGq32D",
 		//   "expires_in": 604798,
 		//   "scope": "general" }
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		if !IsTrue(this.SafeString(this.Options, "accessToken")) {
-			var prefix interface{} = "ffffff01"
-			var expiresDelta interface{} = Multiply(Multiply(Multiply(60, 60), 24), 7)
-			var seconds interface{} = this.Sum(this.Seconds(), expiresDelta)
+			var prefix any = "ffffff01"
+			var expiresDelta any = Multiply(Multiply(Multiply(60, 60), 24), 7)
+			var seconds any = this.Sum(this.Seconds(), expiresDelta)
 			seconds = ToString(seconds)
-			var clientId interface{} = "wx.network"
-			var defaultMessagePrefix interface{} = this.SafeString(this.Options, "messagePrefix", "W")
-			var message interface{} = Add(Add(Add(Add(defaultMessagePrefix, ":"), clientId), ":"), seconds)
-			var messageHex interface{} = this.BinaryToBase16(this.Encode(message))
-			var payload interface{} = Add(prefix, messageHex)
-			var hexKey interface{} = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
-			var signature interface{} = this.Axolotl(payload, hexKey, ed25519)
-			var request interface{} = map[string]interface{}{
+			var clientId any = "wx.network"
+			var defaultMessagePrefix any = this.SafeString(this.Options, "messagePrefix", "W")
+			var message any = Add(Add(Add(Add(defaultMessagePrefix, ":"), clientId), ":"), seconds)
+			var messageHex any = this.BinaryToBase16(this.Encode(message))
+			var payload any = Add(prefix, messageHex)
+			var hexKey any = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
+			var signature any = this.Axolotl(payload, hexKey, ed25519)
+			var request any = map[string]any{
 				"grant_type": "password",
 				"scope":      "general",
 				"username":   this.ApiKey,
@@ -937,7 +937,7 @@ func (this *WavesexchangeCore) SignIn(optionalArgs ...interface{}) <-chan interf
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//       {
 	//           "symbol": "WAVES/BTC",
@@ -979,18 +979,18 @@ func (this *WavesexchangeCore) ParseTicker(ticker interface{}, optionalArgs ...i
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(ticker, "timestamp")
-	var marketId interface{} = this.SafeString(ticker, "symbol")
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	var marketId any = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market, "/")
-	var symbol interface{} = GetValue(market, "symbol")
-	var last interface{} = this.SafeString2(ticker, "24h_close", "lastPrice")
-	var low interface{} = this.SafeString2(ticker, "24h_low", "low")
-	var high interface{} = this.SafeString2(ticker, "24h_high", "high")
-	var vwap interface{} = this.SafeString2(ticker, "24h_vwap", "weightedAveragePrice")
-	var baseVolume interface{} = this.SafeString2(ticker, "24h_volume", "volume")
-	var quoteVolume interface{} = this.SafeString2(ticker, "24h_priceVolume", "quoteVolume")
-	var open interface{} = this.SafeString2(ticker, "24h_open", "firstPrice")
-	return this.SafeTicker(map[string]interface{}{
+	var symbol any = GetValue(market, "symbol")
+	var last any = this.SafeString2(ticker, "24h_close", "lastPrice")
+	var low any = this.SafeString2(ticker, "24h_low", "low")
+	var high any = this.SafeString2(ticker, "24h_high", "high")
+	var vwap any = this.SafeString2(ticker, "24h_vwap", "weightedAveragePrice")
+	var baseVolume any = this.SafeString2(ticker, "24h_volume", "volume")
+	var quoteVolume any = this.SafeString2(ticker, "24h_priceVolume", "quoteVolume")
+	var open any = this.SafeString2(ticker, "24h_open", "firstPrice")
+	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1023,18 +1023,18 @@ func (this *WavesexchangeCore) ParseTicker(ticker interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *WavesexchangeCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes9928 := (<-this.LoadMarkets())
 		PanicOnError(retRes9928)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"pairs": GetValue(market, "id"),
 		}
 
@@ -1063,9 +1063,9 @@ func (this *WavesexchangeCore) FetchTicker(symbol interface{}, optionalArgs ...i
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
-		var ticker interface{} = this.SafeValue(data, 0, map[string]interface{}{})
-		var dataTicker interface{} = this.SafeDict(ticker, "data", map[string]interface{}{})
+		var data any = this.SafeValue(response, "data", []any{})
+		var ticker any = this.SafeValue(data, 0, map[string]any{})
+		var dataTicker any = this.SafeDict(ticker, "data", map[string]any{})
 
 		ch <- this.ParseTicker(dataTicker, market)
 		return nil
@@ -1082,14 +1082,14 @@ func (this *WavesexchangeCore) FetchTicker(symbol interface{}, optionalArgs ...i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *WavesexchangeCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes10368 := (<-this.LoadMarkets())
@@ -1146,9 +1146,9 @@ func (this *WavesexchangeCore) FetchTickers(optionalArgs ...interface{}) <-chan 
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *WavesexchangeCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -1157,31 +1157,31 @@ func (this *WavesexchangeCore) FetchOHLCV(symbol interface{}, optionalArgs ...in
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes10838 := (<-this.LoadMarkets())
 		PanicOnError(retRes10838)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"baseId":   GetValue(market, "baseId"),
 			"quoteId":  GetValue(market, "quoteId"),
 			"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var allowedCandles interface{} = this.SafeInteger(this.Options, "allowedCandles", 1440)
-		var until interface{} = this.SafeInteger(params, "until")
-		var untilIsDefined interface{} = !IsEqual(until, nil)
+		var allowedCandles any = this.SafeInteger(this.Options, "allowedCandles", 1440)
+		var until any = this.SafeInteger(params, "until")
+		var untilIsDefined any = !IsEqual(until, nil)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = allowedCandles
 		}
 		limit = mathMin(allowedCandles, limit)
-		var duration interface{} = Multiply(this.ParseTimeframe(timeframe), 1000)
+		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 		if IsTrue(IsEqual(since, nil)) {
-			var now interface{} = this.Milliseconds()
-			var timeEnd interface{} = Ternary(IsTrue(untilIsDefined), until, now)
-			var durationRoundedTimestamp interface{} = Multiply(this.ParseToInt(Divide(timeEnd, duration)), duration)
-			var delta interface{} = Multiply((Subtract(limit, 1)), duration)
-			var timeStart interface{} = Subtract(durationRoundedTimestamp, delta)
+			var now any = this.Milliseconds()
+			var timeEnd any = Ternary(IsTrue(untilIsDefined), until, now)
+			var durationRoundedTimestamp any = Multiply(this.ParseToInt(Divide(timeEnd, duration)), duration)
+			var delta any = Multiply((Subtract(limit, 1)), duration)
+			var timeStart any = Subtract(durationRoundedTimestamp, delta)
 			AddElementToObject(request, "timeStart", ToString(timeStart))
 			if IsTrue(untilIsDefined) {
 				AddElementToObject(request, "timeEnd", ToString(until))
@@ -1191,7 +1191,7 @@ func (this *WavesexchangeCore) FetchOHLCV(symbol interface{}, optionalArgs ...in
 			if IsTrue(untilIsDefined) {
 				AddElementToObject(request, "timeEnd", ToString(until))
 			} else {
-				var timeEnd interface{} = this.Sum(since, Multiply(duration, limit))
+				var timeEnd any = this.Sum(since, Multiply(duration, limit))
 				AddElementToObject(request, "timeEnd", ToString(timeEnd))
 			}
 		}
@@ -1222,15 +1222,15 @@ func (this *WavesexchangeCore) FetchOHLCV(symbol interface{}, optionalArgs ...in
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
-		var result interface{} = this.ParseOHLCVs(data, market, timeframe, since, limit)
+		var data any = this.SafeValue(response, "data", []any{})
+		var result any = this.ParseOHLCVs(data, market, timeframe, since, limit)
 		result = this.FilterFutureCandles(result)
-		var lastClose interface{} = nil
-		var length interface{} = GetArrayLength(result)
+		var lastClose any = nil
+		var length any = GetArrayLength(result)
 		for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
-			var j interface{} = Subtract(Subtract(length, i), 1)
-			var entry interface{} = GetValue(result, j)
-			var open interface{} = GetValue(entry, 1)
+			var j any = Subtract(Subtract(length, i), 1)
+			var entry any = GetValue(result, j)
+			var open any = GetValue(entry, 1)
 			if IsTrue(IsEqual(open, nil)) {
 				AddElementToObject(entry, 1, lastClose)
 				AddElementToObject(entry, 2, lastClose)
@@ -1247,9 +1247,9 @@ func (this *WavesexchangeCore) FetchOHLCV(symbol interface{}, optionalArgs ...in
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) FilterFutureCandles(ohlcvs interface{}) interface{} {
-	var result interface{} = []interface{}{}
-	var timestamp interface{} = this.Milliseconds()
+func (this *WavesexchangeCore) FilterFutureCandles(ohlcvs any) any {
+	var result any = []any{}
+	var timestamp any = this.Milliseconds()
 	for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
 		if IsTrue(IsGreaterThan(GetValue(GetValue(ohlcvs, i), 0), timestamp)) {
 			// stop when getting data from the future
@@ -1259,7 +1259,7 @@ func (this *WavesexchangeCore) FilterFutureCandles(ohlcvs interface{}) interface
 	}
 	return result
 }
-func (this *WavesexchangeCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "__type": "candle",
@@ -1280,8 +1280,8 @@ func (this *WavesexchangeCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...int
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data interface{} = this.SafeValue(ohlcv, "data", map[string]interface{}{})
-	return []interface{}{this.Parse8601(this.SafeString(data, "time")), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume", 0)}
+	var data any = this.SafeValue(ohlcv, "data", map[string]any{})
+	return []any{this.Parse8601(this.SafeString(data, "time")), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume", 0)}
 }
 
 /**
@@ -1292,20 +1292,20 @@ func (this *WavesexchangeCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *WavesexchangeCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		retRes12158 := (<-this.SignIn())
 		PanicOnError(retRes12158)
-		var networks interface{} = this.SafeValue(this.Options, "networks", map[string]interface{}{})
-		var rawNetwork interface{} = this.SafeStringUpper(params, "network")
-		var network interface{} = this.SafeString(networks, rawNetwork, rawNetwork)
-		params = this.Omit(params, []interface{}{"network"})
+		var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
+		var rawNetwork any = this.SafeStringUpper(params, "network")
+		var network any = this.SafeString(networks, rawNetwork, rawNetwork)
+		params = this.Omit(params, []any{"network"})
 
 		supportedCurrencies := (<-this.PrivateGetPlatforms())
 		PanicOnError(supportedCurrencies)
@@ -1341,50 +1341,50 @@ func (this *WavesexchangeCore) FetchDepositAddress(code interface{}, optionalArg
 		//       ]
 		//     }
 		//
-		var currencies interface{} = map[string]interface{}{}
-		var networksByCurrency interface{} = map[string]interface{}{}
-		var items interface{} = this.SafeValue(supportedCurrencies, "items", []interface{}{})
+		var currencies any = map[string]any{}
+		var networksByCurrency any = map[string]any{}
+		var items any = this.SafeValue(supportedCurrencies, "items", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-			var entry interface{} = GetValue(items, i)
-			var currencyId interface{} = this.SafeString(entry, "id")
-			var innerCurrencies interface{} = this.SafeValue(entry, "currencies", []interface{}{})
+			var entry any = GetValue(items, i)
+			var currencyId any = this.SafeString(entry, "id")
+			var innerCurrencies any = this.SafeValue(entry, "currencies", []any{})
 			for j := 0; IsLessThan(j, GetArrayLength(innerCurrencies)); j++ {
-				var currencyCode interface{} = this.SafeString(innerCurrencies, j)
+				var currencyCode any = this.SafeString(innerCurrencies, j)
 				AddElementToObject(currencies, currencyCode, true)
 				if !IsTrue((InOp(networksByCurrency, currencyCode))) {
-					AddElementToObject(networksByCurrency, currencyCode, map[string]interface{}{})
+					AddElementToObject(networksByCurrency, currencyCode, map[string]any{})
 				}
 				AddElementToObject(GetValue(networksByCurrency, currencyCode), currencyId, true)
 			}
 		}
 		if !IsTrue((InOp(currencies, code))) {
-			var codes interface{} = ObjectKeys(currencies)
+			var codes any = ObjectKeys(currencies)
 			panic(ExchangeError(Add(Add(Add(Add(this.Id, " fetchDepositAddress() "), code), " not supported. Currency code must be one of "), Join(codes, ", "))))
 		}
-		var response interface{} = nil
+		var response any = nil
 		if IsTrue(IsEqual(network, nil)) {
-			var request interface{} = map[string]interface{}{
+			var request any = map[string]any{
 				"currency": code,
 			}
 
 			response = (<-this.PrivateGetDepositAddressesCurrency(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			var supportedNetworks interface{} = GetValue(networksByCurrency, code)
+			var supportedNetworks any = GetValue(networksByCurrency, code)
 			if !IsTrue((InOp(supportedNetworks, network))) {
-				var supportedNetworkKeys interface{} = ObjectKeys(supportedNetworks)
+				var supportedNetworkKeys any = ObjectKeys(supportedNetworks)
 				panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id, " "), network), " network "), code), " deposit address not supported. Network must be one of "), Join(supportedNetworkKeys, ", "))))
 			}
 			if IsTrue(IsEqual(network, "WAVES")) {
-				var request interface{} = map[string]interface{}{
+				var request any = map[string]any{
 					"publicKey": this.ApiKey,
 				}
 
 				responseInner := (<-this.NodeGetAddressesPublicKeyPublicKey(this.Extend(request, request)))
 				PanicOnError(responseInner)
-				var addressInner interface{} = this.SafeString(response, "address")
+				var addressInner any = this.SafeString(response, "address")
 
-				ch <- map[string]interface{}{
+				ch <- map[string]any{
 					"info":     responseInner,
 					"currency": code,
 					"network":  network,
@@ -1393,7 +1393,7 @@ func (this *WavesexchangeCore) FetchDepositAddress(code interface{}, optionalArg
 				}
 				return nil
 			} else {
-				var request interface{} = map[string]interface{}{
+				var request any = map[string]any{
 					"currency": code,
 					"platform": network,
 				}
@@ -1425,14 +1425,14 @@ func (this *WavesexchangeCore) FetchDepositAddress(code interface{}, optionalArg
 		//     "9fRAAQjF8Yqg7qicQCL884zjimsRnuwsSavsM1rUdDaoG8mThku"
 		//   ]
 		// }
-		var currency interface{} = this.SafeValue(response, "currency")
-		var networkId interface{} = this.SafeString(currency, "platform_id")
-		var networkByIds interface{} = this.SafeValue(this.Options, "networkByIds", map[string]interface{}{})
-		var unifiedNetwork interface{} = this.SafeString(networkByIds, networkId, networkId)
-		var addresses interface{} = this.SafeValue(response, "deposit_addresses")
-		var address interface{} = this.SafeString(addresses, 0)
+		var currency any = this.SafeValue(response, "currency")
+		var networkId any = this.SafeString(currency, "platform_id")
+		var networkByIds any = this.SafeValue(this.Options, "networkByIds", map[string]any{})
+		var unifiedNetwork any = this.SafeString(networkByIds, networkId, networkId)
+		var addresses any = this.SafeValue(response, "deposit_addresses")
+		var address any = this.SafeString(addresses, 0)
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"info":     response,
 			"currency": code,
 			"network":  unifiedNetwork,
@@ -1444,13 +1444,13 @@ func (this *WavesexchangeCore) FetchDepositAddress(code interface{}, optionalArg
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) GetMatcherPublicKey() <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) GetMatcherPublicKey() <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// this method returns a single string
-		var matcherPublicKey interface{} = this.SafeString(this.Options, "matcherPublicKey")
+		var matcherPublicKey any = this.SafeString(this.Options, "matcherPublicKey")
 		if IsTrue(matcherPublicKey) {
 
 			ch <- matcherPublicKey
@@ -1469,64 +1469,64 @@ func (this *WavesexchangeCore) GetMatcherPublicKey() <-chan interface{} {
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) GetAssetBytes(currencyId interface{}) interface{} {
+func (this *WavesexchangeCore) GetAssetBytes(currencyId any) any {
 	if IsTrue(IsEqual(currencyId, "WAVES")) {
 		return this.NumberToBE(0, 1)
 	} else {
 		return this.BinaryConcat(this.NumberToBE(1, 1), this.Base58ToBinary(currencyId))
 	}
 }
-func (this *WavesexchangeCore) GetAssetId(currencyId interface{}) interface{} {
+func (this *WavesexchangeCore) GetAssetId(currencyId any) any {
 	if IsTrue(IsEqual(currencyId, "WAVES")) {
 		return ""
 	}
 	return currencyId
 }
-func (this *WavesexchangeCore) ToRealCurrencyAmount(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ToRealCurrencyAmount(code any, amount any, optionalArgs ...any) any {
 	networkCode := GetArg(optionalArgs, 0, nil)
 	_ = networkCode
-	var currency interface{} = this.Currency(code)
-	var stringValue interface{} = Precise.StringDiv(this.NumberToString(amount), this.SafeString(currency, "precision"))
+	var currency any = this.Currency(code)
+	var stringValue any = Precise.StringDiv(this.NumberToString(amount), this.SafeString(currency, "precision"))
 	return ParseInt(stringValue)
 }
-func (this *WavesexchangeCore) FromRealCurrencyAmount(code interface{}, amountString interface{}) interface{} {
+func (this *WavesexchangeCore) FromRealCurrencyAmount(code any, amountString any) any {
 	if !IsTrue((InOp(this.Currencies, code))) {
 		return amountString
 	}
-	var currency interface{} = this.Currency(code)
-	var precisionAmount interface{} = this.SafeString(currency, "precision")
+	var currency any = this.Currency(code)
+	var precisionAmount any = this.SafeString(currency, "precision")
 	return Precise.StringMul(amountString, precisionAmount)
 }
-func (this *WavesexchangeCore) ToRealSymbolPrice(symbol interface{}, price interface{}) interface{} {
-	var market interface{} = this.Market(symbol)
-	var stringValue interface{} = Precise.StringDiv(this.NumberToString(price), this.SafeString(GetValue(market, "precision"), "price"))
+func (this *WavesexchangeCore) ToRealSymbolPrice(symbol any, price any) any {
+	var market any = this.Market(symbol)
+	var stringValue any = Precise.StringDiv(this.NumberToString(price), this.SafeString(GetValue(market, "precision"), "price"))
 	return ParseInt(stringValue)
 }
-func (this *WavesexchangeCore) FromRealSymbolPrice(symbol interface{}, priceString interface{}) interface{} {
-	var market interface{} = GetValue(this.Markets, symbol)
+func (this *WavesexchangeCore) FromRealSymbolPrice(symbol any, priceString any) any {
+	var market any = GetValue(this.Markets, symbol)
 	return Precise.StringMul(priceString, this.SafeString(GetValue(market, "precision"), "price"))
 }
-func (this *WavesexchangeCore) ToRealSymbolAmount(symbol interface{}, amount interface{}) interface{} {
-	var market interface{} = this.Market(symbol)
-	var stringValue interface{} = Precise.StringDiv(this.NumberToString(amount), this.SafeString(GetValue(market, "precision"), "amount"))
+func (this *WavesexchangeCore) ToRealSymbolAmount(symbol any, amount any) any {
+	var market any = this.Market(symbol)
+	var stringValue any = Precise.StringDiv(this.NumberToString(amount), this.SafeString(GetValue(market, "precision"), "amount"))
 	return ParseInt(stringValue)
 }
-func (this *WavesexchangeCore) FromRealSymbolAmount(symbol interface{}, amountString interface{}) interface{} {
-	var market interface{} = GetValue(this.Markets, symbol)
+func (this *WavesexchangeCore) FromRealSymbolAmount(symbol any, amountString any) any {
+	var market any = GetValue(this.Markets, symbol)
 	return Precise.StringMul(amountString, GetValue(GetValue(market, "precision"), "amount"))
 }
-func (this *WavesexchangeCore) SafeGetDynamic(settings interface{}) interface{} {
-	var orderFee interface{} = this.SafeValue(settings, "orderFee")
+func (this *WavesexchangeCore) SafeGetDynamic(settings any) any {
+	var orderFee any = this.SafeValue(settings, "orderFee")
 	if IsTrue(InOp(orderFee, "dynamic")) {
 		return this.SafeValue(orderFee, "dynamic")
 	} else {
 		return this.SafeValue(GetValue(GetValue(orderFee, "composite"), "default"), "dynamic")
 	}
 }
-func (this *WavesexchangeCore) SafeGetRates(dynamic interface{}) interface{} {
-	var rates interface{} = this.SafeValue(dynamic, "rates")
+func (this *WavesexchangeCore) SafeGetRates(dynamic any) any {
+	var rates any = this.SafeValue(dynamic, "rates")
 	if IsTrue(IsEqual(rates, nil)) {
-		return map[string]interface{}{
+		return map[string]any{
 			"WAVES": 1,
 		}
 	}
@@ -1547,38 +1547,38 @@ func (this *WavesexchangeCore) SafeGetRates(dynamic interface{}) interface{} {
  * @param {float} [params.triggerPrice] The price at which a stop order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
 
 		retRes14438 := (<-this.LoadMarkets())
 		PanicOnError(retRes14438)
-		var market interface{} = this.Market(symbol)
+		var market any = this.Market(symbol)
 
 		matcherPublicKey := (<-this.GetMatcherPublicKey())
 		PanicOnError(matcherPublicKey)
-		var amountAsset interface{} = this.GetAssetId(GetValue(market, "baseId"))
-		var priceAsset interface{} = this.GetAssetId(GetValue(market, "quoteId"))
-		var isMarketOrder interface{} = (IsEqual(typeVar, "market"))
-		var triggerPrice interface{} = this.SafeFloat2(params, "triggerPrice", "stopPrice")
-		var isStopOrder interface{} = (!IsEqual(triggerPrice, nil))
+		var amountAsset any = this.GetAssetId(GetValue(market, "baseId"))
+		var priceAsset any = this.GetAssetId(GetValue(market, "quoteId"))
+		var isMarketOrder any = (IsEqual(typeVar, "market"))
+		var triggerPrice any = this.SafeFloat2(params, "triggerPrice", "stopPrice")
+		var isStopOrder any = (!IsEqual(triggerPrice, nil))
 		if IsTrue(IsTrue((isMarketOrder)) && IsTrue((IsEqual(price, nil)))) {
 			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a price argument for "), typeVar), " orders to determine the max price for buy and the min price for sell")))
 		}
-		var timestamp interface{} = this.Milliseconds()
-		var defaultExpiryDelta interface{} = nil
+		var timestamp any = this.Milliseconds()
+		var defaultExpiryDelta any = nil
 		defaultExpiryDeltaparamsVariable := this.HandleOptionAndParams(params, "createOrder", "defaultExpiry", this.SafeInteger(this.Options, "createOrderDefaultExpiry", 2419200000))
 		defaultExpiryDelta = GetValue(defaultExpiryDeltaparamsVariable, 0)
 		params = GetValue(defaultExpiryDeltaparamsVariable, 1)
-		var expiration interface{} = this.Sum(timestamp, defaultExpiryDelta)
+		var expiration any = this.Sum(timestamp, defaultExpiryDelta)
 
 		matcherFees := (<-this.GetFeesForAsset(symbol, side, amount, price))
 		PanicOnError(matcherFees)
@@ -1592,20 +1592,20 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 		//        "matcherFee":"4077612"
 		//     }
 		//  }
-		var base interface{} = this.SafeValue2(matcherFees, "base", "discount")
-		var baseFeeAssetId interface{} = this.SafeString(base, "feeAssetId")
-		var baseFeeAsset interface{} = this.SafeCurrencyCode(baseFeeAssetId)
-		var baseMatcherFee interface{} = this.SafeString(base, "matcherFee")
-		var discount interface{} = this.SafeValue(matcherFees, "discount")
-		var discountFeeAssetId interface{} = this.SafeString(discount, "feeAssetId")
-		var discountFeeAsset interface{} = this.SafeCurrencyCode(discountFeeAssetId)
-		var discountMatcherFee interface{} = this.SafeString(discount, "matcherFee")
-		var matcherFeeAssetId interface{} = nil
-		var matcherFee interface{} = nil
+		var base any = this.SafeValue2(matcherFees, "base", "discount")
+		var baseFeeAssetId any = this.SafeString(base, "feeAssetId")
+		var baseFeeAsset any = this.SafeCurrencyCode(baseFeeAssetId)
+		var baseMatcherFee any = this.SafeString(base, "matcherFee")
+		var discount any = this.SafeValue(matcherFees, "discount")
+		var discountFeeAssetId any = this.SafeString(discount, "feeAssetId")
+		var discountFeeAsset any = this.SafeCurrencyCode(discountFeeAssetId)
+		var discountMatcherFee any = this.SafeString(discount, "matcherFee")
+		var matcherFeeAssetId any = nil
+		var matcherFee any = nil
 		// check first if user supplied asset fee is valid
 		if IsTrue(IsTrue((InOp(params, "feeAsset"))) || IsTrue((InOp(this.Options, "feeAsset")))) {
-			var feeAsset interface{} = this.SafeString(params, "feeAsset", this.SafeString(this.Options, "feeAsset"))
-			var feeCurrency interface{} = this.Currency(feeAsset)
+			var feeAsset any = this.SafeString(params, "feeAsset", this.SafeString(this.Options, "feeAsset"))
+			var feeCurrency any = this.Currency(feeAsset)
 			matcherFeeAssetId = this.SafeString(feeCurrency, "id")
 		}
 
@@ -1615,17 +1615,17 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 			if IsTrue(IsTrue(!IsEqual(baseFeeAssetId, matcherFeeAssetId)) && IsTrue(!IsEqual(discountFeeAssetId, matcherFeeAssetId))) {
 				panic(InvalidOrder(Add(Add(Add(Add(this.Id, " asset fee must be "), baseFeeAsset), " or "), discountFeeAsset)))
 			}
-			var matcherFeeAsset interface{} = this.SafeCurrencyCode(matcherFeeAssetId)
-			var rawMatcherFee interface{} = Ternary(IsTrue((IsEqual(matcherFeeAssetId, baseFeeAssetId))), baseMatcherFee, discountMatcherFee)
-			var floatMatcherFee interface{} = ParseFloat(this.FromRealCurrencyAmount(matcherFeeAsset, rawMatcherFee))
+			var matcherFeeAsset any = this.SafeCurrencyCode(matcherFeeAssetId)
+			var rawMatcherFee any = Ternary(IsTrue((IsEqual(matcherFeeAssetId, baseFeeAssetId))), baseMatcherFee, discountMatcherFee)
+			var floatMatcherFee any = ParseFloat(this.FromRealCurrencyAmount(matcherFeeAsset, rawMatcherFee))
 			if IsTrue(IsTrue((InOp(balances, matcherFeeAsset))) && IsTrue((IsGreaterThanOrEqual(GetValue(GetValue(balances, matcherFeeAsset), "free"), floatMatcherFee)))) {
 				matcherFee = ParseInt(rawMatcherFee)
 			} else {
 				panic(InsufficientFunds(Add(this.Id, " not enough funds of the selected asset fee")))
 			}
 		}
-		var floatBaseMatcherFee interface{} = this.FromRealCurrencyAmount(baseFeeAsset, baseMatcherFee)
-		var floatDiscountMatcherFee interface{} = this.FromRealCurrencyAmount(discountFeeAsset, discountMatcherFee)
+		var floatBaseMatcherFee any = this.FromRealCurrencyAmount(baseFeeAsset, baseMatcherFee)
+		var floatDiscountMatcherFee any = this.FromRealCurrencyAmount(discountFeeAsset, discountMatcherFee)
 		if IsTrue(IsEqual(matcherFeeAssetId, nil)) {
 			// try to the pay the fee using the base first then discount asset
 			if IsTrue(IsTrue((InOp(balances, baseFeeAsset))) && IsTrue((IsGreaterThanOrEqual(GetValue(GetValue(balances, baseFeeAsset), "free"), ParseFloat(floatBaseMatcherFee))))) {
@@ -1643,13 +1643,13 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 		}
 		amount = this.ToRealSymbolAmount(symbol, amount)
 		price = this.ToRealSymbolPrice(symbol, price)
-		var assetPair interface{} = map[string]interface{}{
+		var assetPair any = map[string]any{
 			"amountAsset": amountAsset,
 			"priceAsset":  priceAsset,
 		}
-		var sandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
-		var chainId interface{} = Ternary(IsTrue((sandboxMode)), 84, 87)
-		var body interface{} = map[string]interface{}{
+		var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
+		var chainId any = Ternary(IsTrue((sandboxMode)), 84, 87)
+		var body any = map[string]any{
 			"senderPublicKey":  this.ApiKey,
 			"matcherPublicKey": matcherPublicKey,
 			"assetPair":        assetPair,
@@ -1675,11 +1675,11 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 			//     },
 			// }
 			//
-			var attachment interface{} = map[string]interface{}{
+			var attachment any = map[string]any{
 				"v": 1,
-				"c": map[string]interface{}{
+				"c": map[string]any{
 					"t": "sp",
-					"v": map[string]interface{}{
+					"v": map[string]any{
 						"p": this.ToRealSymbolPrice(symbol, triggerPrice),
 					},
 				},
@@ -1695,7 +1695,7 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 		if IsTrue(IsTrue((IsEqual(GetValue(serializedOrder, 0), "\""))) && IsTrue((IsEqual(GetValue(serializedOrder, (Subtract(GetArrayLength(serializedOrder), 1))), "\"")))) {
 			serializedOrder = Slice(serializedOrder, 1, Subtract(GetArrayLength(serializedOrder), 1))
 		}
-		var signature interface{} = this.Axolotl(this.BinaryToBase16(this.Base58ToBinary(serializedOrder)), this.BinaryToBase16(this.Base58ToBinary(this.Secret)), ed25519)
+		var signature any = this.Axolotl(this.BinaryToBase16(this.Base58ToBinary(serializedOrder)), this.BinaryToBase16(this.Base58ToBinary(this.Secret)), ed25519)
 		AddElementToObject(body, "signature", signature)
 		//
 		//     {
@@ -1732,7 +1732,7 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 
 			response := (<-this.MatcherPostMatcherOrderbookMarket(this.Extend(body, params)))
 			PanicOnError(response)
-			var value interface{} = this.SafeDict(response, "message")
+			var value any = this.SafeDict(response, "message")
 
 			ch <- this.ParseOrder(value, market)
 			return nil
@@ -1740,7 +1740,7 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
 
 			response := (<-this.MatcherPostMatcherOrderbook(this.Extend(body, params)))
 			PanicOnError(response)
-			var value interface{} = this.SafeDict(response, "message")
+			var value any = this.SafeDict(response, "message")
 
 			ch <- this.ParseOrder(value, market)
 			return nil
@@ -1760,14 +1760,14 @@ func (this *WavesexchangeCore) CreateOrder(symbol interface{}, typeVar interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WavesexchangeCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
@@ -1778,7 +1778,7 @@ func (this *WavesexchangeCore) CancelOrder(id interface{}, optionalArgs ...inter
 		wavesAddress := (<-this.GetWavesAddress())
 		PanicOnError(wavesAddress)
 
-		response := (<-this.ForwardPostMatcherOrdersWavesAddressCancel(map[string]interface{}{
+		response := (<-this.ForwardPostMatcherOrdersWavesAddressCancel(map[string]any{
 			"wavesAddress": wavesAddress,
 			"orderId":      id,
 		}))
@@ -1788,12 +1788,12 @@ func (this *WavesexchangeCore) CancelOrder(id interface{}, optionalArgs ...inter
 		//    "message":[[{"orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled"}]],
 		//    "status":"BatchCancelCompleted"
 		//  }
-		var message interface{} = this.SafeValue(response, "message")
-		var firstMessage interface{} = this.SafeValue(message, 0)
-		var firstOrder interface{} = this.SafeValue(firstMessage, 0)
-		var returnedId interface{} = this.SafeString(firstOrder, "orderId")
+		var message any = this.SafeValue(response, "message")
+		var firstMessage any = this.SafeValue(message, 0)
+		var firstOrder any = this.SafeValue(firstMessage, 0)
+		var returnedId any = this.SafeString(firstOrder, "orderId")
 
-		ch <- this.SafeOrder(map[string]interface{}{
+		ch <- this.SafeOrder(map[string]any{
 			"info":               response,
 			"id":                 returnedId,
 			"clientOrderId":      nil,
@@ -1829,30 +1829,30 @@ func (this *WavesexchangeCore) CancelOrder(id interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WavesexchangeCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
 
 		retRes16758 := (<-this.LoadMarkets())
 		PanicOnError(retRes16758)
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var timestamp interface{} = this.Milliseconds()
-		var byteArray interface{} = []interface{}{this.Base58ToBinary(this.ApiKey), this.NumberToBE(timestamp, 8)}
-		var binary interface{} = this.BinaryConcatArray(byteArray)
-		var hexSecret interface{} = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
-		var signature interface{} = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
-		var request interface{} = map[string]interface{}{
+		var timestamp any = this.Milliseconds()
+		var byteArray any = []any{this.Base58ToBinary(this.ApiKey), this.NumberToBE(timestamp, 8)}
+		var binary any = this.BinaryConcatArray(byteArray)
+		var hexSecret any = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
+		var signature any = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
+		var request any = map[string]any{
 			"Timestamp": ToString(timestamp),
 			"Signature": signature,
 			"publicKey": this.ApiKey,
@@ -1879,9 +1879,9 @@ func (this *WavesexchangeCore) FetchOrder(id interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WavesexchangeCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1890,7 +1890,7 @@ func (this *WavesexchangeCore) FetchOrders(optionalArgs ...interface{}) <-chan i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
@@ -1900,13 +1900,13 @@ func (this *WavesexchangeCore) FetchOrders(optionalArgs ...interface{}) <-chan i
 
 		retRes17148 := (<-this.LoadMarkets())
 		PanicOnError(retRes17148)
-		var market interface{} = this.Market(symbol)
-		var timestamp interface{} = this.Milliseconds()
-		var byteArray interface{} = []interface{}{this.Base58ToBinary(this.ApiKey), this.NumberToBE(timestamp, 8)}
-		var binary interface{} = this.BinaryConcatArray(byteArray)
-		var hexSecret interface{} = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
-		var signature interface{} = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var timestamp any = this.Milliseconds()
+		var byteArray any = []any{this.Base58ToBinary(this.ApiKey), this.NumberToBE(timestamp, 8)}
+		var binary any = this.BinaryConcatArray(byteArray)
+		var hexSecret any = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
+		var signature any = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
+		var request any = map[string]any{
 			"Accept":    "application/json",
 			"Timestamp": ToString(timestamp),
 			"Signature": signature,
@@ -1950,9 +1950,9 @@ func (this *WavesexchangeCore) FetchOrders(optionalArgs ...interface{}) <-chan i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WavesexchangeCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -1961,7 +1961,7 @@ func (this *WavesexchangeCore) FetchOpenOrders(optionalArgs ...interface{}) <-ch
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes17628 := (<-this.LoadMarkets())
@@ -1969,14 +1969,14 @@ func (this *WavesexchangeCore) FetchOpenOrders(optionalArgs ...interface{}) <-ch
 
 		retRes17638 := (<-this.SignIn())
 		PanicOnError(retRes17638)
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
 
 		address := (<-this.GetWavesAddress())
 		PanicOnError(address)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"address":    address,
 			"activeOnly": true,
 		}
@@ -2001,9 +2001,9 @@ func (this *WavesexchangeCore) FetchOpenOrders(optionalArgs ...interface{}) <-ch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *WavesexchangeCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2012,7 +2012,7 @@ func (this *WavesexchangeCore) FetchClosedOrders(optionalArgs ...interface{}) <-
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes17888 := (<-this.LoadMarkets())
@@ -2020,14 +2020,14 @@ func (this *WavesexchangeCore) FetchClosedOrders(optionalArgs ...interface{}) <-
 
 		retRes17898 := (<-this.SignIn())
 		PanicOnError(retRes17898)
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
 
 		address := (<-this.GetWavesAddress())
 		PanicOnError(address)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"address":    address,
 			"closedOnly": true,
 		}
@@ -2061,8 +2061,8 @@ func (this *WavesexchangeCore) FetchClosedOrders(optionalArgs ...interface{}) <-
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *WavesexchangeCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"Cancelled":       "canceled",
 		"Accepted":        "open",
 		"Filled":          "closed",
@@ -2070,13 +2070,13 @@ func (this *WavesexchangeCore) ParseOrderStatus(status interface{}) interface{} 
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *WavesexchangeCore) GetSymbolFromAssetPair(assetPair interface{}) interface{} {
+func (this *WavesexchangeCore) GetSymbolFromAssetPair(assetPair any) any {
 	// a blank string or null can indicate WAVES
-	var baseId interface{} = this.SafeString(assetPair, "amountAsset", "WAVES")
-	var quoteId interface{} = this.SafeString(assetPair, "priceAsset", "WAVES")
+	var baseId any = this.SafeString(assetPair, "amountAsset", "WAVES")
+	var quoteId any = this.SafeString(assetPair, "priceAsset", "WAVES")
 	return Add(Add(this.SafeCurrencyCode(baseId), "/"), this.SafeCurrencyCode(quoteId))
 }
-func (this *WavesexchangeCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	// createOrder
 	//
@@ -2131,59 +2131,59 @@ func (this *WavesexchangeCore) ParseOrder(order interface{}, optionalArgs ...int
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp interface{} = this.SafeInteger(order, "timestamp")
-	var side interface{} = this.SafeString2(order, "type", "orderType")
-	var typeVar interface{} = "limit"
+	var timestamp any = this.SafeInteger(order, "timestamp")
+	var side any = this.SafeString2(order, "type", "orderType")
+	var typeVar any = "limit"
 	if IsTrue(InOp(order, "type")) {
 		// fetchOrders
 		typeVar = this.SafeString(order, "orderType", typeVar)
 	}
-	var id interface{} = this.SafeString(order, "id")
-	var filledString interface{} = this.SafeString(order, "filled")
-	var priceString interface{} = this.SafeString(order, "price")
-	var amountString interface{} = this.SafeString(order, "amount")
-	var assetPair interface{} = this.SafeValue(order, "assetPair")
-	var symbol interface{} = nil
+	var id any = this.SafeString(order, "id")
+	var filledString any = this.SafeString(order, "filled")
+	var priceString any = this.SafeString(order, "price")
+	var amountString any = this.SafeString(order, "amount")
+	var assetPair any = this.SafeValue(order, "assetPair")
+	var symbol any = nil
 	if IsTrue(!IsEqual(assetPair, nil)) {
 		symbol = this.GetSymbolFromAssetPair(assetPair)
 	} else if IsTrue(!IsEqual(market, nil)) {
 		symbol = GetValue(market, "symbol")
 	}
-	var amountCurrency interface{} = this.SafeCurrencyCode(this.SafeString(assetPair, "amountAsset", "WAVES"))
-	var price interface{} = this.FromRealSymbolPrice(symbol, priceString)
-	var amount interface{} = this.FromRealCurrencyAmount(amountCurrency, amountString)
-	var filled interface{} = this.FromRealCurrencyAmount(amountCurrency, filledString)
-	var average interface{} = this.FromRealSymbolPrice(symbol, this.SafeString(order, "avgWeighedPrice"))
-	var status interface{} = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var fee interface{} = nil
+	var amountCurrency any = this.SafeCurrencyCode(this.SafeString(assetPair, "amountAsset", "WAVES"))
+	var price any = this.FromRealSymbolPrice(symbol, priceString)
+	var amount any = this.FromRealCurrencyAmount(amountCurrency, amountString)
+	var filled any = this.FromRealCurrencyAmount(amountCurrency, filledString)
+	var average any = this.FromRealSymbolPrice(symbol, this.SafeString(order, "avgWeighedPrice"))
+	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var fee any = nil
 	if IsTrue(InOp(order, "type")) {
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(order, "feeAsset"))
-		fee = map[string]interface{}{
+		var code any = this.SafeCurrencyCode(this.SafeString(order, "feeAsset"))
+		fee = map[string]any{
 			"currency": code,
 			"fee":      this.ParseNumber(this.FromRealCurrencyAmount(code, this.SafeString(order, "filledFee"))),
 		}
 	} else {
-		var code interface{} = this.SafeCurrencyCode(this.SafeString(order, "matcherFeeAssetId", "WAVES"))
-		fee = map[string]interface{}{
+		var code any = this.SafeCurrencyCode(this.SafeString(order, "matcherFeeAssetId", "WAVES"))
+		fee = map[string]any{
 			"currency": code,
 			"fee":      this.ParseNumber(this.FromRealCurrencyAmount(code, this.SafeString(order, "matcherFee"))),
 		}
 	}
-	var triggerPrice interface{} = nil
-	var attachment interface{} = this.SafeString(order, "attachment")
+	var triggerPrice any = nil
+	var attachment any = this.SafeString(order, "attachment")
 	if IsTrue(!IsEqual(attachment, nil)) {
-		var decodedAttachment interface{} = this.ParseJson(this.Decode(this.Base58ToBinary(attachment)))
+		var decodedAttachment any = this.ParseJson(this.Decode(this.Base58ToBinary(attachment)))
 		if IsTrue(!IsEqual(decodedAttachment, nil)) {
-			var c interface{} = this.SafeValue(decodedAttachment, "c")
+			var c any = this.SafeValue(decodedAttachment, "c")
 			if IsTrue(!IsEqual(c, nil)) {
-				var v interface{} = this.SafeValue(c, "v")
+				var v any = this.SafeValue(c, "v")
 				if IsTrue(!IsEqual(v, nil)) {
 					triggerPrice = this.SafeString(v, "p")
 				}
 			}
 		}
 	}
-	return this.SafeOrder(map[string]interface{}{
+	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -2207,14 +2207,14 @@ func (this *WavesexchangeCore) ParseOrder(order interface{}, optionalArgs ...int
 		"trades":             nil,
 	}, market)
 }
-func (this *WavesexchangeCore) GetWavesAddress() <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) GetWavesAddress() <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		var cachedAddreess interface{} = this.SafeString(this.Options, "wavesAddress")
+		var cachedAddreess any = this.SafeString(this.Options, "wavesAddress")
 		if IsTrue(IsEqual(cachedAddreess, nil)) {
-			var request interface{} = map[string]interface{}{
+			var request any = map[string]any{
 				"publicKey": this.ApiKey,
 			}
 
@@ -2241,9 +2241,9 @@ func (this *WavesexchangeCore) GetWavesAddress() <-chan interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		// makes a lot of different requests to get all the data
@@ -2252,7 +2252,7 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 		// getTotalBalance (doesn't include waves), getReservedBalance (doesn't include waves)
 		// getReservedBalance (includes WAVES)
 		// I couldn't find another way to get all the data
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		this.CheckRequiredDependencies()
 		this.CheckRequiredKeys()
@@ -2262,7 +2262,7 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 
 		wavesAddress := (<-this.GetWavesAddress())
 		PanicOnError(wavesAddress)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"address": wavesAddress,
 		}
 
@@ -2302,21 +2302,21 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 		//     }
 		//   ]
 		// }
-		var balances interface{} = this.SafeValue(totalBalance, "balances", []interface{}{})
-		var result interface{} = map[string]interface{}{}
-		var timestamp interface{} = nil
-		var assetIds interface{} = []interface{}{}
-		var nonStandardBalances interface{} = []interface{}{}
+		var balances any = this.SafeValue(totalBalance, "balances", []any{})
+		var result any = map[string]any{}
+		var timestamp any = nil
+		var assetIds any = []any{}
+		var nonStandardBalances any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
-			var entry interface{} = GetValue(balances, i)
-			var entryTimestamp interface{} = this.SafeInteger(entry, "timestamp")
+			var entry any = GetValue(balances, i)
+			var entryTimestamp any = this.SafeInteger(entry, "timestamp")
 			timestamp = Ternary(IsTrue((IsEqual(timestamp, nil))), entryTimestamp, mathMax(timestamp, entryTimestamp))
-			var issueTransaction interface{} = this.SafeValue(entry, "issueTransaction")
-			var currencyId interface{} = this.SafeString(entry, "assetId")
-			var balance interface{} = this.SafeString(entry, "balance")
-			var currencyExists interface{} = (InOp(this.Currencies_by_id, currencyId))
+			var issueTransaction any = this.SafeValue(entry, "issueTransaction")
+			var currencyId any = this.SafeString(entry, "assetId")
+			var balance any = this.SafeString(entry, "balance")
+			var currencyExists any = (InOp(this.Currencies_by_id, currencyId))
 			if IsTrue(currencyExists) {
-				var code interface{} = this.SafeCurrencyCode(currencyId)
+				var code any = this.SafeCurrencyCode(currencyId)
 				AddElementToObject(result, code, this.Account())
 				AddElementToObject(GetValue(result, code), "total", this.FromRealCurrencyAmount(code, balance))
 			} else if IsTrue(IsEqual(issueTransaction, nil)) {
@@ -2324,32 +2324,32 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 				AppendToArray(&nonStandardBalances, balance)
 			}
 		}
-		var nonStandardAssets interface{} = GetArrayLength(assetIds)
+		var nonStandardAssets any = GetArrayLength(assetIds)
 		if IsTrue(nonStandardAssets) {
-			var requestInner interface{} = map[string]interface{}{
+			var requestInner any = map[string]any{
 				"ids": assetIds,
 			}
 
 			response := (<-this.PublicGetAssets(requestInner))
 			PanicOnError(response)
-			var data interface{} = this.SafeValue(response, "data", []interface{}{})
+			var data any = this.SafeValue(response, "data", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-				var entry interface{} = GetValue(data, i)
-				var balance interface{} = GetValue(nonStandardBalances, i)
-				var inner interface{} = this.SafeValue(entry, "data")
-				var precision interface{} = this.ParsePrecision(this.SafeString(inner, "precision"))
-				var ticker interface{} = this.SafeString(inner, "ticker")
-				var code interface{} = this.SafeCurrencyCode(ticker)
+				var entry any = GetValue(data, i)
+				var balance any = GetValue(nonStandardBalances, i)
+				var inner any = this.SafeValue(entry, "data")
+				var precision any = this.ParsePrecision(this.SafeString(inner, "precision"))
+				var ticker any = this.SafeString(inner, "ticker")
+				var code any = this.SafeCurrencyCode(ticker)
 				AddElementToObject(result, code, this.Account())
 				AddElementToObject(GetValue(result, code), "total", Precise.StringMul(balance, precision))
 			}
 		}
-		var currentTimestamp interface{} = this.Milliseconds()
-		var byteArray interface{} = []interface{}{this.Base58ToBinary(this.ApiKey), this.NumberToBE(currentTimestamp, 8)}
-		var binary interface{} = this.BinaryConcatArray(byteArray)
-		var hexSecret interface{} = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
-		var signature interface{} = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
-		var matcherRequest interface{} = map[string]interface{}{
+		var currentTimestamp any = this.Milliseconds()
+		var byteArray any = []any{this.Base58ToBinary(this.ApiKey), this.NumberToBE(currentTimestamp, 8)}
+		var binary any = this.BinaryConcatArray(byteArray)
+		var hexSecret any = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
+		var signature any = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
+		var matcherRequest any = map[string]any{
 			"publicKey": this.ApiKey,
 			"signature": signature,
 			"timestamp": ToString(currentTimestamp),
@@ -2358,17 +2358,17 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 		reservedBalance := (<-this.MatcherGetMatcherBalanceReservedPublicKey(matcherRequest))
 		PanicOnError(reservedBalance)
 		// { WAVES: 200300000 }
-		var reservedKeys interface{} = ObjectKeys(reservedBalance)
+		var reservedKeys any = ObjectKeys(reservedBalance)
 		for i := 0; IsLessThan(i, GetArrayLength(reservedKeys)); i++ {
-			var currencyId interface{} = GetValue(reservedKeys, i)
-			var code interface{} = this.SafeCurrencyCode(currencyId)
+			var currencyId any = GetValue(reservedKeys, i)
+			var code any = this.SafeCurrencyCode(currencyId)
 			if !IsTrue((InOp(result, code))) {
 				AddElementToObject(result, code, this.Account())
 			}
-			var amount interface{} = this.SafeString(reservedBalance, currencyId)
+			var amount any = this.SafeString(reservedBalance, currencyId)
 			AddElementToObject(GetValue(result, code), "used", this.FromRealCurrencyAmount(code, amount))
 		}
-		var wavesRequest interface{} = map[string]interface{}{
+		var wavesRequest any = map[string]any{
 			"address": wavesAddress,
 		}
 
@@ -2391,12 +2391,12 @@ func (this *WavesexchangeCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) SetUndefinedBalancesToZero(balances interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) SetUndefinedBalancesToZero(balances any, optionalArgs ...any) any {
 	key := GetArg(optionalArgs, 0, "used")
 	_ = key
-	var codes interface{} = ObjectKeys(balances)
+	var codes any = ObjectKeys(balances)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
-		var code interface{} = GetValue(codes, i)
+		var code any = GetValue(codes, i)
 		if IsTrue(IsEqual(this.SafeValue(GetValue(balances, code), "used"), nil)) {
 			AddElementToObject(GetValue(balances, code), key, "0")
 		}
@@ -2415,9 +2415,9 @@ func (this *WavesexchangeCore) SetUndefinedBalancesToZero(balances interface{}, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2426,7 +2426,7 @@ func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
 		retRes21458 := (<-this.LoadMarkets())
@@ -2434,10 +2434,10 @@ func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
 
 		address := (<-this.GetWavesAddress())
 		PanicOnError(address)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"sender": address,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "amountAsset", GetValue(market, "baseId"))
@@ -2446,7 +2446,7 @@ func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
 
 		response := (<-this.PublicGetTransactionsExchange(request))
 		PanicOnError(response)
-		var data interface{} = this.SafeValue(response, "data")
+		var data any = this.SafeValue(response, "data")
 
 		//
 		//      {
@@ -2532,22 +2532,22 @@ func (this *WavesexchangeCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *WavesexchangeCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		since := GetArg(optionalArgs, 0, nil)
 		_ = since
 		limit := GetArg(optionalArgs, 1, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
 		retRes22398 := (<-this.LoadMarkets())
 		PanicOnError(retRes22398)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"amountAsset": GetValue(market, "baseId"),
 			"priceAsset":  GetValue(market, "quoteId"),
 		}
@@ -2560,7 +2560,7 @@ func (this *WavesexchangeCore) FetchTrades(symbol interface{}, optionalArgs ...i
 
 		response := (<-this.PublicGetTransactionsExchange(request))
 		PanicOnError(response)
-		var data interface{} = this.SafeValue(response, "data")
+		var data any = this.SafeValue(response, "data")
 
 		//
 		//      {
@@ -2634,7 +2634,7 @@ func (this *WavesexchangeCore) FetchTrades(symbol interface{}, optionalArgs ...i
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	// { __type: "transaction",
 	//   "data":
@@ -2683,15 +2683,15 @@ func (this *WavesexchangeCore) ParseTrade(trade interface{}, optionalArgs ...int
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data interface{} = this.SafeValue(trade, "data")
-	var datetime interface{} = this.SafeString(data, "timestamp")
-	var timestamp interface{} = this.Parse8601(datetime)
-	var id interface{} = this.SafeString(data, "id")
-	var priceString interface{} = this.SafeString(data, "price")
-	var amountString interface{} = this.SafeString(data, "amount")
-	var order1 interface{} = this.SafeValue(data, "order1")
-	var order2 interface{} = this.SafeValue(data, "order2")
-	var order interface{} = nil
+	var data any = this.SafeValue(trade, "data")
+	var datetime any = this.SafeString(data, "timestamp")
+	var timestamp any = this.Parse8601(datetime)
+	var id any = this.SafeString(data, "id")
+	var priceString any = this.SafeString(data, "price")
+	var amountString any = this.SafeString(data, "amount")
+	var order1 any = this.SafeValue(data, "order1")
+	var order2 any = this.SafeValue(data, "order2")
+	var order any = nil
 	// at first, detect if response is from `fetch_my_trades`
 	if IsTrue(IsEqual(this.SafeString(order1, "senderPublicKey"), this.ApiKey)) {
 		order = order1
@@ -2699,30 +2699,30 @@ func (this *WavesexchangeCore) ParseTrade(trade interface{}, optionalArgs ...int
 		order = order2
 	} else {
 		// response is from `fetch_trades`, so find only taker order
-		var date1 interface{} = this.SafeString(order1, "timestamp")
-		var date2 interface{} = this.SafeString(order2, "timestamp")
-		var ts1 interface{} = this.Parse8601(date1)
-		var ts2 interface{} = this.Parse8601(date2)
+		var date1 any = this.SafeString(order1, "timestamp")
+		var date2 any = this.SafeString(order2, "timestamp")
+		var ts1 any = this.Parse8601(date1)
+		var ts2 any = this.Parse8601(date2)
 		if IsTrue(IsGreaterThan(ts1, ts2)) {
 			order = order1
 		} else {
 			order = order2
 		}
 	}
-	var symbol interface{} = nil
-	var assetPair interface{} = this.SafeValue(order, "assetPair")
+	var symbol any = nil
+	var assetPair any = this.SafeValue(order, "assetPair")
 	if IsTrue(!IsEqual(assetPair, nil)) {
 		symbol = this.GetSymbolFromAssetPair(assetPair)
 	} else if IsTrue(!IsEqual(market, nil)) {
 		symbol = GetValue(market, "symbol")
 	}
-	var side interface{} = this.SafeString(order, "orderType")
-	var orderId interface{} = this.SafeString(order, "id")
-	var fee interface{} = map[string]interface{}{
+	var side any = this.SafeString(order, "orderType")
+	var orderId any = this.SafeString(order, "id")
+	var fee any = map[string]any{
 		"cost":     this.SafeString(order, "matcherFee"),
 		"currency": this.SafeCurrencyCode(this.SafeString(order, "matcherFeeAssetId", "WAVES")),
 	}
-	return this.SafeTrade(map[string]interface{}{
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     datetime,
@@ -2738,61 +2738,61 @@ func (this *WavesexchangeCore) ParseTrade(trade interface{}, optionalArgs ...int
 		"fee":          fee,
 	}, market)
 }
-func (this *WavesexchangeCore) ParseDepositWithdrawFees(response interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
 	currencyIdKey := GetArg(optionalArgs, 1, nil)
 	_ = currencyIdKey
-	var depositWithdrawFees interface{} = map[string]interface{}{}
+	var depositWithdrawFees any = map[string]any{}
 	codes = this.MarketCodes(codes)
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-		var entry interface{} = GetValue(response, i)
-		var dictionary interface{} = entry
-		var currencyId interface{} = this.SafeString(dictionary, currencyIdKey)
-		var currency interface{} = this.SafeValue(this.Currencies_by_id, currencyId)
-		var code interface{} = this.SafeString(currency, "code", currencyId)
+		var entry any = GetValue(response, i)
+		var dictionary any = entry
+		var currencyId any = this.SafeString(dictionary, currencyIdKey)
+		var currency any = this.SafeValue(this.Currencies_by_id, currencyId)
+		var code any = this.SafeString(currency, "code", currencyId)
 		if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))) {
-			var depositWithdrawFee interface{} = this.SafeValue(depositWithdrawFees, code)
+			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
 			if IsTrue(IsEqual(depositWithdrawFee, nil)) {
-				depositWithdrawFee = map[string]interface{}{
-					"info": []interface{}{dictionary},
-					"withdraw": map[string]interface{}{
+				depositWithdrawFee = map[string]any{
+					"info": []any{dictionary},
+					"withdraw": map[string]any{
 						"fee":        nil,
 						"percentage": nil,
 					},
-					"deposit": map[string]interface{}{
+					"deposit": map[string]any{
 						"fee":        nil,
 						"percentage": nil,
 					},
-					"networks": map[string]interface{}{},
+					"networks": map[string]any{},
 				}
 			} else {
 				depositWithdrawFee = GetValue(depositWithdrawFees, code)
-				AddElementToObject(depositWithdrawFee, "info", this.ArrayConcat(GetValue(depositWithdrawFee, "info"), []interface{}{dictionary}))
+				AddElementToObject(depositWithdrawFee, "info", this.ArrayConcat(GetValue(depositWithdrawFee, "info"), []any{dictionary}))
 			}
-			var networkId interface{} = this.SafeString(dictionary, "platform_id")
-			var currencyCode interface{} = this.SafeString(currency, "code")
-			var networkCode interface{} = this.NetworkIdToCode(networkId, currencyCode)
-			var network interface{} = this.SafeValue(GetValue(depositWithdrawFee, "networks"), networkCode)
+			var networkId any = this.SafeString(dictionary, "platform_id")
+			var currencyCode any = this.SafeString(currency, "code")
+			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
+			var network any = this.SafeValue(GetValue(depositWithdrawFee, "networks"), networkCode)
 			if IsTrue(IsEqual(network, nil)) {
-				network = map[string]interface{}{
-					"withdraw": map[string]interface{}{
+				network = map[string]any{
+					"withdraw": map[string]any{
 						"fee":        nil,
 						"percentage": nil,
 					},
-					"deposit": map[string]interface{}{
+					"deposit": map[string]any{
 						"fee":        nil,
 						"percentage": nil,
 					},
 				}
 			}
-			var feeType interface{} = this.SafeString(dictionary, "type")
-			var fees interface{} = this.SafeValue(dictionary, "fees")
-			var networkKey interface{} = "deposit"
+			var feeType any = this.SafeString(dictionary, "type")
+			var fees any = this.SafeValue(dictionary, "fees")
+			var networkKey any = "deposit"
 			if IsTrue(IsEqual(feeType, "withdrawal_currency")) {
 				networkKey = "withdraw"
 			}
-			AddElementToObject(network, networkKey, map[string]interface{}{
+			AddElementToObject(network, networkKey, map[string]any{
 				"fee":        this.SafeNumber(fees, "flat"),
 				"percentage": false,
 			})
@@ -2800,15 +2800,15 @@ func (this *WavesexchangeCore) ParseDepositWithdrawFees(response interface{}, op
 			AddElementToObject(depositWithdrawFees, code, depositWithdrawFee)
 		}
 	}
-	var depositWithdrawFeesKeys interface{} = ObjectKeys(depositWithdrawFees)
+	var depositWithdrawFeesKeys any = ObjectKeys(depositWithdrawFees)
 	for i := 0; IsLessThan(i, GetArrayLength(depositWithdrawFeesKeys)); i++ {
-		var code interface{} = GetValue(depositWithdrawFeesKeys, i)
-		var entry interface{} = GetValue(depositWithdrawFees, code)
-		var networks interface{} = this.SafeValue(entry, "networks")
-		var networkKeys interface{} = ObjectKeys(networks)
-		var networkKeysLength interface{} = GetArrayLength(networkKeys)
+		var code any = GetValue(depositWithdrawFeesKeys, i)
+		var entry any = GetValue(depositWithdrawFees, code)
+		var networks any = this.SafeValue(entry, "networks")
+		var networkKeys any = ObjectKeys(networks)
+		var networkKeysLength any = GetArrayLength(networkKeys)
 		if IsTrue(IsEqual(networkKeysLength, 1)) {
-			var network interface{} = this.SafeValue(networks, GetValue(networkKeys, 0))
+			var network any = this.SafeValue(networks, GetValue(networkKeys, 0))
 			AddElementToObject(GetValue(depositWithdrawFees, code), "withdraw", this.SafeValue(network, "withdraw"))
 			AddElementToObject(GetValue(depositWithdrawFees, code), "deposit", this.SafeValue(network, "deposit"))
 		}
@@ -2826,20 +2826,20 @@ func (this *WavesexchangeCore) ParseDepositWithdrawFees(response interface{}, op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *WavesexchangeCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		codes := GetArg(optionalArgs, 0, nil)
 		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
 		retRes25078 := (<-this.LoadMarkets())
 		PanicOnError(retRes25078)
-		var data interface{} = []interface{}{}
-		var promises interface{} = []interface{}{}
+		var data any = []any{}
+		var promises any = []any{}
 		AppendToArray(&promises, this.PrivateGetDepositCurrencies(params))
 		AppendToArray(&promises, this.PrivateGetWithdrawCurrencies(params))
 
@@ -2902,7 +2902,7 @@ func (this *WavesexchangeCore) FetchDepositWithdrawFees(optionalArgs ...interfac
 		//    }
 		//
 		for i := 0; IsLessThan(i, GetArrayLength(promises)); i++ {
-			var items interface{} = this.SafeValue(GetValue(promises, i), "items")
+			var items any = this.SafeValue(GetValue(promises, i), "items")
 			data = this.ArrayConcat(data, items)
 		}
 
@@ -2912,16 +2912,16 @@ func (this *WavesexchangeCore) FetchDepositWithdrawFees(optionalArgs ...interfac
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
-	var errorCode interface{} = this.SafeString(response, "error")
-	var success interface{} = this.SafeBool(response, "success", true)
-	var Exception interface{} = this.SafeValue(this.Exceptions, errorCode)
+func (this *WavesexchangeCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
+	var errorCode any = this.SafeString(response, "error")
+	var success any = this.SafeBool(response, "success", true)
+	var Exception any = this.SafeValue(this.Exceptions, errorCode)
 	if IsTrue(!IsEqual(Exception, nil)) {
-		var messageInner interface{} = this.SafeString(response, "message")
+		var messageInner any = this.SafeString(response, "message")
 		ThrowDynamicException(Exception, Add(Add(this.Id, " "), messageInner))
 		return nil
 	}
-	var message interface{} = this.SafeString(response, "message")
+	var message any = this.SafeString(response, "message")
 	if IsTrue(IsEqual(message, "Validation Error")) {
 		panic(BadRequest(Add(Add(this.Id, " "), body)))
 	}
@@ -2942,14 +2942,14 @@ func (this *WavesexchangeCore) HandleErrors(code interface{}, reason interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *WavesexchangeCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
@@ -2959,33 +2959,33 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 
 			supportedCurrencies := (<-this.PrivateGetWithdrawCurrencies())
 			PanicOnError(supportedCurrencies)
-			var currencies interface{} = map[string]interface{}{}
-			var items interface{} = this.SafeValue(supportedCurrencies, "items", []interface{}{})
+			var currencies any = map[string]any{}
+			var items any = this.SafeValue(supportedCurrencies, "items", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-				var entry interface{} = GetValue(items, i)
-				var currencyCode interface{} = this.SafeString(entry, "id")
+				var entry any = GetValue(items, i)
+				var currencyCode any = this.SafeString(entry, "id")
 				AddElementToObject(currencies, currencyCode, true)
 			}
 			if !IsTrue((InOp(currencies, code))) {
-				var codes interface{} = ObjectKeys(currencies)
+				var codes any = ObjectKeys(currencies)
 				panic(ExchangeError(Add(Add(Add(Add(this.Id, " withdraw() "), code), " not supported. Currency code must be one of "), ToString(codes))))
 			}
 		}
 
 		retRes26228 := (<-this.LoadMarkets())
 		PanicOnError(retRes26228)
-		var hexChars interface{} = []interface{}{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
-		var set interface{} = map[string]interface{}{}
+		var hexChars any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
+		var set any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(hexChars)); i++ {
-			var key interface{} = GetValue(hexChars, i)
+			var key any = GetValue(hexChars, i)
 			AddElementToObject(set, key, true)
 		}
-		var isErc20 interface{} = true
-		var noPrefix interface{} = this.Remove0xPrefix(address)
-		var lower interface{} = ToLower(noPrefix)
-		var stringLength interface{} = Multiply(GetArrayLength(lower), 1)
+		var isErc20 any = true
+		var noPrefix any = this.Remove0xPrefix(address)
+		var lower any = ToLower(noPrefix)
+		var stringLength any = Multiply(GetArrayLength(lower), 1)
 		for i := 0; IsLessThan(i, stringLength); i++ {
-			var character interface{} = GetValue(lower, i)
+			var character any = GetValue(lower, i)
 			if !IsTrue((InOp(set, character))) {
 				isErc20 = false
 				break
@@ -2994,20 +2994,20 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 
 		retRes26408 := (<-this.SignIn())
 		PanicOnError(retRes26408)
-		var proxyAddress interface{} = nil
+		var proxyAddress any = nil
 		if IsTrue(IsTrue(IsEqual(code, "WAVES")) && !IsTrue(isErc20)) {
 			proxyAddress = address
 		} else {
-			var withdrawAddressRequest interface{} = map[string]interface{}{
+			var withdrawAddressRequest any = map[string]any{
 				"address":  address,
 				"currency": code,
 			}
 
 			withdrawAddress := (<-this.PrivateGetWithdrawAddressesCurrencyAddress(withdrawAddressRequest))
 			PanicOnError(withdrawAddress)
-			var currencyInner interface{} = this.SafeValue(withdrawAddress, "currency")
-			var allowedAmount interface{} = this.SafeValue(currencyInner, "allowed_amount")
-			var minimum interface{} = this.SafeNumber(allowedAmount, "min")
+			var currencyInner any = this.SafeValue(withdrawAddress, "currency")
+			var allowedAmount any = this.SafeValue(currencyInner, "allowed_amount")
+			var minimum any = this.SafeNumber(allowedAmount, "min")
 			if IsTrue(IsLessThanOrEqual(amount, minimum)) {
 				panic(BadRequest(Add(Add(Add(Add(Add(Add(this.Id, " "), code), " withdraw failed, amount "), ToString(amount)), " must be greater than the minimum allowed amount of "), ToString(minimum))))
 			}
@@ -3032,21 +3032,21 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 			//     "3P3qqmkiLwNHB7x1FeoE8bvkRtULwGpo9ga"
 			//   ]
 			// }
-			var proxyAddresses interface{} = this.SafeValue(withdrawAddress, "proxy_addresses", []interface{}{})
+			var proxyAddresses any = this.SafeValue(withdrawAddress, "proxy_addresses", []any{})
 			proxyAddress = this.SafeString(proxyAddresses, 0)
 		}
-		var fee interface{} = this.SafeInteger(this.Options, "withdrawFeeWAVES", 100000) // 0.001 WAVES
-		var feeAssetId interface{} = "WAVES"
-		var typeVar interface{} = 4 // transfer
-		var version interface{} = 2
-		var amountInteger interface{} = this.ToRealCurrencyAmount(code, amount)
-		var currency interface{} = this.Currency(code)
-		var timestamp interface{} = this.Milliseconds()
-		var byteArray interface{} = []interface{}{this.NumberToBE(4, 1), this.NumberToBE(2, 1), this.Base58ToBinary(this.ApiKey), this.GetAssetBytes(GetValue(currency, "id")), this.GetAssetBytes(feeAssetId), this.NumberToBE(timestamp, 8), this.NumberToBE(amountInteger, 8), this.NumberToBE(fee, 8), this.Base58ToBinary(proxyAddress), this.NumberToBE(0, 2)}
-		var binary interface{} = this.BinaryConcatArray(byteArray)
-		var hexSecret interface{} = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
-		var signature interface{} = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
-		var request interface{} = map[string]interface{}{
+		var fee any = this.SafeInteger(this.Options, "withdrawFeeWAVES", 100000) // 0.001 WAVES
+		var feeAssetId any = "WAVES"
+		var typeVar any = 4 // transfer
+		var version any = 2
+		var amountInteger any = this.ToRealCurrencyAmount(code, amount)
+		var currency any = this.Currency(code)
+		var timestamp any = this.Milliseconds()
+		var byteArray any = []any{this.NumberToBE(4, 1), this.NumberToBE(2, 1), this.Base58ToBinary(this.ApiKey), this.GetAssetBytes(GetValue(currency, "id")), this.GetAssetBytes(feeAssetId), this.NumberToBE(timestamp, 8), this.NumberToBE(amountInteger, 8), this.NumberToBE(fee, 8), this.Base58ToBinary(proxyAddress), this.NumberToBE(0, 2)}
+		var binary any = this.BinaryConcatArray(byteArray)
+		var hexSecret any = this.BinaryToBase16(this.Base58ToBinary(this.Secret))
+		var signature any = this.Axolotl(this.BinaryToBase16(binary), hexSecret, ed25519)
+		var request any = map[string]any{
 			"senderPublicKey": this.ApiKey,
 			"amount":          amountInteger,
 			"fee":             fee,
@@ -3054,7 +3054,7 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 			"version":         version,
 			"attachment":      "",
 			"feeAssetId":      this.GetAssetId(feeAssetId),
-			"proofs":          []interface{}{signature},
+			"proofs":          []any{signature},
 			"assetId":         this.GetAssetId(GetValue(currency, "id")),
 			"recipient":       proxyAddress,
 			"timestamp":       timestamp,
@@ -3080,7 +3080,7 @@ func (this *WavesexchangeCore) Withdraw(code interface{}, amount interface{}, ad
 	}()
 	return ch
 }
-func (this *WavesexchangeCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *WavesexchangeCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	// withdraw
 	//
@@ -3114,16 +3114,16 @@ func (this *WavesexchangeCore) ParseTransaction(transaction interface{}, optiona
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	currency = this.SafeCurrency(nil, currency)
-	var code interface{} = GetValue(currency, "code")
-	var typeRaw interface{} = this.SafeString(transaction, "type")
-	var typeVar interface{} = Ternary(IsTrue((IsEqual(typeRaw, "4"))), "withdraw", "deposit")
-	var amount interface{} = this.ParseNumber(this.FromRealCurrencyAmount(code, this.SafeString(transaction, "amount")))
-	var feeString interface{} = this.SafeString(transaction, "fee")
-	var feeAssetId interface{} = this.SafeString(transaction, "feeAssetId", "WAVES")
-	var feeCode interface{} = this.SafeCurrencyCode(feeAssetId)
-	var feeAmount interface{} = this.ParseNumber(this.FromRealCurrencyAmount(feeCode, feeString))
-	var timestamp interface{} = this.SafeInteger(transaction, "timestamp")
-	return map[string]interface{}{
+	var code any = GetValue(currency, "code")
+	var typeRaw any = this.SafeString(transaction, "type")
+	var typeVar any = Ternary(IsTrue((IsEqual(typeRaw, "4"))), "withdraw", "deposit")
+	var amount any = this.ParseNumber(this.FromRealCurrencyAmount(code, this.SafeString(transaction, "amount")))
+	var feeString any = this.SafeString(transaction, "fee")
+	var feeAssetId any = this.SafeString(transaction, "feeAssetId", "WAVES")
+	var feeCode any = this.SafeCurrencyCode(feeAssetId)
+	var feeAmount any = this.ParseNumber(this.FromRealCurrencyAmount(feeCode, feeString))
+	var timestamp any = this.SafeInteger(transaction, "timestamp")
+	return map[string]any{
 		"id":          this.SafeString(transaction, "id"),
 		"txid":        nil,
 		"timestamp":   timestamp,
@@ -3142,7 +3142,7 @@ func (this *WavesexchangeCore) ParseTransaction(transaction interface{}, optiona
 		"tagTo":       nil,
 		"comment":     nil,
 		"internal":    nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"currency": feeCode,
 			"cost":     feeAmount,
 		},
@@ -3150,8 +3150,8 @@ func (this *WavesexchangeCore) ParseTransaction(transaction interface{}, optiona
 	}
 }
 
-func (this *WavesexchangeCore) Init(userConfig map[string]interface{}) {
+func (this *WavesexchangeCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

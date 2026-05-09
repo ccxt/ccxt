@@ -1038,7 +1038,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param str symbol: unified market symbol of the market orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None [params.account]: will default to options' walletAddress if not provided
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         if symbol is not None:
