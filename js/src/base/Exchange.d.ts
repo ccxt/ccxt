@@ -405,7 +405,7 @@ export default class Exchange {
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
-    createSafeDictionary(): {};
+    createSafeDictionary(isWs?: boolean): {};
     convertToSafeDictionary(dict: any): any;
     randomBytes(length: number): string;
     randNumber(size: number): number;

@@ -21,9 +21,9 @@ public partial class Exchange
         var res = await this.fetchMarketsWs(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public Dictionary<string, object> CreateSafeDictionary()
+    public Dictionary<string, object> CreateSafeDictionary(bool isWs = false)
     {
-        var res = this.createSafeDictionary();
+        var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
     public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)

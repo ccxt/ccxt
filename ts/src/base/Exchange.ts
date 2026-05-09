@@ -1924,7 +1924,7 @@ export default class Exchange {
         this.options = this.extend (this.options, newOptions);
     }
 
-    createSafeDictionary () {
+    createSafeDictionary (isWs: boolean = false) { // eslint-disable-line no-unused-vars
         return {};
     }
 

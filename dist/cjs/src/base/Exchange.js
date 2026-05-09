@@ -1578,7 +1578,7 @@ class Exchange {
     extendExchangeOptions(newOptions) {
         this.options = this.extend(this.options, newOptions);
     }
-    createSafeDictionary() {
+    createSafeDictionary(isWs = false) {
         return {};
     }
     convertToSafeDictionary(dict) {

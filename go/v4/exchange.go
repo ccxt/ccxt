@@ -527,7 +527,7 @@ func (this *Exchange) ConvertToBigInt(data any) any {
 	return ParseInt(data)
 }
 
-func (this *Exchange) CreateSafeDictionary() *sync.Map {
+func (this *Exchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
 	// Create a new sync.Map to hold the safe dictionary
 	return &sync.Map{}
 }
