@@ -111,32 +111,96 @@ Look for:
 
 For each unified method changed: confirm `ts/src/test/static/request/<id>.json` and `ts/src/test/static/response/<id>.json` were updated. Missing fixture for a behavioural change → **🚨 Blocker** (regression net is broken).
 
-## Phase 3 — Build verification
+## Phase 2.9 — Bootstrap toolchain
 
-Run, in order, capturing each command's output for the review checklist:
+A fresh worktree (or a clone that hasn't been built recently) is missing dependencies that every later phase needs. Run these unconditionally and before Phase 3 — they're idempotent and finish in seconds when nothing's missing:
 
 ```bash
-npm run lint
-npm run tsBuild
-npm run transpile          # → Python + PHP (regex transpiler)
-npm run transpileCS && npm run buildCS
-npm run transpileGO && npm run buildGO
-npm run check-python-syntax
-npm run check-php-syntax
+[ -d node_modules ]   || npm install
+[ -d vendor ]         || composer install                                # PHP deps for php/test/*
+[ -f exchanges.json ] || npm run export-exchanges                        # tsBuild reads this
+command -v tox >/dev/null 2>&1 || python3 -m pip install --user tox      # check-python-syntax needs it
+command -v ruff >/dev/null 2>&1 || python3 -m pip install --user ruff    # check-python-ruff needs it
 ```
 
-Any non-zero exit is a **🚨 Blocker** unless the failure pre-existed on `master` (verify by checking out the base SHA briefly). Capture the exact failing line/file in the review.
+If any install step itself fails (e.g. `python3` missing, no network), record it in the run log and downgrade the affected check in Phase 3 from "non-zero = blocker" to "skipped — toolchain unavailable". Note the skipped step in the review checklist with the reason.
+
+## Phase 3 — Build verification
+
+Run, in order, capturing each command's output for the review checklist.
+
+**Scope to one exchange when the diff is exchange-only.** The all-exchange `npm run` scripts are 10–30× slower than per-exchange transpilers and don't add any signal for a single-file change.
+
+| Step | All-exchange (slow) | Per-exchange (fast) — use when diff is `ts/src/<id>.ts` only |
+|---|---|---|
+| Lint | `npm run lint` | `npm run lint` (same — already cached per file) |
+| TS → JS | `npm run tsBuild` | `npm run tsBuild` (same — full TS compile is fast) |
+| TS → Python + PHP | `npm run transpile` | `npx tsx build/transpile.ts <id>` |
+| TS → C# | `npm run transpileCS` | `npx tsx build/csharpTranspiler.ts <id>` |
+| TS → Go | `npm run transpileGO` | `npx tsx build/goTranspiler.ts <id>` |
+| Build C# | `npm run buildCS` | `npm run buildCS` (sln-level, no per-exchange option) |
+| Build Go | `npm run buildGO` | `npm run buildGO` |
+
+Then the syntax checks:
+
+```bash
+npm run check-python-syntax    # tox -e qa — installed by Phase 2.9 if missing
+npm run check-php-syntax       # syntax check sync + async
+```
+
+Failure handling:
+
+- Non-zero exit on lint/tsBuild/transpile/buildCS/buildGO → **🚨 Blocker** unless the failure pre-existed on `master` (briefly check out the base SHA to confirm).
+- Non-zero exit on `check-python-syntax` / `check-php-syntax` after Phase 2.9 succeeded → **🚨 Blocker** (the toolchain is present and tests really fail).
+- Toolchain still missing after Phase 2.9 (network unavailable, Python missing) → **skip with note** in the review checklist, not a blocker.
+
+Capture the exact failing line/file in the review for any blocker.
 
 ## Phase 4 — Offline tests
 
+**Scope to one exchange when the diff is exchange-only.** The `npm run request-tests` / `response-tests` scripts iterate every exchange and are too slow for review iteration. For a single-exchange PR, hit each language's test-init script directly with the exchange id as the first arg:
+
 ```bash
-npm run id-tests
-# request/response per language — slowest first parallelisable later
-npm run request-js && npm run request-py && npm run request-php && npm run request-cs && npm run request-go
-npm run response-js && npm run response-py && npm run response-php && npm run response-cs && npm run response-go
+# id tests
+npm run id-tests-js                            # JS-only id-tests (any-lang script also fine)
+
+# request tests, scoped to <id>
+node js/src/test/tests.init.js <id> --requestTests
+python3 python/ccxt/test/tests_init.py <id> --requestTests --sync
+python3 python/ccxt/test/tests_init.py <id> --requestTests
+php php/test/tests_init.php <id> --requestTests --sync
+php php/test/tests_init.php <id> --requestTests
+go run -C go ./tests/main.go <id> --requestTests
+dotnet run --project cs/tests/tests.csproj -c Release -- <id> --requestTests
+
+# response tests, same pattern, replace --requestTests with --responseTests
 ```
 
-If base files were touched: also `npm run test-base-rest && npm run test-base-ws`.
+For multi-exchange or base-file diffs, fall back to the all-exchange variants:
+
+```bash
+npm run id-tests
+npm run request-tests
+npm run response-tests
+npm run test-base-rest && npm run test-base-ws    # if base files were touched
+```
+
+**Multi-language same-root-cause failures: file ONE inline comment, not N.** When the same fixture entry / TS construct breaks tests in multiple languages, that's one bug, not several. Group all per-language reproductions into a single comment with a multi-language list:
+
+```
+🚨 ... fails in 3 of 5 languages.
+
+Reproduced on PR head <sha>:
+- JS                pass
+- Python sync       pass
+- Python async      FAIL — <error>
+- PHP sync          pass
+- PHP async         FAIL — <error>
+- C#                FAIL — <error>
+- Go                pass
+```
+
+Filing N comments for the same root cause inflates the comment count and obscures the actual issue.
 
 ## Phase 5 — Live smoke tests
 
@@ -178,7 +242,19 @@ If you can't run live write tests (no credentials, exchange has no sandbox, or y
 
 ## Phase 6 — Edge cases
 
-For each topic, decide whether the diff plausibly affects it. If yes, write a focused test script under `/tmp/pr-review-$PR/` to probe.
+For each topic below, first decide whether the diff's surface area can plausibly affect it. **Be explicit about skips.** A diff that only changes a synchronous request-builder doesn't need a parallel-call probe — record `[n/a] — diff doesn't touch <surface>` in the checklist and move on. Don't probe surfaces the change can't reach.
+
+Quick skip heuristics (all default to `[n/a]` unless the diff matches):
+
+| Edge-case probe | Run when the diff touches… |
+|---|---|
+| 6a (race conditions / parallel calls) | `loadMarkets`, `sign`, nonces, any `watch*` method, `Cache`, `Client`, `Future`, or shared state on the exchange instance |
+| 6b (security) | `sign`, headers, body construction, error messages, logging, anything reading `apiKey`/`secret`/`password` |
+| 6c (performance) | loops, `loadMarkets()` calls, `Object.keys`/`deepExtend`, batch endpoints, hot-path crypto |
+| 6d (regressions) | base methods, shared parsers (`safeOrder`/`safeTicker`), renamed helpers, `has` flag flips, fixture deletions |
+| 6e (breaking changes) | unified-method signatures, return-structure fields, default values, exception classes |
+
+If a topic warrants probing, write a focused test script under `/tmp/pr-review-$PR/scripts/` to probe.
 
 ### 6a. Race conditions / parallel calls
 
@@ -255,6 +331,24 @@ Each inline comment must:
 - Cite the rule when applicable: "violates `CLAUDE.md §9` (`avoid safeValue`)" or "see how `binance.ts:1234` does this".
 - For Blocker/Concern, include reproduction or evidence: the failing test command, the file:line in another exchange that shows the precedent, the snippet of generated code that's wrong.
 
+### Inline-comments JSON schema
+
+Save inline findings to `/tmp/pr-review-$PR/inline-comments.json` as an array of objects with this exact schema:
+
+```json
+[
+  {
+    "path": "ts/src/<id>.ts",                    // string — repo-relative file path
+    "line": 4647,                                // integer — line number in the diff side
+    "side": "RIGHT",                             // string — "RIGHT" for new code, "LEFT" for deleted
+    "severity": "blocker",                       // string — one of "blocker" | "concern" | "suggestion" | "nit"
+    "body": "🚨 **Blocker — ...**\n\n..."        // string — full markdown body, severity emoji at the start
+  }
+]
+```
+
+The `body` field's leading emoji must match `severity`: `🚨` for blocker, `⚠️` for concern, `💡` for suggestion, `📝` for nit.
+
 ### Verdict
 
 - **REQUEST_CHANGES** if any 🚨 Blocker.
@@ -327,6 +421,18 @@ gh pr review $PR --request-changes --body "$(cat /tmp/pr-review-$PR/summary.md)"
 ```
 
 If `gh pr review --request-changes` requires push permission you don't have (forked PR from external contributor), fall back to `gh pr comment $PR --body "$(...)"` — still one comment, still structured.
+
+### Wrap-up — leave the worktree clean
+
+After posting (or after writing the draft files in test mode), restore the worktree to the state it was in before the review:
+
+```bash
+git restore .                           # drop any transpiler-regenerated files in the working tree (non-destructive)
+git checkout <original-branch>          # return to whatever branch was checked out before Phase 1 (e.g. claude-dev)
+git branch -D pr-$PR 2>/dev/null || true  # delete the temporary PR-checkout branch
+```
+
+`git restore .` is safe here — Phase 2.9 onwards only writes to ignored or already-tracked-but-rebuildable files (transpiler outputs); your review artifacts live under `/tmp/pr-review-$PR/` outside the worktree. Verify with `git status` showing clean before exiting.
 
 ### Summary body template
 

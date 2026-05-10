@@ -383,6 +383,18 @@ async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int
 - `params.<key>` — for any param that travels inside `params`, document it explicitly: `@param {string} [params.until]`. If your method reads `params['triggerPrice']`, it must show up as `@param {float} [params.triggerPrice] ...`.
 - `not used by <id>.<method>` — when a unified parameter is accepted but ignored: `@param {int} [since] not used by binance.fetchOpenOrders`.
 - `@returns` — link to the structure in the manual, e.g. `[order structure](https://docs.ccxt.com/#/?id=order-structure)`. For arrays, `{object[]}`.
+- **`@ignore` for internal helpers.** Public methods on the exchange class that aren't part of the unified API (e.g. exchange-specific helpers like `isGateFuturesContractWithDecimalSize`, signed-amount calculators, internal request builders) still need a JSDoc block — but mark them `@ignore` so they don't pollute the user-facing wiki / IDE intellisense. Example:
+  ```ts
+  /**
+   * @ignore
+   * @method
+   * @description amountToPrecision + sign flip for short side, returned as string
+   */
+  getGateFuturesSignedAmount (symbol: string, side: OrderSide, amount: number) {
+      // ...
+  }
+  ```
+  See `binance.ts` and `kraken.ts` for usage. Public unified methods (`fetchTicker`, `createOrder`, …) must NOT be marked `@ignore`.
 
 The transpilers convert these JSDoc blocks into native docstrings:
 - Python: `"""..."""` Sphinx-style
