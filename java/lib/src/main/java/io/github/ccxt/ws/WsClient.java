@@ -126,18 +126,6 @@ public class WsClient {
     private volatile Channel channel;
     private String proxy;
 
-    // Permissive permessage-deflate handshaker: accepts every parameter the server
-    // may advertise, including server_no_context_takeover and client_no_context_takeover.
-    // Netty's bundled WebSocketClientCompressionHandler.INSTANCE rejects those —
-    // Coinbase advertises both on every connection and gets killed with
-    // `CodecException: invalid WebSocket Extension handshake`. The flags below
-    // (allowClientNoContext=true, requestedServerNoContext=true) match the maximally-
-    // permissive defaults used by gorilla/websocket and the browser native WebSocket;
-    // wire-protocol semantics are unchanged, so existing exchanges keep working.
-    private static final WebSocketClientExtensionHandler PERMISSIVE_COMPRESSION_HANDLER =
-            new WebSocketClientExtensionHandler(
-                    new PerMessageDeflateClientExtensionHandshaker(6, true, 15, true, true));
-
     // Per-client single-thread executor: serializes handleMessageCallback so that
     // frames from one connection are processed in arrival order (matches C# Client.cs
     // Receiving loop). Different WsClients still run in parallel since each owns its
@@ -327,10 +315,13 @@ public class WsClient {
                             pipeline.addLast(new HttpClientCodec());
                             pipeline.addLast(new HttpObjectAggregator(65536 * 100));
 
-                            // WebSocket compression (permessage-deflate) — see comment
-                            // on PERMISSIVE_COMPRESSION_HANDLER for why this replaces
-                            // WebSocketClientCompressionHandler.INSTANCE.
-                            pipeline.addLast(PERMISSIVE_COMPRESSION_HANDLER);
+                            // WebSocket compression (permessage-deflate). A new instance
+                            // per channel is required because WebSocketClientExtensionHandler
+                            // is not @Sharable. The flags below match gorilla/websocket
+                            // defaults and accept server_no_context_takeover /
+                            // client_no_context_takeover (e.g. Coinbase).
+                            pipeline.addLast(new WebSocketClientExtensionHandler(
+                                    new PerMessageDeflateClientExtensionHandshaker(6, true, 15, true, true)));
 
                             // WebSocket frame handler
                             pipeline.addLast(handler);
