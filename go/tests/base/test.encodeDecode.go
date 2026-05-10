@@ -8,23 +8,23 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestEncode() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var input interface{} = "encode-test"
-	var encoded interface{} = exchange.Encode(input)
-	var decoded interface{} = exchange.Decode(encoded)
+	}, map[string]any{}, exchange)
+	var input any = "encode-test"
+	var encoded any = exchange.Encode(input)
+	var decoded any = exchange.Decode(encoded)
 	assert(ccxt.IsEqual(decoded, input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
 }
 func TestDecode() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var input interface{} = "decode-test"
-	var encoded interface{} = exchange.Encode(input)
-	var decoded interface{} = exchange.Decode(encoded)
+	}, map[string]any{}, exchange)
+	var input any = "decode-test"
+	var encoded any = exchange.Encode(input)
+	var decoded any = exchange.Decode(encoded)
 	assert(ccxt.IsEqual(decoded, input), ccxt.Add(ccxt.Add(ccxt.Add("decoded should be equal to input, got ", decoded), " instead of "), input))
 }
 func TestEncodeDecode() {

@@ -17,7 +17,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             Assert(isEqual(exchange.parseNumber(null), null), "GO skip trick");
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             // Test 1: Simple string
             object binary1 = helperStrToBinary5(exchange, "hello");
             Assert(isEqual(exchange.binaryToBase58(binary1), "Cn8eVZg"));
@@ -39,6 +39,5 @@ public partial class BaseTest
             // Test 7: JSON-like binary
             object binary7 = helperStrToBinary5(exchange, "{\"key\":\"value\"}");
             Assert(isEqual(exchange.binaryToBase58(binary7), "4SoiMiEYtTt5tPdi81Fik"));
-            Assert("GO_SKIP_END");
         }
 }

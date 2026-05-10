@@ -2069,6 +2069,66 @@ class blofin(Exchange, ImplicitAPI):
         result = self.parse_positions(data)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+
+        https://docs.blofin.com/index.html#get-positions-history
+
+        :param str[] [symbols]: unified contract symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+        :param int [limit]: the maximum amount of records to fetch, default=20, max=100
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param int [params.until]: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+        :param str [params.productType]: USDT-FUTURES(default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        market = None
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 0:
+                market = self.market(symbols[0])
+                request['instId'] = market['id']
+        if limit is not None:
+            request['limit'] = min(limit, 100)
+        if since is not None:
+            request['begin'] = since
+        request, params = self.handle_until_option('end', request, params)
+        response = await self.privateGetAccountPositionsHistory(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "msg": "success",
+        #        "data": [
+        #            {
+        #                "historyId": "110307402",
+        #                "positionId": "1000000722711",
+        #                "instId": "BTC-USDT",
+        #                "instType": "SWAP",
+        #                "marginMode": "cross",
+        #                "positionSide": "net",
+        #                "closePositions": "0.0006",
+        #                "maxPositions": "0.0006",
+        #                "liquidationPositions": "0",
+        #                "openAveragePrice": "81550.1",
+        #                "closeAveragePrice": "81550",
+        #                "createTime": "1777995583329",
+        #                "updateTime": "1777995588333",
+        #                "leverage": "50",
+        #                "realizedPnl": "-0.058776036",
+        #                "realizedPnlRatio": "-0.060061275216094155",
+        #                "fee": "-0.058716036"
+        #            },
+        #        ]
+        #    }
+        #
+        data = self.safe_list(response, 'data', [])
+        positions = self.parse_positions(data, symbols, params)
+        return self.filter_by_since_limit(positions, since, limit)
+
     def parse_position(self, position: dict, market: Market = None):
         #
         # response similar for REST & WS
@@ -2096,6 +2156,29 @@ class blofin(Exchange, ImplicitAPI):
         #         updateTime: '1707235776528'
         #     }
         #
+        #
+        #    positions-history
+        #
+        #            {
+        #                "positionId": "1000000722711",
+        #                "instId": "BTC-USDT",
+        #                "instType": "SWAP",
+        #                "marginMode": "cross",
+        #                "positionSide": "net",
+        #                "createTime": "1777995583329",
+        #                "updateTime": "1777995588333",
+        #                "leverage": "50",
+        #                "realizedPnl": "-0.058776036",
+        #                "realizedPnlRatio": "-0.060061275216094155",
+        #                "fee": "-0.058716036"
+        #                "historyId": "110307402",
+        #                "closePositions": "0.0006",
+        #                "maxPositions": "0.0006",
+        #                "liquidationPositions": "0",
+        #                "openAveragePrice": "81550.1",
+        #                "closeAveragePrice": "81550",
+        #            },
+        #
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -2121,7 +2204,7 @@ class blofin(Exchange, ImplicitAPI):
         notional = self.parse_number(notionalString)
         marginMode = self.safe_string(position, 'marginMode')
         initialMarginString = None
-        entryPriceString = self.safe_string(position, 'averagePrice')
+        entryPriceString = self.safe_string_2(position, 'averagePrice', 'openAveragePrice')
         unrealizedPnlString = self.safe_string(position, 'unrealizedPnl')
         leverageString = self.safe_string(position, 'leverage')
         initialMarginPercentage = None
@@ -2154,7 +2237,9 @@ class blofin(Exchange, ImplicitAPI):
             'marginMode': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': self.parse_number(entryPriceString),
+            'exitPrice': self.safe_number(position, 'closeAveragePrice'),
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
+            'realizedPnl': self.safe_number(position, 'realizedPnl'),
             'percentage': percentage,
             'contracts': contracts,
             'contractSize': contractSize,

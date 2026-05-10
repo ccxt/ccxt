@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_balance.php';
 function test_fetch_balance($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchBalance';
-        $response = Async\await($exchange->fetch_balance());
+        $response = \React\Async\await($exchange->fetch_balance());
         test_balance($exchange, $skipped_properties, $method, $response);
         return true;
     }) ();

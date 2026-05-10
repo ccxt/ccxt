@@ -1212,15 +1212,13 @@ export default class bitfinex extends Exchange {
         const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol: Str = undefined;
         let minusIndex = 0;
-        let isFundingCurrency = false;
         if (isFetchTicker) {
             minusIndex = 1;
-            isFundingCurrency = (length === 16);
         } else {
             const marketId = this.safeString (ticker, 0);
             market = this.safeMarket (marketId, market);
-            isFundingCurrency = (length === 17);
         }
+        const isFundingCurrency = length >= 17;
         symbol = this.safeSymbol (undefined, market);
         let last: Str = undefined;
         let bid: Str = undefined;

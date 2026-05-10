@@ -12,7 +12,7 @@ function logTemplate(exchange, method, entry) {
     // there are cases when exchange is undefined (eg. base tests)
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
-    const entryString = (exchange !== undefined) ? exchange.json(entry) : '';
+    const entryString = (exchange !== undefined && entry !== undefined) ? exchange.json(entry) : '';
     return ' <<< ' + id + ' ' + methodString + ' ::: ' + entryString + ' >>> ';
 }
 function isTemporaryFailure(e) {

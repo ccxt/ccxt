@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestStrip() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	Assert(ccxt.IsEqual(exchange.Strip(" asd"), "asd"))
 	Assert(ccxt.IsEqual(exchange.Strip("    asd"), "asd"))
 	Assert(ccxt.IsEqual(exchange.Strip("asd "), "asd"))

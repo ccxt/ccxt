@@ -8,22 +8,22 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestExtend() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "regirock",
-	}, map[string]interface{}{}, exchange)
-	var obj1 map[string]interface{} = map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var obj1 map[string]any = map[string]any{
 		"a": 1,
-		"b": []interface{}{1, 2},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{1, 2},
+		"c": []any{map[string]any{
 			"test1": 1,
 			"test2": 1,
 		}},
 		"d": nil,
 		"e": "not_undefined",
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 1,
-			"b": []interface{}{1, 2},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{1, 2},
+			"c": []any{map[string]any{
 				"test1": 1,
 				"test2": 2,
 			}},
@@ -33,19 +33,19 @@ func TestExtend() {
 		},
 		"other1": "x",
 	}
-	var obj2 map[string]interface{} = map[string]interface{}{
+	var obj2 map[string]any = map[string]any{
 		"a": 2,
-		"b": []interface{}{3, 4},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{3, 4},
+		"c": []any{map[string]any{
 			"test1": 2,
 			"test3": 3,
 		}},
 		"d": "not_undefined",
 		"e": nil,
-		"sub": map[string]interface{}{
+		"sub": map[string]any{
 			"a": 2,
-			"b": []interface{}{3, 4},
-			"c": []interface{}{map[string]interface{}{
+			"b": []any{3, 4},
+			"c": []any{map[string]any{
 				"test1": 2,
 				"test3": 3,
 			}},
@@ -56,14 +56,14 @@ func TestExtend() {
 		"other2": "y",
 	}
 	// snapshot originals for mutation checks
-	var obj1SnapshotA interface{} = ccxt.GetValue(obj1, "a")
-	var obj1SnapshotB0 interface{} = ccxt.GetValue(ccxt.GetValue(obj1, "b"), 0)
-	var obj1SnapshotOther1 interface{} = ccxt.GetValue(obj1, "other1")
-	var obj2SnapshotA interface{} = ccxt.GetValue(obj2, "a")
-	var obj2SnapshotB0 interface{} = ccxt.GetValue(ccxt.GetValue(obj2, "b"), 0)
-	var obj2SnapshotOther2 interface{} = ccxt.GetValue(obj2, "other2")
+	var obj1SnapshotA any = ccxt.GetValue(obj1, "a")
+	var obj1SnapshotB0 any = ccxt.GetValue(ccxt.GetValue(obj1, "b"), 0)
+	var obj1SnapshotOther1 any = ccxt.GetValue(obj1, "other1")
+	var obj2SnapshotA any = ccxt.GetValue(obj2, "a")
+	var obj2SnapshotB0 any = ccxt.GetValue(ccxt.GetValue(obj2, "b"), 0)
+	var obj2SnapshotOther2 any = ccxt.GetValue(obj2, "other2")
 	// --- test 1: basic extend ---
-	var extended interface{} = exchange.Extend(obj1, obj2)
+	var extended any = exchange.Extend(obj1, obj2)
 	TbfeCheckExtended(extended, true)
 	// --- mutation check: obj1 must NOT be mutated ---
 	assert(ccxt.IsEqual(ccxt.GetValue(obj1, "a"), obj1SnapshotA), "obj1.a was mutated after extend")
@@ -74,10 +74,10 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(obj2, "b"), 0), obj2SnapshotB0), "obj2.b[0] was mutated after extend")
 	assert(ccxt.IsEqual(ccxt.GetValue(obj2, "other2"), obj2SnapshotOther2), "obj2[\\'other2\\'] was mutated after extend")
 	// --- test 2: multi-step extend – apply a third patch on top of the first result ---
-	var obj3 map[string]interface{} = map[string]interface{}{
+	var obj3 map[string]any = map[string]any{
 		"a": 3,
-		"b": []interface{}{5, 6},
-		"c": []interface{}{map[string]interface{}{
+		"b": []any{5, 6},
+		"c": []any{map[string]any{
 			"test1": 3,
 			"test4": 4,
 		}},
@@ -85,7 +85,7 @@ func TestExtend() {
 		"e":      "back_to_string",
 		"other3": "z",
 	}
-	var extended2 interface{} = exchange.Extend(extended, obj3)
+	var extended2 any = exchange.Extend(extended, obj3)
 	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "a"), 3), "step2: a")
 	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2, "b"), 0), 5), "step2: b[0]")
 	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2, "b"), 1), 6), "step2: b[1]")
@@ -103,25 +103,25 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended, "b"), 0), 3), "extended[\\'b\\'][0] was mutated by second extend")
 	assert(!ccxt.IsTrue((ccxt.InOp(extended, "other3"))), "extended[\\'other3\\'] should not exist after second extend")
 	// --- test 3: four-step chained extend on same base object ---
-	var base map[string]interface{} = map[string]interface{}{
+	var base map[string]any = map[string]any{
 		"x":    0,
 		"keep": "yes",
 	}
-	var patch1 map[string]interface{} = map[string]interface{}{
+	var patch1 map[string]any = map[string]any{
 		"x":  1,
 		"p1": true,
 	}
-	var patch2 map[string]interface{} = map[string]interface{}{
+	var patch2 map[string]any = map[string]any{
 		"x":  2,
 		"p2": true,
 	}
-	var patch3 map[string]interface{} = map[string]interface{}{
+	var patch3 map[string]any = map[string]any{
 		"x":  3,
 		"p3": true,
 	}
-	var r1 interface{} = exchange.Extend(base, patch1)
-	var r2 interface{} = exchange.Extend(r1, patch2)
-	var r3 interface{} = exchange.Extend(r2, patch3)
+	var r1 any = exchange.Extend(base, patch1)
+	var r2 any = exchange.Extend(r1, patch2)
+	var r3 any = exchange.Extend(r2, patch3)
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "x"), 3), "chain: r3[\\'x\\'] should be 3 after 3 patches")
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "keep"), "yes"), "chain: r3[\\'keep\\'] should be preserved")
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p1"), true), "chain: r3[\\'p1\\'] should be present")
@@ -134,16 +134,16 @@ func TestExtend() {
 	assert(!ccxt.IsTrue((ccxt.InOp(r1, "p3"))), "r1[\\'p3\\'] leaked into r1")
 	assert(!ccxt.IsTrue((ccxt.InOp(base, "p2"))), "base[\\'p2\\'] leaked into base")
 	// --- test 4: extend with undefined values does NOT overwrite existing keys ---
-	var withValues map[string]interface{} = map[string]interface{}{
+	var withValues map[string]any = map[string]any{
 		"keep1": "A",
 		"keep2": "B",
 	}
-	var withUndefs map[string]interface{} = map[string]interface{}{
+	var withUndefs map[string]any = map[string]any{
 		"keep1":  nil,
 		"keep2":  nil,
 		"newKey": "C",
 	}
-	var extUndef interface{} = exchange.Extend(withValues, withUndefs)
+	var extUndef any = exchange.Extend(withValues, withUndefs)
 	// extend() merges ALL keys (including undefined ones), so undefined wins over previous value
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep1"), nil), "extend: extUndef[\\'keep1\\'] should be undefined")
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep2"), nil), "extend: extUndef[\\'keep2\\'] should be undefined")
@@ -152,7 +152,7 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(withValues, "keep1"), "A"), "withValues[\\'keep1\\'] was mutated")
 	assert(ccxt.IsEqual(ccxt.GetValue(withValues, "keep2"), "B"), "withValues[\\'keep2\\'] was mutated")
 }
-func TbfeCheckExtended(extended interface{}, hasSub interface{}) {
+func TbfeCheckExtended(extended any, hasSub any) {
 	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "a"), 2))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended, "b"), 0), 3))
 	Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended, "b"), 1), 4))

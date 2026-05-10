@@ -108,7 +108,7 @@ grvt.fetchCurrencies ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.grvt.io/market_data_api/#ticker_1  
 
@@ -152,7 +152,7 @@ grvt.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api-docs.grvt.io/market_data_api/#trade_1  
 
@@ -202,7 +202,7 @@ grvt.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://api-docs.grvt.io/market_data_api/#funding-rate  
 
@@ -210,7 +210,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest item |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -227,7 +227,7 @@ grvt.fetchFundingRateHistory (symbol[, since, limit, params])
 query for account info
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#sub-account-summary  
 
@@ -247,7 +247,7 @@ grvt.fetchBalance ([params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#transfer  
 
@@ -271,7 +271,7 @@ grvt.fetchDeposits ([code, since, limit, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#transfer-history  
 
@@ -295,7 +295,7 @@ grvt.fetchTransfers (code[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#transfer_1  
 
@@ -319,7 +319,7 @@ grvt.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#withdrawal  
 
@@ -344,7 +344,7 @@ grvt.withdraw (code, amount, address, tag[, params])
 create a trade order
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#create-order  
 
@@ -376,7 +376,7 @@ grvt.createOrder (symbol, type, side, amount[, price, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#fill-history  
 
@@ -401,7 +401,7 @@ grvt.fetchMyTrades ([symbol, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#positions-request  
 
@@ -486,7 +486,7 @@ grvt.fetchMarginModes (symbols[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#funding-payment-history  
 
@@ -511,7 +511,7 @@ grvt.fetchFundingHistory ([symbol, since, limit, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#order-history  
 
@@ -535,7 +535,7 @@ grvt.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#open-orders  
 
@@ -558,7 +558,7 @@ grvt.fetchOpenOrders ([symbol, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#get-order  
 
@@ -581,7 +581,7 @@ grvt.fetchOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#cancel-all-orders  
 
@@ -602,7 +602,7 @@ grvt.cancelAllOrders (symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.grvt.io/trading_api/#cancel-order  
 

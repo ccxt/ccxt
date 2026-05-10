@@ -330,7 +330,7 @@ class grvt extends \ccxt\async\grvt {
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
                 $limitRaw = $this->safe_integer($params, 'limit', 50); // 50, 200, 500, 1000
-                $rawHashes[] = $marketId . '@' . $limitRaw;
+                $rawHashes[] = $marketId . '@' . (string) $limitRaw;
                 $messageHashes[] = 'trade::' . $market['symbol'];
             }
             $request = array(
@@ -546,14 +546,14 @@ class grvt extends \ccxt\async\grvt {
             $interval = null;
             list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', 500);
             $symbols = $this->market_symbols($symbols);
-            $extraPart = $isSnapshot ? ($interval . '-' . $limit) : $interval;
+            $extraPart = $isSnapshot ? (string) ($interval . '-' . (string) $limit) : (string) $interval;
             $rawHashes = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
-                $rawHashes[] = $marketId . '@' . (string) $extraPart;
+                $rawHashes[] = $marketId . '@' . $extraPart;
                 $messageHashes[] = 'orderbook::' . $market['symbol'];
             }
             $request = array(

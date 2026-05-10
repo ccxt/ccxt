@@ -13,7 +13,7 @@ function log_template($exchange, $method, $entry) {
     // there are cases when exchange is undefined (eg. base tests)
     $id = ($exchange !== null) ? $exchange->id : 'undefined';
     $method_string = ($method !== null) ? $method : 'undefined';
-    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    $entry_string = ($exchange !== null && $entry !== null) ? $exchange->json($entry) : '';
     return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 

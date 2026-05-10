@@ -23,7 +23,7 @@ def log_template(exchange, method, entry):
     # there are cases when exchange is undefined (eg. base tests)
     id = exchange.id if (exchange is not None) else 'undefined'
     method_string = method if (method is not None) else 'undefined'
-    entry_string = exchange.json(entry) if (exchange is not None) else ''
+    entry_string = exchange.json(entry) if (exchange is not None and entry is not None) else ''
     return ' <<< ' + id + ' ' + method_string + ' ::: ' + entry_string + ' >>> '
 
 
