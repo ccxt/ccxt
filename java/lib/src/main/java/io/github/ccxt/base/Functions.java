@@ -17,7 +17,56 @@ public final class Functions {
     private Functions() {}
 
     // --- JSON mapper (Jackson) ---
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    // Custom serializer for OrderBookSide: it extends ArrayList, so by default
+    // Jackson uses IndexedListSerializer which does `for (i=0; i<size; i++) get(i)` —
+    // size() and get(i) are not coherent under concurrent mutation by the
+    // WsClient.messageExecutor thread (storeArray/limit), so the loop crashes
+    // with `IndexOutOfBoundsException: Index N out of bounds for length N` when
+    // a level is removed mid-serialization. Substitute a synchronized snapshot
+    // so Jackson iterates a frozen copy. Mirrors C# OrderBookSide.cs's lock +
+    // SlimConcurrentList snapshot enumerator.
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+            .registerModule(buildOrderBookSideModule());
+
+    private static com.fasterxml.jackson.databind.module.SimpleModule buildOrderBookSideModule() {
+        com.fasterxml.jackson.databind.module.SimpleModule m =
+                new com.fasterxml.jackson.databind.module.SimpleModule("OrderBookSideSnapshot");
+        // SimpleModule.addSerializer matches by exact class only — Asks/Bids
+        // subclasses fall through to Jackson's default IndexedListSerializer.
+        // Register a Serializers.Base that matches the polymorphic root so
+        // every OrderBookSide subclass routes through snapshot().
+        m.setSerializerModifier(new com.fasterxml.jackson.databind.ser.BeanSerializerModifier() {
+            @Override
+            public com.fasterxml.jackson.databind.JsonSerializer<?> modifyCollectionSerializer(
+                    com.fasterxml.jackson.databind.SerializationConfig config,
+                    com.fasterxml.jackson.databind.type.CollectionType valueType,
+                    com.fasterxml.jackson.databind.BeanDescription beanDesc,
+                    com.fasterxml.jackson.databind.JsonSerializer<?> serializer) {
+                if (io.github.ccxt.ws.OrderBookSide.class.isAssignableFrom(valueType.getRawClass())) {
+                    return ORDER_BOOK_SIDE_SERIALIZER;
+                }
+                return serializer;
+            }
+        });
+        return m;
+    }
+
+    private static final com.fasterxml.jackson.databind.JsonSerializer<io.github.ccxt.ws.OrderBookSide>
+            ORDER_BOOK_SIDE_SERIALIZER =
+                    new com.fasterxml.jackson.databind.JsonSerializer<io.github.ccxt.ws.OrderBookSide>() {
+                        @Override
+                        public void serialize(io.github.ccxt.ws.OrderBookSide value,
+                                              com.fasterxml.jackson.core.JsonGenerator gen,
+                                              com.fasterxml.jackson.databind.SerializerProvider provider)
+                                throws java.io.IOException {
+                            java.util.List<Object> snap = value.snapshot();
+                            gen.writeStartArray();
+                            for (Object level : snap) {
+                                provider.defaultSerializeValue(level, gen);
+                            }
+                            gen.writeEndArray();
+                        }
+                    };
 
     // -------------------------------------------------
     // HTTP method helper

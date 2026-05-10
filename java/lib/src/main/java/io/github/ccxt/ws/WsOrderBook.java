@@ -39,14 +39,18 @@ public class WsOrderBook {
 
             Object asksData = snap.get("asks");
             if (asksData instanceof List) {
-                for (Object delta : (List<?>) asksData) {
-                    this.asks.storeArray(delta);
+                synchronized (this.asks) {
+                    for (Object delta : (List<?>) asksData) {
+                        this.asks.storeArrayUnsafe(delta);
+                    }
                 }
             }
             Object bidsData = snap.get("bids");
             if (bidsData instanceof List) {
-                for (Object delta : (List<?>) bidsData) {
-                    this.bids.storeArray(delta);
+                synchronized (this.bids) {
+                    for (Object delta : (List<?>) bidsData) {
+                        this.bids.storeArrayUnsafe(delta);
+                    }
                 }
             }
         }
@@ -61,34 +65,43 @@ public class WsOrderBook {
      */
     @SuppressWarnings("unchecked")
     public void reset(Object snapshot) {
-        this.asks.clear();
-        this.asks.index.clear();
-        this.bids.clear();
-        this.bids.index.clear();
+        Map<String, Object> snap = (snapshot instanceof Map) ? (Map<String, Object>) snapshot : null;
 
-        if (snapshot instanceof Map) {
-            Map<String, Object> snap = (Map<String, Object>) snapshot;
-            // Mirror TS OrderBook.reset() at ts/src/base/ws/OrderBook.ts:120 — the
-            // snapshot Map (built by parseOrderBook) carries `symbol`, but Java's
-            // hand-written reset() previously dropped it on the floor, leaving
-            // every subsequent watchOrderBook* response with `symbol=null` and
-            // tripping the test harness's "symbol must have a value" assertion
-            // across ~30 exchanges.
+        // Mirror TS OrderBook.reset() at ts/src/base/ws/OrderBook.ts:120 — the
+        // snapshot Map (built by parseOrderBook) carries `symbol`, but Java's
+        // hand-written reset() previously dropped it on the floor, leaving every
+        // subsequent watchOrderBook* response with `symbol=null` and tripping the
+        // test harness's "symbol must have a value" assertion across ~30 exchanges.
+        if (snap != null) {
             this.symbol = (String) snap.get("symbol");
             this.nonce = snap.get("nonce");
             this.timestamp = snap.get("timestamp");
             this.datetime = snap.get("datetime");
+        }
 
-            Object asksData = snap.get("asks");
-            if (asksData instanceof List) {
-                for (Object delta : (List<?>) asksData) {
-                    this.asks.storeArray(delta);
+        // Atomic clear+repopulate against the side's own monitor so a concurrent
+        // toMap() snapshot can never observe a cleared list with a stale index.
+        synchronized (this.asks) {
+            this.asks.clear();
+            this.asks.index.clear();
+            if (snap != null) {
+                Object asksData = snap.get("asks");
+                if (asksData instanceof List) {
+                    for (Object delta : (List<?>) asksData) {
+                        this.asks.storeArrayUnsafe(delta);
+                    }
                 }
             }
-            Object bidsData = snap.get("bids");
-            if (bidsData instanceof List) {
-                for (Object delta : (List<?>) bidsData) {
-                    this.bids.storeArray(delta);
+        }
+        synchronized (this.bids) {
+            this.bids.clear();
+            this.bids.index.clear();
+            if (snap != null) {
+                Object bidsData = snap.get("bids");
+                if (bidsData instanceof List) {
+                    for (Object delta : (List<?>) bidsData) {
+                        this.bids.storeArrayUnsafe(delta);
+                    }
                 }
             }
         }
@@ -125,8 +138,13 @@ public class WsOrderBook {
     public Map<String, Object> toMap() {
         Map<String, Object> result = new HashMap<>();
         result.put("symbol", this.symbol);
-        result.put("asks", this.asks);
-        result.put("bids", this.bids);
+        // Defensive snapshot: handing out the live OrderBookSide races with the
+        // per-WsClient messageExecutor thread (which keeps mutating via storeArray /
+        // limit / reset). Mirrors C# OrderBookSide.cs which uses lock + a snapshot
+        // enumerator. JS gets away with the live reference because of single-thread
+        // semantics; Java does not.
+        result.put("asks", this.asks.snapshot());
+        result.put("bids", this.bids.snapshot());
         result.put("timestamp", this.timestamp);
         result.put("datetime", this.datetime);
         result.put("nonce", this.nonce);

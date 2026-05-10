@@ -1637,13 +1637,32 @@ public class Exchange {
                         }
                     }
 
-                    return new Client(u, proxy,
+                    Client created = new Client(u, proxy,
                             (client, msg) -> this.handleMessage((Client) client, msg),
                             (client) -> this.ping((Client) client),
                             (client, err) -> this.onClose((Client) client, err),
                             (client, err) -> this.onError((Client) client, err),
                             this.verbose, keepAlive, decompressBin,
                             this.validateServerSsl);
+
+                    // Forward exchange-declared handshake headers (e.g. weex sets
+                    // options.ws.options.headers = { 'User-Agent': 'ccxt' }; gemini /
+                    // bitopro / upbit also stage entries here). The TS WebSocket
+                    // library auto-attaches these on the upgrade request; Netty
+                    // doesn't have a builtin equivalent so we wire it through.
+                    Object headers = this.safeValue(wsOptions, "headers", null);
+                    if (headers instanceof java.util.Map<?, ?> m) {
+                        java.util.Map<String, String> hh = new java.util.HashMap<>();
+                        for (java.util.Map.Entry<?, ?> e : m.entrySet()) {
+                            if (e.getKey() == null || e.getValue() == null) continue;
+                            hh.put(e.getKey().toString(), e.getValue().toString());
+                        }
+                        if (!hh.isEmpty()) {
+                            ((io.github.ccxt.ws.WsClient) created).handshakeHeaders = hh;
+                        }
+                    }
+
+                    return created;
                 });
     }
 

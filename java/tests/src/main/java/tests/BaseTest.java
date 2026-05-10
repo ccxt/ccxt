@@ -384,12 +384,26 @@ public class BaseTest {
         Throwable cur = (Throwable) e;
         StringBuilder sb = new StringBuilder();
         int depth = 0;
+        Throwable deepest = cur;
         while (cur != null && depth < 5) {
             if (depth > 0) sb.append(" → caused by: ");
             sb.append("[").append(cur.getClass().getSimpleName()).append("] ");
             sb.append(String.valueOf(cur.getMessage()));
+            deepest = cur;
             cur = cur.getCause();
             depth++;
+        }
+        // Top of stack, first ccxt-side frame: makes opaque JDK exceptions
+        // (IndexOutOfBoundsException, NullPointerException) locatable.
+        if (deepest != null && deepest.getStackTrace() != null) {
+            StackTraceElement[] st = deepest.getStackTrace();
+            int shown = 0;
+            for (int i = 0; i < st.length && shown < 4; i++) {
+                String fr = st[i].toString();
+                if (fr.startsWith("java.base/jdk.internal") || fr.startsWith("java.base/java.util.Objects")) continue;
+                sb.append(" @ ").append(fr);
+                shown++;
+            }
         }
         return sb.toString();
     }

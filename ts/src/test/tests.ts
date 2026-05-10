@@ -522,15 +522,36 @@ class testMainClass {
 
     async runTests (exchange: any, tests: any, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
-        const promises = [];
-        for (let i = 0; i < testNames.length; i++) {
-            const testName = testNames[i];
-            const testArgs = tests[testName];
-            promises.push (this.testSafe (testName, exchange, testArgs, isPublicTest));
+        let results = [];
+        if (this.wsTests) {
+            // WS tests run sequentially: a watch* call must finish its subscribe
+            // → resolve cycle before the next call's subscribe ships. JS gets
+            // away with Promise.all because each test awaits inside a single-
+            // threaded event loop and client.subscriptions is updated synchronously
+            // before any I/O — so the next test sees the prior subscription
+            // before sending its own subscribe frame. Statically-typed ports
+            // (Java, C#, Go) dispatch onto real OS threads, so two watch* calls
+            // can both observe an empty subscription map at the same instant
+            // and both ship subscribe frames that overlap on a topic, causing
+            // "already subscribed" rejections from the exchange (bybit, bitget,
+            // krakenfutures observed). Sequentializing matches the de-facto JS
+            // behavior and is a no-op there.
+            for (let i = 0; i < testNames.length; i++) {
+                const testName = testNames[i];
+                const testArgs = tests[testName];
+                results.push (await this.testSafe (testName, exchange, testArgs, isPublicTest));
+            }
+        } else {
+            const promises = [];
+            for (let i = 0; i < testNames.length; i++) {
+                const testName = testNames[i];
+                const testArgs = tests[testName];
+                promises.push (this.testSafe (testName, exchange, testArgs, isPublicTest));
+            }
+            // todo - not yet ready in other langs too
+            // promises.push (testThrottle ());
+            results = await Promise.all (promises);
         }
-        // todo - not yet ready in other langs too
-        // promises.push (testThrottle ());
-        const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         const failedMethods = [];
         for (let i = 0; i < testNames.length; i++) {
