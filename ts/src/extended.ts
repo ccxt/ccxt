@@ -1958,8 +1958,11 @@ export default class extended extends Exchange {
             timeInForce = (uppercaseType === 'MARKET') ? 'IOC' : 'GTT';
         }
         const fee = this.safeString (params, 'fee', '0.0005');
-        const builderFee = this.safeString (params, 'builderFee');
-        const totalFee = (builderFee === undefined) ? fee : Precise.stringAdd (fee, builderFee);
+        let builderFee = undefined;
+        let builderId = undefined;
+        [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFee', '0.00025');
+        [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId', 'TODO:BUILDERID');
+        const totalFee = Precise.stringAdd (fee, builderFee);
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
         const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
@@ -2017,19 +2020,14 @@ export default class extended extends Exchange {
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'selfTradeProtectionLevel': 'ACCOUNT',
+            'builderFee': builderFee,
+            'builderId': builderId,
         };
-        if (builderFee !== undefined) {
-            request['builderFee'] = builderFee;
-        }
-        const builderId = this.safeInteger (params, 'builderId');
-        if (builderId !== undefined) {
-            request['builderId'] = builderId;
-        }
         const cancelId = this.safeString2 (params, 'cancelId', 'previousOrderId');
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'builderFee', 'builderId', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode' ]);
+        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode' ]);
         return {
             'request': this.extend (request, params),
             'market': market,
@@ -2038,16 +2036,6 @@ export default class extended extends Exchange {
             'price': priceString,
             'amount': amountString,
         };
-    }
-
-    async applyBrokerReferralCode () {
-        const brokerId = this.safeString (this.options, 'brokerId');
-        const brokerReferralCodeApplied = this.safeBool (this.options, 'brokerReferralCodeApplied', false);
-        if ((brokerId === undefined) || brokerReferralCodeApplied) {
-            return;
-        }
-        await this.v1PrivatePostUserReferralsUse ({ 'code': brokerId });
-        this.options['brokerReferralCodeApplied'] = true;
     }
 
     /**
@@ -2071,7 +2059,6 @@ export default class extended extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.applyBrokerReferralCode ();
         const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, params);
         const request = this.safeDict (extendedOrderRequest, 'request', {});
         const response = await this.v1PrivatePostUserOrder (request);
@@ -2122,7 +2109,6 @@ export default class extended extends Exchange {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
         }
-        await this.applyBrokerReferralCode ();
         let expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis');
         let postOnly = this.safeBool (params, 'postOnly');
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
