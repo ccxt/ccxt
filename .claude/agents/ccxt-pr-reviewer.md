@@ -154,6 +154,28 @@ If the exchange has a sandbox (`urls.test` is set), prefer `--sandbox`. If it's 
 
 Compare the output across languages. **Any divergence in the parsed result** (e.g. JS returns `0.001` and Go returns `0`) is a **🚨 Blocker** — the transpilers didn't preserve semantics.
 
+### 5a. Cleanup rules for live write-endpoint tests (mandatory)
+
+If you live-test any method that mutates exchange state (`createOrder`, `editOrder`, `cancelOrder`, `transfer`, `setLeverage`, `setMarginMode`, `setPositionMode`, …), you **must** restore the prior state. Same matrix as CLAUDE.md §5.5:
+
+- **`createOrder` (limit, didn't fill):** `cancelOrder(id, symbol)`, then `fetchOrder` to confirm `canceled`.
+- **`createOrder` (market, or limit that filled — partial or full):** place an opposite-side trade of the **filled amount** to return flat; for derivatives, prefer `closePosition` or a reduce-only opposite-side order.
+- **`editOrder`:** cancel the resulting order id.
+- **`transfer`:** reverse the transfer.
+- **`setLeverage` / `setMarginMode` / `setPositionMode`:** snapshot before, restore after.
+- **`withdraw`:** never live-test. Skip and note "withdraw is fixture-only — no live test" in the checklist.
+
+Always use the exchange's **minimum order size** so cleanup is cheap if it fails. Wrap the test in `try { ... } finally { cleanup(); }` so cleanup runs on exception. Log every mutating call (with order id, side, amount) before issuing it so a human can intervene if cleanup itself errors. If cleanup fails, **the review must say so explicitly** — flag it as a 🚨 Blocker so a maintainer manually unwinds the leftover state before merge.
+
+Verification step before reporting:
+```bash
+# After write tests, confirm flat state
+npm run cli.ts -- <id> fetchOpenOrders <symbol> --verbose   # should be empty for that symbol
+npm run cli.ts -- <id> fetchPositions [<symbol>] --verbose  # should be 0 / absent for that symbol
+```
+
+If you can't run live write tests (no credentials, exchange has no sandbox, or you'd need real funds), say so in the checklist and exercise the method via the **static request/response fixtures** instead — those simulate the call end-to-end without touching the exchange.
+
 ## Phase 6 — Edge cases
 
 For each topic, decide whether the diff plausibly affects it. If yes, write a focused test script under `/tmp/pr-review-$PR/` to probe.
@@ -277,6 +299,7 @@ Add to CHANGELOG / release notes when this lands. Affected languages: TS/JS, Pyt
 - [ ] `npm run response-tests` (per lang: js/py/php/cs/go)
 - [ ] `npm run test-base-rest` / `test-base-ws` <only if base touched>
 - [ ] Live smoke `cli.ts/py/php/cs/go --verbose` for <method> on <id>
+- [ ] Live write-endpoint cleanup verified — open orders empty, positions flat (only when write methods were tested)
 - [ ] Edge: parallel `loadMarkets()` (markets-cache concurrency)
 - [ ] Edge: parallel signed calls (nonce uniqueness)
 - [ ] Edge: parallel `watch*` for same symbol (subscription dedup)

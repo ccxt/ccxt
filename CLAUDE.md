@@ -186,6 +186,19 @@ node run-tests <exchange> --useProxy           # route via proxy from skip-tests
 
 Live tests are the **last** gate, not the first — they're slow, flaky, and rate-limited. Public endpoints run without keys; private endpoints need credentials (see §5.6).
 
+**Always clean up after a live write-endpoint test.** A test that places an order, transfers funds, sets leverage, or otherwise mutates exchange state must restore the original state in a `finally` block — even on test failure. Defaults:
+
+| Method tested | Cleanup |
+|---|---|
+| `createOrder` (limit, did not fill) | `cancelOrder(id, symbol)`, then `fetchOrder` to confirm status `canceled` |
+| `createOrder` (market, or limit that filled — partial or full) | place an opposite-side trade of the **filled amount** to return to a flat position; for derivatives, `closePosition` or an opposite-side reduce-only order |
+| `editOrder` | `cancelOrder` on the resulting order id |
+| `transfer` | reverse `transfer` from destination back to source |
+| `setLeverage` / `setMarginMode` / `setPositionMode` | snapshot the value first, restore it after |
+| `withdraw` | **don't live-test**; use static fixtures only |
+
+Use the exchange's **minimum order size** so cleanup is cheap if it fails. Log every mutating call so a human can intervene if the cleanup step itself errors. Prefer a sub-account or a dedicated low-balance test account configured in `keys.local.json` — never your personal trading keys.
+
 ### 5.6 Testing private endpoints — API keys and sandbox
 
 Two configuration paths, both gitignored. The test runner reads from both.
