@@ -8,37 +8,37 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestGroupBy() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var sampleArray interface{} = []interface{}{map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var sampleArray any = []any{map[string]any{
 		"foo": "a",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "b",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "c",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "b",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "c",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "c",
 	}}
-	var currentValue interface{} = exchange.GroupBy(sampleArray, "foo")
-	var storedValue map[string]interface{} = map[string]interface{}{
-		"a": []interface{}{map[string]interface{}{
+	var currentValue any = exchange.GroupBy(sampleArray, "foo")
+	var storedValue map[string]any = map[string]any{
+		"a": []any{map[string]any{
 			"foo": "a",
 		}},
-		"b": []interface{}{map[string]interface{}{
+		"b": []any{map[string]any{
 			"foo": "b",
-		}, map[string]interface{}{
+		}, map[string]any{
 			"foo": "b",
 		}},
-		"c": []interface{}{map[string]interface{}{
+		"c": []any{map[string]any{
 			"foo": "c",
-		}, map[string]interface{}{
+		}, map[string]any{
 			"foo": "c",
-		}, map[string]interface{}{
+		}, map[string]any{
 			"foo": "c",
 		}},
 	}

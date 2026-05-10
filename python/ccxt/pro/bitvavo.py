@@ -671,6 +671,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.load_markets()
         await self.authenticate()
         request: dict = {}
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' canceAllOrdersWs() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         market = None
         if symbol is not None:
             market = self.market(symbol)

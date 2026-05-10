@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestBase64ToBinary() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-
+	}, map[string]any{}, exchange)
+	//
 	assert(ccxt.IsEqual(exchange.SafeString(nil, "key"), nil), "GO_WORKAROUND")
 }

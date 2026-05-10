@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.46';
+const version = '4.5.52';
 
 (Exchange as any).ccxtVersion = version
 
@@ -89,7 +89,6 @@ import coinbase from  './src/coinbase.js'
 import coinbaseadvanced from  './src/coinbaseadvanced.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
 import coinbaseinternational from  './src/coinbaseinternational.js'
-import coincatch from  './src/coincatch.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinmate from  './src/coinmate.js'
@@ -140,6 +139,7 @@ import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
 import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
+import pacifica from  './src/pacifica.js'
 import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
@@ -148,6 +148,7 @@ import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
+import weex from  './src/weex.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
@@ -192,7 +193,6 @@ import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseadvancedPro from  './src/pro/coinbaseadvanced.js'
 import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
 import coinbaseinternationalPro from  './src/pro/coinbaseinternational.js'
-import coincatchPro from  './src/pro/coincatch.js'
 import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
@@ -229,11 +229,13 @@ import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
 import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
+import pacificaPro from  './src/pro/pacifica.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
+import weexPro from  './src/pro/weex.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
@@ -283,7 +285,6 @@ const exchanges = {
     'coinbaseadvanced':       coinbaseadvanced,
     'coinbaseexchange':       coinbaseexchange,
     'coinbaseinternational':  coinbaseinternational,
-    'coincatch':              coincatch,
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinmate':               coinmate,
@@ -334,6 +335,7 @@ const exchanges = {
     'onetrading':             onetrading,
     'oxfun':                  oxfun,
     'p2b':                    p2b,
+    'pacifica':               pacifica,
     'paradex':                paradex,
     'paymium':                paymium,
     'phemex':                 phemex,
@@ -342,6 +344,7 @@ const exchanges = {
     'toobit':                 toobit,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
+    'weex':                   weex,
     'whitebit':               whitebit,
     'woo':                    woo,
     'woofipro':               woofipro,
@@ -386,7 +389,6 @@ const pro = {
     'coinbaseadvanced':       coinbaseadvancedPro,
     'coinbaseexchange':       coinbaseexchangePro,
     'coinbaseinternational':  coinbaseinternationalPro,
-    'coincatch':              coincatchPro,
     'coincheck':              coincheckPro,
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
@@ -423,11 +425,13 @@ const pro = {
     'onetrading':             onetradingPro,
     'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
+    'pacifica':               pacificaPro,
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
+    'weex':                   weexPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
     'woofipro':               woofiproPro,
@@ -620,7 +624,6 @@ export {
     coinbaseadvanced,
     coinbaseexchange,
     coinbaseinternational,
-    coincatch,
     coincheck,
     coinex,
     coinmate,
@@ -671,6 +674,7 @@ export {
     onetrading,
     oxfun,
     p2b,
+    pacifica,
     paradex,
     paymium,
     phemex,
@@ -679,6 +683,7 @@ export {
     toobit,
     upbit,
     wavesexchange,
+    weex,
     whitebit,
     woo,
     woofipro,

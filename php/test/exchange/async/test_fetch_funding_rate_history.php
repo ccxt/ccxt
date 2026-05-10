@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_funding_rate_history.php';
 function test_fetch_funding_rate_history($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchFundingRateHistory';
-        $funding_rates_history = Async\await($exchange->fetch_funding_rate_history($symbol));
+        $funding_rates_history = \React\Async\await($exchange->fetch_funding_rate_history($symbol));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $funding_rates_history, $symbol);
         for ($i = 0; $i < count($funding_rates_history); $i++) {
             test_funding_rate_history($exchange, $skipped_properties, $method, $funding_rates_history[$i], $symbol);

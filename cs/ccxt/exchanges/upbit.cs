@@ -799,19 +799,17 @@ public partial class upbit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object ids = null;
-        if (isTrue(isEqual(symbols, null)))
+        object ids = ((bool) isTrue((!isEqual(symbols, null)))) ? this.marketIds(symbols) : this.ids;
+        object promises = new List<object>() {};
+        object queries = this.idsQueryStrings(ids, 6400); // seems upbit server limitations
+        for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
         {
-            ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-        } else
-        {
-            ids = this.marketIds(symbols);
-            ids = String.Join(",", ((IList<object>)ids).ToArray());
+            object idsQuery = getValue(queries, i);
+            ((IList<object>)promises).Add(this.publicGetTicker(new Dictionary<string, object>() {
+                { "markets", idsQuery },
+            }));
         }
-        object request = new Dictionary<string, object>() {
-            { "markets", ids },
-        };
-        object response = await this.publicGetTicker(this.extend(request, parameters));
+        object responses = await promiseAll(promises);
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -840,14 +838,33 @@ public partial class upbit : Exchange
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object t = 0; isLessThan(t, getArrayLength(response)); postFixIncrement(ref t))
+        object concated = this.arraysConcat(responses);
+        return this.parseTickers(concated, symbols);
+    }
+
+    public virtual object idsQueryStrings(object ids, object maxQueryLength)
+    {
+        object idsString = "";
+        object queries = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(response, t));
-            object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            object id = getValue(ids, i);
+            if (isTrue(!isEqual(idsString, "")))
+            {
+                idsString = add(idsString, ",");
+            }
+            idsString = add(idsString, id);
+            if (isTrue(isGreaterThanOrEqual(((string)idsString).Length, maxQueryLength)))
+            {
+                ((IList<object>)queries).Add(idsString);
+                idsString = "";
+            }
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        if (isTrue(!isEqual(idsString, "")))
+        {
+            ((IList<object>)queries).Add(idsString);
+        }
+        return queries;
     }
 
     /**

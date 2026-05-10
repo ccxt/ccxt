@@ -1609,21 +1609,38 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object url = getValue(getValue(this.urls, "api"), "ws");
         // symbols are required
         symbols = this.marketSymbols(symbols, null, false, true, false);
         object messageHashes = new List<object>() {};
+        object rawSubs = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            ((IList<object>)messageHashes).Add(this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
+            object messageHash = this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i)));
+            ((IList<object>)messageHashes).Add(messageHash);
+            object market = this.market(getValue(symbols, i));
+            if (!isTrue(this.subscriptionExistsForHash(url, messageHash)))
+            {
+                ((IList<object>)rawSubs).Add(getValue(market, "id"));
+            }
         }
-        object marketIds = this.marketIds(symbols);
-        object request = new Dictionary<string, object>() {
-            { "event", "subscribe" },
-            { "feed", channelName },
-            { "product_ids", marketIds },
-        };
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {};
+        object length = getArrayLength(rawSubs);
+        if (isTrue(isGreaterThan(length, 0)))
+        {
+            request = new Dictionary<string, object>() {
+                { "event", "subscribe" },
+                { "feed", channelName },
+                { "product_ids", rawSubs },
+            };
+        }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs);
+    }
+
+    public virtual object subscriptionExistsForHash(object url, object hash)
+    {
+        var client = this.client(url);
+        return (inOp(((WebSocketClient)client).subscriptions, hash));
     }
 
     public virtual object getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)

@@ -292,6 +292,7 @@ class testMainClass:
                 is_auth_error = (isinstance(e, AuthenticationError))
                 is_not_supported = (isinstance(e, NotSupported))
                 is_operation_failed = (isinstance(e, OperationFailed))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                last_url_msg = '' if self.ws_tests else ' (Last url: ' + exchange.last_request_url + ' )'
                 if is_operation_failed:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if i == max_retries - 1:
@@ -319,7 +320,7 @@ class testMainClass:
                                 ret_success = True
                         # output the message
                         fail_type = '[TEST_FAILURE]' if should_fail else '[TEST_WARNING]'
-                        dump(fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, method_name, args_stringified, exception_message(e))
+                        dump(fail_type, exchange.id, method_name, args_stringified, last_url_msg, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exception_message(e))
                         return ret_success
                     else:
                         # wait and retry again
@@ -328,35 +329,36 @@ class testMainClass:
                 else:
                     # if it's loadMarkets, then fail test, because it's mandatory for tests
                     if is_load_markets:
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message(e), exchange.id, method_name, args_stringified)
+                        dump('[TEST_FAILURE]', exchange.id, method_name, args_stringified, last_url_msg, 'Exchange can not load markets', exception_message(e))
                         return False
                     # if the specific arguments to the test method throws "NotSupported" exception
                     # then let's don't fail the test
                     if is_not_supported:
                         if self.info:
-                            dump('[INFO] NOT_SUPPORTED', exception_message(e), exchange.id, method_name, args_stringified)
+                            dump('[INFO] NOT_SUPPORTED', exchange.id, method_name, args_stringified, last_url_msg, exception_message(e))
                         return True
                     # If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if is_public and is_auth_error:
                         if self.info:
                             # todo - turn into warning
-                            dump('[INFO]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
+                            dump('[INFO]', exchange.id, method_name, args_stringified, last_url_msg, 'Authentication problem for public method', exception_message(e))
                         return True
                     else:
-                        dump('[TEST_FAILURE]', exception_message(e), exchange.id, method_name, args_stringified)
+                        dump('[TEST_FAILURE]', exchange.id, method_name, args_stringified, last_url_msg, exception_message(e))
                         return False
         return True
 
-    async def run_public_tests(self, exchange, symbol):
+    async def run_public_tests(self, exchange, symbols):
+        primary_symbol = symbols[0]
         tests = {
             'features': [],
             'fetchCurrencies': [],
-            'fetchTicker': [symbol],
-            'fetchTickers': [symbol],
-            'fetchLastPrices': [symbol],
-            'fetchOHLCV': [symbol],
-            'fetchTrades': [symbol],
-            'fetchOrderBook': [symbol],
+            'fetchTicker': [primary_symbol],
+            'fetchTickers': [primary_symbol],
+            'fetchLastPrices': [primary_symbol],
+            'fetchOHLCV': [primary_symbol],
+            'fetchTrades': [primary_symbol],
+            'fetchOrderBook': [primary_symbol],
             'fetchOrderBooks': [],
             'fetchBidsAsks': [],
             'fetchStatus': [],
@@ -364,28 +366,28 @@ class testMainClass:
         }
         if self.ws_tests:
             tests = {
-                'watchOHLCV': [symbol],
-                'watchOHLCVForSymbols': [symbol],
-                'watchTicker': [symbol],
-                'watchTickers': [symbol],
-                'watchBidsAsks': [symbol],
-                'watchOrderBook': [symbol],
-                'watchOrderBookForSymbols': [[symbol]],
-                'watchTrades': [symbol],
-                'watchTradesForSymbols': [[symbol]],
+                'watchOHLCV': [primary_symbol],
+                'watchOHLCVForSymbols': [primary_symbol],
+                'watchTicker': [primary_symbol],
+                'watchTickers': [primary_symbol],
+                'watchBidsAsks': [primary_symbol],
+                'watchOrderBook': [primary_symbol],
+                'watchOrderBookForSymbols': [symbols],
+                'watchTrades': [primary_symbol],
+                'watchTradesForSymbols': [symbols],
             }
-        market = exchange.market(symbol)
+        market = exchange.market(primary_symbol)
         is_spot = market['spot']
         if not self.ws_tests:
             if is_spot:
                 tests['fetchCurrencies'] = []
             else:
-                tests['fetchFundingRates'] = [symbol]
-                tests['fetchFundingRate'] = [symbol]
-                tests['fetchFundingRateHistory'] = [symbol]
-                tests['fetchIndexOHLCV'] = [symbol]
-                tests['fetchMarkOHLCV'] = [symbol]
-                tests['fetchPremiumIndexOHLCV'] = [symbol]
+                tests['fetchFundingRates'] = [primary_symbol]
+                tests['fetchFundingRate'] = [primary_symbol]
+                tests['fetchFundingRateHistory'] = [primary_symbol]
+                tests['fetchIndexOHLCV'] = [primary_symbol]
+                tests['fetchMarkOHLCV'] = [primary_symbol]
+                tests['fetchPremiumIndexOHLCV'] = [primary_symbol]
         self.public_tests = tests
         await self.run_tests(exchange, tests, True)
         return True
@@ -498,42 +500,46 @@ class testMainClass:
         return symbol
 
     async def test_exchange(self, exchange, provided_symbol=None):
-        spot_symbol = None
-        swap_symbol = None
+        spot_symbols = None
+        swap_symbols = None
         if provided_symbol is not None:
             market = exchange.market(provided_symbol)
             if market['spot']:
-                spot_symbol = provided_symbol
+                spot_symbols = [provided_symbol]
             else:
-                swap_symbol = provided_symbol
+                swap_symbols = [provided_symbol]
         else:
             if exchange.has['spot']:
-                spot_symbol = self.get_valid_symbol(exchange, True)
+                primary_symbol = self.get_valid_symbol(exchange, True)
+                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                spot_symbols = [primary_symbol, secondary_symbol]
             if exchange.has['swap']:
-                swap_symbol = self.get_valid_symbol(exchange, False)
-        if spot_symbol is not None:
-            dump('[INFO:MAIN] Selected SPOT SYMBOL:', spot_symbol)
-        if swap_symbol is not None:
-            dump('[INFO:MAIN] Selected SWAP SYMBOL:', swap_symbol)
+                primary_symbol = self.get_valid_symbol(exchange, False)
+                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                swap_symbols = [primary_symbol, secondary_symbol]
+        if spot_symbols is not None:
+            dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spot_symbols))
+        if swap_symbols is not None:
+            dump('[INFO:MAIN] Selected SWAP SYMBOL:', exchange.json(swap_symbols))
         if not self.private_test_only:
             # note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-            if exchange.has['spot'] and spot_symbol is not None:
+            if exchange.has['spot'] and spot_symbols is not None:
                 if self.info:
                     dump('[INFO] ### SPOT TESTS ###')
                 exchange.options['defaultType'] = 'spot'
-                await self.run_public_tests(exchange, spot_symbol)
-            if exchange.has['swap'] and swap_symbol is not None:
+                await self.run_public_tests(exchange, spot_symbols)
+            if exchange.has['swap'] and swap_symbols is not None:
                 if self.info:
                     dump('[INFO] ### SWAP TESTS ###')
                 exchange.options['defaultType'] = 'swap'
-                await self.run_public_tests(exchange, swap_symbol)
+                await self.run_public_tests(exchange, swap_symbols)
         if self.private_test or self.private_test_only:
-            if exchange.has['spot'] and spot_symbol is not None:
+            if exchange.has['spot'] and spot_symbols is not None:
                 exchange.options['defaultType'] = 'spot'
-                await self.run_private_tests(exchange, spot_symbol)
-            if exchange.has['swap'] and swap_symbol is not None:
+                await self.run_private_tests(exchange, spot_symbols)
+            if exchange.has['swap'] and swap_symbols is not None:
                 exchange.options['defaultType'] = 'swap'
-                await self.run_private_tests(exchange, swap_symbol)
+                await self.run_private_tests(exchange, swap_symbols)
         return True
 
     async def run_private_tests(self, exchange, symbol):
@@ -652,7 +658,7 @@ class testMainClass:
         exchange.return_response_headers = False
         return True
 
-    async def start_test(self, exchange, symbol):
+    async def start_test(self, exchange, symbol_argv):
         # we do not need to test aliases
         if exchange.alias:
             return True
@@ -670,7 +676,7 @@ class testMainClass:
             #     # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             #     # await this.testProxies (exchange);
             # }
-            await self.test_exchange(exchange, symbol)
+            await self.test_exchange(exchange, symbol_argv)
             if not is_sync():
                 await close(exchange)
         except Exception as e:
@@ -987,8 +993,10 @@ class testMainClass:
                     else:
                         library_path = base_path + 'lighter-signer-linux-arm64.so'
                 else:
-                    # assume macos arm64
-                    library_path = base_path + 'lighter-signer-darwin-arm64.dylib'
+                    if is_amd64():
+                        library_path = base_path + 'lighter-signer-darwin-x86.dylib'
+                    else:
+                        library_path = base_path + 'lighter-signer-darwin-arm64.dylib'
         options = {
             'markets': markets,
             'currencies': currencies,
@@ -1229,7 +1237,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1414,14 +1422,14 @@ class testMainClass:
         assert future_id == id, 'kucoinfutures - id: ' + future_id + ' not in options.'
         assert future_key == '1b327198-f30c-4f14-a0ac-918871282f15', 'kucoinfutures - key: ' + future_key + ' not in options.'
         try:
+            exchange.options['uta'] = False
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
         try:
-            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
-                'uta': True,
-            })
+            exchange.options['uta'] = True
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.'
@@ -1747,20 +1755,6 @@ class testMainClass:
             await close(exchange)
         return True
 
-    async def test_coincatch(self):
-        exchange = self.init_offline_exchange('coincatch')
-        req_headers = None
-        id = '47cfy'
-        try:
-            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
-        assert req_headers['X-CHANNEL-API-CODE'] == id, 'coincatch - id: ' + id + ' not in headers.'
-        if not is_sync():
-            await close(exchange)
-        return True
-
     async def test_cryptomus(self):
         exchange = self.init_offline_exchange('cryptomus')
         request = None
@@ -1840,3 +1834,21 @@ class testMainClass:
         if not is_sync():
             await close(exchange)
         return True
+
+    async def test_weex(self):
+        exchange = self.init_offline_exchange('weex')
+        id = 'b-WEEX111125'
+        assert exchange.options['partner'] == id, 'weex - id: ' + id + ' not in options'
+        request = None
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['newClientOrderId']
+        assert client_order_id.startswith(id), 'weex - newClientOrderId: ' + client_order_id + ' for spot order does not start with id: ' + id
+        try:
+            await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(exchange.last_request_body)
+        client_order_id = request['newClientOrderId']
+        assert client_order_id.startswith(id), 'weex - newClientOrderId: ' + client_order_id + ' for swap order does not start with id: ' + id

@@ -233,12 +233,23 @@ class binance extends binance$1["default"] {
     getWsUrl(type, category) {
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
-            return baseUrl.replace('/ws', '/' + category + '/ws');
+            // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            const firstProtocol = baseUrl.indexOf('://');
+            if (firstProtocol !== -1 && baseUrl.indexOf('://', firstProtocol + 3) !== -1) {
+                return baseUrl;
+            }
+            // only rewrite when the URL ends with exactly "/ws"
+            // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if (baseUrl.endsWith('/ws')) {
+                const prefix = baseUrl.slice(0, baseUrl.length - 3);
+                return prefix + '/' + category + '/ws';
+            }
+            return baseUrl;
         }
         return baseUrl;
     }
     getFutureWsCategory(channel) {
-        if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade' || channel === 'aggTrade') {
+        if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade') {
             return 'public';
         }
         return 'market';
@@ -3505,6 +3516,9 @@ class binance extends binance$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelAllOrdersWs() requires a symbol argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('cancelAllOrdersWs', market, params);
@@ -3905,7 +3919,7 @@ class binance extends binance$1["default"] {
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': this.parseOrderType(this.safeStringLower(order, 'o')),
+            'type': this.parseOrderTypeByMarket(this.safeStringLower(order, 'o'), marketType),
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'reduceOnly': this.safeBool(order, 'R'),

@@ -20,7 +20,7 @@ function test_binary_to_base64() {
     ));
     // In JavaScript, we use Uint8Array or Buffer for binary data
     // The encode() method converts string to bytes
-    assert('GO_SKIP_START');
+    // @SKIP_START_GO
     // Test 1: Simple binary from string
     $binary1 = helper_str_to_binary($exchange, 'hello');
     assert($exchange->binary_to_base64($binary1) === 'aGVsbG8=');
@@ -51,6 +51,6 @@ function test_binary_to_base64() {
     // Test 10: Special characters
     $binary10 = helper_str_to_binary($exchange, 'hello+world/test');
     assert($exchange->binary_to_base64($binary10) === 'aGVsbG8rd29ybGQvdGVzdA==');
-    assert('GO_SKIP_END');
+    // @SKIP_END_GO
     assert($exchange->safe_string(null, 'key') === null, 'GO_WORKAROUND');
 }

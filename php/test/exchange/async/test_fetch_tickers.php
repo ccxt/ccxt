@@ -15,7 +15,7 @@ function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
         $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-        $results = Async\await(Promise\all([$without_symbol, $with_symbol]));
+        $results = \React\Async\await(\React\Promise\all([$without_symbol, $with_symbol]));
         test_fetch_tickers_amounts($exchange, $skipped_properties, $results[0]);
         return $results;
     }) ();
@@ -25,7 +25,7 @@ function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
 function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
     return Async\async(function () use ($exchange, $skipped_properties, $arg_symbols, $arg_params) {
         $method = 'fetchTickers';
-        $response = Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
+        $response = \React\Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
         assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
         $values = is_array($response) ? array_values($response) : array();
         $checked_symbol = null;

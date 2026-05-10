@@ -1414,6 +1414,7 @@ class bitget(Exchange, ImplicitAPI):
                     '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     '40774': InvalidOrder,  # {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '40917': InvalidOrder,  # {"code":"40917","msg":"Stop price for long positions please < mark price {0}","requestTime":1776355933687,"data":null}
                     '45122': InvalidOrder,  # {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
@@ -3523,9 +3524,10 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         uta, params = self.handle_option_and_params(params, 'fetchTickers', 'uta', False)
         if uta:
-            symbolsLength = len(symbols)
-            if (symbols is not None) and (symbolsLength == 1):
-                request['symbol'] = market['id']
+            if symbols is not None:
+                symbolsLength = len(symbols)
+                if symbolsLength == 1:
+                    request['symbol'] = market['id']
             request['category'] = productType
             response = await self.publicUtaGetV3MarketTickers(self.extend(request, params))
         elif type == 'spot' and passedSubType is None:
@@ -4944,7 +4946,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used execution price for contract stop-loss / take-profit orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
@@ -5218,8 +5220,10 @@ class bitget(Exchange, ImplicitAPI):
                     tpType = self.safe_string(takeProfit, 'type', 'mark_price')
                     request['stopSurplusTriggerType'] = tpType
             elif isStopLossOrTakeProfitTrigger:
-                if not isMarketOrder:
-                    raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
+                    if 'price' in request:
+                        del request['price']
                 if hedged:
                     request['holdSide'] = 'long' if (side == 'sell') else 'short'
                 else:

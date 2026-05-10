@@ -1420,19 +1420,30 @@ class krakenfutures(ccxt.async_support.krakenfutures):
 
     async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs=None, params={}):
         await self.load_markets()
+        url = self.urls['api']['ws']
         # symbols are required
         symbols = self.market_symbols(symbols, None, False, True, False)
         messageHashes = []
+        rawSubs = []
         for i in range(0, len(symbols)):
-            messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
-        marketIds = self.market_ids(symbols)
-        request: dict = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        }
-        url = self.urls['api']['ws']
+            messageHash = self.get_message_hash(unifiedName, None, self.symbol(symbols[i]))
+            messageHashes.append(messageHash)
+            market = self.market(symbols[i])
+            if not self.subscription_exists_for_hash(url, messageHash):
+                rawSubs.append(market['id'])
+        request: dict = {}
+        length = len(rawSubs)
+        if length > 0:
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
+
+    def subscription_exists_for_hash(self, url: str, hash: str):
+        client = self.client(url)
+        return(hash in client.subscriptions)
 
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...

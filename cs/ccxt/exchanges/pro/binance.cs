@@ -239,14 +239,27 @@ public partial class binance : ccxt.binance
         object baseUrl = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
         if (isTrue(isEqual(type, "future")))
         {
-            return ((string)baseUrl).Replace((string)"/ws", (string)add(add("/", category), "/ws"));
+            // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
+            object firstProtocol = getIndexOf(baseUrl, "://");
+            if (isTrue(isTrue(!isEqual(firstProtocol, -1)) && isTrue(!isEqual(getIndexOf(baseUrl, "://"), -1))))
+            {
+                return baseUrl;
+            }
+            // only rewrite when the URL ends with exactly "/ws"
+            // this avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.
+            if (isTrue(((string)baseUrl).EndsWith(((string)"/ws"))))
+            {
+                object prefix = slice(baseUrl, 0, subtract(getArrayLength(baseUrl), 3));
+                return add(add(add(prefix, "/"), category), "/ws");
+            }
+            return baseUrl;
         }
         return baseUrl;
     }
 
     public virtual object getFutureWsCategory(object channel)
     {
-        if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(channel, "depth")) || isTrue(isEqual(channel, "rpiDepth"))) || isTrue(isEqual(channel, "bookTicker"))) || isTrue(isEqual(channel, "trade"))) || isTrue(isEqual(channel, "aggTrade"))))
+        if (isTrue(isTrue(isTrue(isTrue(isEqual(channel, "depth")) || isTrue(isEqual(channel, "rpiDepth"))) || isTrue(isEqual(channel, "bookTicker"))) || isTrue(isEqual(channel, "trade"))))
         {
             return "public";
         }
@@ -3981,6 +3994,10 @@ public partial class binance : ccxt.binance
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
+        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object type = this.getMarketType("cancelAllOrdersWs", market, parameters);
@@ -4439,7 +4456,7 @@ public partial class binance : ccxt.binance
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
-            { "type", this.parseOrderType(this.safeStringLower(order, "o")) },
+            { "type", this.parseOrderTypeByMarket(this.safeStringLower(order, "o"), marketType) },
             { "timeInForce", timeInForce },
             { "postOnly", null },
             { "reduceOnly", this.safeBool(order, "R") },

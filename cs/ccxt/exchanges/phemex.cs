@@ -208,6 +208,7 @@ public partial class phemex : Exchange
                         { "api-data/futures/trading-fees", 5 },
                         { "api-data/g-futures/trading-fees", 5 },
                         { "api-data/futures/v2/tradeAccountDetail", 5 },
+                        { "api-data/g-futures/closedPosition", 5 },
                         { "g-orders/activeList", 1 },
                         { "orders/activeList", 1 },
                         { "exchange/order/list", 5 },
@@ -4179,6 +4180,64 @@ public partial class phemex : Exchange
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
+    /**
+     * @method
+     * @name phemex#fetchPositionHistory
+     * @description fetches historical positions
+     * @see https://phemex-docs.github.io/#query-closed-positions
+     * @param {string} symbol unified contract symbol
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum amount of records to fetch
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {int} [params.until] the latest time in ms to fetch positions for
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
+        }
+        object response = await ((Task<object>)callDynamically(this, "privateGetApiDataGFuturesClosedPosition", new object[] { this.extend(request, parameters) }));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "OK",
+        //        "data": [
+        //            {
+        //                "symbol": "ETHUSDT",
+        //                "currency": "USDT",
+        //                "term": "0",
+        //                "closedSizeRq": "0.09",
+        //                "side": "1",
+        //                "cumEntryValueRv": null,
+        //                "closedPnlRv": "-0.1385",
+        //                "exchangeFeeRv": "0.2561889",
+        //                "fundingFeeRv": "0",
+        //                "realizedPnlRv": "-0.3946889",
+        //                "finished": "0",
+        //                "openedTimeNs": "1777998771316",
+        //                "updatedTimeNs": "1777998802592",
+        //                "openPrice": "2372.88888889",
+        //                "closePrice": "2371.35000000",
+        //                "roi": "-0.09702738",
+        //                "leverage": "-52.5"
+        //            },
+        //        ]
+        //    }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object positions = this.parsePositions(data, new List<object>() {symbol});
+        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+
     public override object parsePosition(object position, object market = null)
     {
         //
@@ -4252,6 +4311,29 @@ public partial class phemex : Exchange
         //        "execSeq": "12112761561"
         //    }
         //
+        //
+        // fetchPositionsHistory
+        //
+        //            {
+        //                "symbol": "ETHUSDT",
+        //                "currency": "USDT",
+        //                "term": "0",
+        //                "closedSizeRq": "0.09",
+        //                "side": "1",
+        //                "cumEntryValueRv": null,
+        //                "closedPnlRv": "-0.1385",
+        //                "exchangeFeeRv": "0.2561889",
+        //                "fundingFeeRv": "0",
+        //                "realizedPnlRv": "-0.3946889",
+        //                "finished": "0",
+        //                "openedTimeNs": "1777998771316",
+        //                "updatedTimeNs": "1777998802592",
+        //                "openPrice": "2372.88888889",
+        //                "closePrice": "2371.35000000",
+        //                "roi": "-0.09702738", // todo: check if percentage or not
+        //                "leverage": "-52.5"
+        //            },
+        //
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -4263,16 +4345,17 @@ public partial class phemex : Exchange
         object initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
         object liquidationPrice = this.safeNumber2(position, "liquidationPrice", "liquidationPriceRp");
         object markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
-        object contracts = this.safeString2(position, "size", "sizeRq");
+        object contracts = this.safeStringN(position, new List<object>() {"size", "sizeRq", "closedSizeRq"});
         object contractSize = this.safeValue(market, "contractSize");
         object contractSizeString = this.numberToString(contractSize);
         object leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
-        object entryPriceString = this.safeString2(position, "avgEntryPrice", "avgEntryPriceRp");
+        object entryPriceString = this.safeStringN(position, new List<object>() {"avgEntryPrice", "avgEntryPriceRp", "openPrice"});
         object rawSide = this.safeString(position, "side");
         object side = null;
         if (isTrue(!isEqual(rawSide, null)))
         {
-            side = ((bool) isTrue((isEqual(rawSide, "Buy")))) ? "long" : "short";
+            object isLong = (isTrue(isEqual(rawSide, "Buy")) || isTrue(isEqual(rawSide, "1")));
+            side = ((bool) isTrue(isLong)) ? "long" : "short";
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4304,13 +4387,15 @@ public partial class phemex : Exchange
         object apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
         object marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
         object isCross = this.safeValue(position, "crossMargin");
+        object timestamp = this.safeInteger(position, "openedTimeNs");
+        object lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "execSeq") },
             { "symbol", symbol },
             { "contracts", this.parseNumber(contracts) },
             { "contractSize", contractSize },
-            { "realizedPnl", this.safeNumber(position, "curTermRealisedPnlRv") },
+            { "realizedPnl", this.safeNumber2(position, "curTermRealisedPnlRv", "realizedPnlRv") },
             { "unrealizedPnl", this.parseNumber(apiUnrealizedPnl) },
             { "leverage", leverage },
             { "liquidationPrice", liquidationPrice },
@@ -4319,14 +4404,15 @@ public partial class phemex : Exchange
             { "markPrice", this.parseNumber(markPriceString) },
             { "lastPrice", null },
             { "entryPrice", this.parseNumber(entryPriceString) },
-            { "timestamp", null },
-            { "lastUpdateTimestamp", this.safeIntegerProduct(position, "transactTimeNs", 0.000001) },
+            { "exitPrice", this.safeNumber(position, "closePrice") },
+            { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentageString) },
             { "maintenanceMargin", this.parseNumber(maintenanceMarginString) },
             { "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentageString) },
             { "marginRatio", this.parseNumber(marginRatio) },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "marginMode", ((bool) isTrue(isCross)) ? "cross" : "isolated" },
             { "side", side },
             { "hedged", isEqual(this.safeString(position, "posMode"), "Hedged") },

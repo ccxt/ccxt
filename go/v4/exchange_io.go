@@ -7,7 +7,7 @@ import (
 )
 
 // ReadFile reads a file and returns its contents
-func (this *Exchange) ReadFile(path interface{}, args ...interface{}) string {
+func (this *Exchange) ReadFile(path any, args ...any) string {
 	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	data, err := os.ReadFile(pathStr)
@@ -18,7 +18,7 @@ func (this *Exchange) ReadFile(path interface{}, args ...interface{}) string {
 }
 
 // WriteFile writes data to a file
-func (this *Exchange) WriteFile(path interface{}, data interface{}, args ...interface{}) bool {
+func (this *Exchange) WriteFile(path any, data any, args ...any) bool {
 	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	dataStr := data.(string)
@@ -35,7 +35,7 @@ func (this *Exchange) WriteFile(path interface{}, data interface{}, args ...inte
 }
 
 // ExistsFile checks if a file exists
-func (this *Exchange) ExistsFile(path interface{}) bool {
+func (this *Exchange) ExistsFile(path any) bool {
 	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	_, err := os.Stat(pathStr)
@@ -43,7 +43,7 @@ func (this *Exchange) ExistsFile(path interface{}) bool {
 }
 
 // EnsureWhitelistedFile ensures the file path is ccxt file, so users would be safeguarded
-func (this *Exchange) EnsureWhitelistedFile(filePath interface{}) {
+func (this *Exchange) EnsureWhitelistedFile(filePath any) {
 	tempDir := this.GetTempDir()
 	sanitized, err := filepath.Abs(filePath.(string))
 	if err != nil {

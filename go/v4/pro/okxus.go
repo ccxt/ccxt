@@ -18,28 +18,28 @@ func NewOkxusCore() *OkxusCore {
     return p
 }
 
-func  (this *OkxusCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
+func  (this *OkxusCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
         "id": "okxus",
         "name": "OKX (US)",
         "hostname": "us.okx.com",
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "rest": "https://{hostname}",
                 "ws": "wss://wsus.okx.com:8443/ws/v5",
             },
             "www": "https://app.okx.com",
             "doc": "https://app.okx.com/docs-v5/en/#overview",
             "fees": "https://app.okx.com/pages/products/fees.html",
-            "referral": map[string]interface{} {
+            "referral": map[string]any {
                 "url": "https://www.app.okx.com/join/CCXT2023",
                 "discount": 0.2,
             },
-            "test": map[string]interface{} {
+            "test": map[string]any {
                 "ws": "wss://wsuspap.okx.com:8443/ws/v5",
             },
         },
-        "has": map[string]interface{} {
+        "has": map[string]any {
             "swap": false,
             "future": false,
             "option": false,
@@ -48,7 +48,7 @@ func  (this *OkxusCore) Describe() interface{}  {
 }
 
 
-func (this *OkxusCore) Init(userConfig map[string]interface{}) {
+func (this *OkxusCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

@@ -51,6 +51,8 @@
 * [watchMyTrades](#watchmytrades)
 * [unWatchMyTrades](#unwatchmytrades)
 * [watchLiquidations](#watchliquidations)
+* [watchBalance](#watchbalance)
+* [unWatchOrders](#unwatchorders)
 
 <a name="preLoadLighterLibrary" id="preloadlighterlibrary"></a>
 
@@ -136,7 +138,7 @@ lighter.editOrder (id, symbol, type, side, amount[, price, params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/status  
 
@@ -216,7 +218,7 @@ lighter.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://apidocs.lighter.xyz/reference/orderbookorders  
 
@@ -238,7 +240,7 @@ lighter.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/orderbookdetails  
 
@@ -259,7 +261,7 @@ lighter.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/orderbookdetails  
 
@@ -305,7 +307,7 @@ lighter.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch the current funding rate for multiple symbols
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://apidocs.lighter.xyz/reference/funding-rates  
 
@@ -769,13 +771,36 @@ lighter.setMargin (symbol, amount[, params])
 ```
 
 
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance property of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.watchOrders (symbol[, since, limit, params])
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#order-book  
 
@@ -797,7 +822,7 @@ lighter.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#order-book  
 
@@ -818,7 +843,7 @@ lighter.unWatchOrderBook (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -839,7 +864,7 @@ lighter.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -860,7 +885,7 @@ lighter.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -882,7 +907,7 @@ lighter.watchTickers ([symbols, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -903,7 +928,7 @@ lighter.unWatchTickers ([symbols, params])
 watches a mark price
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -924,7 +949,7 @@ lighter.watchMarkPrice (symbol[, params])
 watches mark prices
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -945,7 +970,7 @@ lighter.watchMarkPrices ([symbols, params])
 unWatches a mark price
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -966,7 +991,7 @@ lighter.unWatchMarkPrice (symbol[, params])
 unWatches mark prices
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#market-stats  
 
@@ -987,7 +1012,7 @@ lighter.unWatchMarkPrices ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#trade  
 
@@ -1010,7 +1035,7 @@ lighter.watchTrades (symbol[, since, limit, params])
 unsubscribe from the trades channel
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#trade  
 
@@ -1031,7 +1056,7 @@ lighter.unWatchTrades (symbol[, params])
 subscribe to recent trades of an account.
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
 
@@ -1054,7 +1079,7 @@ lighter.watchMyTrades ([symbol, since, limit, params])
 unsubscribe from the account trades channel
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
 
@@ -1075,7 +1100,7 @@ lighter.unWatchMyTrades ([symbol, params])
 watch the public liquidations of a trading pair
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#trade  
 
@@ -1089,5 +1114,47 @@ watch the public liquidations of a trading pair
 
 ```javascript
 lighter.watchLiquidations (symbol[, since, limit, params])
+```
+
+
+<a name="watchBalance" id="watchbalance"></a>
+
+### watchBalance{docsify-ignore}
+watch balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-assets  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', default is 'swap' |
+
+
+```javascript
+lighter.watchBalance ([params])
+```
+
+
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unWatches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-orders  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.unWatchOrders (symbol[, params])
 ```
 

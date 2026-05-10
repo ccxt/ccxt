@@ -368,7 +368,7 @@ public partial class bingx : ccxt.bingx
             hash = add(hash, add("::", symbol));
         } else
         {
-            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs ...
+            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs, etc ...
         }
         if (isTrue(!isEqual(extra, null)))
         {

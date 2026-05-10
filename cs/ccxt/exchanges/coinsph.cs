@@ -173,6 +173,10 @@ public partial class coinsph : Exchange
                 { "www", "https://coins.ph/" },
                 { "doc", new List<object>() {"https://coins-docs.github.io/rest-api"} },
                 { "fees", "https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees" },
+                { "referral", new Dictionary<string, object>() {
+                    { "url", "https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001" },
+                    { "discount", 0.2 },
+                } },
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {

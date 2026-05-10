@@ -66,16 +66,16 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: Int;
     verbose: boolean;
-    twofa: string;
     apiKey: string;
     secret: string;
     uid: string;
-    accountId: string;
     login: string;
     password: string;
     privateKey: string;
     walletAddress: string;
     token: string;
+    twofa: string;
+    accountId: string;
     balance: any;
     liquidations: any;
     orderbooks: Dictionary<Ob>;
@@ -187,11 +187,9 @@ export default class Exchange {
     exceptions: Dictionary<string>;
     timeframes: Dictionary<number | string>;
     version: Str;
-    marketsByAltname: Dictionary<Market>;
     name: Str;
     lastRestRequestTimestamp: int;
     targetAccount: string;
-    stablePairs: Dictionary<boolean>;
     httpProxyAgentModule: any;
     httpsProxyAgentModule: any;
     socksProxyAgentModule: any;
@@ -326,6 +324,8 @@ export default class Exchange {
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
     isBinaryMessage(msg: any): boolean;
+    stringToBinary(content: any): Uint8Array;
+    binaryToString(binary: any): string;
     decodeProtoMsg(data: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     jsonStringifyWithNull(obj: any): string;
@@ -405,14 +405,15 @@ export default class Exchange {
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
-    createSafeDictionary(): {};
+    createSafeDictionary(isWs?: boolean): {};
     convertToSafeDictionary(dict: any): any;
     randomBytes(length: number): string;
     randNumber(size: number): number;
     binaryLength(binary: Uint8Array): number;
     lockId(): any;
     unlockId(): any;
-    loadLighterLibrary(libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any): Promise<{}>;
+    loadLighterLibrary(libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, createClient?: boolean): Promise<{}>;
+    lighterCreateClient(signer: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any): any;
     lighterSignCreateGroupedOrders(signer: any, request: any): any[];
     lighterSignCreateOrder(signer: any, request: any): any[];
     checkLighterSignedError(result: any): void;
@@ -425,6 +426,9 @@ export default class Exchange {
     lighterSignUpdateLeverage(signer: any, request: any): any[];
     lighterCreateAuthToken(signer: any, request: any): string;
     lighterSignUpdateMargin(signer: any, request: any): any[];
+    lighterSignApproveIntegrator(signer: any, request: any): any[];
+    lighterGenerateApiKey(signer: any): any[];
+    lighterSignChangePubkey(signer: any, request: any): any[];
     describe(): any;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -433,6 +437,7 @@ export default class Exchange {
     safeDict(dictionary: any, key: IndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeDict2(dictionary: any, key1: IndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: IndexType[], defaultValue?: any[]): any[] | undefined;
+    isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: IndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: IndexType, defaultValue?: any[]): any[] | undefined;
     handleDeltas(orderbook: any, deltas: any): void;
@@ -696,6 +701,7 @@ export default class Exchange {
     getListFromObjectValues(objects: any, key: IndexType): any[];
     getSymbolsForMarketType(marketType?: Str, subType?: Str, symbolWithActiveStatus?: boolean, symbolWithUnknownStatus?: boolean): any[];
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
+    filterOutByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     loadAccounts(reload?: boolean, params?: {}): Promise<Account[]>;
@@ -1023,5 +1029,6 @@ export default class Exchange {
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
     timeframeFromMilliseconds(ms: number): string;
+    isUTAEnabled(params?: {}): Promise<boolean>;
 }
 export { Exchange, };

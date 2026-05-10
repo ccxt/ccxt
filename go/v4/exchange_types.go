@@ -9,7 +9,7 @@ import (
 )
 
 // Utility functions for safe extraction from maps
-func SafeFloatTyped(m interface{}, key interface{}) *float64 {
+func SafeFloatTyped(m any, key any) *float64 {
 	res := SafeFloat(m, key, math.NaN())
 
 	if res != nil {
@@ -22,7 +22,7 @@ func SafeFloatTyped(m interface{}, key interface{}) *float64 {
 	return nil
 }
 
-func SafeStringTyped(m interface{}, key interface{}) *string {
+func SafeStringTyped(m any, key any) *string {
 	res := SafeString(m, key, nil)
 	if res != nil {
 		resStr := res.(string)
@@ -31,7 +31,7 @@ func SafeStringTyped(m interface{}, key interface{}) *string {
 	return nil
 }
 
-func SafeBoolTyp(m interface{}, key interface{}) *bool {
+func SafeBoolTyp(m any, key any) *bool {
 	res := SafeBool(m, key, false)
 	if res != nil {
 		resBool := res.(bool)
@@ -40,7 +40,7 @@ func SafeBoolTyp(m interface{}, key interface{}) *bool {
 	return nil
 }
 
-func SafeInt64Typed(m interface{}, key interface{}) *int64 {
+func SafeInt64Typed(m any, key any) *int64 {
 	res := SafeInteger(m, key, nil)
 	if res != nil {
 		resInt := res.(int64)
@@ -49,7 +49,7 @@ func SafeInt64Typed(m interface{}, key interface{}) *int64 {
 	return nil
 }
 
-func SafeBoolTyped(m interface{}, key interface{}) *bool {
+func SafeBoolTyped(m any, key any) *bool {
 	res := SafeBool(m, key, nil)
 	if res != nil {
 		resBool := res.(bool)
@@ -58,12 +58,12 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 	return nil
 }
 
-func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+func SafeMapToMap(sm *sync.Map) map[string]any {
 	if sm == nil {
 		return nil
 	}
-	result := make(map[string]interface{})
-	sm.Range(func(key, value interface{}) bool {
+	result := make(map[string]any)
+	sm.Range(func(key, value any) bool {
 		if strKey, ok := key.(string); ok {
 			result[strKey] = value
 		}
@@ -74,7 +74,7 @@ func SafeMapToMap(sm *sync.Map) map[string]interface{} {
 
 // MarketInterface struct
 type MarketInterface struct {
-	Info           map[string]interface{}
+	Info           map[string]any
 	Id             *string
 	UppercaseId    *string
 	LowercaseId    *string
@@ -108,12 +108,12 @@ type MarketInterface struct {
 }
 
 // CreateMarketInterface initializes the MarketInterface struct
-func NewMarketInterface(data interface{}) MarketInterface {
+func NewMarketInterface(data any) MarketInterface {
 	if data == nil {
 		return MarketInterface{}
 	}
 
-	m := data.(map[string]interface{})
+	m := data.(map[string]any)
 
 	// Handle limits if present
 	var limits Limits
@@ -156,15 +156,15 @@ func NewMarketInterface(data interface{}) MarketInterface {
 	}
 }
 
-func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
+func NewMarketsMap(data2 any) map[string]MarketInterface {
 	if data2 == nil {
-		data2 = make(map[string]interface{})
+		data2 = make(map[string]any)
 	}
 	// data := ConvertToMap(data2)
 	if dataMap, ok := data2.(*sync.Map); ok {
 		data2 = SafeMapToMap(dataMap)
 	}
-	data := data2.(map[string]interface{})
+	data := data2.(map[string]any)
 	result := make(map[string]MarketInterface)
 	for key, value := range data {
 		result[key] = NewMarketInterface(value)
@@ -178,8 +178,8 @@ type Precision struct {
 	Price  *float64
 }
 
-func NewPrecision(data interface{}) Precision {
-	m := data.(map[string]interface{})
+func NewPrecision(data any) Precision {
+	m := data.(map[string]any)
 	return Precision{
 		Amount: SafeFloatTyped(m, "amount"),
 		Price:  SafeFloatTyped(m, "price"),
@@ -192,8 +192,8 @@ type MarketMarginModes struct {
 	Isolated *bool
 }
 
-func NewMarketMarginModes(data interface{}) MarketMarginModes {
-	m := data.(map[string]interface{})
+func NewMarketMarginModes(data any) MarketMarginModes {
+	m := data.(map[string]any)
 	return MarketMarginModes{
 		Cross:    SafeBoolTyped(m, "cross"),
 		Isolated: SafeBoolTyped(m, "isolated"),
@@ -206,8 +206,8 @@ func NewMarketMarginModes(data interface{}) MarketMarginModes {
 // 	Max *float64
 // }
 
-// func NewMinMax(data interface{}) MinMax {
-// 	m := data.(map[string]interface{})
+// func NewMinMax(data any) MinMax {
+// 	m := data.(map[string]any)
 // 	return MinMax{
 // 		Min: SafeFloatTyped(m, "min"),
 // 		Max: SafeFloatTyped(m, "max"),
@@ -220,8 +220,8 @@ type Fee struct {
 	Cost *float64
 }
 
-func NewFee(data interface{}) Fee {
-	m := data.(map[string]interface{})
+func NewFee(data any) Fee {
+	m := data.(map[string]any)
 	return Fee{
 		Rate: SafeFloatTyped(m, "rate"),
 		Cost: SafeFloatTyped(m, "cost"),
@@ -235,11 +235,11 @@ type TradingFeeInterface struct {
 	Taker      *float64
 	Percentage *bool
 	TierBased  *bool
-	Info       map[string]interface{}
+	Info       map[string]any
 }
 
-func NewTradingFeeInterface(data interface{}) TradingFeeInterface {
-	m := data.(map[string]interface{})
+func NewTradingFeeInterface(data any) TradingFeeInterface {
+	m := data.(map[string]any)
 	return TradingFeeInterface{
 		Symbol:     SafeStringTyped(m, "symbol"),
 		Maker:      SafeFloatTyped(m, "maker"),
@@ -258,23 +258,23 @@ type Limits struct {
 	Price    MinMax
 }
 
-func NewLimits(data interface{}) Limits {
-	m := data.(map[string]interface{})
+func NewLimits(data any) Limits {
+	m := data.(map[string]any)
 	var amount, cost, leverage, price MinMax
 	if v, ok := m["amount"]; ok {
-		amountValue := NewMinMax(v.(map[string]interface{}))
+		amountValue := NewMinMax(v.(map[string]any))
 		amount = amountValue
 	}
 	if v, ok := m["cost"]; ok {
-		costValue := NewMinMax(v.(map[string]interface{}))
+		costValue := NewMinMax(v.(map[string]any))
 		cost = costValue
 	}
 	if v, ok := m["leverage"]; ok {
-		leverageValue := NewMinMax(v.(map[string]interface{}))
+		leverageValue := NewMinMax(v.(map[string]any))
 		leverage = leverageValue
 	}
 	if v, ok := m["price"]; ok {
-		priceValue := NewMinMax(v.(map[string]interface{}))
+		priceValue := NewMinMax(v.(map[string]any))
 		price = priceValue
 	}
 	return Limits{
@@ -298,12 +298,12 @@ type Market struct {
 	Precision     *Precision
 	MarginModes   *MarketMarginModes
 	Limits        *Limits
-	Info          map[string]interface{}
+	Info          map[string]any
 	Created       time.Time
 }
 
-func NewMarket(data interface{}) Market {
-	m := data.(map[string]interface{})
+func NewMarket(data any) Market {
+	m := data.(map[string]any)
 	var precision *Precision
 	var marginModes *MarketMarginModes
 	var limits *Limits
@@ -351,7 +351,7 @@ type Trade struct {
 	Cost         *float64
 	Id           *string
 	Order        *string
-	Info         map[string]interface{}
+	Info         map[string]any
 	Timestamp    *int64
 	Datetime     *string
 	Symbol       *string
@@ -361,8 +361,8 @@ type Trade struct {
 	Fee          Fee
 }
 
-func NewTrade(data interface{}) Trade {
-	m := data.(map[string]interface{})
+func NewTrade(data any) Trade {
+	m := data.(map[string]any)
 
 	return Trade{
 		Amount:       SafeFloatTyped(m, "amount"),
@@ -376,7 +376,7 @@ func NewTrade(data interface{}) Trade {
 		Type:         SafeStringTyped(m, "type"),
 		Side:         SafeStringTyped(m, "side"),
 		TakerOrMaker: SafeStringTyped(m, "takerOrMaker"),
-		Fee:          NewFee(SafeValue(m, "fee", map[string]interface{}{}).(map[string]interface{})),
+		Fee:          NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
 		Info:         m,
 	}
 }
@@ -405,14 +405,14 @@ type Order struct {
 	TriggerPrice       *float64
 	StopLossPrice      *float64
 	TakeProfitPrice    *float64
-	Info               map[string]interface{}
+	Info               map[string]any
 }
 
-func NewOrder(data interface{}) Order {
-	m := data.(map[string]interface{})
+func NewOrder(data any) Order {
+	m := data.(map[string]any)
 	var trades []Trade
 	if v, ok := m["trades"]; ok {
-		tradesData := v.([]interface{})
+		tradesData := v.([]any)
 		for _, tradeData := range tradesData {
 			trade := NewTrade(tradeData)
 			trades = append(trades, trade)
@@ -437,7 +437,7 @@ func NewOrder(data interface{}) Order {
 		Status:             SafeStringTyped(m, "status"),
 		ReduceOnly:         SafeBoolTyped(m, "reduceOnly"),
 		PostOnly:           SafeBoolTyped(m, "postOnly"),
-		Fee:                NewFee(SafeValue(m, "fee", map[string]interface{}{}).(map[string]interface{})),
+		Fee:                NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
 		Trades:             trades,
 		TriggerPrice:       SafeFloatTyped(m, "triggerPrice"),
 		StopLossPrice:      SafeFloatTyped(m, "stopLossPrice"),
@@ -467,11 +467,11 @@ type Ticker struct {
 	Average       *float64
 	BaseVolume    *float64
 	QuoteVolume   *float64
-	Info          map[string]interface{}
+	Info          map[string]any
 }
 
-func NewTicker(data interface{}) Ticker {
-	m := data.(map[string]interface{})
+func NewTicker(data any) Ticker {
+	m := data.(map[string]any)
 	return Ticker{
 		Symbol:        SafeStringTyped(m, "symbol"),
 		Timestamp:     SafeInt64Typed(m, "timestamp"),
@@ -506,8 +506,8 @@ type OHLCV struct {
 	Volume    float64
 }
 
-func NewOHLCV(data interface{}) OHLCV {
-	ohlcv := data.([]interface{})
+func NewOHLCV(data any) OHLCV {
+	ohlcv := data.([]any)
 	return OHLCV{
 		Timestamp: *SafeInt64Typed(ohlcv, 0),
 		Open:      *SafeFloatTyped(ohlcv, 1),
@@ -535,8 +535,8 @@ type Transaction struct {
 }
 
 // NewTransaction initializes a Transaction struct from a map.
-func NewTransaction(transaction2 interface{}) Transaction {
-	transaction := transaction2.(map[string]interface{})
+func NewTransaction(transaction2 any) Transaction {
+	transaction := transaction2.(map[string]any)
 	return Transaction{
 		Id:        SafeStringTyped(transaction, "id"),
 		TxId:      SafeStringTyped(transaction, "txid"),
@@ -564,11 +564,11 @@ type OrderBook struct {
 }
 
 // NewOrderBook initializes an OrderBook struct from a map.
-func NewOrderBook(orderbook2 interface{}) OrderBook {
+func NewOrderBook(orderbook2 any) OrderBook {
 	if orderbook2 == nil {
 		return OrderBook{}
 	}
-	orderbook := orderbook2.(map[string]interface{})
+	orderbook := orderbook2.(map[string]any)
 	return OrderBook{
 		Bids:      parseOrderBookEntries(orderbook, "bids"),
 		Asks:      parseOrderBookEntries(orderbook, "asks"),
@@ -580,12 +580,12 @@ func NewOrderBook(orderbook2 interface{}) OrderBook {
 }
 
 // parseOrderBookEntries extracts and converts order book entries to [][]float64.
-func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]float64 {
+func parseOrderBookEntries(orderbook map[string]any, key string) [][]float64 {
 	if value, ok := orderbook[key]; ok {
 		var result [][]float64
-		if entries, ok := value.([]interface{}); ok {
+		if entries, ok := value.([]any); ok {
 			for _, entry := range entries {
-				if pair, ok := entry.([]interface{}); ok {
+				if pair, ok := entry.([]any); ok {
 					var floatPair []float64
 					for _, v := range pair {
 						if num, ok := v.(float64); ok {
@@ -598,7 +598,7 @@ func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]flo
 				}
 			}
 			return result
-		} else if entries, ok := value.([][]interface{}); ok {
+		} else if entries, ok := value.([][]any); ok {
 			for _, entry := range entries {
 				var floatPair []float64
 				for _, v := range entry {
@@ -619,19 +619,19 @@ func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]flo
 // tickers
 // Tickers struct
 type Tickers struct {
-	Info    map[string]interface{}
+	Info    map[string]any
 	Tickers map[string]Ticker
 }
 
 // NewTickers initializes a Tickers struct from a map.
-func NewTickers(tickersData2 interface{}) Tickers {
-	tickersData := tickersData2.(map[string]interface{})
+func NewTickers(tickersData2 any) Tickers {
+	tickersData := tickersData2.(map[string]any)
 	info := GetInfo(tickersData) // Assuming Helper.GetInfo is implemented as GetInfo
 	tickersMap := make(map[string]Ticker)
 
 	for key, value := range tickersData {
 		if key != "info" {
-			if tickerData, ok := value.(map[string]interface{}); ok {
+			if tickerData, ok := value.(map[string]any); ok {
 				tickersMap[key] = NewTicker(tickerData) // Assuming NewTicker is the Ticker constructor
 			}
 		}
@@ -658,9 +658,9 @@ func (t *Tickers) SetTicker(key string, ticker Ticker) {
 }
 
 // Mocked GetInfo function for demonstration purposes.
-func GetInfo(data2 interface{}) map[string]interface{} {
-	data := data2.(map[string]interface{})
-	if info, ok := data["info"].(map[string]interface{}); ok {
+func GetInfo(data2 any) map[string]any {
+	data := data2.(map[string]any)
+	if info, ok := data["info"].(map[string]any); ok {
 		return info
 	}
 	return nil
@@ -706,12 +706,12 @@ type Balances struct {
 	Free     map[string]*float64
 	Used     map[string]*float64
 	Total    map[string]*float64
-	Info     map[string]interface{}
+	Info     map[string]any
 }
 
 // NewBalance initializes a Balance struct from a map.
-func NewBalance(balanceData2 interface{}) Balance {
-	balanceData := balanceData2.(map[string]interface{})
+func NewBalance(balanceData2 any) Balance {
+	balanceData := balanceData2.(map[string]any)
 	return Balance{
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
@@ -720,8 +720,8 @@ func NewBalance(balanceData2 interface{}) Balance {
 }
 
 // NewBalances initializes a Balances struct from a map.
-func NewBalances(balancesData2 interface{}) Balances {
-	balancesData := balancesData2.(map[string]interface{})
+func NewBalances(balancesData2 any) Balances {
+	balancesData := balancesData2.(map[string]any)
 	balancesMap := make(map[string]Balance)
 	freeBalances := make(map[string]*float64)
 	usedBalances := make(map[string]*float64)
@@ -733,13 +733,13 @@ func NewBalances(balancesData2 interface{}) Balances {
 			continue
 		}
 
-		if balanceData, ok := value.(map[string]interface{}); ok {
+		if balanceData, ok := value.(map[string]any); ok {
 			balancesMap[key] = NewBalance(balanceData)
 		}
 	}
 
 	// Handle "free" balances
-	if freeData, ok := balancesData["free"].(map[string]interface{}); ok {
+	if freeData, ok := balancesData["free"].(map[string]any); ok {
 		for key, value := range freeData {
 			if value == nil {
 				freeBalances[key] = nil
@@ -750,7 +750,7 @@ func NewBalances(balancesData2 interface{}) Balances {
 	}
 
 	// Handle "used" balances
-	if usedData, ok := balancesData["used"].(map[string]interface{}); ok {
+	if usedData, ok := balancesData["used"].(map[string]any); ok {
 		for key, value := range usedData {
 			if value == nil {
 				usedBalances[key] = nil
@@ -761,7 +761,7 @@ func NewBalances(balancesData2 interface{}) Balances {
 	}
 
 	// Handle "total" balances
-	if totalData, ok := balancesData["total"].(map[string]interface{}); ok {
+	if totalData, ok := balancesData["total"].(map[string]any); ok {
 		for key, value := range totalData {
 			if value == nil {
 				totalBalances[key] = nil
@@ -872,8 +872,8 @@ type FundingRate struct {
 }
 
 // NewFundingRate initializes a FundingRate struct from a map.
-func NewFundingRate(fundingRateEntry2 interface{}) FundingRate {
-	fundingRateEntry := fundingRateEntry2.(map[string]interface{})
+func NewFundingRate(fundingRateEntry2 any) FundingRate {
+	fundingRateEntry := fundingRateEntry2.(map[string]any)
 	return FundingRate{
 		Symbol:                   SafeStringTyped(fundingRateEntry, "symbol"),
 		Datetime:                 SafeStringTyped(fundingRateEntry, "datetime"),
@@ -895,19 +895,19 @@ func NewFundingRate(fundingRateEntry2 interface{}) FundingRate {
 }
 
 type FundingRates struct {
-	Info         map[string]interface{}
+	Info         map[string]any
 	FundingRates map[string]FundingRate
 }
 
 // NewFundingRates initializes a FundingRates struct from a map.
-func NewFundingRates(fundingRatesData2 interface{}) FundingRates {
-	fundingRatesData := fundingRatesData2.(map[string]interface{})
+func NewFundingRates(fundingRatesData2 any) FundingRates {
+	fundingRatesData := fundingRatesData2.(map[string]any)
 	info := GetInfo(fundingRatesData) // Assuming Helper.GetInfo is implemented
 	fundingRatesMap := make(map[string]FundingRate)
 
 	for key, value := range fundingRatesData {
 		if key != "info" {
-			if rateData, ok := value.(map[string]interface{}); ok {
+			if rateData, ok := value.(map[string]any); ok {
 				fundingRatesMap[key] = NewFundingRate(rateData)
 			}
 		}
@@ -922,7 +922,7 @@ func NewFundingRates(fundingRatesData2 interface{}) FundingRates {
 // transfer entry
 
 type TransferEntry struct {
-	Info        map[string]interface{}
+	Info        map[string]any
 	Id          *string
 	Timestamp   *int64
 	Datetime    *string
@@ -934,8 +934,8 @@ type TransferEntry struct {
 }
 
 // NewTransferEntry initializes a TransferEntry struct from a map.
-func NewTransferEntry(transferData2 interface{}) TransferEntry {
-	transferData := transferData2.(map[string]interface{})
+func NewTransferEntry(transferData2 any) TransferEntry {
+	transferData := transferData2.(map[string]any)
 	return TransferEntry{
 		Info:        GetInfo(transferData), // Assuming GetInfo is implemented
 		Id:          SafeStringTyped(transferData, "id"),
@@ -955,15 +955,15 @@ type OrderRequest struct {
 	Side       *string
 	Amount     *float64
 	Price      *float64
-	Parameters map[string]interface{}
+	Parameters map[string]any
 }
 
 // NewOrderRequest initializes an OrderRequest struct from a map.
-func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
+func NewOrderRequest(requestData map[string]any) OrderRequest {
 	parameters := SafeValue(requestData, "parameters", nil) // Assuming SafeValue is implemented
-	var parametersMap map[string]interface{}
+	var parametersMap map[string]any
 	if parameters != nil {
-		parametersMap, _ = parameters.(map[string]interface{})
+		parametersMap, _ = parameters.(map[string]any)
 	}
 
 	return OrderRequest{
@@ -976,8 +976,8 @@ func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
 	}
 }
 
-func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []interface{} {
-	var result []interface{}
+func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
+	var result []any
 	for _, orderRequest := range orderRequests {
 		symbol := *orderRequest.Symbol
 		orderType := *orderRequest.Type
@@ -985,7 +985,7 @@ func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []interface{} 
 		amount := *orderRequest.Amount
 		price := *orderRequest.Price
 		parameters := orderRequest.Parameters
-		individualOrderRequest := map[string]interface{}{
+		individualOrderRequest := map[string]any{
 			"symbol": symbol,
 			"type":   orderType,
 			"side":   side,
@@ -1005,10 +1005,10 @@ type LastPrice struct {
 	Datetime  *string
 	Price     *float64
 	Side      *string
-	Info      map[string]interface{}
+	Info      map[string]any
 }
 
-func NewLastPrice(data interface{}) LastPrice {
+func NewLastPrice(data any) LastPrice {
 	return LastPrice{
 		Symbol:    SafeStringTyped(data, "symbol"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
@@ -1020,19 +1020,19 @@ func NewLastPrice(data interface{}) LastPrice {
 }
 
 type LastPrices struct {
-	Info       map[string]interface{}
+	Info       map[string]any
 	LastPrices map[string]LastPrice
 }
 
 // NewLastPrices initializes a LastPrices struct from a map.
-func NewLastPrices(lastPricesData2 interface{}) LastPrices {
-	lastPricesData := lastPricesData2.(map[string]interface{})
+func NewLastPrices(lastPricesData2 any) LastPrices {
+	lastPricesData := lastPricesData2.(map[string]any)
 	info := GetInfo(lastPricesData) // Assuming GetInfo is implemented
 	lastPricesMap := make(map[string]LastPrice)
 
 	for key, value := range lastPricesData {
 		if key != "info" {
-			if lastPriceData, ok := value.(map[string]interface{}); ok {
+			if lastPriceData, ok := value.(map[string]any); ok {
 				lastPricesMap[key] = NewLastPrice(lastPriceData)
 			}
 		}
@@ -1059,13 +1059,13 @@ func (lp *LastPrices) SetLastPrice(key string, lastPrice LastPrice) {
 }
 
 type WithdrawlResponse struct {
-	Info map[string]interface{}
+	Info map[string]any
 	Id   *string
 }
 
 // NewWithdrawlResponse initializes a WithdrawlResponse struct from a map.
-func NewWithdrawlResponse(withdrawlResponseData map[string]interface{}) WithdrawlResponse {
-	info, _ := withdrawlResponseData["info"].(map[string]interface{}) // Assuming "info" is always a map
+func NewWithdrawlResponse(withdrawlResponseData map[string]any) WithdrawlResponse {
+	info, _ := withdrawlResponseData["info"].(map[string]any) // Assuming "info" is always a map
 	return WithdrawlResponse{
 		Info: info,
 		Id:   SafeStringTyped(withdrawlResponseData, "id"),
@@ -1077,10 +1077,10 @@ type CrossBorrowRate struct {
 	Rate      *float64
 	Timestamp *int64
 	Datetime  *string
-	Info      map[string]interface{}
+	Info      map[string]any
 }
 
-func NewCrossBorrowRate(data interface{}) CrossBorrowRate {
+func NewCrossBorrowRate(data any) CrossBorrowRate {
 	return CrossBorrowRate{
 		Currency:  SafeStringTyped(data, "currency"),
 		Rate:      SafeFloatTyped(data, "rate"),
@@ -1091,17 +1091,17 @@ func NewCrossBorrowRate(data interface{}) CrossBorrowRate {
 }
 
 type CrossBorrowRates struct {
-	Info             map[string]interface{}
+	Info             map[string]any
 	CrossBorrowRates map[string]CrossBorrowRate
 }
 
-func NewCrossBorrowRates(data2 interface{}) CrossBorrowRates {
-	data := data2.(map[string]interface{})
+func NewCrossBorrowRates(data2 any) CrossBorrowRates {
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	rates := make(map[string]CrossBorrowRate)
 	for key, value := range data {
 		if key != "info" {
-			rates[key] = NewCrossBorrowRate(value.(map[string]interface{}))
+			rates[key] = NewCrossBorrowRate(value.(map[string]any))
 		}
 	}
 	return CrossBorrowRates{Info: info, CrossBorrowRates: rates}
@@ -1115,10 +1115,10 @@ type IsolatedBorrowRate struct {
 	Rate      *float64
 	Timestamp *int64
 	Datetime  *string
-	Info      map[string]interface{}
+	Info      map[string]any
 }
 
-func NewIsolatedBorrowRate(data interface{}) IsolatedBorrowRate {
+func NewIsolatedBorrowRate(data any) IsolatedBorrowRate {
 	return IsolatedBorrowRate{
 		Symbol:    SafeStringTyped(data, "symbol"),
 		BaseRate:  SafeFloatTyped(data, "baseRate"),
@@ -1132,24 +1132,24 @@ func NewIsolatedBorrowRate(data interface{}) IsolatedBorrowRate {
 }
 
 type IsolatedBorrowRates struct {
-	Info                map[string]interface{}
+	Info                map[string]any
 	IsolatedBorrowRates map[string]IsolatedBorrowRate
 }
 
-func NewIsolatedBorrowRates(data2 interface{}) IsolatedBorrowRates {
-	data := data2.(map[string]interface{})
+func NewIsolatedBorrowRates(data2 any) IsolatedBorrowRates {
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	rates := make(map[string]IsolatedBorrowRate)
 	for key, value := range data {
 		if key != "info" {
-			rates[key] = NewIsolatedBorrowRate(value.(map[string]interface{}))
+			rates[key] = NewIsolatedBorrowRate(value.(map[string]any))
 		}
 	}
 	return IsolatedBorrowRates{Info: info, IsolatedBorrowRates: rates}
 }
 
 type BorrowInterest struct {
-	Info           map[string]interface{}
+	Info           map[string]any
 	Symbol         *string
 	Currency       *string
 	Interest       *float64
@@ -1160,7 +1160,7 @@ type BorrowInterest struct {
 	Datetime       *string
 }
 
-func NewBorrowInterest(data interface{}) BorrowInterest {
+func NewBorrowInterest(data any) BorrowInterest {
 	return BorrowInterest{
 		Info:           GetInfo(data),
 		Symbol:         SafeStringTyped(data, "symbol"),
@@ -1180,10 +1180,10 @@ type OpenInterest struct {
 	OpenInterestValue  *float64
 	Timestamp          *int64
 	Datetime           *string
-	Info               map[string]interface{}
+	Info               map[string]any
 }
 
-func NewOpenInterest(data interface{}) OpenInterest {
+func NewOpenInterest(data any) OpenInterest {
 	return OpenInterest{
 		Symbol:             SafeStringTyped(data, "symbol"),
 		OpenInterestAmount: SafeFloatTyped(data, "openInterestAmount"),
@@ -1195,19 +1195,19 @@ func NewOpenInterest(data interface{}) OpenInterest {
 }
 
 type OpenInterests struct {
-	Info          map[string]interface{}
+	Info          map[string]any
 	OpenInterests map[string]OpenInterest
 }
 
 // NewFundingRates initializes a FundingRates struct from a map.
-func NewOpenInterests(fundingRatesData2 interface{}) OpenInterests {
-	fundingRatesData := fundingRatesData2.(map[string]interface{})
+func NewOpenInterests(fundingRatesData2 any) OpenInterests {
+	fundingRatesData := fundingRatesData2.(map[string]any)
 	info := GetInfo(fundingRatesData) // Assuming Helper.GetInfo is implemented
 	fundingRatesMap := make(map[string]OpenInterest)
 
 	for key, value := range fundingRatesData {
 		if key != "info" {
-			if rateData, ok := value.(map[string]interface{}); ok {
+			if rateData, ok := value.(map[string]any); ok {
 				fundingRatesMap[key] = NewOpenInterest(rateData)
 			}
 		}
@@ -1229,10 +1229,10 @@ type Liquidation struct {
 	Contracts    *float64
 	ContractSize *float64
 	Price        *float64
-	Info         map[string]interface{}
+	Info         map[string]any
 }
 
-func NewLiquidation(data interface{}) Liquidation {
+func NewLiquidation(data any) Liquidation {
 	return Liquidation{
 		Symbol:       SafeStringTyped(data, "symbol"),
 		QuoteValue:   SafeFloatTyped(data, "quoteValue"),
@@ -1252,7 +1252,7 @@ type MinMax struct {
 	Max *float64
 }
 
-func NewMinMax(data interface{}) MinMax {
+func NewMinMax(data any) MinMax {
 	return MinMax{
 		Min: SafeFloatTyped(data, "min"),
 		Max: SafeFloatTyped(data, "max"),
@@ -1264,15 +1264,15 @@ type CurrencyLimits struct {
 	Withdraw MinMax
 }
 
-func NewCurrencyLimits(data interface{}) CurrencyLimits {
+func NewCurrencyLimits(data any) CurrencyLimits {
 	return CurrencyLimits{
-		Amount:   NewMinMax(SafeValue(data, "amount", map[string]interface{}{}).(map[string]interface{})),
-		Withdraw: NewMinMax(SafeValue(data, "withdraw", map[string]interface{}{}).(map[string]interface{})),
+		Amount:   NewMinMax(SafeValue(data, "amount", map[string]any{}).(map[string]any)),
+		Withdraw: NewMinMax(SafeValue(data, "withdraw", map[string]any{}).(map[string]any)),
 	}
 }
 
 type Network struct {
-	Info      map[string]interface{}
+	Info      map[string]any
 	Id        *string
 	Fee       *float64
 	Active    *bool
@@ -1282,7 +1282,7 @@ type Network struct {
 	Limits    CurrencyLimits
 }
 
-func NewNetwork(data interface{}) Network {
+func NewNetwork(data any) Network {
 	return Network{
 		Info:      GetInfo(data),
 		Id:        SafeStringTyped(data, "id"),
@@ -1291,12 +1291,12 @@ func NewNetwork(data interface{}) Network {
 		Deposit:   SafeBoolTyped(data, "deposit"),
 		Withdraw:  SafeBoolTyped(data, "withdraw"),
 		Precision: SafeFloatTyped(data, "precision"),
-		Limits:    NewCurrencyLimits(SafeValue(data, "limits", map[string]interface{}{}).(map[string]interface{})),
+		Limits:    NewCurrencyLimits(SafeValue(data, "limits", map[string]any{}).(map[string]any)),
 	}
 }
 
 type Currency struct {
-	Info      map[string]interface{}
+	Info      map[string]any
 	Id        *string
 	Code      *string
 	Precision *float64
@@ -1312,11 +1312,11 @@ type Currency struct {
 	Networks  map[string]Network
 }
 
-func NewCurrency(data interface{}) Currency {
+func NewCurrency(data any) Currency {
 	networks := make(map[string]Network)
-	if nets, ok := SafeValue(data, "networks", nil).(map[string]interface{}); ok {
+	if nets, ok := SafeValue(data, "networks", nil).(map[string]any); ok {
 		for key, val := range nets {
-			networks[key] = NewNetwork(val.(map[string]interface{}))
+			networks[key] = NewNetwork(val.(map[string]any))
 		}
 	}
 
@@ -1333,12 +1333,12 @@ func NewCurrency(data interface{}) Currency {
 		NumericId: SafeInt64Typed(data, "numericId"),
 		Type:      SafeStringTyped(data, "type"),
 		Margin:    SafeBoolTyped(data, "margin"),
-		Limits:    NewCurrencyLimits(SafeValue(data, "limits", map[string]interface{}{}).(map[string]interface{})),
+		Limits:    NewCurrencyLimits(SafeValue(data, "limits", map[string]any{}).(map[string]any)),
 		Networks:  networks,
 	}
 }
 
-func ifExists(data map[string]interface{}, key string, fn func(val interface{}) interface{}) interface{} {
+func ifExists(data map[string]any, key string, fn func(val any) any) any {
 	if val, ok := data[key]; ok {
 		return fn(val)
 	}
@@ -1346,12 +1346,12 @@ func ifExists(data map[string]interface{}, key string, fn func(val interface{}) 
 }
 
 type MarginMode struct {
-	Info       map[string]interface{}
+	Info       map[string]any
 	Symbol     *string
 	MarginMode *string
 }
 
-func NewMarginMode(data interface{}) MarginMode {
+func NewMarginMode(data any) MarginMode {
 	return MarginMode{
 		Info:       GetInfo(data),
 		Symbol:     SafeStringTyped(data, "symbol"),
@@ -1360,17 +1360,17 @@ func NewMarginMode(data interface{}) MarginMode {
 }
 
 type MarginModes struct {
-	Info        map[string]interface{}
+	Info        map[string]any
 	MarginModes map[string]MarginMode
 }
 
-func NewMarginModes(data2 interface{}) MarginModes {
-	data := data2.(map[string]interface{})
+func NewMarginModes(data2 any) MarginModes {
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	marginModes := make(map[string]MarginMode)
 	for key, value := range data {
 		if key != "info" {
-			marginModes[key] = NewMarginMode(value.(map[string]interface{}))
+			marginModes[key] = NewMarginMode(value.(map[string]any))
 		}
 	}
 	return MarginModes{Info: info, MarginModes: marginModes}
@@ -1389,7 +1389,7 @@ func (m *MarginModes) Set(key string, mode MarginMode) {
 }
 
 type Leverage struct {
-	Info          map[string]interface{}
+	Info          map[string]any
 	Symbol        *string
 	MarginMode    *string
 	Leverage      *int64
@@ -1397,7 +1397,7 @@ type Leverage struct {
 	ShortLeverage *int64
 }
 
-func NewLeverage(data interface{}) Leverage {
+func NewLeverage(data any) Leverage {
 	return Leverage{
 		Info:          GetInfo(data),
 		Symbol:        SafeStringTyped(data, "symbol"),
@@ -1409,17 +1409,17 @@ func NewLeverage(data interface{}) Leverage {
 }
 
 type Leverages struct {
-	Info      map[string]interface{}
+	Info      map[string]any
 	Leverages map[string]Leverage
 }
 
-func NewLeverages(data2 interface{}) Leverages {
-	data := data2.(map[string]interface{})
+func NewLeverages(data2 any) Leverages {
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	leverages := make(map[string]Leverage)
 	for key, value := range data {
 		if key != "info" {
-			leverages[key] = NewLeverage(value.(map[string]interface{}))
+			leverages[key] = NewLeverage(value.(map[string]any))
 		}
 	}
 	return Leverages{Info: info, Leverages: leverages}
@@ -1443,7 +1443,7 @@ type BalanceAccount struct {
 	Total *string
 }
 
-func NewBalanceAccount(data interface{}) BalanceAccount {
+func NewBalanceAccount(data any) BalanceAccount {
 	return BalanceAccount{
 		Free:  SafeStringTyped(data, "free"),
 		Used:  SafeStringTyped(data, "used"),
@@ -1455,10 +1455,10 @@ type Account struct {
 	Id   *string
 	Type *string
 	Code *string
-	Info map[string]interface{}
+	Info map[string]any
 }
 
-func NewAccount(data interface{}) Account {
+func NewAccount(data any) Account {
 	return Account{
 		Info: GetInfo(data),
 		Id:   SafeStringTyped(data, "id"),
@@ -1484,10 +1484,10 @@ type Option struct {
 	Percentage        *float64
 	BaseVolume        *float64
 	QuoteVolume       *float64
-	Info              map[string]interface{}
+	Info              map[string]any
 }
 
-func NewOption(data interface{}) Option {
+func NewOption(data any) Option {
 	return Option{
 		Currency:          SafeStringTyped(data, "currency"),
 		Symbol:            SafeStringTyped(data, "symbol"),
@@ -1510,17 +1510,17 @@ func NewOption(data interface{}) Option {
 }
 
 type OptionChain struct {
-	Info   map[string]interface{}
+	Info   map[string]any
 	Chains map[string]Option
 }
 
-func NewOptionChain(data2 interface{}) OptionChain {
-	data := data2.(map[string]interface{})
+func NewOptionChain(data2 any) OptionChain {
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	chains := make(map[string]Option)
 	for key, value := range data {
 		if key != "info" {
-			chains[key] = NewOption(value.(map[string]interface{}))
+			chains[key] = NewOption(value.(map[string]any))
 		}
 	}
 	return OptionChain{Info: info, Chains: chains}
@@ -1539,7 +1539,7 @@ func (oc *OptionChain) Set(key string, option Option) {
 }
 
 type LongShortRatio struct {
-	Info           map[string]interface{}
+	Info           map[string]any
 	Symbol         *string
 	Timestamp      *int64
 	Datetime       *string
@@ -1547,7 +1547,7 @@ type LongShortRatio struct {
 	LongShortRatio *float64
 }
 
-func NewLongShortRatio(data interface{}) LongShortRatio {
+func NewLongShortRatio(data any) LongShortRatio {
 	return LongShortRatio{
 		Info:           GetInfo(data),
 		Symbol:         SafeStringTyped(data, "symbol"),
@@ -1561,7 +1561,7 @@ func NewLongShortRatio(data interface{}) LongShortRatio {
 type Position struct {
 	Symbol                      *string
 	Id                          *string
-	Info                        map[string]interface{}
+	Info                        map[string]any
 	Timestamp                   *float64
 	Datetime                    *string
 	Contracts                   *float64
@@ -1589,7 +1589,7 @@ type Position struct {
 	StopLossPrice               *float64
 }
 
-func NewPosition(data interface{}) Position {
+func NewPosition(data any) Position {
 	return Position{
 		Symbol:                      SafeStringTyped(data, "symbol"),
 		Id:                          SafeStringTyped(data, "id"),
@@ -1623,7 +1623,7 @@ func NewPosition(data interface{}) Position {
 }
 
 type FundingHistory struct {
-	Info      map[string]interface{}
+	Info      map[string]any
 	Id        *string
 	Timestamp *int64
 	Code      *string
@@ -1633,7 +1633,7 @@ type FundingHistory struct {
 	Amount    *float64
 }
 
-func NewFundingHistory(data interface{}) FundingHistory {
+func NewFundingHistory(data any) FundingHistory {
 	return FundingHistory{
 		Info:      GetInfo(data),
 		Id:        SafeStringTyped(data, "id"),
@@ -1648,7 +1648,7 @@ func NewFundingHistory(data interface{}) FundingHistory {
 
 type LedgerEntry struct {
 	Id               *string
-	Info             map[string]interface{}
+	Info             map[string]any
 	Timestamp        *int64
 	Datetime         *string
 	Direction        *string
@@ -1664,7 +1664,7 @@ type LedgerEntry struct {
 	Fee              Fee
 }
 
-func NewLedgerEntry(data interface{}) LedgerEntry {
+func NewLedgerEntry(data any) LedgerEntry {
 	return LedgerEntry{
 		Id:               SafeStringTyped(data, "id"),
 		Info:             GetInfo(data),
@@ -1680,12 +1680,12 @@ func NewLedgerEntry(data interface{}) LedgerEntry {
 		Before:           SafeFloatTyped(data, "before"),
 		After:            SafeFloatTyped(data, "after"),
 		Status:           SafeStringTyped(data, "status"),
-		Fee:              NewFee(SafeValue(data, "fee", map[string]interface{}{}).(map[string]interface{})),
+		Fee:              NewFee(SafeValue(data, "fee", map[string]any{}).(map[string]any)),
 	}
 }
 
 type Greeks struct {
-	Info                  map[string]interface{}
+	Info                  map[string]any
 	Symbol                *string
 	Timestamp             *int64
 	Datetime              *string
@@ -1709,7 +1709,7 @@ type Greeks struct {
 	UnderlyingPrice       *float64
 }
 
-func NewGreeks(data interface{}) Greeks {
+func NewGreeks(data any) Greeks {
 	return Greeks{
 		Info:                  GetInfo(data),
 		Timestamp:             SafeInt64Typed(data, "timestamp"),
@@ -1746,10 +1746,10 @@ type MarginModification struct {
 	Status     *string
 	Timestamp  *int64
 	Datetime   *string
-	Info       map[string]interface{}
+	Info       map[string]any
 }
 
-func NewMarginModification(data interface{}) MarginModification {
+func NewMarginModification(data any) MarginModification {
 	return MarginModification{
 		Symbol:     SafeStringTyped(data, "symbol"),
 		Type:       SafeStringTyped(data, "type"),
@@ -1765,20 +1765,20 @@ func NewMarginModification(data interface{}) MarginModification {
 }
 
 type Currencies struct {
-	Info       map[string]interface{}
+	Info       map[string]any
 	Currencies map[string]Currency
 }
 
-func NewCurrencies(data2 interface{}) Currencies {
+func NewCurrencies(data2 any) Currencies {
 	if data2 == nil {
-		data2 = make(map[string]interface{})
+		data2 = make(map[string]any)
 	}
-	data := data2.(map[string]interface{})
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)
 	for key, value := range data {
 		if key != "info" {
-			currencies[key] = NewCurrency(value.(map[string]interface{}))
+			currencies[key] = NewCurrency(value.(map[string]any))
 		}
 	}
 	return Currencies{Info: info, Currencies: currencies}
@@ -1797,14 +1797,14 @@ func (c *Currencies) Set(key string, cur Currency) {
 }
 
 type DepositAddress struct {
-	Info     map[string]interface{}
+	Info     map[string]any
 	Currency *string
 	Network  *string
 	Address  *string
 	Tag      *string
 }
 
-func NewDepositAddress(data interface{}) DepositAddress {
+func NewDepositAddress(data any) DepositAddress {
 	return DepositAddress{
 		Info:     GetInfo(data),
 		Currency: SafeStringTyped(data, "currency"),
@@ -1815,17 +1815,17 @@ func NewDepositAddress(data interface{}) DepositAddress {
 }
 
 type TradingFees struct {
-	Info        map[string]interface{}
+	Info        map[string]any
 	TradingFees map[string]TradingFeeInterface
 }
 
-func NewTradingFees(data2 interface{}) TradingFees {
-	data := data2.(map[string]interface{})
+func NewTradingFees(data2 any) TradingFees {
+	data := data2.(map[string]any)
 	info := GetInfo(data)
 	tradingFees := make(map[string]TradingFeeInterface)
 	for key, value := range data {
 		if key != "info" {
-			tradingFees[key] = NewTradingFeeInterface(value.(map[string]interface{}))
+			tradingFees[key] = NewTradingFeeInterface(value.(map[string]any))
 		}
 	}
 	return TradingFees{Info: info, TradingFees: tradingFees}
@@ -1850,7 +1850,7 @@ type FundingRateHistory struct {
 	FundingRate *float64
 }
 
-func NewFundingRateHistory(data interface{}) FundingRateHistory {
+func NewFundingRateHistory(data any) FundingRateHistory {
 	return FundingRateHistory{
 		Symbol:      SafeStringTyped(data, "symbol"),
 		Datetime:    SafeStringTyped(data, "datetime"),
@@ -1860,7 +1860,7 @@ func NewFundingRateHistory(data interface{}) FundingRateHistory {
 }
 
 type Conversion struct {
-	Info         map[string]interface{}
+	Info         map[string]any
 	Timestamp    *int64
 	Datetime     *string
 	Id           *string
@@ -1872,7 +1872,7 @@ type Conversion struct {
 	Fee          *float64
 }
 
-func NewConversion(data interface{}) Conversion {
+func NewConversion(data any) Conversion {
 	return Conversion{
 		Info:         GetInfo(data),
 		Timestamp:    SafeInt64Typed(data, "timestamp"),
@@ -1888,20 +1888,20 @@ func NewConversion(data interface{}) Conversion {
 }
 
 type LeverageTiers struct {
-	Info  interface{}
+	Info  any
 	Tiers map[string][]LeverageTier
 }
 
-func NewLeverageTiers(data2 interface{}) LeverageTiers {
-	data := data2.(map[string]interface{})
+func NewLeverageTiers(data2 any) LeverageTiers {
+	data := data2.(map[string]any)
 	info := data["info"]
 	tiers := make(map[string][]LeverageTier)
 	for key, value := range data {
 		if key != "info" {
-			if leverageList, ok := value.([]interface{}); ok {
+			if leverageList, ok := value.([]any); ok {
 				leverageTiers := make([]LeverageTier, len(leverageList))
 				for i, tierData := range leverageList {
-					leverageTiers[i] = NewLeverageTier(tierData.(map[string]interface{}))
+					leverageTiers[i] = NewLeverageTier(tierData.(map[string]any))
 				}
 				tiers[key] = leverageTiers
 			}
@@ -1930,10 +1930,10 @@ type LeverageTier struct {
 	MaxNotional           *float64
 	MaintenanceMarginRate *float64
 	MaxLeverage           *float64
-	Info                  map[string]interface{}
+	Info                  map[string]any
 }
 
-func NewLeverageTier(data interface{}) LeverageTier {
+func NewLeverageTier(data any) LeverageTier {
 	return LeverageTier{
 		Tier:                  SafeInt64Typed(data, "tier"),
 		Symbol:                SafeStringTyped(data, "symbol"),
@@ -1948,16 +1948,16 @@ func NewLeverageTier(data interface{}) LeverageTier {
 
 // array helpers
 
-func NewTradeArray(trades2 interface{}) []Trade {
-	var trades []interface{}
+func NewTradeArray(trades2 any) []Trade {
+	var trades []any
 	if tr, ok := trades2.(*ArrayCache); ok {
 		trades = tr.ToArray()
 	} else {
-		trades = trades2.([]interface{})
+		trades = trades2.([]any)
 	}
 	result := make([]Trade, 0, len(trades))
 	for _, t := range trades {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			trade := NewTrade(tradeMap)
 			result = append(result, trade)
 		}
@@ -1965,17 +1965,17 @@ func NewTradeArray(trades2 interface{}) []Trade {
 	return result
 }
 
-func NewOrderArray(orders2 interface{}) []Order {
-	var orders []interface{}
+func NewOrderArray(orders2 any) []Order {
+	var orders []any
 	if tr, ok := orders2.(*ArrayCache); ok {
 		orders = tr.ToArray()
 	} else {
-		orders = orders2.([]interface{})
+		orders = orders2.([]any)
 
 	}
 	result := make([]Order, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewOrder(tradeMap)
 			result = append(result, order)
 		}
@@ -1983,11 +1983,11 @@ func NewOrderArray(orders2 interface{}) []Order {
 	return result
 }
 
-func NewGreeksArray(orders2 interface{}) []Greeks {
-	orders := orders2.([]interface{})
+func NewGreeksArray(orders2 any) []Greeks {
+	orders := orders2.([]any)
 	result := make([]Greeks, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewGreeks(tradeMap)
 			result = append(result, order)
 		}
@@ -1995,19 +1995,19 @@ func NewGreeksArray(orders2 interface{}) []Greeks {
 	return result
 }
 
-func NewOHLCVArray(orders2 interface{}) []OHLCV {
-	// orders := orders2.([]interface{})
-	var orders []interface{}
+func NewOHLCVArray(orders2 any) []OHLCV {
+	// orders := orders2.([]any)
+	var orders []any
 	if tr, ok := orders2.(*ArrayCache); ok {
 		orders = tr.ToArray()
 	} else if tr2, ok := orders2.(*ArrayCacheByTimestamp); ok {
 		orders = tr2.ToArray()
 	} else {
-		orders = orders2.([]interface{})
+		orders = orders2.([]any)
 	}
 	result := make([]OHLCV, 0, len(orders))
 	for _, t := range orders {
-		if ohlcvlist, ok := t.([]interface{}); ok {
+		if ohlcvlist, ok := t.([]any); ok {
 			order := NewOHLCV(ohlcvlist)
 			result = append(result, order)
 		}
@@ -2015,11 +2015,11 @@ func NewOHLCVArray(orders2 interface{}) []OHLCV {
 	return result
 }
 
-func NewTransactionArray(orders2 interface{}) []Transaction {
-	orders := orders2.([]interface{})
+func NewTransactionArray(orders2 any) []Transaction {
+	orders := orders2.([]any)
 	result := make([]Transaction, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewTransaction(tradeMap)
 			result = append(result, order)
 		}
@@ -2027,11 +2027,11 @@ func NewTransactionArray(orders2 interface{}) []Transaction {
 	return result
 }
 
-func NewMarketInterfaceArray(orders2 interface{}) []MarketInterface {
-	orders := orders2.([]interface{})
+func NewMarketInterfaceArray(orders2 any) []MarketInterface {
+	orders := orders2.([]any)
 	result := make([]MarketInterface, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewMarketInterface(tradeMap)
 			result = append(result, order)
 		}
@@ -2039,11 +2039,11 @@ func NewMarketInterfaceArray(orders2 interface{}) []MarketInterface {
 	return result
 }
 
-func NewFundingRateHistoryArray(orders2 interface{}) []FundingRateHistory {
-	orders := orders2.([]interface{})
+func NewFundingRateHistoryArray(orders2 any) []FundingRateHistory {
+	orders := orders2.([]any)
 	result := make([]FundingRateHistory, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewFundingRateHistory(tradeMap)
 			result = append(result, order)
 		}
@@ -2051,11 +2051,11 @@ func NewFundingRateHistoryArray(orders2 interface{}) []FundingRateHistory {
 	return result
 }
 
-func NewFundingHistoryArray(orders2 interface{}) []FundingHistory {
-	orders := orders2.([]interface{})
+func NewFundingHistoryArray(orders2 any) []FundingHistory {
+	orders := orders2.([]any)
 	result := make([]FundingHistory, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewFundingHistory(tradeMap)
 			result = append(result, order)
 		}
@@ -2063,11 +2063,11 @@ func NewFundingHistoryArray(orders2 interface{}) []FundingHistory {
 	return result
 }
 
-func NewTransferEntryArray(orders2 interface{}) []TransferEntry {
-	orders := orders2.([]interface{})
+func NewTransferEntryArray(orders2 any) []TransferEntry {
+	orders := orders2.([]any)
 	result := make([]TransferEntry, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewTransferEntry(tradeMap)
 			result = append(result, order)
 		}
@@ -2075,19 +2075,19 @@ func NewTransferEntryArray(orders2 interface{}) []TransferEntry {
 	return result
 }
 
-func NewPositionArray(orders2 interface{}) []Position {
-	// orders := orders2.([]interface{})
-	var orders []interface{}
+func NewPositionArray(orders2 any) []Position {
+	// orders := orders2.([]any)
+	var orders []any
 	if tr, ok := orders2.(*ArrayCache); ok {
 		orders = tr.ToArray()
 	} else if tr2, ok := orders2.(*ArrayCacheBySymbolBySide); ok {
 		orders = tr2.ToArray()
 	} else {
-		orders = orders2.([]interface{})
+		orders = orders2.([]any)
 	}
 	result := make([]Position, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewPosition(tradeMap)
 			result = append(result, order)
 		}
@@ -2095,11 +2095,11 @@ func NewPositionArray(orders2 interface{}) []Position {
 	return result
 }
 
-func NewLedgerEntryArray(orders2 interface{}) []LedgerEntry {
-	orders := orders2.([]interface{})
+func NewLedgerEntryArray(orders2 any) []LedgerEntry {
+	orders := orders2.([]any)
 	result := make([]LedgerEntry, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewLedgerEntry(tradeMap)
 			result = append(result, order)
 		}
@@ -2107,11 +2107,11 @@ func NewLedgerEntryArray(orders2 interface{}) []LedgerEntry {
 	return result
 }
 
-func NewBorrowInterestArray(orders2 interface{}) []BorrowInterest {
-	orders := orders2.([]interface{})
+func NewBorrowInterestArray(orders2 any) []BorrowInterest {
+	orders := orders2.([]any)
 	result := make([]BorrowInterest, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewBorrowInterest(tradeMap)
 			result = append(result, order)
 		}
@@ -2119,11 +2119,11 @@ func NewBorrowInterestArray(orders2 interface{}) []BorrowInterest {
 	return result
 }
 
-func NewOpenInterestArray(orders2 interface{}) []OpenInterest {
-	orders := orders2.([]interface{})
+func NewOpenInterestArray(orders2 any) []OpenInterest {
+	orders := orders2.([]any)
 	result := make([]OpenInterest, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewOpenInterest(tradeMap)
 			result = append(result, order)
 		}
@@ -2131,11 +2131,11 @@ func NewOpenInterestArray(orders2 interface{}) []OpenInterest {
 	return result
 }
 
-func NewLiquidationArray(orders2 interface{}) []Liquidation {
-	orders := orders2.([]interface{})
+func NewLiquidationArray(orders2 any) []Liquidation {
+	orders := orders2.([]any)
 	result := make([]Liquidation, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewLiquidation(tradeMap)
 			result = append(result, order)
 		}
@@ -2143,11 +2143,11 @@ func NewLiquidationArray(orders2 interface{}) []Liquidation {
 	return result
 }
 
-func NewMarginModificationArray(orders2 interface{}) []MarginModification {
-	orders := orders2.([]interface{})
+func NewMarginModificationArray(orders2 any) []MarginModification {
+	orders := orders2.([]any)
 	result := make([]MarginModification, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewMarginModification(tradeMap)
 			result = append(result, order)
 		}
@@ -2155,11 +2155,11 @@ func NewMarginModificationArray(orders2 interface{}) []MarginModification {
 	return result
 }
 
-func NewConversionArray(orders2 interface{}) []Conversion {
-	orders := orders2.([]interface{})
+func NewConversionArray(orders2 any) []Conversion {
+	orders := orders2.([]any)
 	result := make([]Conversion, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewConversion(tradeMap)
 			result = append(result, order)
 		}
@@ -2167,11 +2167,11 @@ func NewConversionArray(orders2 interface{}) []Conversion {
 	return result
 }
 
-func NewLongShortRatioArray(orders2 interface{}) []LongShortRatio {
-	orders := orders2.([]interface{})
+func NewLongShortRatioArray(orders2 any) []LongShortRatio {
+	orders := orders2.([]any)
 	result := make([]LongShortRatio, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewLongShortRatio(tradeMap)
 			result = append(result, order)
 		}
@@ -2179,11 +2179,11 @@ func NewLongShortRatioArray(orders2 interface{}) []LongShortRatio {
 	return result
 }
 
-func NewDepositAddressArray(orders2 interface{}) []DepositAddress {
-	orders := orders2.([]interface{})
+func NewDepositAddressArray(orders2 any) []DepositAddress {
+	orders := orders2.([]any)
 	result := make([]DepositAddress, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewDepositAddress(tradeMap)
 			result = append(result, order)
 		}
@@ -2191,11 +2191,11 @@ func NewDepositAddressArray(orders2 interface{}) []DepositAddress {
 	return result
 }
 
-func NewLeverageTierArray(orders2 interface{}) []LeverageTier {
-	orders := orders2.([]interface{})
+func NewLeverageTierArray(orders2 any) []LeverageTier {
+	orders := orders2.([]any)
 	result := make([]LeverageTier, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewLeverageTier(tradeMap)
 			result = append(result, order)
 		}
@@ -2203,11 +2203,11 @@ func NewLeverageTierArray(orders2 interface{}) []LeverageTier {
 	return result
 }
 
-func NewAccountArray(orders2 interface{}) []Account {
-	orders := orders2.([]interface{})
+func NewAccountArray(orders2 any) []Account {
+	orders := orders2.([]any)
 	result := make([]Account, 0, len(orders))
 	for _, t := range orders {
-		if tradeMap, ok := t.(map[string]interface{}); ok {
+		if tradeMap, ok := t.(map[string]any); ok {
 			order := NewAccount(tradeMap)
 			result = append(result, order)
 		}
@@ -2218,7 +2218,7 @@ func NewAccountArray(orders2 interface{}) []Account {
 // ADL Type
 
 type ADL struct {
-	Info       map[string]interface{}
+	Info       map[string]any
 	Symbol     *string
 	Rank       *int64
 	Rating     *string
@@ -2227,8 +2227,8 @@ type ADL struct {
 	Datetime   *string
 }
 
-func NewADL(adlObj2 interface{}) ADL {
-	adlObj := adlObj2.(map[string]interface{})
+func NewADL(adlObj2 any) ADL {
+	adlObj := adlObj2.(map[string]any)
 	return ADL{
 		Info:       GetInfo(adlObj),
 		Symbol:     SafeStringTyped(adlObj, "symbol"),
@@ -2240,12 +2240,12 @@ func NewADL(adlObj2 interface{}) ADL {
 	}
 }
 
-func NewADLArray(data2 interface{}) []ADL {
-	data := data2.([]interface{})
+func NewADLArray(data2 any) []ADL {
+	data := data2.([]any)
 	result := make([]ADL, 0, len(data))
 
 	for _, item := range data {
-		obj, ok := item.(map[string]interface{})
+		obj, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
@@ -2257,13 +2257,13 @@ func NewADLArray(data2 interface{}) []ADL {
 
 // OrderBooks struct
 type OrderBooks struct {
-	Info       map[string]interface{}
+	Info       map[string]any
 	OrderBooks map[string]OrderBook
 }
 
 // Constructor for OrderBooks
-func NewOrderBooks(tickers interface{}) OrderBooks {
-	tickersMap := tickers.(map[string]interface{})
+func NewOrderBooks(tickers any) OrderBooks {
+	tickersMap := tickers.(map[string]any)
 
 	info := GetInfo(tickersMap)
 	orderBooks := make(map[string]OrderBook)
@@ -2297,7 +2297,7 @@ type CancellationRequest struct {
 	Id     *string
 }
 
-func NewCancellationRequest(request map[string]interface{}) CancellationRequest {
+func NewCancellationRequest(request map[string]any) CancellationRequest {
 	return CancellationRequest{
 		Id:     SafeStringTyped(request, "id"),
 		Symbol: SafeStringTyped(request, "symbol"),
@@ -2311,7 +2311,7 @@ type DepositWithdrawFeeNetwork struct {
 	percentage *float64
 }
 
-func NewDepositWithdrawFeeNetwork(data interface{}) DepositWithdrawFeeNetwork {
+func NewDepositWithdrawFeeNetwork(data any) DepositWithdrawFeeNetwork {
 	return DepositWithdrawFeeNetwork{
 		fee:        SafeFloatTyped(data, "fee"),
 		percentage: SafeFloatTyped(data, "percentage"),
