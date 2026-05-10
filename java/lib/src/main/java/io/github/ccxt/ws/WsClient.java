@@ -280,10 +280,9 @@ public class WsClient {
                 sslCtx = null;
             }
 
+            // Netty doesn't auto-attach User-Agent/Origin like browser/node WebSocket
+            // libraries do, so we set them ourselves — caller-supplied values win.
             DefaultHttpHeaders requestHeaders = new DefaultHttpHeaders();
-            // JS WebSocket library auto-sends User-Agent; Netty does not. Some
-            // exchanges (weex explicitly via ts/src/pro/weex.ts; Cloudflare-fronted
-            // endpoints implicitly) reject empty User-Agent with 403 Forbidden.
             boolean hasUserAgent = false;
             boolean hasOrigin = false;
             if (this.handshakeHeaders != null) {

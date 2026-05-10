@@ -1645,11 +1645,8 @@ public class Exchange {
                             this.verbose, keepAlive, decompressBin,
                             this.validateServerSsl);
 
-                    // Forward exchange-declared handshake headers (e.g. weex sets
-                    // options.ws.options.headers = { 'User-Agent': 'ccxt' }; gemini /
-                    // bitopro / upbit also stage entries here). The TS WebSocket
-                    // library auto-attaches these on the upgrade request; Netty
-                    // doesn't have a builtin equivalent so we wire it through.
+                    // Forward options.ws.options.headers to the upgrade request — required
+                    // by exchanges that gate on User-Agent (weex) or send custom headers.
                     Object headers = this.safeValue(wsOptions, "headers", null);
                     if (headers instanceof java.util.Map<?, ?> m) {
                         java.util.Map<String, String> hh = new java.util.HashMap<>();
@@ -1658,7 +1655,7 @@ public class Exchange {
                             hh.put(e.getKey().toString(), e.getValue().toString());
                         }
                         if (!hh.isEmpty()) {
-                            ((io.github.ccxt.ws.WsClient) created).handshakeHeaders = hh;
+                            created.handshakeHeaders = hh;
                         }
                     }
 

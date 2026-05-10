@@ -49,49 +49,36 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     }
 
     /**
-     * Store a [price, amount] delta. If amount is 0, remove the price level.
-     * Synchronized on `this` so that toMap() snapshots and reset() clear+repopulate
-     * sequences are race-free against the per-WsClient messageExecutor thread.
+     * Apply a [price, amount] delta. amount==0 removes the level; null price or
+     * null/NaN amount is a no-op (matches JS truthy / C# decimal? behavior).
      */
     public synchronized void storeArray(Object delta2) {
         this.storeArrayUnsafe(delta2);
     }
 
+    // Caller must hold synchronized(this); used by reset()/constructor while
+    // already inside the side's monitor to avoid lock re-entry boilerplate.
     @SuppressWarnings("unchecked")
     void storeArrayUnsafe(Object delta2) {
         List<Object> delta = (List<Object>) delta2;
         BigDecimal price = toBigDecimal(delta.get(0));
         BigDecimal amount = toBigDecimal(delta.get(1));
-
-        // JS truthy / C# decimal? semantics: a null price or null/NaN amount is a no-op,
-        // not a "delete level zero". toBigDecimal previously coerced null → ZERO which
-        // routed null-amount deltas down the delete branch and silently dropped levels.
         if (price == null) {
             return;
         }
-
-        // For bids, negate price so ascending sort gives descending order
+        // Bids store the negated price so a single ascending index list serves both sides.
         BigDecimal indexPrice = this.side ? price.negate() : price;
         int idx = bisectLeft(this.index, indexPrice);
-
         if (amount != null && amount.compareTo(BigDecimal.ZERO) != 0) {
-            // Insert or update
             if (idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
-                // Replace the inner [price, amount] list whole-cloth rather than
-                // mutating-in-place. Mutation-in-place leaves a residual data
-                // race: snapshot() shallow-copies the outer list, so a consumer
-                // iterating the snapshot still holds the same inner-list ref
-                // and would observe `set(1, amount)` mid-read. Replacing the
-                // slot here means the snapshot's inner-list ref is frozen at
-                // snapshot time and cannot drift.
+                // Replace the inner list whole-cloth: snapshot() shallow-copies, so an
+                // in-place set(1, amount) would still race with concurrent readers.
                 this.set(idx, new ArrayList<>(delta));
             } else {
-                // Insert new price level
                 this.index.add(idx, indexPrice);
                 this.add(idx, new ArrayList<>(delta));
             }
         } else if (amount != null && idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
-            // Remove price level (amount == 0)
             this.index.remove(idx);
             this.remove(idx);
         }
@@ -112,11 +99,7 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         this.storeArrayUnsafe(delta);
     }
 
-    /**
-     * Truncate to max depth.
-     * Called explicitly by exchange code after processing deltas, matching JS/C# behavior.
-     * Not called automatically from storeArray() by design.
-     */
+    /** Truncate to max depth. Called explicitly by exchange code after applying deltas. */
     public synchronized void limit() {
         int excess = this.size() - this.depth;
         for (int i = 0; i < excess; i++) {
@@ -126,22 +109,9 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         }
     }
 
-    /**
-     * Atomic snapshot for handing the side out to user/test code without exposing
-     * the live mutating list (would race with messageExecutor's storeArray/limit).
-     */
+    /** Snapshot copy for safe iteration outside the side's monitor. */
     public synchronized List<Object> snapshot() {
         return new ArrayList<>(this);
-    }
-
-    /**
-     * Atomic clear of both the data list and the price index (paired writes; reset()
-     * relies on this being one critical section so toMap snapshots never observe a
-     * cleared values list against a non-cleared index).
-     */
-    public synchronized void clearAll() {
-        this.clear();
-        this.index.clear();
     }
 
     private static BigDecimal toBigDecimal(Object val) {

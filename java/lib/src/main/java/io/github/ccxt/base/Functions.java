@@ -17,24 +17,18 @@ public final class Functions {
     private Functions() {}
 
     // --- JSON mapper (Jackson) ---
-    // Custom serializer for OrderBookSide: it extends ArrayList, so by default
-    // Jackson uses IndexedListSerializer which does `for (i=0; i<size; i++) get(i)` —
-    // size() and get(i) are not coherent under concurrent mutation by the
-    // WsClient.messageExecutor thread (storeArray/limit), so the loop crashes
-    // with `IndexOutOfBoundsException: Index N out of bounds for length N` when
-    // a level is removed mid-serialization. Substitute a synchronized snapshot
-    // so Jackson iterates a frozen copy. Mirrors C# OrderBookSide.cs's lock +
-    // SlimConcurrentList snapshot enumerator.
+    // Route OrderBookSide (and its Asks/Bids subclasses) through snapshot() so
+    // Jackson never iterates the live mutating list. Jackson's default
+    // IndexedListSerializer reads size() then loops get(i); under concurrent
+    // mutation those two reads disagree and throw IndexOutOfBoundsException.
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .registerModule(buildOrderBookSideModule());
 
     private static com.fasterxml.jackson.databind.module.SimpleModule buildOrderBookSideModule() {
         com.fasterxml.jackson.databind.module.SimpleModule m =
                 new com.fasterxml.jackson.databind.module.SimpleModule("OrderBookSideSnapshot");
-        // SimpleModule.addSerializer matches by exact class only — Asks/Bids
-        // subclasses fall through to Jackson's default IndexedListSerializer.
-        // Register a Serializers.Base that matches the polymorphic root so
-        // every OrderBookSide subclass routes through snapshot().
+        // SerializerModifier (rather than addSerializer) is needed so Asks/Bids
+        // subclasses match too — addSerializer is exact-class-only.
         m.setSerializerModifier(new com.fasterxml.jackson.databind.ser.BeanSerializerModifier() {
             @Override
             public com.fasterxml.jackson.databind.JsonSerializer<?> modifyCollectionSerializer(

@@ -376,10 +376,11 @@ public class BaseTest {
     }
 
     public String exceptionMessage(Object e) {
-        // Walk the cause chain so reflection-driven failures don't show as a
-        // bare `InvocationTargetException` and the real exchange/parser error
-        // is hidden one or two `getCause()` levels deep — that's what made
-        // bitmex, deribit, etc. unfixable from logs alone.
+        // Walk the cause chain — reflection wraps the real exception in
+        // InvocationTargetException → CompletionException → ..., so the
+        // surface message alone usually hides the real exchange/parser error.
+        // The 4-frame stack tail at the end pinpoints opaque JDK exceptions
+        // (IndexOutOfBoundsException, NullPointerException) that have no message.
         if (!(e instanceof Throwable)) return String.valueOf(e);
         Throwable cur = (Throwable) e;
         StringBuilder sb = new StringBuilder();
@@ -393,8 +394,6 @@ public class BaseTest {
             cur = cur.getCause();
             depth++;
         }
-        // Top of stack, first ccxt-side frame: makes opaque JDK exceptions
-        // (IndexOutOfBoundsException, NullPointerException) locatable.
         if (deepest != null && deepest.getStackTrace() != null) {
             StackTraceElement[] st = deepest.getStackTrace();
             int shown = 0;

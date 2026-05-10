@@ -60,27 +60,19 @@ public class WsOrderBook {
         this(null, null);
     }
 
-    /**
-     * Reset from a REST snapshot. Clears all existing data and repopulates.
-     */
+    /** Reset from a REST snapshot Map: replaces metadata and clears+repopulates both sides. */
     @SuppressWarnings("unchecked")
     public void reset(Object snapshot) {
         Map<String, Object> snap = (snapshot instanceof Map) ? (Map<String, Object>) snapshot : null;
-
-        // Mirror TS OrderBook.reset() at ts/src/base/ws/OrderBook.ts:120 — the
-        // snapshot Map (built by parseOrderBook) carries `symbol`, but Java's
-        // hand-written reset() previously dropped it on the floor, leaving every
-        // subsequent watchOrderBook* response with `symbol=null` and tripping the
-        // test harness's "symbol must have a value" assertion across ~30 exchanges.
         if (snap != null) {
             this.symbol = (String) snap.get("symbol");
             this.nonce = snap.get("nonce");
             this.timestamp = snap.get("timestamp");
             this.datetime = snap.get("datetime");
         }
-
-        // Atomic clear+repopulate against the side's own monitor so a concurrent
-        // toMap() snapshot can never observe a cleared list with a stale index.
+        // clear + repopulate must be one critical section per side, otherwise
+        // a concurrent toMap() snapshot can observe an empty list while the
+        // index still holds the old prices, leaving the two length-misaligned.
         synchronized (this.asks) {
             this.asks.clear();
             this.asks.index.clear();
@@ -107,42 +99,27 @@ public class WsOrderBook {
         }
     }
 
-    /**
-     * Truncate both sides to the configured depth.
-     * Returns this for chaining (matches TS behavior where orderbook.limit() returns the orderbook).
-     */
+    /** Truncate both sides to the configured depth. Returns this for chaining. */
     public WsOrderBook limit() {
         this.asks.limit();
         this.bids.limit();
         return this;
     }
 
-    /**
-     * Get the cache list (used by transpiled code via reflection).
-     */
     public List<Object> getCache() {
         return this.cache;
     }
 
-    /**
-     * Set the cache (used by transpiled code via reflection).
-     */
     public void setCache(List<Object> newCache) {
         this.cache.clear();
         this.cache.addAll(newCache);
     }
 
-    /**
-     * Convert to Map representation (for resolve/return).
-     */
+    /** Map view of the orderbook; asks/bids are snapshot copies so callers can iterate
+     *  without racing the WsClient thread that keeps applying deltas to the live sides. */
     public Map<String, Object> toMap() {
         Map<String, Object> result = new HashMap<>();
         result.put("symbol", this.symbol);
-        // Defensive snapshot: handing out the live OrderBookSide races with the
-        // per-WsClient messageExecutor thread (which keeps mutating via storeArray /
-        // limit / reset). Mirrors C# OrderBookSide.cs which uses lock + a snapshot
-        // enumerator. JS gets away with the live reference because of single-thread
-        // semantics; Java does not.
         result.put("asks", this.asks.snapshot());
         result.put("bids", this.bids.snapshot());
         result.put("timestamp", this.timestamp);
