@@ -204,13 +204,20 @@ class NewTranspiler {
             // new XyzRest() → new Xyz() for instantiating REST parent
             [/new (\w+)Rest\(\)/g, 'new io.github.ccxt.exchanges.$1()'],
 
-            // ArrayCache constructor — needs FQN for inner classes + int cast
-            [/new ArrayCache\((\w+)\)/gm, 'new ArrayCache(((Number)$1).intValue())'],
-            [/new ArrayCacheByTimestamp\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByTimestamp(((Number)$1).intValue())'],
+            // ArrayCache constructor — needs FQN for inner classes + int cast.
+            // Null-guard the size argument: TS code routinely does
+            //   new ArrayCacheByTimestamp(safeInteger(subscription, 'limit'))
+            // where the key is absent → safeInteger returns null. JS happily
+            // passes `undefined` as maxSize and the cache never evicts. Java
+            // NPEs on `((Number) null).intValue()`. The ArrayCache constructor
+            // already coerces `maxSize <= 0` to a 1000 default (ws/ArrayCache.java),
+            // so passing 0 on null matches JS's "default size" semantics.
+            [/new ArrayCache\((\w+)\)/gm, 'new ArrayCache($1 == null ? 0 : ((Number)$1).intValue())'],
+            [/new ArrayCacheByTimestamp\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByTimestamp($1 == null ? 0 : ((Number)$1).intValue())'],
             [/new ArrayCacheByTimestamp\(\)/gm, 'new ArrayCache.ArrayCacheByTimestamp()'],
-            [/new ArrayCacheBySymbolById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolById(((Number)$1).intValue())'],
+            [/new ArrayCacheBySymbolById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolById($1 == null ? 0 : ((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolById\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolById()'],
-            [/new ArrayCacheBySymbolBySide\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide(((Number)$1).intValue())'],
+            [/new ArrayCacheBySymbolBySide\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide($1 == null ? 0 : ((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolBySide\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide()'],
         ]
     }

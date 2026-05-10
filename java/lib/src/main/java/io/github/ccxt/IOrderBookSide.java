@@ -1,6 +1,6 @@
 package io.github.ccxt;
 
 
-interface IOrderBookSide {
+public interface IOrderBookSide {
     void storeArray(Object array);
 }

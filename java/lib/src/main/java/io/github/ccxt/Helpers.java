@@ -804,8 +804,14 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         if (o instanceof Long) return ((Long) o).doubleValue();
         if (o instanceof Integer) return ((Integer) o).doubleValue();
         if (o instanceof BigDecimal) return ((BigDecimal) o).doubleValue();
-        if (o instanceof String) return Double.parseDouble((String) o);
-        return Double.parseDouble(String.valueOf(o));
+        if (o instanceof String) {
+            try { return Double.parseDouble((String) o); } catch (NumberFormatException ex) { return 0.0; }
+        }
+        // Mirror TS's silent-NaN-or-default semantics: returning 0.0 instead of
+        // throwing keeps a single misuse (e.g. passing a Map to `sum`) from
+        // killing the whole WS connection. See Generic.toDouble for the same
+        // rationale and test coverage.
+        try { return Double.parseDouble(String.valueOf(o)); } catch (NumberFormatException ex) { return 0.0; }
     }
 
     private static float toFloat(Object o) {

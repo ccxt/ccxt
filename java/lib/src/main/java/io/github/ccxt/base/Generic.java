@@ -26,7 +26,19 @@ public class Generic {
         // bool→double coercion ourselves here, otherwise String.valueOf(false)
         // → "false" → Double.parseDouble throws NumberFormatException.
         if (o instanceof Boolean b) return b ? 1.0 : 0.0;
-        return Double.parseDouble(String.valueOf(o));
+        // TS's `sum` and similar arithmetics filter non-numbers via isNumber
+        // and silently return undefined/NaN — they don't throw on a Map or
+        // List or arbitrary object. Java's strict parseDouble does. Mirror
+        // the TS semantics by returning 0.0 (matches TS's `Number(NaN) || 0`
+        // pattern) when the input isn't parseable as a number. Without this,
+        // a single misuse of `sum` in transpiled code (e.g. bitmex passing
+        // the whole counter map instead of a single counter) tears down the
+        // entire WS connection on the first bad frame.
+        try {
+            return Double.parseDouble(String.valueOf(o));
+        } catch (NumberFormatException ex) {
+            return 0.0;
+        }
     }
 
     // ---------- sortBy ----------

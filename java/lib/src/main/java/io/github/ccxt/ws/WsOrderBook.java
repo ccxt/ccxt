@@ -68,6 +68,13 @@ public class WsOrderBook {
 
         if (snapshot instanceof Map) {
             Map<String, Object> snap = (Map<String, Object>) snapshot;
+            // Mirror TS OrderBook.reset() at ts/src/base/ws/OrderBook.ts:120 — the
+            // snapshot Map (built by parseOrderBook) carries `symbol`, but Java's
+            // hand-written reset() previously dropped it on the floor, leaving
+            // every subsequent watchOrderBook* response with `symbol=null` and
+            // tripping the test harness's "symbol must have a value" assertion
+            // across ~30 exchanges.
+            this.symbol = (String) snap.get("symbol");
             this.nonce = snap.get("nonce");
             this.timestamp = snap.get("timestamp");
             this.datetime = snap.get("datetime");

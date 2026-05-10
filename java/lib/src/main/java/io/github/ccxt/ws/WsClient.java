@@ -669,12 +669,27 @@ public class WsClient {
                     return;
                 }
 
-                // Try decompression
+                // Try decompression. The looksLikeRawDeflate heuristic checks
+                // only 2 bits of the first byte and false-positives on plain
+                // JSON: `{` (0x7B) and `[` (0x5B) both pass it. If the WS server
+                // has permessage-deflate negotiated, Netty already decompressed
+                // the frame and the bytes here are JSON — re-inflating crashes
+                // with `Deflate decompression failed`. Fall back to UTF-8 when
+                // decompression throws so a bad heuristic guess doesn't kill
+                // the whole subscription.
                 String text;
                 if (looksLikeGzip(data)) {
-                    text = decompressGzip(data);
+                    try {
+                        text = decompressGzip(data);
+                    } catch (Exception e) {
+                        text = new String(data, StandardCharsets.UTF_8);
+                    }
                 } else if (looksLikeRawDeflate(data)) {
-                    text = decompressDeflate(data);
+                    try {
+                        text = decompressDeflate(data);
+                    } catch (Exception e) {
+                        text = new String(data, StandardCharsets.UTF_8);
+                    }
                 } else {
                     text = new String(data, StandardCharsets.UTF_8);
                 }

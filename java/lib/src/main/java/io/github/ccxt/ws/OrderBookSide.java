@@ -11,7 +11,7 @@ import java.util.List;
  * Asks: ascending price order (index stores positive prices)
  * Bids: descending price order (index stores negated prices)
  */
-public class OrderBookSide extends ArrayList<Object> {
+public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.IOrderBookSide {
 
     protected final boolean side; // true = bids (descending), false = asks (ascending)
     protected int depth;

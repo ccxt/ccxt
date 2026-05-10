@@ -519,11 +519,22 @@ public class BaseTest {
         if (exc == null) {
             return null;
         }
-        Throwable cause = exc.getCause();
-        if (cause instanceof Exception) {
-            return (Exception) cause;
+        // Walk the entire cause chain rather than peeking one level. The
+        // virtual-thread + CompletableFuture pipeline wraps the original
+        // ccxt exception (AuthenticationError, NotSupported, etc.) under
+        // CompletionException → RuntimeException, which made the
+        // `isAuthError`/`isNotSupported` instanceof checks at the call site
+        // miss every typed ccxt error and report it as TEST_FAILURE instead
+        // of being skipped per the public-test policy.
+        Throwable cur = exc;
+        Throwable last = exc;
+        int depth = 0;
+        while (cur != null && depth < 10) {
+            last = cur;
+            cur = cur.getCause();
+            depth++;
         }
-        return exc;
+        return (last instanceof Exception) ? (Exception) last : exc;
     }
 
     public static Object jsonParse(Object jsonString) {
