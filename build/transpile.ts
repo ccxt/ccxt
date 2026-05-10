@@ -525,8 +525,6 @@ class Transpiler {
             [ /\sawait\s+([^;]+);/g, ' Async\\await($1);' ],
             [ /([\S])\: /g, '$1 => ' ],
             [/\$this->ws\./g, '$this->ws->'], // ws method fix
-            [/\$this->throttler\./g, '$this->throttler->'], // throttler method fix
-            [/\$this->throttler->setRateLimit\b/g, '$this->throttler->set_rate_limit'], // throttler snake_case fix
 
 
         // add {}-array syntax conversions up to 20 levels deep
@@ -769,9 +767,6 @@ class Transpiler {
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
         }
-        // fix throttler method calls (not covered by the self.METHOD regex above)
-        bodyAsString = bodyAsString.replace (/self\.throttler\.setRateLimit\b/g, 'self.throttler.set_rate_limit')
-
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
 
         const footer = [
@@ -1093,9 +1088,6 @@ class Transpiler {
 
         // snake case function names
         python3Body = python3Body.replace (/def (\w+)/g, (match, group1) => 'def ' + unCamelCase (group1))
-
-        // fix throttler method calls (receiver is not self, so the baseMethods loop won't catch it)
-        python3Body = python3Body.replace (/self\.throttler\.setRateLimit\b/g, 'self.throttler.set_rate_limit')
 
         // special case for Python super
         if (className) {
