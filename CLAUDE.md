@@ -403,6 +403,7 @@ Full list in `CONTRIBUTING.md`. Top recurring violations:
 - 4-space indent, **no tabs**. Blank line between methods, **no blank lines inside a method body**.
 - Single-quoted string keys: `obj['key']` — never `obj.key`.
 - Use `safeString`/`safeNumber`/`safeInteger`/`safeDict`/`safeList`/`safeBool` to read dict values. Never `obj['key'] || fallback` (works in JS, breaks in Python/PHP).
+- **Avoid `safeValue`.** It's the typeless escape hatch and is treated as deprecated when the type is known. Reach for the typed variant (`safeDict`, `safeList`, `safeBool`, `safeString`, …) and only fall back to `safeValue` when the value really can be any of several types.
 - Arithmetic must go through `Precise.stringAdd/Sub/Mul/Div/Gt/...`. The `+` operator is for string concatenation only.
 - No `.includes()` — use `.indexOf(x) !== -1`. No `.map`/`.filter` with arrow callbacks in derived classes. No `in` operator on arrays.
 - Always bracket ternaries: `(cond) ? a : b`. Don't nest them.
@@ -411,6 +412,22 @@ Full list in `CONTRIBUTING.md`. Top recurring violations:
 - Send exchange-specific market IDs, never unified symbols: `this.market(symbol)['id']`. Parse responses with `this.safeSymbol(marketId, market)`.
 - Crypto/signing must use base methods (`this.hmac`, `this.jwt`, `this.ecdsa`, `this.hash`, `this.totp`). No external libs in derived classes.
 - Each `define`d API endpoint becomes an **implicit method** like `publicGetEndpoint`. Don't write explicit HTTP wrappers — list the URL in the `api` block in `describe()` instead.
+
+### Patterns that became standard after CONTRIBUTING.md was last revised
+
+CONTRIBUTING.md is the authoritative ruleset but predates the TS migration in places. Verified against recent exchanges (`pacifica.ts`, `weex.ts`, `hyperliquid.ts`, `aster.ts`) and the certified set (`binance.ts`, `okx.ts`, `kraken.ts`, `bybit.ts`):
+
+- **Typed `Promise<...>` return signatures are mandatory.** Use `Promise<Market[]>`, `Promise<Order>`, `Promise<Trade[]>`, `Promise<OrderBook>`, `Promise<Int>`, `Promise<Str>`, `Promise<Dict>`, etc. Plain `Promise<any>` and untyped returns are not accepted in new code.
+- **Import lightweight types from `./base/types.js`.** Standard imports: `Dict`, `Str`, `Int`, `Num`, `Strings`, plus structure types (`Market`, `Ticker`, `Trade`, `Order`, `OrderBook`, `Position`, `Balances`, `OHLCV`, …). Use `Str`/`Int`/`Num` for nullable scalars in signatures: `async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order>`.
+- **Use the `handle*AndParams` extractors** instead of hand-rolling option lookups:
+  - `this.handleOptionAndParams(params, '<methodName>', '<key>', defaultValue)` — option → params → default fallback chain.
+  - `this.handleMarketTypeAndParams('<methodName>', market, params)` — returns `[type, params]` with `'spot' | 'swap' | 'future' | 'margin' | 'option'` resolution.
+  - `this.handleSubTypeAndParams('<methodName>', market, params)` — `'linear' | 'inverse'`.
+  - `this.handleNetworkCodeAndParams(params)` — pulls a unified network code out of `params['network']`.
+- **Parser helpers are typed too.** Prefer `this.safeMarketStructure({ ... })` over hand-built dicts in `parseMarket`. Use `this.safeMarket(marketId, market, delimiter, marketType)` and `this.safeCurrency(currencyId, currency)` for symbol/code resolution. `this.safeCurrencyCode(currencyId, currency)` returns just the code string. `this.safeOrder2(...)` and `this.safeTicker(...)` apply the unified post-processing on a partly-built dict.
+- **Error mapping at runtime via the `exceptions` block.** In `handleErrors`, after extracting the error code/message, call `this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback)` and `this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback)`. Don't write a chain of `if (errorCode === 'X') throw new Y` — keep the mapping declarative in `describe().exceptions`.
+- **`safeDict` / `safeList` / `safeBool` are the standard typed reads.** Recent exchanges show `safeValue` falling out of use as soon as the type is known (often <5 occurrences per file vs. dozens for the typed variants).
+- **eslint-disable comments around control characters** (CONTRIBUTING.md §734) are still needed *when you actually use a control char in a literal string*. Most modern `sign()` implementations build URLs/bodies with `this.urlencode()` / `this.json()` and so don't trigger the rule. If you do need `"\n"` or `"\t"` in a literal, the inline disable is still mandatory.
 
 ---
 
@@ -439,6 +456,18 @@ Files like `binanceus.ts`, `coinbaseadvanced.ts` are thin subclasses that overri
 
 **Q: Linting fails on a transpiler-required pattern (e.g. `"\n"` in double quotes).**
 Use the inline disable: `// eslint-disable-line quotes` or `// eslint-disable-next-line quotes`. These are mandatory in those spots, not a workaround.
+
+**Q: I have a Python/PHP/C#/Go stack trace and the bug is hard to spot from the TS source — can I edit the transpiled file to debug?**
+Yes, as a **scratchpad only**. Editing the generated file lets you add `print` / `var_dump` / `Console.WriteLine` / `fmt.Println` right where the language-specific failure happens, which is often the fastest way to localise an issue. Two rules:
+1. The fix itself **must** be ported back to `ts/src/<exchange>.ts` and verified by re-running `npm run transpile` (or the C#/Go variant). The next build will overwrite your throwaway edits.
+2. Don't `git add` the transpiled file. Confirm before committing: `git status` should show only `ts/src/**` and (rarely) hand-written base files / static fixtures.
+
+**Q: I implemented an endpoint based on the exchange's documentation and the response shape is different from what the docs say — what now?**
+Trust the live response over the docs. Exchange docs are routinely outdated, lag deployments, omit fields, or describe a different version. Workflow:
+1. Hit the live endpoint with `npm run cli.ts -- <id> <method> <args> --verbose` and inspect the raw response.
+2. Capture a static-response fixture (`--response`) so the parser is regression-tested against real data going forward.
+3. If the docs disagree with reality, link both in your PR and code from the live response. Add a comment in the parser pointing to the live shape if the discrepancy is non-obvious.
+Always cite the upstream doc URL in `@see`, but don't assume it's correct.
 
 ---
 
@@ -507,10 +536,36 @@ Paste the actual command output (or a one-line summary per command) under each i
 - **Always write/update the JSDoc** when adding or changing a public method (§7). Missing or wrong docstrings break the docs in all five languages.
 - **Pass `--verbose` when implementing or debugging an endpoint.** It prints the full request and raw response — essential for getting signing, parsing, and rate-limit issues right.
 - **When you change behaviour, update the docs.** New unified method, changed structure, new helper, new capability — see §8 for the matrix of what to update (`wiki/Manual.md`, `wiki/Requirements.md`, `examples/`, user-facing skills under `.claude/skills/ccxt-<lang>/`).
+- **Trust live responses over exchange docs.** Always cite the upstream URL in `@see`, but verify response shape with `npm run cli.ts -- <id> <method> --verbose` and capture a static-response fixture. Docs lag, omit fields, and describe stale versions.
+- **Use the transpiled file as a debugging scratchpad, not as a fix location.** If localising a bug is faster by editing `python/ccxt/<id>.py` or `php/<id>.php` directly with print statements, do it — but port the actual fix to `ts/src/` and never `git add` the transpiled file.
 
 ---
 
-## 13. Quick repo map
+## 13. Keep this guide alive — when to update CLAUDE.md / skills
+
+A doc only stays useful if it's edited as the codebase changes. If you discover something that this guide doesn't capture and would have saved you time, add it. Bias toward small targeted edits over big rewrites.
+
+**Update CLAUDE.md when:**
+- A rule here is wrong or out of date (line numbers shifted, command renamed, marker moved).
+- You hit a transpiler / build / test gotcha that isn't covered and would catch the next contributor.
+- A pattern that's now standard across `ts/src/` exchanges (≥3 recent files use it the same way) isn't documented.
+- You learned something general about the architecture or workflow that applies broadly, not to one exchange.
+
+**Don't update CLAUDE.md when:**
+- The lesson is exchange-specific — put it in a comment in that exchange file.
+- It's already in `CONTRIBUTING.md` or `wiki/Manual.md` — link, don't duplicate.
+- It's a one-off problem unlikely to recur.
+
+**Update / create a skill (`.claude/skills/<name>/SKILL.md`) when:**
+- You've done the same multi-step workflow ≥3 times and it would benefit from being scriptable. Examples: regenerating static fixtures for an exchange, bulk-updating a base method's signature, rolling out a new unified field across all exchanges.
+- A workflow needs structured inputs/arguments — turn it into a slash-invocable skill.
+
+**Update the user-facing `.claude/skills/ccxt-<lang>/` when:**
+- You add or change public surface area that callers need to know about (§8 has the full matrix).
+
+When you edit CLAUDE.md, keep it under the 200-line guideline if you can. If a section grows large, consider splitting it into `.claude/rules/<topic>.md` with a `paths:` frontmatter so it loads only when relevant files are open.
+
+## 14. Quick repo map
 
 ```
 ts/src/                 source TS — REST exchanges, base, REST tests
