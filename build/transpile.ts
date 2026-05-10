@@ -375,13 +375,13 @@ class Transpiler {
 
     getPHPSyncRegexes () {
         return [
-            [ /(?:\\React\\)?Async\\await\((?:\\React\\)?Promise\\all\((.+)\)\)/g, '$1' ], // remove line entirely
-            [ /(?:\\React\\)?Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
+            [ /Async\\await\(Promise\\all\((.+)\)\)/g, '$1' ], // remove line entirely
+            [ /Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
             // delete await, the following regex does not pick up multiline await calls
-            [ /\\?\b(?:React\\)?Async\\await\((.+)\);/g, '$1;' ],
+            [ /\bAsync\\await\((.+)\);/g, '$1;' ],
             // hence the following regex is added with a dotAll modifier 's'
             // and a non greedy match for the calls not picked up by the previous regex
-            [ /\\?\b(?:React\\)?Async\\await\((.+?)\);/gs, '$1;' ],
+            [ /\bAsync\\await\((.+?)\);/gs, '$1;' ],
             [ /\byield(?: from)?\s+/g, '' ], // delete yield from
         ]
     }
@@ -525,6 +525,8 @@ class Transpiler {
             [ /\sawait\s+([^;]+);/g, ' Async\\await($1);' ],
             [ /([\S])\: /g, '$1 => ' ],
             [/\$this->ws\./g, '$this->ws->'], // ws method fix
+            [/\$this->throttler\./g, '$this->throttler->'], // throttler method fix
+            [/\$this->throttler->setRateLimit\b/g, '$this->throttler->set_rate_limit'], // throttler snake_case fix
 
 
         // add {}-array syntax conversions up to 20 levels deep
@@ -767,6 +769,8 @@ class Transpiler {
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
         }
+        // fix throttler method calls (not covered by the self.METHOD regex above)
+        bodyAsString = bodyAsString.replace (/self\.throttler\.setRateLimit\b/g, 'self.throttler.set_rate_limit')
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
 
@@ -1089,6 +1093,9 @@ class Transpiler {
 
         // snake case function names
         python3Body = python3Body.replace (/def (\w+)/g, (match, group1) => 'def ' + unCamelCase (group1))
+
+        // fix throttler method calls (receiver is not self, so the baseMethods loop won't catch it)
+        python3Body = python3Body.replace (/self\.throttler\.setRateLimit\b/g, 'self.throttler.set_rate_limit')
 
         // special case for Python super
         if (className) {
@@ -2347,7 +2354,7 @@ class Transpiler {
             let bodyPhpAsync = phpReform (phpAsync);
             overwriteSafe (files.phpFileAsync, bodyPhpAsync);
             let bodyPhpSync = phpReform (php);
-            bodyPhpSync = bodyPhpSync.replace (/(?:\\React\\)?Promise\\all/g, '');
+            bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
             overwriteSafe (files.phpFileSync, bodyPhpSync);
         }
     }
