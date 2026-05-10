@@ -172,7 +172,6 @@ public class Throttler
         return t;
     }
 
-
     public void setRateLimit(double rateLimit)
     {
         this.config.RateLimit = rateLimit;
