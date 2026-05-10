@@ -565,7 +565,25 @@ A doc only stays useful if it's edited as the codebase changes. If you discover 
 
 When you edit CLAUDE.md, keep it under the 200-line guideline if you can. If a section grows large, consider splitting it into `.claude/rules/<topic>.md` with a `paths:` frontmatter so it loads only when relevant files are open.
 
-## 14. Quick repo map
+## 14. Tooling — automated PR review
+
+`.claude/agents/ccxt-pr-reviewer.md` defines a subagent that does an end-to-end review of a PR: reads the diff, transpiles and builds in all five languages, runs offline + live smoke tests, probes for race conditions / security leaks / performance issues / regressions / breaking changes, and posts a single structured review (inline comments + verdict + test checklist + migration notes if needed).
+
+Invoke from a session:
+
+```
+Use the ccxt-pr-reviewer agent to review PR 28543.
+```
+
+Or for the current branch's PR:
+
+```
+Use the ccxt-pr-reviewer agent to review this branch.
+```
+
+The agent reads `CLAUDE.md` to ground itself in project rules, runs verification commands directly (not theoretical recommendations), and caps inline comments at 12 with severity tags (🚨 Blocker / ⚠️ Concern / 💡 Suggestion / 📝 Nit). It only `APPROVE`s when zero issues are found and every test in Phases 3–5 of its workflow passes — it doesn't approve out of politeness. Read the agent file for the full workflow before relying on its output.
+
+## 15. Quick repo map
 
 ```
 ts/src/                 source TS — REST exchanges, base, REST tests
