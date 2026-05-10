@@ -2884,7 +2884,8 @@ class NewTranspiler {
                 // lambda that invokes the method and .join()s its
                 // CompletableFuture, mirroring the lib's spawn pattern.
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn(() -> { try { this.$2($3).join(); } catch(Exception _e) { throw new RuntimeException(_e); } })'],
-                [/exchange.jsonStringifyWithNull/g, 'exchange.json']
+                [/exchange.jsonStringifyWithNull/g, 'exchange.json'],
+                [/(response instanceof java.util.Map)/, '(true)'], // in java this check does not really make sense
             ];
 
             if (filename.includes('fetch') || filename.includes('load') || filename.includes('create') || filename.includes('watch')) {
