@@ -329,11 +329,7 @@ func (this *Exchange) InitThrottler() {
 
 func (this *Exchange) SetRateLimit(rateLimit float64) {
 	this.RateLimit = rateLimit
-	this.Throttler.Config["rateLimit"] = rateLimit
-	this.Throttler.Config["refillRate"] = 1 / rateLimit
-	if this.Throttler.Config["algorithm"] != "leakyBucket" {
-		this.Throttler.Config["maxWeight"] = ToFloat64(this.Throttler.Config["windowSize"]) / rateLimit
-	}
+	this.Throttler.SetRateLimit(rateLimit)
 }
 
 /*
