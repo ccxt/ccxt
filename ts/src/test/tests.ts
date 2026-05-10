@@ -522,40 +522,15 @@ class testMainClass {
 
     async runTests (exchange: any, tests: any, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
-        let results = [];
-        // WS tests on real-OS-thread runtimes (Java/C#/Go) run sequentially —
-        // workaround for an engine-level race in `watchMultiple` that affects
-        // production callers too, but only manifests when a thread can actually
-        // observe another mid-call. The race: caller passes a pre-built subscribe
-        // message AND a list of subscribe-hashes. `watchMultiple` filters the hash
-        // list to those not yet in `client.subscriptions`, but it sends the
-        // message verbatim — including topics that other threads already
-        // subscribed. JS/PY single-threaded event loops never expose this:
-        // each watchMultiple's putIfAbsent runs to completion synchronously
-        // before any `await client.send`, so by the time the next call's
-        // putIfAbsent fires it sees the prior topics and skips them.
-        // The proper fix is in the engine (rebuild the subscribe message from
-        // the post-filter hash list, or per-exchange callback), but it touches
-        // every pro/* exchange and is out of scope here. Until then, JS-style
-        // serialization in tests prevents the race from masking real bugs.
-        const wsSequential = this.wsTests && (this.lang === 'JAVA' || this.lang === 'C#' || this.lang === 'GO');
-        if (wsSequential) {
-            for (let i = 0; i < testNames.length; i++) {
-                const testName = testNames[i];
-                const testArgs = tests[testName];
-                results.push (await this.testSafe (testName, exchange, testArgs, isPublicTest));
-            }
-        } else {
-            const promises = [];
-            for (let i = 0; i < testNames.length; i++) {
-                const testName = testNames[i];
-                const testArgs = tests[testName];
-                promises.push (this.testSafe (testName, exchange, testArgs, isPublicTest));
-            }
-            // todo - not yet ready in other langs too
-            // promises.push (testThrottle ());
-            results = await Promise.all (promises);
+        const promises = [];
+        for (let i = 0; i < testNames.length; i++) {
+            const testName = testNames[i];
+            const testArgs = tests[testName];
+            promises.push (this.testSafe (testName, exchange, testArgs, isPublicTest));
         }
+        // todo - not yet ready in other langs too
+        // promises.push (testThrottle ());
+        const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         const failedMethods = [];
         for (let i = 0; i < testNames.length; i++) {
