@@ -375,13 +375,13 @@ class Transpiler {
 
     getPHPSyncRegexes () {
         return [
-            [ /Async\\await\(Promise\\all\((.+)\)\)/g, '$1' ], // remove line entirely
-            [ /Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
+            [ /(?:\\React\\)?Async\\await\((?:\\React\\)?Promise\\all\((.+)\)\)/g, '$1' ], // remove line entirely
+            [ /(?:\\React\\)?Promise\\all\((.+)\)/g, '$1' ], // remove line entirely
             // delete await, the following regex does not pick up multiline await calls
-            [ /\bAsync\\await\((.+)\);/g, '$1;' ],
+            [ /\\?\b(?:React\\)?Async\\await\((.+)\);/g, '$1;' ],
             // hence the following regex is added with a dotAll modifier 's'
             // and a non greedy match for the calls not picked up by the previous regex
-            [ /\bAsync\\await\((.+?)\);/gs, '$1;' ],
+            [ /\\?\b(?:React\\)?Async\\await\((.+?)\);/gs, '$1;' ],
             [ /\byield(?: from)?\s+/g, '' ], // delete yield from
         ]
     }
@@ -767,6 +767,7 @@ class Transpiler {
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
             bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
         }
+
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
 
         const footer = [
@@ -2346,7 +2347,7 @@ class Transpiler {
             let bodyPhpAsync = phpReform (phpAsync);
             overwriteSafe (files.phpFileAsync, bodyPhpAsync);
             let bodyPhpSync = phpReform (php);
-            bodyPhpSync = bodyPhpSync.replace (/Promise\\all/g, '');
+            bodyPhpSync = bodyPhpSync.replace (/(?:\\React\\)?Promise\\all/g, '');
             overwriteSafe (files.phpFileSync, bodyPhpSync);
         }
     }
