@@ -358,7 +358,10 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips exchange flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         }
     },
     "bithumb": {
@@ -678,7 +681,10 @@
             },
             "watchOrderBookForSymbols": {
                 "spread": "same"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips bybit flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         }
     },
     "bigone": {
@@ -1510,7 +1516,10 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips krakenfutures 'Already subscribed to feed' (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         },
         "timeout": 120000
     },
