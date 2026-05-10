@@ -204,6 +204,13 @@ Filing N comments for the same root cause inflates the comment count and obscure
 
 ## Phase 5 — Live smoke tests
 
+> ## 🚨 HARD SAFETY RULES — these override everything else in this phase
+>
+> 1. **Never place a trade whose notional exceeds 25 USD equivalent.** Before every `createOrder` you issue, compute `notional = amount × markPrice` and abort if `notional ≥ 25 USD`. The cap applies to each individual trade including any cleanup trade in §5a. If the exchange's minimum order size already exceeds 25 USD (rare, but possible on illiquid altcoins), **skip the live test entirely** and rely on the static fixtures already in the diff — do not attempt to round below the exchange minimum.
+> 2. **Never call `exchange.withdraw()` against a live exchange.** Not on mainnet, not on testnet, not on `--sandbox`, not for a tiny amount, not "to verify the request". Withdraw is fixture-only forever — if the diff touches `withdraw`, exercise the change exclusively through the static request/response fixtures and document that explicitly in the review checklist.
+>
+> If you can't satisfy both rules and still live-test the method, the correct outcome is to skip the live test and say so in the review. The static fixtures already validate the request/parser layer; live smoke is a sanity check, not a completeness gate.
+
 For each affected exchange and method, run the per-language CLI with `--verbose`:
 
 ```bash
@@ -222,12 +229,12 @@ Compare the output across languages. **Any divergence in the parsed result** (e.
 
 If you live-test any method that mutates exchange state (`createOrder`, `editOrder`, `cancelOrder`, `transfer`, `setLeverage`, `setMarginMode`, `setPositionMode`, …), you **must** restore the prior state. Same matrix as CLAUDE.md §5.5:
 
-- **`createOrder` (limit, didn't fill):** `cancelOrder(id, symbol)`, then `fetchOrder` to confirm `canceled`.
-- **`createOrder` (market, or limit that filled — partial or full):** place an opposite-side trade of the **filled amount** to return flat; for derivatives, prefer `closePosition` or a reduce-only opposite-side order.
-- **`editOrder`:** cancel the resulting order id.
-- **`transfer`:** reverse the transfer.
-- **`setLeverage` / `setMarginMode` / `setPositionMode`:** snapshot before, restore after.
-- **`withdraw`:** never live-test. Skip and note "withdraw is fixture-only — no live test" in the checklist.
+- **`createOrder` (limit, didn't fill):** verify notional ≤ 25 USD before placing; `cancelOrder(id, symbol)`, then `fetchOrder` to confirm `canceled`.
+- **`createOrder` (market, or limit that filled — partial or full):** verify notional ≤ 25 USD before placing; place an opposite-side trade of the **filled amount** to return flat (the cleanup trade also counts toward the 25 USD cap, so don't reuse a 24 USD opening trade with a 24 USD close — that's fine, but a 24 USD opening with a 30 USD close-and-add is not). For derivatives, prefer `closePosition` or a reduce-only opposite-side order.
+- **`editOrder`:** cancel the resulting order id; the new amount also must satisfy notional ≤ 25 USD.
+- **`transfer`:** reverse the transfer; same 25 USD cap on the moved amount.
+- **`setLeverage` / `setMarginMode` / `setPositionMode`:** snapshot before, restore after. (No notional risk — these are configuration writes.)
+- **`withdraw`:** **NEVER live-test.** Per the hard rules at the top of Phase 5, withdraw is fixture-only. Capture/assert via `node cli.js <id> withdraw ... --report` and `--response`, then say so in the checklist: "withdraw — fixture-only by safety rule, no live test attempted".
 
 Always use the exchange's **minimum order size** so cleanup is cheap if it fails. Wrap the test in `try { ... } finally { cleanup(); }` so cleanup runs on exception. Log every mutating call (with order id, side, amount) before issuing it so a human can intervene if cleanup itself errors. If cleanup fails, **the review must say so explicitly** — flag it as a 🚨 Blocker so a maintainer manually unwinds the leftover state before merge.
 
@@ -393,6 +400,7 @@ Add to CHANGELOG / release notes when this lands. Affected languages: TS/JS, Pyt
 - [ ] `npm run response-tests` (per lang: js/py/php/cs/go)
 - [ ] `npm run test-base-rest` / `test-base-ws` <only if base touched>
 - [ ] Live smoke `cli.ts/py/php/cs/go --verbose` for <method> on <id>
+- [ ] Safety rules respected — every live trade ≤ 25 USD notional, no `withdraw` live-tested
 - [ ] Live write-endpoint cleanup verified — open orders empty, positions flat (only when write methods were tested)
 - [ ] Edge: parallel `loadMarkets()` (markets-cache concurrency)
 - [ ] Edge: parallel signed calls (nonce uniqueness)

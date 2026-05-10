@@ -176,6 +176,18 @@ npm run test-base-ws      # all langs WS base
 
 ### 5.5 Live tests (last)
 
+> ## 🚨 HARD SAFETY RULES — non-negotiable
+>
+> These apply to humans, agents, CI scripts — anything that hits a real exchange with real credentials. Violations are merge-blocking and footgun-grade dangerous.
+>
+> 1. **Never risk more than the equivalent of 25 USD per trade.** Compute the notional before every `createOrder` call: `notional = amount × markPrice`. If `notional ≥ 25 USD` (or the equivalent in the quote currency), abort and reduce the amount. For derivatives, `notional` is the position value, not the margin posted.
+>    - For pairs whose minimum order size already exceeds 25 USD (some illiquid altcoins): **skip the live test entirely** and rely on static request/response fixtures. Do not "round down" past the exchange minimum — the order will reject and you'll have wasted a code path.
+>    - This cap is **per individual trade**, including the cleanup trade (§ table below). A 24 USD buy followed by a 24 USD sell to flatten is fine. A 30 USD anything is not.
+> 2. **Never call `exchange.withdraw()` against a live exchange.** Ever. Not on testnet, not on sandbox, not with a small amount, not "just to verify". `withdraw` is fixture-only forever — capture static request and response fixtures via `node cli.js <id> withdraw <args> --report` / `--response` and assert against those. Live withdraw means real funds leaving an account; one mistake is permanent.
+>
+> If you cannot live-test a method while staying under both rules, that's the correct outcome — fixtures cover the parser/request layer; the live exchange is for smoke testing, not for completeness theatre.
+
+
 ```bash
 node run-tests <exchange>                      # all five langs
 node run-tests <exchange> --js                 # one lang
