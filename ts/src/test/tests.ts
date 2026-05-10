@@ -523,19 +523,16 @@ class testMainClass {
     async runTests (exchange: any, tests: any, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
         let results = [];
-        if (this.wsTests) {
-            // WS tests run sequentially: a watch* call must finish its subscribe
-            // → resolve cycle before the next call's subscribe ships. JS gets
-            // away with Promise.all because each test awaits inside a single-
-            // threaded event loop and client.subscriptions is updated synchronously
-            // before any I/O — so the next test sees the prior subscription
-            // before sending its own subscribe frame. Statically-typed ports
-            // (Java, C#, Go) dispatch onto real OS threads, so two watch* calls
-            // can both observe an empty subscription map at the same instant
-            // and both ship subscribe frames that overlap on a topic, causing
-            // "already subscribed" rejections from the exchange (bybit, bitget,
-            // krakenfutures observed). Sequentializing matches the de-facto JS
-            // behavior and is a no-op there.
+        // WS tests on real-OS-thread runtimes (Java, C#, Go) need to run
+        // sequentially: two parallel watch* calls observe an empty subscription
+        // map at the same instant and both ship subscribe frames that overlap
+        // on a topic, causing "already subscribed" rejections (bybit, bitget,
+        // krakenfutures observed in Java). JS / PY use single-threaded event
+        // loops where this.subscriptions is updated synchronously before any
+        // await, so the next test sees the prior subscription and Promise.all
+        // is fine — gating ensures we don't slow those down for no benefit.
+        const wsSequential = this.wsTests && (this.lang === 'JAVA' || this.lang === 'C#' || this.lang === 'GO');
+        if (wsSequential) {
             for (let i = 0; i < testNames.length; i++) {
                 const testName = testNames[i];
                 const testArgs = tests[testName];

@@ -77,8 +77,14 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
         if (amount != null && amount.compareTo(BigDecimal.ZERO) != 0) {
             // Insert or update
             if (idx < this.index.size() && this.index.get(idx).compareTo(indexPrice) == 0) {
-                // Update existing price level
-                ((List<Object>) this.get(idx)).set(1, delta.get(1));
+                // Replace the inner [price, amount] list whole-cloth rather than
+                // mutating-in-place. Mutation-in-place leaves a residual data
+                // race: snapshot() shallow-copies the outer list, so a consumer
+                // iterating the snapshot still holds the same inner-list ref
+                // and would observe `set(1, amount)` mid-read. Replacing the
+                // slot here means the snapshot's inner-list ref is frozen at
+                // snapshot time and cannot drift.
+                this.set(idx, new ArrayList<>(delta));
             } else {
                 // Insert new price level
                 this.index.add(idx, indexPrice);

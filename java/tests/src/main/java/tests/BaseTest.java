@@ -691,7 +691,9 @@ public class BaseTest {
     }
 
     public String getLang() {
-        return "java";
+        // Uppercase to match the convention in tests.ts where this.lang is compared
+        // against 'JS' / 'PY' / 'PHP' / 'C#' / 'GO'.
+        return "JAVA";
     }
 
     public String getExt() {
