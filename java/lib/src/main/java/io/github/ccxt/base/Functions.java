@@ -17,50 +17,7 @@ public final class Functions {
     private Functions() {}
 
     // --- JSON mapper (Jackson) ---
-    // Route OrderBookSide (and its Asks/Bids subclasses) through snapshot() so
-    // Jackson never iterates the live mutating list. Jackson's default
-    // IndexedListSerializer reads size() then loops get(i); under concurrent
-    // mutation those two reads disagree and throw IndexOutOfBoundsException.
-    private static final ObjectMapper MAPPER = new ObjectMapper()
-            .registerModule(buildOrderBookSideModule());
-
-    private static com.fasterxml.jackson.databind.module.SimpleModule buildOrderBookSideModule() {
-        com.fasterxml.jackson.databind.module.SimpleModule m =
-                new com.fasterxml.jackson.databind.module.SimpleModule("OrderBookSideSnapshot");
-        // SerializerModifier (rather than addSerializer) is needed so Asks/Bids
-        // subclasses match too — addSerializer is exact-class-only.
-        m.setSerializerModifier(new com.fasterxml.jackson.databind.ser.BeanSerializerModifier() {
-            @Override
-            public com.fasterxml.jackson.databind.JsonSerializer<?> modifyCollectionSerializer(
-                    com.fasterxml.jackson.databind.SerializationConfig config,
-                    com.fasterxml.jackson.databind.type.CollectionType valueType,
-                    com.fasterxml.jackson.databind.BeanDescription beanDesc,
-                    com.fasterxml.jackson.databind.JsonSerializer<?> serializer) {
-                if (io.github.ccxt.ws.OrderBookSide.class.isAssignableFrom(valueType.getRawClass())) {
-                    return ORDER_BOOK_SIDE_SERIALIZER;
-                }
-                return serializer;
-            }
-        });
-        return m;
-    }
-
-    private static final com.fasterxml.jackson.databind.JsonSerializer<io.github.ccxt.ws.OrderBookSide>
-            ORDER_BOOK_SIDE_SERIALIZER =
-                    new com.fasterxml.jackson.databind.JsonSerializer<io.github.ccxt.ws.OrderBookSide>() {
-                        @Override
-                        public void serialize(io.github.ccxt.ws.OrderBookSide value,
-                                              com.fasterxml.jackson.core.JsonGenerator gen,
-                                              com.fasterxml.jackson.databind.SerializerProvider provider)
-                                throws java.io.IOException {
-                            java.util.List<Object> snap = value.snapshot();
-                            gen.writeStartArray();
-                            for (Object level : snap) {
-                                provider.defaultSerializeValue(level, gen);
-                            }
-                            gen.writeEndArray();
-                        }
-                    };
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     // -------------------------------------------------
     // HTTP method helper
