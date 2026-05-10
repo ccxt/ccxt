@@ -354,7 +354,15 @@ func (this *Exchange) LoadMarkets(params ...any) <-chan any {
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
 		markets := <-this.LoadMarketsHelper(params...)
-		this.marketsLoaded = true
+		// Only mark loaded if the helper actually populated this.Markets.
+		// Without this guard, a panicked helper leaves marketsLoaded=true
+		// with Markets=nil; the fast path in subsequent calls then returns
+		// a typed-nil that fails PanicOnError's contract — Market(symbol)
+		// panics with the misleading "markets not loaded" message, and the
+		// instance is permanently corrupted until destroyed.
+		if this.Markets != nil {
+			this.marketsLoaded = true
+		}
 		this.marketsLoading = false
 		for _, ch := range this.loadMarketsSubscribers {
 			ch <- markets
