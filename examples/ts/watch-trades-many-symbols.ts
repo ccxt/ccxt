@@ -3,7 +3,7 @@
 import ccxt from '../../js/ccxt.js';
 
 // eslint-disable-next-line import/no-named-as-default-member
-console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
+console.log ('CCXT Version:', ccxt.version);
 
 async function watchTrades (exchange, symbol) {
     // eslint-disable-next-line no-constant-condition

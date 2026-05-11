@@ -80,7 +80,7 @@ async function main () {
     const timeframe = '1m';
     watch (exchange, symbol, timeframe);
     log (exchange, symbol, timeframe);
-    await exchange.close ();
+    // await exchange.close (); // close connection when you finish evrything
 }
 
 main ();
