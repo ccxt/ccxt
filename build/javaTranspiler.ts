@@ -1668,6 +1668,21 @@ class NewTranspiler {
         content = content.replace(/(throw new \w+\()Helpers\.add\(/gm, '$1(String)Helpers.add(');
         content = content.replace(/(client\.(?:future|reusableFuture)\()Helpers\.add\(/gm, '$1(String)Helpers.add(');
 
+        // ── Typed-wrapper overload collision: fetchBalance / fetchPositions ──
+        // The typed-wrapper exchange classes (e.g. exchanges/Hashkey.java) define
+        //     Balances fetchBalance(Map<String, Object> params)
+        //     List<Position> fetchPositions(List<String> symbols, Map<String, Object> params)
+        // which Java's overload resolution prefers over the inherited async
+        //     CompletableFuture<Object> fetchBalance(Object... optionalArgs)
+        // when the WS code calls `this.fetchBalance(new HashMap<>(){{...}})`. The
+        // typed return is not a CompletableFuture, so the trailing `.join()`
+        // fails to compile. Cast the HashMap to Object so the varargs overload
+        // wins and the call returns a CompletableFuture<Object>.
+        content = content.replace(/this\.fetchBalance\(new java\.util\.HashMap/gm,
+            'this.fetchBalance((Object) new java.util.HashMap');
+        content = content.replace(/this\.fetchPositions\((null|[a-zA-Z_]\w*),\s*new java\.util\.HashMap/gm,
+            'this.fetchPositions($1, (Object) new java.util.HashMap');
+
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
         content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
