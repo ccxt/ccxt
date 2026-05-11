@@ -955,12 +955,20 @@ class NewTranspiler {
 
         let inputExchanges: string[] =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         if (!inputExchanges || inputExchanges.length === 0) {
-            // Only transpile WS exchanges that have a REST parent class already transpiled
-            const restExchanges = fs.readdirSync(EXCHANGES_FOLDER)
-                .filter((f: string) => f.endsWith('.java'))
-                .map((f: string) => f.replace('.java', '').toLowerCase());
+            // REST transpile writes `<Exchange>Core.java`; only Binance.java and
+            // Bybit.java exist as plain names (tracked in git). Match against
+            // both shapes — on a fresh CI checkout only the two tracked files
+            // are plain, so a naive `.java` match emits only those WS classes
+            // and every other exchange dies at runtime with ClassNotFound.
+            const restExchanges = new Set<string>();
+            for (const f of fs.readdirSync(EXCHANGES_FOLDER)) {
+                if (!f.endsWith('.java')) continue;
+                const base = f.replace('.java', '').toLowerCase();
+                restExchanges.add(base);
+                if (base.endsWith('core')) restExchanges.add(base.slice(0, -4));
+            }
             const wsExchanges = (exchanges as any).ws as string[];
-            inputExchanges = wsExchanges.filter((ws: string) => restExchanges.includes(ws));
+            inputExchanges = wsExchanges.filter((ws: string) => restExchanges.has(ws));
             log.blue('[java-ws] Filtering to exchanges with REST parents:', inputExchanges);
         }
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges }
