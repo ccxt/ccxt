@@ -1,19 +1,22 @@
+
 'use strict';
 
-const ccxt = require ('ccxt');
+import ccxt from '../../js/ccxt.js';
 
-(async () => {
+console.log ('CCXT Version:', ccxt.version);
 
-     const exchange = new ccxt.pro.binance ({ enableRateLimit: true })
-    const symbols = [ 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ]
+
+async function main () {
+    const exchange = new ccxt.pro.binance ();
+    const symbols = [ 'BTC/USDT', 'ETH/BTC', 'ETH/USDT' ];
 
     const loop = async (symbol) => {
         while (true) {
             try {
-                const orderbook = await exchange.watchOrderBook (symbol)
-                console.log (new Date (), symbol, orderbook['asks'][0], orderbook['bids'][0])
-            } catch (e) {
-                console.log (symbol, e)
+                const orderbook = await exchange.watchOrderBook (symbol);
+                console.log (new Date (), symbol, orderbook['asks'][0], orderbook['bids'][0]);
+            } catch (e: any) {
+                console.log (symbol, e);
                 // do nothing and retry on next loop iteration
                 // throw e // uncomment to break all loops in case of an error in any one of them
                 // break // you can also break just this one loop if it fails
@@ -21,6 +24,8 @@ const ccxt = require ('ccxt');
         }
     }
 
-    await Promise.all (symbols.map (symbol => loop (symbol)))
+    await Promise.all (symbols.map ((symbol) => loop (symbol)));
 
-}) ()
+}
+
+main ();

@@ -2,7 +2,8 @@
 
 import ccxt from '../../js/ccxt.js';
 
-console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
+console.log ('CCXT Version:', ccxt.version);
+
 
 let ohlcvs = {};
 
@@ -14,22 +15,22 @@ async function log (exchange, symbol, timeframe) {
         await exchange.throttle (1);
     }
     let now = exchange.milliseconds ();
-    const start = (parseInt (now / duration) + 1) * duration;
+    const start = (Math.floor (now / duration) + 1) * duration;
     console.log (exchange.iso8601 (exchange.milliseconds ()), 'Trades started arriving, waiting till', exchange.iso8601 (start));
     await exchange.sleep (start - now);
     console.log (exchange.iso8601 (exchange.milliseconds ()), 'Done warming up');
     for (let i = 0;; i++) {
         now = exchange.milliseconds ();
-        let candle = Object.values (ohlcvs)[0];
+        let candle: any = Object.values (ohlcvs)[0];
         console.log ('');
         console.log (exchange.iso8601 (now), '------------------------------------------------------');
-        console.log ('Datetime                ', 'Timestamp    ', ... [ 'Open', 'High', 'Low', 'Close', market['base'], market['quote'] ].map (x => x.toString ().padEnd (10, ' ')));
+        console.log ('Datetime                ', 'Timestamp    ', ...[ 'Open', 'High', 'Low', 'Close', market['base'], market['quote'] ].map ((x: any) => x.toString ().padEnd (10, ' ')));
         for (let j = start; j < now; j += duration) {
             if (!(j in ohlcvs)) {
                 ohlcvs[j] = [ j, candle[4], candle[4], candle[4], candle[4], 0, 0 ];
             }
             candle = exchange.safeValue (ohlcvs, j);
-            console.log (exchange.iso8601 (j), ... candle.map (x => x.toString ().padEnd (10, ' ')));
+            console.log (exchange.iso8601 (j), ...candle.map (x => x.toString ().padEnd (10, ' ')));
         }
         ohlcvs = exchange.indexBy (Object.values (ohlcvs).slice (-1000), 0);
         await exchange.sleep (1000);
@@ -41,16 +42,16 @@ async function watch (exchange, symbol, timeframe) {
     const duration = exchange.parseTimeframe (timeframe) * 1000;
     while (true) {
         try {
-            const trades = await exchange.watchTrades(symbol);
-            for (const trade of trades) {
-                const timestamp = parseInt(trade['timestamp'] / duration) * duration
-                let candle = exchange.safe_value(ohlcvs, timestamp)
+            const trades = await exchange.watchTrades (symbol);
+            for (const trade of trades) { // eslint-disable-line
+                const timestamp = Math.floor (trade['timestamp'] / duration) * duration;
+                let candle = exchange.safeValue (ohlcvs, timestamp);
                 if (candle) {
-                    candle[2] = Math.max(trade['price'], candle[2])
-                    candle[3] = Math.min(trade['price'], candle[3])
-                    candle[4] = trade['price']
-                    candle[5] = exchange.parseNumber(exchange.amountToPrecision(symbol, trade['amount'] + candle[5]))
-                    candle[6] = exchange.parseNumber(exchange.costToPrecision(symbol, trade['cost'] + candle[6]))
+                    candle[2] = Math.max (trade['price'], candle[2]);
+                    candle[3] = Math.min (trade['price'], candle[3]);
+                    candle[4] = trade['price'];
+                    candle[5] = exchange.parseNumber (exchange.amountToPrecision (symbol, trade['amount'] + candle[5]));
+                    candle[6] = exchange.parseNumber (exchange.costToPrecision (symbol, trade['cost'] + candle[6]));
                 } else {
                     candle = [
                         timestamp,
@@ -58,13 +59,13 @@ async function watch (exchange, symbol, timeframe) {
                         trade['price'],
                         trade['price'],
                         trade['price'],
-                        exchange.parseNumber(exchange.amountToPrecision(symbol, trade['amount'])),
-                        exchange.parseNumber(exchange.costToPrecision(symbol, trade['cost'])),
-                    ]
+                        exchange.parseNumber (exchange.amountToPrecision (symbol, trade['amount'])),
+                        exchange.parseNumber (exchange.costToPrecision (symbol, trade['cost'])),
+                    ];
                 }
                 ohlcvs[timestamp] = candle;
             }
-        } catch (e) {
+        } catch (e: any) {
             console.log (e.constructor.name, e.message);
         }
     }
@@ -79,4 +80,4 @@ async function main () {
     await exchange.close ();
 }
 
-main();
+main ();
