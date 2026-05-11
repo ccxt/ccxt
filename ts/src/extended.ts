@@ -450,16 +450,16 @@ export default class extended extends Exchange {
         //
         const tradingConfig = this.safeDict (market, 'tradingConfig', {});
         const marketId = this.safeString (market, 'name');
-        const baseId = this.safeString (market, 'assetName');
+        let baseId = this.safeString (market, 'assetName');
+        if (baseId.indexOf ('SPOT') >= 0) {
+            baseId = baseId.replace ('SPOT', '');
+        }
         let quoteId = this.safeString (market, 'collateralAssetName');
         if (quoteId === 'USD') {
             quoteId = 'USDC';
         }
-        const base = this.safeCurrencyCode (baseId);
+        let base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const settleId = 'USDC';
-        const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote + ':' + settle;
         const status = this.safeString (market, 'status');
         const active = (status === 'ACTIVE');
         const amountPrecision = this.safeNumber (tradingConfig, 'minOrderSizeChange');
@@ -468,6 +468,19 @@ export default class extended extends Exchange {
         const minAmount = this.safeNumber (tradingConfig, 'minOrderSize');
         const maxCost = this.safeNumber (tradingConfig, 'maxLimitOrderValue');
         const created: Int = this.safeInteger (market, 'createdAt');
+        let settleId = undefined;
+        let settle = undefined;
+        let symbol = base + '/' + quote;
+        let isSpot = false;
+        let type = this.safeStringLower (market, 'type');
+        if (type === 'spot') {
+            isSpot = true;
+        } else {
+            type = 'swap';
+            settleId = 'USDC';
+            settle = this.safeCurrencyCode (settleId);
+            symbol += ':' + settle;
+        }
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -477,15 +490,15 @@ export default class extended extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
-            'spot': false,
+            'type': type,
+            'spot': isSpot,
             'margin': false,
-            'swap': true,
+            'swap': !isSpot,
             'future': false,
             'option': false,
             'active': active,
-            'contract': true,
-            'linear': true,
+            'contract': !isSpot,
+            'linear': !isSpot,
             'inverse': false,
             'taker': this.safeNumber (this.fees, 'taker'),
             'maker': this.safeNumber (this.fees, 'maker'),
@@ -2214,7 +2227,7 @@ export default class extended extends Exchange {
         let builderFee = undefined;
         let builderId = undefined;
         [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFee', '0.00025');
-        [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId', 'TODO:BUILDERID');
+        [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId', '257624');
         const totalFee = Precise.stringAdd (fee, builderFee);
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
