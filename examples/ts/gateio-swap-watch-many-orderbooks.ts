@@ -16,15 +16,15 @@ async function loop (exchange, method, symbol) {
 }
 
 async function main () {
-     const exchange = new ccxt.pro.gateio ({
-        'options': {'defaultType':'swap'};
-    })
+    const exchange = new ccxt.pro.gateio ({
+        'options': { 'defaultType': 'swap' },
+    });
     await exchange.loadMarkets ();
     // exchange.verbose = true // uncomment for debugging purposes if necessary
     const symbols = [
         'ANC/USDT:USDT',
-    ]
+    ];
     await Promise.all (symbols.map ((symbol) => loop (exchange, 'fetchOrderBook', symbol)));
 }
 
-main ()
+main ();
