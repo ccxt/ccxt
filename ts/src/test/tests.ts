@@ -273,9 +273,6 @@ class testMainClass {
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
         const isFeatureTest = (methodName === 'features');
-        // close() is a lifecycle test that runs unconditionally on every WS-capable
-        // exchange — it's not advertised via exchange.has and shouldn't be gated on it.
-        const isCloseTest = (methodName === 'close');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return true;
@@ -284,7 +281,7 @@ class testMainClass {
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
-        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isCloseTest) {
+        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
@@ -766,16 +763,6 @@ class testMainClass {
                 }
                 exchange.options['defaultType'] = 'swap';
                 await this.runPublicTests (exchange, swapSymbols);
-            }
-            // WS lifecycle epilogue: close() must run AFTER every spot/swap round,
-            // since it tears down the WS clients other tests depend on. Running
-            // here (after all parallel watch tests have settled) guarantees every
-            // batch finishes on a live channel.
-            if (this.wsTests) {
-                const closeSymbol = (spotSymbols !== undefined) ? spotSymbols[0] : (swapSymbols !== undefined ? swapSymbols[0] : undefined);
-                if (closeSymbol !== undefined) {
-                    await this.testSafe ('close', exchange, [ closeSymbol ], true);
-                }
             }
         }
         if (this.privateTest || this.privateTestOnly) {

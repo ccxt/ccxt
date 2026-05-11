@@ -716,10 +716,6 @@ public class BaseTest {
         }
 
         keys.add("features");
-        if (ws) {
-            // close() is a lifecycle test (not in exchange.has); auto-load alongside features.
-            keys.add("close");
-        }
 
         final String basePackage = ws ? "tests.exchange.ws" : "tests.exchange";
         final Map<String, Object> testClasses = new HashMap<>();
