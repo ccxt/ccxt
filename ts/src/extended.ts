@@ -2209,8 +2209,11 @@ export default class extended extends Exchange {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const uppercaseSide = side.toUpperCase ();
-        if (!this.inArray (uppercaseType, [ 'LIMIT', 'MARKET' ])) {
-            throw new BadRequest (this.id + ' createOrder() supports limit and market orders only');
+        if (market['spot'] && uppercaseType !== 'LIMIT') {
+            throw new BadRequest (this.id + ' createOrder() supports limit orders for spot markets only');
+        }
+        if (!this.inArray (uppercaseType, [ 'LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL' ])) {
+            throw new BadRequest (this.id + ' createOrder() supports limit, market, conditional and tpsl orders only');
         }
         if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
