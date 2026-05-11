@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, LedgerEntry, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -90,7 +90,7 @@ export default class extended extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
@@ -1464,6 +1464,94 @@ export default class extended extends Exchange {
             'code': undefined,
             'info': account,
         };
+    }
+
+    /**
+     * @method
+     * @name extended#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as LedgerEntry[];
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "id": "1951255127004282880",
+        //         "type": "TRANSFER",
+        //         "status": "COMPLETED",
+        //         "amount": "-3.0000000000000000",
+        //         "fee": "0",
+        //         "asset": 1,
+        //         "time": 1754050449502,
+        //         "accountId": 100009,
+        //         "counterpartyAccountId": 100023
+        //     }
+        //
+        const timestamp = this.safeInteger (item, 'time');
+        const assetId = this.safeString (item, 'asset');
+        const code = this.getExtendedCurrencyCodeById (assetId, currency);
+        const ledgerCurrency = this.safeCurrency (code, currency);
+        const amountString = this.safeString (item, 'amount');
+        let direction: Str = undefined;
+        if (amountString !== undefined) {
+            direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
+        }
+        let fee = undefined;
+        const feeCost = this.safeString (item, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': code,
+                'cost': this.parseNumber (Precise.stringAbs (feeCost)),
+            };
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': this.safeString (item, 'accountId'),
+            'referenceId': this.safeString (item, 'transactionHash'),
+            'referenceAccount': this.safeString (item, 'counterpartyAccountId'),
+            'type': this.parseTransactionType (this.safeString (item, 'type')),
+            'currency': code,
+            'amount': (amountString === undefined) ? undefined : this.parseNumber (Precise.stringAbs (amountString)),
+            'before': undefined,
+            'after': undefined,
+            'status': this.parseTransactionStatus (this.safeString (item, 'status')),
+            'fee': fee,
+        }, ledgerCurrency) as LedgerEntry;
     }
 
     /**

@@ -1190,6 +1190,70 @@
                 ]
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger with limit",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "1951255127004282880",
+                            "type": "TRANSFER",
+                            "status": "COMPLETED",
+                            "amount": "-3.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "counterpartyAccountId": 100023
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "1951255127004282880",
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1951255127004282880",
+                        "timestamp": 1754050449502,
+                        "datetime": "2025-08-01T10:54:09.502Z",
+                        "direction": "out",
+                        "account": "100009",
+                        "referenceId": null,
+                        "referenceAccount": "100023",
+                        "type": "transfer",
+                        "currency": "USDC",
+                        "amount": 3,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "info": {
+                            "id": "1951255127004282880",
+                            "type": "TRANSFER",
+                            "status": "COMPLETED",
+                            "amount": "-3.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "counterpartyAccountId": 100023,
+                            "cursor": "1951255127004282880"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetch deposits with limit",

@@ -338,6 +338,18 @@
                 ]
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger with limit",
+                "method": "fetchLedger",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",
