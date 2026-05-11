@@ -40,7 +40,10 @@ async function testClose (exchange: Exchange, skippedProperties: object, symbol:
     try {
         await exchange.watchTicker (symbol);
     } catch (e) {
-        // intentional: see comment above
+        // intentional: see comment above. Self-assignment keeps the catch
+        // block non-empty after Python transpile (empty `except:` is a
+        // SyntaxError; TS lets us elide the body, Python doesn't).
+        const ignored = e;
     }
     await exchange.close ();
 
@@ -57,7 +60,9 @@ async function testClose (exchange: Exchange, skippedProperties: object, symbol:
         // Expected: any rejection terminates the loop. The point is that
         // close() doesn't deadlock; whether the rejection is
         // ExchangeClosedByUser or a network-layer exception depends on
-        // which fires first under live conditions.
+        // which fires first under live conditions. Self-assignment keeps
+        // the catch non-empty for Python.
+        const ignored = e;
     }
 
     return true;
