@@ -326,6 +326,18 @@
                 ]
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers with limit",
+                "method": "fetchTransfers",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1&type=TRANSFER",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",

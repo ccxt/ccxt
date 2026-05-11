@@ -1332,6 +1332,61 @@
                 ]
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers with limit",
+                "method": "fetchTransfers",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "1951255127004282883",
+                            "type": "TRANSFER",
+                            "status": "COMPLETED",
+                            "amount": "-3.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "counterpartyAccountId": 100023
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "1951255127004282883",
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1951255127004282883",
+                            "type": "TRANSFER",
+                            "status": "COMPLETED",
+                            "amount": "-3.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "counterpartyAccountId": 100023,
+                            "cursor": "1951255127004282883"
+                        },
+                        "id": "1951255127004282883",
+                        "timestamp": 1754050449502,
+                        "datetime": "2025-08-01T12:14:09.502Z",
+                        "currency": "USDC",
+                        "amount": 3,
+                        "fromAccount": "100009",
+                        "toAccount": "100023",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch positions history with symbol",

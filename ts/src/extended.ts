@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -129,7 +129,7 @@ export default class extended extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
@@ -1497,6 +1497,80 @@ export default class extended extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'WITHDRAWAL' }, params));
+    }
+
+    /**
+     * @method
+     * @name extended#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {TransferEntry[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {
+            'type': 'TRANSFER',
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v1PrivateGetUserAssetOperations (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        const pagination = this.safeDict (response, 'pagination', {});
+        const cursor = this.safeValue (pagination, 'cursor');
+        if ((cursor !== undefined) && (data.length > 0)) {
+            const lastIndex = data.length - 1;
+            data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
+        }
+        return this.parseTransfers (data, currency, since, limit);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const timestamp = this.safeInteger (transfer, 'time');
+        const assetId = this.safeString (transfer, 'asset');
+        const code = this.getExtendedCurrencyCodeById (assetId, currency);
+        const amountString = this.safeString (transfer, 'amount');
+        const amount = (amountString === undefined) ? undefined : this.parseNumber (Precise.stringAbs (amountString));
+        const accountId = this.safeString (transfer, 'accountId');
+        const counterpartyAccountId = this.safeString (transfer, 'counterpartyAccountId');
+        let fromAccount = accountId;
+        let toAccount = counterpartyAccountId;
+        if ((amountString !== undefined) && !Precise.stringLt (amountString, '0')) {
+            fromAccount = counterpartyAccountId;
+            toAccount = accountId;
+        }
+        const validSignature = this.safeBool (transfer, 'validSignature');
+        let status: Str = undefined;
+        if (validSignature !== undefined) {
+            status = validSignature ? 'ok' : 'failed';
+        } else {
+            status = this.parseTransactionStatus (this.safeString (transfer, 'status'));
+        }
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
     }
 
     getExtendedCurrencyCodeById (assetId: Str, currency: Currency = undefined): Str {
