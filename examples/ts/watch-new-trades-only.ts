@@ -3,7 +3,7 @@
 
 import ccxt from '../../js/ccxt.js';
 
-console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
+console.log ('CCXT Version:', ccxt.version);
 
 async function watchExchange (exchangeId, symbol) {
     const exchange = new ccxt.pro[exchangeId] ({ // eslint-disable-line import/no-named-as-default-member

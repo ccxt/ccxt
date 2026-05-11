@@ -2,7 +2,7 @@
 
 import ccxt from '../../js/ccxt.js';
 
-console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
+console.log ('CCXT Version:', ccxt.version);
 
 const exchange = new ccxt.okx ({ // eslint-disable-line import/no-named-as-default-member
     'apiKey': 'YOUR_API_KEY',

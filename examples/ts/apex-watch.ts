@@ -4,26 +4,11 @@
 
 import ccxt from '../../js/ccxt.js';
 
-console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
+console.log ('CCXT Version:', ccxt.version);
 
-async function loop (exchange, symbol) {
-    while (true) { // eslint-disable-line no-constant-condition
-        try {
-            const ticker = await exchange.watchTicker (symbol);
-            console.log (new Date () + ' ' + exchange.id + ' ' + symbol);
-            console.log (ticker);
-            await exchange.sleep (1000);
-        } catch (e) {
-            console.log (e);
-            // do nothing and retry on next loop iteration
-            // throw e // uncomment to break all loops in case of an error in any one of them
-            // break // you can also break just this one loop if it fails
-        }
-    }
-}
 
 async function main () {
-    const exchange = new ccxt.pro.apex ({ // eslint-disable-line import/no-named-as-default-member
+    const exchange = new ccxt.pro.apex ({
         'apiKey': 'your api Key',
         'secret': 'your api secret',
         'walletAddress': 'your eth address',
@@ -34,17 +19,8 @@ async function main () {
             'brokerId': '',
         },
     });
-    exchange.setSandboxMode (true);
-    if (exchange.has['watchTicker']) {
-        await exchange.loadMarkets ();
-        const targetSymbols = [ 'BTC-USDT', 'ETH-USDT' ];
-        for (let i = 0; i < targetSymbols.length; i++) {
-            const symbol = targetSymbols[i];
-            await loop (exchange, symbol);
-        }
-    } else {
-        console.log (exchange.id + ' does not support watchTicker yet');
-    }
+    const tickers = await exchange.watchTickers ([ 'BTC-USDT', 'ETH-USDT' ]);
+    console.log (tickers);
 }
 
 main ();

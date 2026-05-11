@@ -1,6 +1,6 @@
-import ccxt from '../../js/ccxt.js';
-
 // AUTO-TRANSPILE //
+
+import ccxt from '../../js/ccxt.js';
 
 // Bulding OHLCV array from trades (executions) data is a bit tricky. For example, if you want to build 100 ohlcv bars of 1-minute timeframe, then you have to fetch the 100 minutes of trading data. So, higher timeframe bars require more trading data (i.e. building 100 bars of 1-day timeframe OHLCV would require massive amount of trading data, which might not be desirable for user, because of data-usage rate limits)
 
@@ -48,6 +48,9 @@ async function example_with_watch_trades () {
     }
 }
 
+async function main () {
+    await example_with_fetch_trades ();
+    await example_with_watch_trades ();
+}
 
-await example_with_fetch_trades ();
-await example_with_watch_trades ();
+main ();
