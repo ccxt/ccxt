@@ -2536,6 +2536,90 @@
                 }
             }
         ],
+        "fetchAccount": [
+            {
+                "description": "fetch account",
+                "method": "fetchAccount",
+                "input": [],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {
+                        "accountId": 3342,
+                        "description": "Main account",
+                        "accountIndex": 0,
+                        "status": "ACTIVE",
+                        "l2Key": "0x1baecb005d0bea9b5ab5d5736b48cb7d45ab92f29f7c786affa2b4d4e34afcc",
+                        "l2Vault": "500343",
+                        "bridgeStarknetAddress": "0x03e7fa646772cbd8f2c87cae26b223ad6aa8812fc9ddaa7339d3b4ba39b00d41",
+                        "apiKeys": [
+                            "a47b1bd7b10514fd6e64a5e4c78c7d7f"
+                        ],
+                        "accountIndexForKeyGeneration": 0
+                    }
+                },
+                "parsedResponse": {
+                    "id": "3342",
+                    "type": "main",
+                    "code": null,
+                    "info": {
+                        "accountId": 3342,
+                        "description": "Main account",
+                        "accountIndex": 0,
+                        "status": "ACTIVE",
+                        "l2Key": "0x1baecb005d0bea9b5ab5d5736b48cb7d45ab92f29f7c786affa2b4d4e34afcc",
+                        "l2Vault": "500343",
+                        "bridgeStarknetAddress": "0x03e7fa646772cbd8f2c87cae26b223ad6aa8812fc9ddaa7339d3b4ba39b00d41",
+                        "apiKeys": [
+                            "a47b1bd7b10514fd6e64a5e4c78c7d7f"
+                        ],
+                        "accountIndexForKeyGeneration": 0
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {
+                        "accountId": 3342,
+                        "description": "Main account",
+                        "accountIndex": 0,
+                        "status": "ACTIVE",
+                        "l2Key": "0x1baecb005d0bea9b5ab5d5736b48cb7d45ab92f29f7c786affa2b4d4e34afcc",
+                        "l2Vault": "500343",
+                        "bridgeStarknetAddress": "0x03e7fa646772cbd8f2c87cae26b223ad6aa8812fc9ddaa7339d3b4ba39b00d41",
+                        "apiKeys": [
+                            "a47b1bd7b10514fd6e64a5e4c78c7d7f"
+                        ],
+                        "accountIndexForKeyGeneration": 0
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "3342",
+                        "type": "main",
+                        "code": null,
+                        "info": {
+                            "accountId": 3342,
+                            "description": "Main account",
+                            "accountIndex": 0,
+                            "status": "ACTIVE",
+                            "l2Key": "0x1baecb005d0bea9b5ab5d5736b48cb7d45ab92f29f7c786affa2b4d4e34afcc",
+                            "l2Vault": "500343",
+                            "bridgeStarknetAddress": "0x03e7fa646772cbd8f2c87cae26b223ad6aa8812fc9ddaa7339d3b4ba39b00d41",
+                            "apiKeys": [
+                                "a47b1bd7b10514fd6e64a5e4c78c7d7f"
+                            ],
+                            "accountIndexForKeyGeneration": 0
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetch positions with symbol",

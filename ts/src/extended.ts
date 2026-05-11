@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/extended.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, int, Leverage, Market, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest } from './base/errors.js';
 import { DECIMAL_PLACES, NO_PADDING, TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 
@@ -58,7 +58,7 @@ export default class extended extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'editOrder': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -1405,6 +1405,65 @@ export default class extended extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchAccount
+     * @description fetch the current authenticated sub-account
+     * @see https://api.docs.extended.exchange/#get-account-details
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [account structure]{@link https://docs.ccxt.com/#/?id=account-structure}
+     */
+    async fetchAccount (params = {}): Promise<Account> {
+        const response = await this.v1PrivateGetUserAccountInfo (params);
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {
+        //             "accountId": 3342,
+        //             "description": "Main account",
+        //             "accountIndex": 0,
+        //             "status": "ACTIVE",
+        //             "l2Key": "0x...",
+        //             "l2Vault": "500343",
+        //             "bridgeStarknetAddress": "0x...",
+        //             "apiKeys": [
+        //                 "..."
+        //             ],
+        //             "accountIndexForKeyGeneration": 0
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseAccount (data);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchAccounts
+     * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
+     * @see https://api.docs.extended.exchange/#get-account-details
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        const account = await this.fetchAccount (params);
+        return [ account ];
+    }
+
+    parseAccount (account: Dict): Account {
+        const accountIndex = this.safeInteger (account, 'accountIndex');
+        let type = undefined;
+        if (accountIndex !== undefined) {
+            type = (accountIndex === 0) ? 'main' : 'subaccount';
+        }
+        return {
+            'id': this.safeString2 (account, 'accountId', 'id'),
+            'type': type,
+            'code': undefined,
+            'info': account,
+        };
     }
 
     /**

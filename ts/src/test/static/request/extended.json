@@ -346,6 +346,22 @@
                 "input": []
             }
         ],
+        "fetchAccount": [
+            {
+                "description": "fetch account",
+                "method": "fetchAccount",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/account/info",
+                "input": []
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/account/info",
+                "input": []
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "fetch positions with symbol",
