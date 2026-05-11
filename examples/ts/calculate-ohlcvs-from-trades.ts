@@ -1,3 +1,5 @@
+// AUTO-TRANSPILE //
+
 'use strict';
 
 import ccxt from '../../js/ccxt.js';
@@ -8,7 +10,7 @@ console.log ('CCXT Version:', ccxt.version);
 async function main () {
     let ohlcvs: any = {};
     const symbol = 'BTC/USDT';
-    const exchange = new ccxt.pro.binance ({ 'newUpdates': true });
+    const exchange = new ccxt.pro.binance ();
     await exchange.loadMarkets ();
     const market = exchange.market (symbol);
     const timeframe = '1m';
@@ -34,7 +36,7 @@ async function main () {
                         trade['price'],
                         trade['price'],
                         trade['price'],
-                        exchange.parseNumber(exchange.amountToPrecision (symbol, trade['amount'])),
+                        exchange.parseNumber (exchange.amountToPrecision (symbol, trade['amount'])),
                         exchange.parseNumber (exchange.costToPrecision (symbol, trade['cost'])),
                     ];
                 }
@@ -42,15 +44,16 @@ async function main () {
             }
             console.log ('');
             console.log (exchange.iso8601 (exchange.milliseconds ()), '------------------------------------------------------');
-            const values: any = Object.values (ohlcvs).slice (-1000);
+            const values: any = Object.values (ohlcvs);
             ohlcvs = exchange.indexBy (values, 0);
-            console.log ('Datetime                ', 'Timestamp    ', ...[ 'Open', 'High', 'Low', 'Close', market['base'], market['quote'] ].map ((x: any) => x.toString ().padEnd (10, ' ')));
+            // console.log ('Datetime                ', 'Timestamp    ', ...[ 'Open', 'High', 'Low', 'Close', market['base'], market['quote'] ].map ((x: any) => x.padEnd (10, ' ')));
+            console.log ('Symbol   ', '|', 'Datetime                ', '|', 'Timestamp    ', '|', 'Open', '|', 'High', '|', 'Low', '| ', 'Close');
             for (let i = 0; i < values.length; i++) {
                 const candle = values[i];
-                console.log (exchange.iso8601 (candle[0]), ...candle.map ((x: any) => x.toString ().padEnd (10, ' ')));
+                console.log (symbol, '|', exchange.iso8601 (candle[0]), '|', candle[0], '|', candle[1], '|', candle[2], '|', candle[3], '|', candle[4], '|', candle[5], '|', candle[6]);
             }
         } catch (e: any) {
-            console.log (e.constructor.name, e.message);
+            console.log (e.toString ());
             await exchange.close (); // you can close connection if needed
         }
     }
