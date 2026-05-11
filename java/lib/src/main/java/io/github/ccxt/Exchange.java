@@ -2640,7 +2640,12 @@ public class Exchange {
             try {
                 Constructor<?> ctor = clazz.getConstructor(Object.class);
                 return (Exchange) ctor.newInstance(args);
-            } catch (NoSuchMethodException ignored) {}
+            } catch (NoSuchMethodException ignored) {
+            } catch (java.lang.reflect.InvocationTargetException ite) {
+                Throwable root = ite.getCause() != null ? ite.getCause() : ite;
+                System.err.println("[ccxt] " + fqcn + "(Object) constructor threw: " + root);
+                root.printStackTrace(System.err);
+            }
 
             // Try ctor(Map)
             if (args instanceof Map) {
@@ -2648,18 +2653,34 @@ public class Exchange {
                     @SuppressWarnings("rawtypes")
                     Constructor<?> ctor = clazz.getConstructor(Map.class);
                     return (Exchange) ctor.newInstance(args);
-                } catch (NoSuchMethodException ignored) {}
+                } catch (NoSuchMethodException ignored) {
+                } catch (java.lang.reflect.InvocationTargetException ite) {
+                    Throwable root = ite.getCause() != null ? ite.getCause() : ite;
+                    System.err.println("[ccxt] " + fqcn + "(Map) constructor threw: " + root);
+                    root.printStackTrace(System.err);
+                }
             }
 
             // Fallback no-arg ctor
             try {
                 Constructor<?> ctor = clazz.getConstructor();
                 return (Exchange) ctor.newInstance();
-            } catch (NoSuchMethodException ignored) {}
+            } catch (NoSuchMethodException ignored) {
+            } catch (java.lang.reflect.InvocationTargetException ite) {
+                Throwable root = ite.getCause() != null ? ite.getCause() : ite;
+                System.err.println("[ccxt] " + fqcn + "() constructor threw: " + root);
+                root.printStackTrace(System.err);
+            }
 
+            System.err.println("[ccxt] dynamicallyCreateInstance returning null — no constructor of " + fqcn + " was invocable");
             return null;
 
+        } catch (ClassNotFoundException cnfe) {
+            System.err.println("[ccxt] dynamicallyCreateInstance: class not found: " + fqcn);
+            return null;
         } catch (Exception e) {
+            System.err.println("[ccxt] dynamicallyCreateInstance: unexpected error for " + fqcn + ": " + e);
+            e.printStackTrace(System.err);
             return null;
         }
     }
