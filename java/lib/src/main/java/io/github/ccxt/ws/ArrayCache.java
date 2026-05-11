@@ -32,6 +32,24 @@ public class ArrayCache extends ArrayList<Object> {
     }
 
     /**
+     * Stable snapshot for readers — taken under the same monitor as append(),
+     * so consumers can iterate without racing the WS thread.
+     */
+    public synchronized List<Object> snapshot() {
+        return new ArrayList<>(this);
+    }
+
+    @Override
+    public synchronized Object[] toArray() {
+        return super.toArray();
+    }
+
+    @Override
+    public synchronized <T> T[] toArray(T[] a) {
+        return super.toArray(a);
+    }
+
+    /**
      * Append an item to the cache. Evicts oldest if full.
      * Tracks new updates per symbol for the newUpdates mechanism.
      */

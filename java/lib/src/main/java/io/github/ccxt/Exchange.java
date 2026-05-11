@@ -1289,6 +1289,14 @@ public class Exchange {
             throw new IllegalArgumentException("array must be byte[] or List, got: " + array.getClass());
         }
 
+        // ArrayCache mutates from the WS thread. subList captures modCount
+        // non-atomically — under JMM that read can be stale, so the wrapping
+        // `new ArrayList<>(view)` silently null-pads or skips CME. Materialize
+        // a stable copy under the cache monitor first.
+        if (array instanceof io.github.ccxt.ws.ArrayCache cache) {
+            array = cache.snapshot();
+        }
+
         List<?> parsedArray = (List<?>) array;
 
         if (second == null) {

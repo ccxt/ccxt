@@ -173,8 +173,14 @@ public final class Functions {
     public static List<Object> toArray(Object a) {
         if (a == null) return null;
 
-        if (a instanceof List<?>) {
-            return (List<Object>) a;
+        // WS caches mutate from the message-executor thread. Take the snapshot
+        // under the cache's own monitor so the copy can't observe a remove(0)
+        // mid-flight (would surface as nulls / off-by-one IOOBE downstream).
+        if (a instanceof io.github.ccxt.ws.ArrayCache cache) {
+            return cache.snapshot();
+        }
+        if (a instanceof List<?> l) {
+            return new ArrayList<>((List<Object>) l);
         }
 
         // treat as map -> return values as list (preserve insertion order if possible)
