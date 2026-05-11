@@ -997,6 +997,9 @@ export default class pacifica extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "symbol" argument');
         }
