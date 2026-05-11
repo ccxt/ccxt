@@ -13,7 +13,7 @@ ansi.nice; // eslint-disable-line no-unused-expressions
 // @ts-expect-error
 log.nice = log.configure ({ locate: false, stringify: asTable.configure ({ print: x => x }) }); // eslint-disable-line
 
-console.log ('CCXT Version:', ccxt.version);
+console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 
 async function test () {
     let total = 0;

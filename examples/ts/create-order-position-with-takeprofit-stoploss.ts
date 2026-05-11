@@ -3,7 +3,7 @@ import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
-console.log ('CCXT Version:', ccxt.version);
+console.log ('CCXT Version:', ccxt.version); // eslint-disable-line import/no-named-as-default-member
 
 // ------------------------------------------------------------------------------
 
