@@ -77,7 +77,7 @@ export default class extended extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -132,7 +132,7 @@ export default class extended extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -1465,6 +1465,38 @@ export default class extended extends Exchange {
             data[lastIndex] = this.extend (data[lastIndex], { 'cursor': cursor });
         }
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name extended#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposit structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'DEPOSIT' }, params));
+    }
+
+    /**
+     * @method
+     * @name extended#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchTransactions (code, since, limit, this.extend ({ 'type': 'WITHDRAWAL' }, params));
     }
 
     getExtendedCurrencyCodeById (assetId: Str, currency: Currency = undefined): Str {

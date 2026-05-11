@@ -1190,6 +1190,148 @@
                 ]
             }
         ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits with limit",
+                "method": "fetchDeposits",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "1951255127004282881",
+                            "type": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "10.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "chain": "Starknet",
+                            "transactionHash": "0x1234"
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "1951255127004282881",
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1951255127004282881",
+                            "type": "DEPOSIT",
+                            "status": "COMPLETED",
+                            "amount": "10.0000000000000000",
+                            "fee": "0",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "chain": "Starknet",
+                            "transactionHash": "0x1234",
+                            "cursor": "1951255127004282881"
+                        },
+                        "id": "1951255127004282881",
+                        "txid": "0x1234",
+                        "timestamp": 1754050449502,
+                        "datetime": "2025-08-01T10:54:09.502Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": 1754050449502,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0
+                        },
+                        "network": "Starknet",
+                        "comment": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch withdrawals with limit",
+                "method": "fetchWithdrawals",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": [
+                        {
+                            "id": "1951255127004282882",
+                            "type": "WITHDRAWAL",
+                            "status": "IN_PROGRESS",
+                            "amount": "-5.0000000000000000",
+                            "fee": "0.0100000000000000",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "chain": "Starknet",
+                            "transactionHash": "0x5678"
+                        }
+                    ],
+                    "pagination": {
+                        "cursor": "1951255127004282882",
+                        "count": 1
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1951255127004282882",
+                            "type": "WITHDRAWAL",
+                            "status": "IN_PROGRESS",
+                            "amount": "-5.0000000000000000",
+                            "fee": "0.0100000000000000",
+                            "asset": 1,
+                            "time": 1754050449502,
+                            "accountId": 100009,
+                            "chain": "Starknet",
+                            "transactionHash": "0x5678",
+                            "cursor": "1951255127004282882"
+                        },
+                        "id": "1951255127004282882",
+                        "txid": "0x5678",
+                        "timestamp": 1754050449502,
+                        "datetime": "2025-08-01T10:54:09.502Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 5,
+                        "currency": "USDC",
+                        "status": "pending",
+                        "updated": 1754050449502,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01
+                        },
+                        "network": "Starknet",
+                        "comment": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch positions history with symbol",

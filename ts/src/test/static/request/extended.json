@@ -302,6 +302,30 @@
                 ]
             }
         ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits with limit",
+                "method": "fetchDeposits",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1&type=DEPOSIT",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch withdrawals with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1&type=WITHDRAWAL",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",
