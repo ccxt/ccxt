@@ -2360,8 +2360,7 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        const triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        let triggerPrice = this.priceToPrecision (symbol, triggerPriceStr);
+        let triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossTriggerPrice !== undefined;
@@ -2371,10 +2370,10 @@ export default class extended extends Exchange {
         // const hasStopLoss = (stopLoss !== undefined);
         // const hasTakeProfit = (takeProfit !== undefined);
         // const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit;
-        if (triggerPrice !== undefined) {
+        if (triggerPriceStr !== undefined) {
             const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
             const trigger = {
-                'triggerPrice': triggerPriceStr,
+                'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
             };
             if (triggerDirection !== undefined) {
                 trigger['direction'] = triggerDirection;
@@ -2382,13 +2381,17 @@ export default class extended extends Exchange {
             request['type'] = 'CONDITIONAL';
             request['trigger'] = trigger;
         } else if (isStopLossOrder || isTakeProfitOrder) {
+            triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            const trigger = {
+                'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
+            };
             if (isBuy) {
-                request['direction'] = isStopLossOrder ? 'UP' : 'DOWN';
+                trigger['direction'] = isStopLossOrder ? 'UP' : 'DOWN';
             } else {
-                request['direction'] = isStopLossOrder ? 'DOWN' : 'UP';
+                trigger['direction'] = isStopLossOrder ? 'DOWN' : 'UP';
             }
-            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['type'] = 'CONDITIONAL';
+            request['trigger'] = trigger;
         }
         params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stpoLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         return {
