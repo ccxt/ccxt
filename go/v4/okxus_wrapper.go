@@ -6,7 +6,7 @@ type Okxus struct {
 	exchangeTyped *Okx
 }
 
-func NewOkxus(userConfig map[string]interface{}) *Okxus {
+func NewOkxus(userConfig map[string]any) *Okxus {
 	p := NewOkxusCore()
 	p.Init(userConfig)
 	return &Okxus{
@@ -28,17 +28,26 @@ func NewOkxusFromCore(core *OkxCore) *Okx {
 
 // missing typed methods from base
 // nolint
-func (this *Okxus) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Okxus) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
+}
+func (this *Okxus) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Okxus) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
 func (this *Okxus) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Okxus) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Okxus) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Okxus) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 	return this.exchangeTyped.CancelOrder(id, options...)
+}
+func (this *Okxus) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Okxus) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -127,16 +136,19 @@ func (this *Okxus) EditLimitSellOrder(id string, symbol string, amount float64, 
 func (this *Okxus) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
 }
+func (this *Okxus) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
 func (this *Okxus) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Okxus) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Okxus) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Okxus) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
-func (this *Okxus) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Okxus) FetchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalance(params...)
 }
 func (this *Okxus) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -145,7 +157,7 @@ func (this *Okxus) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, erro
 func (this *Okxus) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Okxus) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Okxus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -154,7 +166,7 @@ func (this *Okxus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClose
 func (this *Okxus) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Okxus) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Okxus) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Okxus) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -169,10 +181,10 @@ func (this *Okxus) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryO
 func (this *Okxus) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Okxus) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Okxus) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
-func (this *Okxus) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Okxus) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Okxus) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -190,13 +202,13 @@ func (this *Okxus) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
 func (this *Okxus) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Okxus) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Okxus) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Okxus) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Okxus) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Okxus) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -226,7 +238,7 @@ func (this *Okxus) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOpti
 func (this *Okxus) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Okxus) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Okxus) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Okxus) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -268,7 +280,7 @@ func (this *Okxus) FetchMarginModes(options ...FetchMarginModesOptions) (MarginM
 func (this *Okxus) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Okxus) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Okxus) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
 func (this *Okxus) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
@@ -310,6 +322,9 @@ func (this *Okxus) FetchOptionChain(code string, options ...FetchOptionChainOpti
 func (this *Okxus) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrder(id, options...)
 }
+func (this *Okxus) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Okxus) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 	return this.exchangeTyped.FetchOrderBook(symbol, options...)
 }
@@ -325,7 +340,7 @@ func (this *Okxus) FetchOrderStatus(id string, options ...FetchOrderStatusOption
 func (this *Okxus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Okxus) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Okxus) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Okxus) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -334,7 +349,7 @@ func (this *Okxus) FetchPosition(symbol string, options ...FetchPositionOptions)
 func (this *Okxus) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Okxus) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Okxus) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -352,7 +367,7 @@ func (this *Okxus) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]P
 func (this *Okxus) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Okxus) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Okxus) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Okxus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -361,7 +376,7 @@ func (this *Okxus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 func (this *Okxus) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Okxus) FetchTime(params ...interface{}) (int64, error) {
+func (this *Okxus) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Okxus) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -370,16 +385,16 @@ func (this *Okxus) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 func (this *Okxus) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Okxus) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Okxus) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Okxus) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Okxus) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Okxus) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Okxus) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -397,10 +412,10 @@ func (this *Okxus) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
 func (this *Okxus) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Okxus) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Okxus) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Okxus) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Okxus) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Okxus) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -481,13 +496,13 @@ func (this *Okxus) CreateTriggerOrderWs(symbol string, typeVar string, side stri
 func (this *Okxus) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Okxus) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Okxus) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Okxus) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Okxus) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Okxus) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -529,46 +544,46 @@ func (this *Okxus) FetchTickerWs(symbol string, options ...FetchTickerWsOptions)
 func (this *Okxus) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Okxus) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Okxus) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Okxus) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Okxus) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Okxus) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Okxus) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Okxus) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Okxus) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Okxus) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Okxus) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Okxus) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Okxus) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Okxus) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Okxus) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Okxus) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Okxus) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Okxus) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Okxus) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Okxus) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Okxus) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Okxus) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Okxus) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Okxus) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Okxus) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Okxus) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Okxus) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Okxus) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Okxus) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Okxus) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

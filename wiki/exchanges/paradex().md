@@ -33,6 +33,7 @@
 * [setLeverage](#setleverage)
 * [fetchGreeks](#fetchgreeks)
 * [fetchAllGreeks](#fetchallgreeks)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
 
 <a name="paradex" id="paradex"></a>
 
@@ -687,5 +688,29 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 ```javascript
 paradex.fetchAllGreeks ([symbols, params])
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-funding-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of funding rate structures |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
+
+
+```javascript
+paradex.fetchFundingRateHistory (symbol[, since, limit, params])
 ```
 

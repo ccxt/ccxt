@@ -12,7 +12,7 @@ import qs from '../../static_dependencies/qs/index.js'
 const json =  (data: any, params = undefined) => JSON.stringify (data)
     , isJsonEncodedObject = (object: any) => (
         (typeof object === 'string') &&
-        (object.length >= 2) &&
+        // (object.length >= 2) && // commented: https://github.com/ccxt/ccxt/pull/28193
         ((object[0] === '{') || (object[0] === '['))
     )
     , binaryToString = utf8.encode
@@ -29,7 +29,7 @@ const json =  (data: any, params = undefined) => JSON.stringify (data)
     , binaryConcatArray = (arr: any[]) => concatBytes (...arr)
 
     , urlencode = (object: object, sort = false) => qs.stringify (object)
-    , urlencodeNested =  (object: object) => qs.stringify (object) // implemented only in python
+    , urlencodeNested =  (object: object) => qs.stringify (object, { encodeValuesOnly: true }) // implemented only in python
     , urlencodeWithArrayRepeat = (object: object) => qs.stringify (object, { arrayFormat: 'repeat' })
     , rawencode = (object: object, sort = false) => qs.stringify (object, { encode: false })
     , encode = utf8.decode // lol

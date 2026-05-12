@@ -13,6 +13,8 @@ public partial class woo : ccxt.woo
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -131,7 +133,7 @@ public partial class woo : ccxt.woo
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -174,7 +176,7 @@ public partial class woo : ccxt.woo
      * @see https://docs.woox.io/#orderbook
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -349,7 +351,7 @@ public partial class woo : ccxt.woo
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -373,7 +375,7 @@ public partial class woo : ccxt.woo
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
@@ -465,7 +467,7 @@ public partial class woo : ccxt.woo
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -490,7 +492,7 @@ public partial class woo : ccxt.woo
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to stop fetching the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
@@ -560,7 +562,7 @@ public partial class woo : ccxt.woo
      * @description watches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -589,7 +591,7 @@ public partial class woo : ccxt.woo
      * @description unWatches best bid & ask for symbols
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for (not used by woo)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -767,7 +769,7 @@ public partial class woo : ccxt.woo
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -796,7 +798,7 @@ public partial class woo : ccxt.woo
      * @see https://docs.woox.io/#trade
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -1007,7 +1009,7 @@ public partial class woo : ccxt.woo
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] true if trigger order
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1047,7 +1049,7 @@ public partial class woo : ccxt.woo
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] true if trigger order
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1102,8 +1104,50 @@ public partial class woo : ccxt.woo
         //         "reduceOnly": false,
         //         "maker": false
         //     }
+        //     {
+        //      "symbol": "SPOT_BTC_USDT",
+        //      "rootAlgoOrderId": 2573778,
+        //      "parentAlgoOrderId": 0,
+        //      "algoOrderId": 2573778,
+        //      "clientOrderId": 0,
+        //      "orderTag": "default",
+        //      "algoType": "STOP_LOSS",
+        //      "side": "SELL",
+        //      "quantity": 0.00011,
+        //      "triggerPrice": 98566.67,
+        //      "triggerStatus": "USELESS",
+        //      "price": 0,
+        //      "type": "MARKET",
+        //      "triggerTradePrice": 0,
+        //      "triggerTime": 0,
+        //      "tradeId": 0,
+        //      "executedPrice": 0,
+        //      "executedQuantity": 0,
+        //      "fee": 0,
+        //      "reason": "",
+        //      "feeAsset": "",
+        //      "totalExecutedQuantity": 0,
+        //      "averageExecutedPrice": 0,
+        //      "totalFee": 0,
+        //      "timestamp": 1761030467426,
+        //      "visibleQuantity": 0,
+        //      "reduceOnly": false,
+        //      "triggerPriceType": "MARKET_PRICE",
+        //      "positionSide": "BOTH",
+        //      "feeCurrency": "",
+        //      "totalRebate": 0.0,
+        //      "rebateCurrency": "",
+        //      "triggered": false,
+        //      "maker": false,
+        //      "activated": false,
+        //      "isTriggered": false,
+        //      "isMaker": false,
+        //      "isActivated": false,
+        //      "rootAlgoStatus": "NEW",
+        //      "algoStatus": "NEW"
+        // }
         //
-        object orderId = this.safeString(order, "orderId");
+        object orderId = this.safeString2(order, "orderId", "algoOrderId");
         object marketId = this.safeString(order, "symbol");
         market = this.market(marketId);
         object symbol = getValue(market, "symbol");
@@ -1119,20 +1163,15 @@ public partial class woo : ccxt.woo
         {
             price = avgPrice;
         }
-        object amount = this.safeFloat(order, "quantity");
+        object amount = this.safeString(order, "quantity");
         object side = this.safeStringLower(order, "side");
         object type = this.safeStringLower(order, "type");
-        object filled = this.safeNumber(order, "totalExecutedQuantity");
-        object totalExecQuantity = this.safeFloat(order, "totalExecutedQuantity");
-        object remaining = amount;
-        if (isTrue(isGreaterThanOrEqual(amount, totalExecQuantity)))
-        {
-            remaining = subtract(remaining, totalExecQuantity);
-        }
-        object rawStatus = this.safeString(order, "status");
+        object filled = this.safeString2(order, "totalExecutedQuantity", "executed");
+        object rawStatus = this.safeString2(order, "status", "algoStatus");
         object status = this.parseOrderStatus(rawStatus);
         object trades = null;
         object clientOrderId = this.safeString(order, "clientOrderId");
+        object triggerPrice = this.safeString(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -1146,13 +1185,14 @@ public partial class woo : ccxt.woo
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", null },
-            { "triggerPrice", null },
+            { "stopPrice", triggerPrice },
+            { "triggerPrice", triggerPrice },
+            { "reduceOnly", this.safeBool(order, "reduceOnly") },
             { "amount", amount },
             { "cost", null },
             { "average", avgPrice },
             { "filled", filled },
-            { "remaining", remaining },
+            { "remaining", null },
             { "status", status },
             { "fee", fee },
             { "trades", trades },
@@ -1230,7 +1270,7 @@ public partial class woo : ccxt.woo
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object order = this.safeValue(orders, orderId);
             if (isTrue(!isEqual(order, null)))
             {
@@ -1383,9 +1423,12 @@ public partial class woo : ccxt.woo
             }
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
+        }
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)
@@ -1444,7 +1487,7 @@ public partial class woo : ccxt.woo
      * @name woo#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -1512,6 +1555,51 @@ public partial class woo : ccxt.woo
         }
         this.balance = this.safeBalance(this.balance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
+    }
+
+    /**
+     * @method
+     * @name woo#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.woox.io/#estfundingrate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object topic = add(getValue(market, "id"), "@estfundingrate");
+        object request = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "topic", topic },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watchPublic(topic, message);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "topic": "PERP_BTC_USDT@estfundingrate",
+        //         "ts": 1771484159016,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "fundingRate": 0.0001,
+        //             "fundingTs": 1771488000000
+        //         }
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object messageHash = this.safeString(message, "topic");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
 
     public virtual object handleErrorMessage(WebSocketClient client, object message)
@@ -1603,6 +1691,7 @@ public partial class woo : ccxt.woo
             { "balance", this.handleBalance },
             { "position", this.handlePositions },
             { "bbos", this.handleBidAsk },
+            { "estfundingrate", this.handleFundingRate },
         };
         object eventVar = this.safeString(message, "event");
         object method = this.safeValue(methods, eventVar);

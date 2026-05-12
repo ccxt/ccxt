@@ -49,7 +49,7 @@ def test_fetch_currencies(exchange, skipped_properties):
             withdraw = exchange.safe_bool(currency, 'withdraw')
             deposit = exchange.safe_bool(currency, 'deposit')
             if exchange.in_array(code, required_active_currencies):
-                assert skip_major_currency_check or (withdraw and deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled'
+                assert skip_major_currency_check or (withdraw and deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency)
         # check at least X% of currencies are active
         inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
         assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'

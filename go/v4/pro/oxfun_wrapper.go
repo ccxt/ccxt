@@ -6,7 +6,7 @@ type Oxfun struct {
    exchangeTyped *ccxt.Oxfun
 }
 
-func NewOxfun(userConfig map[string]interface{}) *Oxfun {
+func NewOxfun(userConfig map[string]any) *Oxfun {
    p := NewOxfunCore()
    p.Init(userConfig)
    return &Oxfun{
@@ -31,7 +31,7 @@ func NewOxfun(userConfig map[string]interface{}) *Oxfun {
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Oxfun) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) ([]ccxt.Trade, error) {
 
@@ -41,17 +41,17 @@ func (this *Oxfun) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -71,7 +71,7 @@ func (this *Oxfun) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Oxfun) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
 
@@ -81,17 +81,17 @@ func (this *Oxfun) WatchTradesForSymbols(symbols []string, options ...ccxt.Watch
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -122,22 +122,22 @@ func (this *Oxfun) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
         opt(&opts)
     }
 
-    var timeframe interface{} = nil
+    var timeframe any = nil
     if opts.Timeframe != nil {
         timeframe = *opts.Timeframe
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -167,17 +167,17 @@ func (this *Oxfun) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -196,7 +196,7 @@ func (this *Oxfun) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Oxfun) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -206,12 +206,12 @@ func (this *Oxfun) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
         opt(&opts)
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -231,7 +231,7 @@ func (this *Oxfun) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Oxfun) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
 
@@ -241,12 +241,12 @@ func (this *Oxfun) WatchOrderBookForSymbols(symbols []string, options ...ccxt.Wa
         opt(&opts)
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -264,7 +264,7 @@ func (this *Oxfun) WatchOrderBookForSymbols(symbols []string, options ...ccxt.Wa
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oxfun) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
 
@@ -274,7 +274,7 @@ func (this *Oxfun) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -292,7 +292,7 @@ func (this *Oxfun) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oxfun) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
 
@@ -302,12 +302,12 @@ func (this *Oxfun) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticke
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -324,7 +324,7 @@ func (this *Oxfun) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticke
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oxfun) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
 
@@ -334,12 +334,12 @@ func (this *Oxfun) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tic
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -356,9 +356,9 @@ func (this *Oxfun) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tic
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Oxfun) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
+func (this *Oxfun) WatchBalance(params ...any) (ccxt.Balances, error) {
     res := <- this.Core.WatchBalance(params...)
     if ccxt.IsError(res) {
         return ccxt.Balances{}, ccxt.CreateReturnError(res)
@@ -385,22 +385,22 @@ func (this *Oxfun) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -420,7 +420,7 @@ func (this *Oxfun) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 
@@ -430,22 +430,22 @@ func (this *Oxfun) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -471,12 +471,12 @@ func (this *Oxfun) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
  * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
- * @param {float} [params.limitPrice] ccxt.Limit price for the STOP_LIMIT order
+ * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
  * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
  * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWsOptions) (ccxt.Order, error) {
 
@@ -486,12 +486,12 @@ func (this *Oxfun) CreateOrderWs(symbol string, typeVar string, side string, amo
         opt(&opts)
     }
 
-    var price interface{} = nil
+    var price any = nil
     if opts.Price != nil {
         price = *opts.Price
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -515,7 +515,7 @@ func (this *Oxfun) CreateOrderWs(symbol string, typeVar string, side string, amo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
  * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) EditOrderWs(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWsOptions) (ccxt.Order, error) {
 
@@ -525,17 +525,17 @@ func (this *Oxfun) EditOrderWs(id string, symbol string, typeVar string, side st
         opt(&opts)
     }
 
-    var amount interface{} = nil
+    var amount any = nil
     if opts.Amount != nil {
         amount = *opts.Amount
     }
 
-    var price interface{} = nil
+    var price any = nil
     if opts.Price != nil {
         price = *opts.Price
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -553,7 +553,7 @@ func (this *Oxfun) EditOrderWs(id string, symbol string, typeVar string, side st
  * @param {string} id order id
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error) {
 
@@ -563,12 +563,12 @@ func (this *Oxfun) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -586,7 +586,7 @@ func (this *Oxfun) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error) {
 
@@ -596,12 +596,12 @@ func (this *Oxfun) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOp
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -613,10 +613,13 @@ func (this *Oxfun) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOp
 }
 // missing typed methods from base
 //nolint
-func (this *Oxfun) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Oxfun) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Oxfun) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
+func (this *Oxfun) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Oxfun) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
-func (this *Oxfun) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
+func (this *Oxfun) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]any, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Oxfun) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
+func (this *Oxfun) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Oxfun) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
 func (this *Oxfun) CreateConvertTrade(id string, fromCode string, toCode string, options ...ccxt.CreateConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
 func (this *Oxfun) CreateDepositAddress(code string, options ...ccxt.CreateDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
@@ -646,30 +649,31 @@ func (this *Oxfun) EditLimitBuyOrder(id string, symbol string, amount float64, o
 func (this *Oxfun) EditLimitOrder(id string, symbol string, side string, amount float64, options ...ccxt.EditLimitOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
 func (this *Oxfun) EditLimitSellOrder(id string, symbol string, amount float64, options ...ccxt.EditLimitSellOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
 func (this *Oxfun) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
+func (this *Oxfun) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Oxfun) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
-func (this *Oxfun) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
+func (this *Oxfun) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Oxfun) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Oxfun) FetchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
+func (this *Oxfun) FetchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
 func (this *Oxfun) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Oxfun) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
-func (this *Oxfun) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Oxfun) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
 func (this *Oxfun) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
 func (this *Oxfun) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrders(options...)}
-func (this *Oxfun) FetchConvertCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Oxfun) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
 func (this *Oxfun) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
 func (this *Oxfun) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
 func (this *Oxfun) FetchConvertTradeHistory(options ...ccxt.FetchConvertTradeHistoryOptions) ([]ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
 func (this *Oxfun) FetchCrossBorrowRate(code string, options ...ccxt.FetchCrossBorrowRateOptions) (ccxt.CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
-func (this *Oxfun) FetchCrossBorrowRates(params ...interface{}) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
-func (this *Oxfun) FetchCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
+func (this *Oxfun) FetchCrossBorrowRates(params ...any) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Oxfun) FetchCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
 func (this *Oxfun) FetchDepositAddress(code string, options ...ccxt.FetchDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddress(code, options...)}
 func (this *Oxfun) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
 func (this *Oxfun) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
 func (this *Oxfun) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDeposits(options...)}
 func (this *Oxfun) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
-func (this *Oxfun) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
-func (this *Oxfun) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
-func (this *Oxfun) FetchFreeBalance(params ...interface{}) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Oxfun) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Oxfun) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
+func (this *Oxfun) FetchFreeBalance(params ...any) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
 func (this *Oxfun) FetchFundingHistory(options ...ccxt.FetchFundingHistoryOptions) ([]ccxt.FundingHistory, error) {return this.exchangeTyped.FetchFundingHistory(options...)}
 func (this *Oxfun) FetchFundingInterval(symbol string, options ...ccxt.FetchFundingIntervalOptions) (ccxt.FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
 func (this *Oxfun) FetchFundingIntervals(options ...ccxt.FetchFundingIntervalsOptions) (ccxt.FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
@@ -679,7 +683,7 @@ func (this *Oxfun) FetchFundingRates(options ...ccxt.FetchFundingRatesOptions) (
 func (this *Oxfun) FetchGreeks(symbol string, options ...ccxt.FetchGreeksOptions) (ccxt.Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
 func (this *Oxfun) FetchIndexOHLCV(symbol string, options ...ccxt.FetchIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
 func (this *Oxfun) FetchIsolatedBorrowRate(symbol string, options ...ccxt.FetchIsolatedBorrowRateOptions) (ccxt.IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
-func (this *Oxfun) FetchIsolatedBorrowRates(params ...interface{}) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
+func (this *Oxfun) FetchIsolatedBorrowRates(params ...any) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
 func (this *Oxfun) FetchLastPrices(options ...ccxt.FetchLastPricesOptions) (ccxt.LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
 func (this *Oxfun) FetchLedger(options ...ccxt.FetchLedgerOptions) ([]ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedger(options...)}
 func (this *Oxfun) FetchLedgerEntry(id string, options ...ccxt.FetchLedgerEntryOptions) (ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
@@ -693,7 +697,7 @@ func (this *Oxfun) FetchMarginAdjustmentHistory(options ...ccxt.FetchMarginAdjus
 func (this *Oxfun) FetchMarginMode(symbol string, options ...ccxt.FetchMarginModeOptions) (ccxt.MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
 func (this *Oxfun) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
 func (this *Oxfun) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
-func (this *Oxfun) FetchMarkets(params ...interface{}) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
+func (this *Oxfun) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
 func (this *Oxfun) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
 func (this *Oxfun) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
 func (this *Oxfun) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
@@ -707,37 +711,38 @@ func (this *Oxfun) FetchOpenOrders(options ...ccxt.FetchOpenOrdersOptions) ([]cc
 func (this *Oxfun) FetchOption(symbol string, options ...ccxt.FetchOptionOptions) (ccxt.Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
 func (this *Oxfun) FetchOptionChain(code string, options ...ccxt.FetchOptionChainOptions) (ccxt.OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
 func (this *Oxfun) FetchOrder(id string, options ...ccxt.FetchOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrder(id, options...)}
+func (this *Oxfun) FetchOrderWithClientOrderId(clientOrderId string, options ...ccxt.FetchOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Oxfun) FetchOrderBook(symbol string, options ...ccxt.FetchOrderBookOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.FetchOrderBook(symbol, options...)}
 func (this *Oxfun) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
 func (this *Oxfun) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}
 func (this *Oxfun) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
 func (this *Oxfun) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchOrderTrades(id, options...)}
-func (this *Oxfun) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Oxfun) FetchPaymentMethods(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
 func (this *Oxfun) FetchPosition(symbol string, options ...ccxt.FetchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.FetchPosition(symbol, options...)}
 func (this *Oxfun) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
-func (this *Oxfun) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Oxfun) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.FetchPositionMode(options...)}
 func (this *Oxfun) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositions(options...)}
 func (this *Oxfun) FetchPositionsForSymbol(symbol string, options ...ccxt.FetchPositionsForSymbolOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
 func (this *Oxfun) FetchPositionsHistory(options ...ccxt.FetchPositionsHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
 func (this *Oxfun) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
 func (this *Oxfun) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
-func (this *Oxfun) FetchStatus(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchStatus(params...)}
+func (this *Oxfun) FetchStatus(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchStatus(params...)}
 func (this *Oxfun) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTicker(symbol, options...)}
 func (this *Oxfun) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickers(options...)}
-func (this *Oxfun) FetchTime(params ...interface{}) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
+func (this *Oxfun) FetchTime(params ...any) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
 func (this *Oxfun) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTrades(symbol, options...)}
 func (this *Oxfun) FetchTradingFee(symbol string, options ...ccxt.FetchTradingFeeOptions) (ccxt.TradingFeeInterface, error) {return this.exchangeTyped.FetchTradingFee(symbol, options...)}
-func (this *Oxfun) FetchTradingFees(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
-func (this *Oxfun) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
-func (this *Oxfun) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
-func (this *Oxfun) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Oxfun) FetchTradingFees(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
+func (this *Oxfun) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]any, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Oxfun) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Oxfun) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
 func (this *Oxfun) FetchTransactions(options ...ccxt.FetchTransactionsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
 func (this *Oxfun) FetchTransfer(id string, options ...ccxt.FetchTransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
 func (this *Oxfun) FetchTransfers(options ...ccxt.FetchTransfersOptions) ([]ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfers(options...)}
 func (this *Oxfun) FetchWithdrawals(options ...ccxt.FetchWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchWithdrawals(options...)}
 func (this *Oxfun) SetMargin(symbol string, amount float64, options ...ccxt.SetMarginOptions) (ccxt.MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
-func (this *Oxfun) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
-func (this *Oxfun) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
+func (this *Oxfun) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]any, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Oxfun) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
 func (this *Oxfun) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)}
 func (this *Oxfun) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {return this.exchangeTyped.Withdraw(code, amount, address, options...)}
 func (this *Oxfun) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
@@ -760,9 +765,9 @@ func (this *Oxfun) CreateTakeProfitOrderWs(symbol string, typeVar string, side s
 func (this *Oxfun) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTrailingAmountOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Oxfun) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTrailingPercentOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Oxfun) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTriggerOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
-func (this *Oxfun) FetchBalanceWs(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Oxfun) FetchBalanceWs(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
 func (this *Oxfun) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
-func (this *Oxfun) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Oxfun) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
 func (this *Oxfun) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
 func (this *Oxfun) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
 func (this *Oxfun) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
@@ -776,19 +781,19 @@ func (this *Oxfun) FetchPositionWs(symbol string, options ...ccxt.FetchPositionW
 func (this *Oxfun) FetchTickersWs(options ...ccxt.FetchTickersWsOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
 func (this *Oxfun) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
 func (this *Oxfun) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
-func (this *Oxfun) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
-func (this *Oxfun) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
-func (this *Oxfun) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
-func (this *Oxfun) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
-func (this *Oxfun) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
-func (this *Oxfun) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
-func (this *Oxfun) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
-func (this *Oxfun) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
-func (this *Oxfun) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
-func (this *Oxfun) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
-func (this *Oxfun) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
-func (this *Oxfun) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
-func (this *Oxfun) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Oxfun) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Oxfun) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Oxfun) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Oxfun) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Oxfun) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Oxfun) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Oxfun) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Oxfun) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Oxfun) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Oxfun) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Oxfun) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Oxfun) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Oxfun) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
 func (this *Oxfun) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Oxfun) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
 func (this *Oxfun) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}

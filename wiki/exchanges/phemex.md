@@ -26,6 +26,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionHistory](#fetchpositionhistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [setMargin](#setmargin)
@@ -41,6 +42,7 @@
 * [fetchConvertQuote](#fetchconvertquote)
 * [createConvertTrade](#createconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
+* [fetchPositionADLRank](#fetchpositionadlrank)
 * [watchBalance](#watchbalance)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -95,7 +97,7 @@ phemex.fetchCurrencies ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook  
 
@@ -146,7 +148,7 @@ phemex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker  
 
@@ -167,7 +169,7 @@ phemex.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -193,7 +195,7 @@ phemex.fetchTickers (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades  
 
@@ -216,7 +218,7 @@ phemex.fetchTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -243,7 +245,7 @@ phemex.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -279,7 +281,7 @@ phemex.createOrder (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid  
 
@@ -306,7 +308,7 @@ phemex.editOrder (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid  
 
@@ -329,7 +331,7 @@ phemex.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall  
 
@@ -350,7 +352,7 @@ phemex.cancelAllOrders (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://phemex-docs.github.io/#query-orders-by-ids  
 
@@ -372,7 +374,7 @@ phemex.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder  
 
@@ -395,7 +397,7 @@ phemex.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -423,7 +425,7 @@ phemex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -453,7 +455,7 @@ phemex.fetchClosedOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -481,7 +483,7 @@ phemex.fetchMyTrades (symbol[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 
 | Param | Type | Required | Description |
@@ -502,7 +504,7 @@ phemex.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -524,7 +526,7 @@ phemex.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -546,7 +548,7 @@ phemex.fetchWithdrawals (code[, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -568,13 +570,37 @@ phemex.fetchPositions ([symbols, params])
 ```
 
 
+<a name="fetchPositionHistory" id="fetchpositionhistory"></a>
+
+### fetchPositionHistory{docsify-ignore}
+fetches historical positions
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://phemex-docs.github.io/#query-closed-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified contract symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum amount of records to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
+
+
+```javascript
+phemex.fetchPositionHistory (symbol[, since, limit, params])
+```
+
+
 <a name="fetchFundingHistory" id="fetchfundinghistory"></a>
 
 ### fetchFundingHistory{docsify-ignore}
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist  
 
@@ -597,7 +623,7 @@ phemex.fetchFundingHistory (symbol[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -617,7 +643,7 @@ phemex.fetchFundingRate (symbol[, params])
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode  
 
@@ -683,7 +709,7 @@ phemex.setPositionMode (hedged, symbol[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -728,7 +754,7 @@ phemex.setLeverage (leverage, symbol[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -757,7 +783,7 @@ phemex.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://phemex-docs.github.io/#query-transfer-history  
 
@@ -780,7 +806,7 @@ phemex.fetchTransfers (code[, since, limit, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://phemex-docs.github.io/#query-funding-rate-history-2  
 
@@ -788,7 +814,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
@@ -830,7 +856,7 @@ phemex.withdraw (code, amount, address, tag[, params])
 retrieves the open interest of a trading pair
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://phemex-docs.github.io/#query-24-hours-ticker  
 
@@ -851,7 +877,7 @@ phemex.fetchOpenInterest (symbol[, params])
 fetch a quote for converting from one currency to another
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://phemex-docs.github.io/#rfq-quote  
 
@@ -874,7 +900,7 @@ phemex.fetchConvertQuote (fromCode, toCode, amount[, params])
 convert from one currency to another
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>object</code> - a [conversion structure](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://phemex-docs.github.io/#convert  
 
@@ -898,7 +924,7 @@ phemex.createConvertTrade (id, fromCode, toCode[, amount, params])
 fetch the users history of conversion trades
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/#/?id=conversion-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [conversion structures](https://docs.ccxt.com/?id=conversion-structure)
 
 **See**: https://phemex-docs.github.io/#query-convert-history  
 
@@ -918,13 +944,41 @@ phemex.fetchConvertTradeHistory ([code, since, limit, params])
 ```
 
 
+<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+
+### fetchPositionADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>object</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://phemex-docs.github.io/#query-account-positions
+- https://phemex-docs.github.io/#query-trading-account-and-positions
+- https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+
+
+```javascript
+phemex.fetchPositionADLRank ([symbols, params])
+```
+
+
 <a name="watchBalance" id="watchbalance"></a>
 
 ### watchBalance{docsify-ignore}
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -950,7 +1004,7 @@ phemex.watchBalance ([params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -976,7 +1030,7 @@ phemex.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1003,7 +1057,7 @@ phemex.watchTickers ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1031,7 +1085,7 @@ phemex.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1088,7 +1142,7 @@ phemex.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -1110,7 +1164,7 @@ phemex.watchMyTrades (symbol[, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |

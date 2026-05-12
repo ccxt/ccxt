@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_liquidation.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_liquidations($exchange, $skipped_properties, $symbol) {
     // log (symbol.green, 'watching trades...')
@@ -31,7 +30,7 @@ function test_watch_liquidations($exchange, $skipped_properties, $symbol) {
         $ends = $now + 10000;
         while ($now < $ends) {
             try {
-                $response = Async\await($exchange->$method($symbol));
+                $response = \React\Async\await($exchange->$method($symbol));
                 $now = round(microtime(true) * 1000);
                 $is_array = gettype($response) === 'array' && array_is_list($response);
                 assert($is_array, 'response must be an array');

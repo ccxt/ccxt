@@ -1,13 +1,19 @@
 {
   "name": "ccxt",
-  "version": "4.5.10",
+  "version": "4.5.53",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./js/ccxt.js",
-      "require": "./dist/ccxt.cjs"
+      "import": {
+        "types": "./js/ccxt.d.ts",
+        "default": "./js/ccxt.js"
+      },
+      "require": {
+        "types": "./index.d.cts",
+        "default": "./dist/ccxt.cjs"
+      }
     }
   },
   "engines": {
@@ -32,9 +38,10 @@
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro",
+    "build-go-cli": "go build -C go/cli",
     "formatGO": "go fmt -C go v4 tests",
     "transpileGOWs": "tsx build/goTranspiler.ts --ws",
-    "transpileGORest": "tsx build/goTranspiler.ts && tsx build/goTranspiler.ts --ws",
+    "transpileGORest": "tsx build/goTranspiler.ts",
     "transpileGO": "npm run transpileGORest && npm run transpileGOWs",
     "buildCSTests": "dotnet build cs/tests/tests.csproj",
     "buildCSRelease": "dotnet build cs --configuration Release",
@@ -45,7 +52,7 @@
     "//TMPCommentforce-build": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run go && npm run post-transpile && npm run update-badges",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
-    "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2020 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt --lib dom ",
+    "tsBuildFile": "tsc --skipLibCheck --strictNullChecks false --strict --noImplicitAny false --esModuleInterop --isolatedModules false --forceConsistentCasingInFileNames --removeComments false --target ES2021 --declaration --allowJs --checkJs false --moduleResolution Node --module ES2022 --outDir ./js/src --lib ES2020.BigInt,dom,ES2021 ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
     "tsBuild": "tsc && npm run addJsHeaders || echo \"\"",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
@@ -100,6 +107,7 @@
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint",
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
+    "check-python-ruff": "ruff check ./python/ccxt",
     "check-python-types": "cd python && tox -e type && cd ..",
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
@@ -189,7 +197,8 @@
     "benchmark": "tsx examples/ts/benchmark.ts",
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
     "test-types-go": "go run -C go ./tests/types/types.go",
-    "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go"
+    "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go",
+    "go-build-single": "tsx ./build/granular-go-build.ts"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
@@ -203,7 +212,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.71",
+    "ast-transpiler": "^0.0.85",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",

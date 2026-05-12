@@ -321,7 +321,7 @@ xt.fetchBalance (params, [undefined])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.xt.com/#orderorderPost  
 
@@ -752,7 +752,7 @@ xt.setLeverage (leverage, symbol, params[])
 add margin to a position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://doc.xt.com/#futures_useradjustMargin  
 
@@ -775,7 +775,7 @@ xt.addMargin (symbol, amount, params[])
 remove margin from a position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://doc.xt.com/#futures_useradjustMargin  
 
@@ -798,7 +798,7 @@ xt.reduceMargin (symbol, amount, params[])
 retrieve information on the maximum leverage for different trade sizes
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetLeverageBrackets  
 
@@ -819,7 +819,7 @@ xt.fetchLeverageTiers ([symbols, params])
 retrieve information on the maximum leverage for different trade sizes of a single market
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetLeverageBracket  
 
@@ -864,7 +864,7 @@ xt.fetchFundingRateHistory ([symbol, since, limit, params])
 fetch the current funding rate interval
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetFundingRate  
 
@@ -885,7 +885,7 @@ xt.fetchFundingInterval (symbol[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://doc.xt.com/#futures_quotesgetFundingRate  
 
@@ -906,7 +906,7 @@ xt.fetchFundingRate (symbol, params[])
 fetch the funding history
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://doc.xt.com/#futures_usergetFunding  
 
@@ -929,7 +929,7 @@ xt.fetchFundingHistory (symbol[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://doc.xt.com/#futures_usergetPosition  
 
@@ -950,7 +950,7 @@ xt.fetchPosition (symbol, params[])
 fetch all open positions
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://doc.xt.com/#futures_usergetPosition  
 
@@ -971,7 +971,7 @@ xt.fetchPositions ([symbols, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://doc.xt.com/#transfersubTransferPost  
 
@@ -1018,7 +1018,7 @@ xt.setMarginMode (marginMode[, symbol, params])
 cancels an order and places a new order
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 

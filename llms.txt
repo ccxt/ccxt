@@ -1,0 +1,159 @@
+# CCXT – CryptoCurrency eXchange Trading Library
+
+> Unified cryptocurrency trading API for 100+ exchanges.
+> JavaScript/TypeScript, Python, PHP, C#, Go. REST and WebSocket.
+
+CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
+
+## Docs
+
+- [REST API Manual](https://github.com/ccxt/ccxt/wiki/Manual): Complete REST API reference
+- [WebSocket Manual](https://github.com/ccxt/ccxt/wiki/ccxt.pro.manual): Real-time WebSocket API
+- [Examples](https://github.com/ccxt/ccxt/tree/master/examples): Working code examples in all languages
+- [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ): Frequently asked questions
+- [Expanded LLM docs](https://raw.githubusercontent.com/ccxt/ccxt/master/llms-full.txt): Full API reference for LLMs
+
+## Install
+
+```bash
+# JavaScript / TypeScript
+npm install ccxt
+
+# Python
+pip install ccxt
+
+# PHP
+composer require ccxt/ccxt
+
+# C# / .NET
+dotnet add package ccxt
+
+# Go
+go get github.com/ccxt/ccxt/go/v4
+```
+
+## AI Assistant Skills
+
+Install comprehensive language-specific skills for AI coding assistants (Claude Code, Cursor, Copilot, Windsurf, Codex, and 30+ others):
+
+```bash
+npx skills add ccxt/ccxt
+```
+
+## Key Concepts
+
+- **Exchange**: An instance representing a crypto exchange (e.g., `new ccxt.binance()`). Each exchange has the same unified API.
+- **Market / Symbol**: Trading pairs use the format `BASE/QUOTE` (e.g., `BTC/USDT`). Futures use `BTC/USDT:USDT`.
+- **Unified API**: All exchanges share the same method signatures. Write once, trade on any exchange.
+- **Public vs Private**: Public methods (market data) need no auth. Private methods (trading, balance) require API keys.
+- **REST vs WebSocket**: REST methods use `fetch*` prefix (one-time queries). WebSocket methods use `watch*` prefix (real-time streams).
+- **Rate Limiting**: Always enable with `enableRateLimit: true` to avoid getting banned.
+
+## Quick Start
+
+### JavaScript/TypeScript
+```javascript
+import ccxt from 'ccxt'
+const exchange = new ccxt.binance({ enableRateLimit: true })
+const ticker = await exchange.fetchTicker('BTC/USDT')
+console.log(ticker.last)
+```
+
+### Python
+```python
+import ccxt
+exchange = ccxt.binance({'enableRateLimit': True})
+ticker = exchange.fetch_ticker('BTC/USDT')
+print(ticker['last'])
+```
+
+### PHP
+```php
+$exchange = new \ccxt\binance(['enableRateLimit' => true]);
+$ticker = $exchange->fetch_ticker('BTC/USDT');
+echo $ticker['last'];
+```
+
+### C#
+```csharp
+var exchange = new ccxt.binance(new Dictionary<string, object> { { "enableRateLimit", true } });
+var ticker = await exchange.FetchTicker("BTC/USDT");
+Console.WriteLine(ticker.last);
+```
+
+### Go
+```go
+exchange := ccxt.NewBinance(map[string]interface{}{"enableRateLimit": true})
+ticker, _ := exchange.FetchTicker("BTC/USDT", nil)
+fmt.Println(ticker.Last)
+```
+
+## API Methods Overview
+
+### Market Data
+- `fetchMarkets` / `fetchCurrencies` – available trading pairs and currencies
+- `fetchTicker` / `fetchTickers` – price, volume, bid/ask for one or many symbols
+- `fetchOrderBook` – bids and asks depth
+- `fetchTrades` – recent public trades
+- `fetchOHLCV` – candlestick / OHLCV data
+
+### Trading (auth required)
+- `createOrder` / `createLimitBuyOrder` / `createMarketSellOrder` – place orders
+- `cancelOrder` / `cancelAllOrders` – cancel orders
+- `editOrder` – modify existing order
+- `fetchOrder` / `fetchOpenOrders` / `fetchClosedOrders` – query orders
+
+### Account (auth required)
+- `fetchBalance` – account balances
+- `fetchMyTrades` – your trade history
+- `fetchLedger` – ledger / transaction history
+- `withdraw` – withdraw funds
+- `fetchDeposits` / `fetchWithdrawals` – deposit/withdrawal history
+
+### Derivatives (auth required)
+- `fetchPosition` / `fetchPositions` – open positions
+- `setLeverage` / `setMarginMode` – configure leverage and margin
+- `fetchFundingRate` / `fetchFundingRateHistory` – funding rates
+- `fetchOpenInterest` – open interest
+
+### WebSocket (real-time)
+- `watchTicker` / `watchTickers` – live price updates
+- `watchOrderBook` – live order book
+- `watchTrades` – live trade stream
+- `watchOHLCV` – live candlestick updates
+- `watchBalance` / `watchOrders` / `watchMyTrades` / `watchPositions` – live account updates (auth required)
+
+## Error Handling
+
+```
+BaseError
+├─ NetworkError (recoverable – retry with backoff)
+│  ├─ RequestTimeout
+│  ├─ ExchangeNotAvailable
+│  ├─ RateLimitExceeded
+│  └─ DDoSProtection
+└─ ExchangeError (non-recoverable – don't retry)
+   ├─ AuthenticationError
+   ├─ InsufficientFunds
+   ├─ InvalidOrder
+   └─ NotSupported
+```
+
+## Checking Method Availability
+
+Not all exchanges support all methods:
+
+```javascript
+if (exchange.has['fetchOHLCV']) {
+    const candles = await exchange.fetchOHLCV('BTC/USDT', '1h')
+}
+```
+
+## Method Naming Convention
+
+- `fetch*` – REST API methods (HTTP requests)
+- `watch*` – WebSocket methods (real-time streams)
+- `create*` – create resources (orders, addresses)
+- `cancel*` – cancel resources
+- `edit*` – modify resources
+- `set*` – configure settings (leverage, margin mode)

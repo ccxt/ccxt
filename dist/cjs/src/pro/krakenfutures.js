@@ -98,7 +98,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const orderbook = await this.watchMultiHelper('orderbook', 'book', symbols, { 'limit': limit }, params);
@@ -168,7 +168,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -183,7 +183,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -203,7 +203,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         const ticker = await this.watchMultiHelper('bidask', 'ticker_lite', symbols, undefined, params);
@@ -223,7 +223,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
@@ -237,7 +237,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
@@ -256,7 +256,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by krakenfutures watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -362,8 +362,14 @@ class krakenfutures extends krakenfutures$1["default"] {
         //
         const marketId = this.safeString(position, 'instrument');
         const hedged = 'both';
-        const balance = this.safeNumber(position, 'balance');
-        const side = (balance > 0) ? 'long' : 'short';
+        const balanceString = this.safeString(position, 'balance');
+        let side = undefined;
+        if (Precise["default"].stringGt(balanceString, '0')) {
+            side = 'long';
+        }
+        else if (Precise["default"].stringLt(balanceString, '0')) {
+            side = 'short';
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -374,7 +380,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': this.safeNumber(position, 'pnl'),
             'percentage': this.safeNumber(position, 'return_on_equity'),
-            'contracts': this.parseNumber(Precise["default"].stringAbs(this.numberToString(balance))),
+            'contracts': this.parseNumber(Precise["default"].stringAbs(balanceString)),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'mark_price'),
             'side': side,
@@ -400,7 +406,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -425,7 +431,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -448,7 +454,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -1471,20 +1477,33 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets();
+        const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const messageHashes = [];
+        const rawSubs = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
+            const messageHash = this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i]));
+            messageHashes.push(messageHash);
+            const market = this.market(symbols[i]);
+            if (!this.subscriptionExistsForHash(url, messageHash)) {
+                rawSubs.push(market['id']);
+            }
         }
-        const marketIds = this.marketIds(symbols);
-        const request = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        };
-        const url = this.urls['api']['ws'];
+        let request = {};
+        const length = rawSubs.length;
+        if (length > 0) {
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            };
+        }
         return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+    }
+    subscriptionExistsForHash(url, hash) {
+        const client = this.client(url);
+        return (hash in client.subscriptions);
     }
     getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...

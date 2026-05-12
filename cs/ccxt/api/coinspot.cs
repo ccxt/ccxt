@@ -131,4 +131,229 @@ public partial class coinspot : Exchange
         return await this.callAsync ("privatePostRoMyReferralpayments",parameters);
     }
 
+    public async Task<object> v2PublicGetLatest (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetLatest",parameters);
+    }
+
+    public async Task<object> v2PublicGetLatestCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetLatestCointype",parameters);
+    }
+
+    public async Task<object> v2PublicGetLatestCointypeMarkettype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetLatestCointypeMarkettype",parameters);
+    }
+
+    public async Task<object> v2PublicGetBuypriceCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetBuypriceCointype",parameters);
+    }
+
+    public async Task<object> v2PublicGetBuypriceCointypeMarkettype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetBuypriceCointypeMarkettype",parameters);
+    }
+
+    public async Task<object> v2PublicGetSellpriceCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetSellpriceCointype",parameters);
+    }
+
+    public async Task<object> v2PublicGetSellpriceCointypeMarkettype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetSellpriceCointypeMarkettype",parameters);
+    }
+
+    public async Task<object> v2PublicGetOrdersOpenCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetOrdersOpenCointype",parameters);
+    }
+
+    public async Task<object> v2PublicGetOrdersOpenCointypeMarkettype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetOrdersOpenCointypeMarkettype",parameters);
+    }
+
+    public async Task<object> v2PublicGetOrdersCompletedCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetOrdersCompletedCointype",parameters);
+    }
+
+    public async Task<object> v2PublicGetOrdersCompletedCointypeMarkettype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetOrdersCompletedCointypeMarkettype",parameters);
+    }
+
+    public async Task<object> v2PublicGetOrdersSummaryCompletedCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetOrdersSummaryCompletedCointype",parameters);
+    }
+
+    public async Task<object> v2PublicGetOrdersSummaryCompletedCointypeMarkettype (object parameters = null)
+    {
+        return await this.callAsync ("v2PublicGetOrdersSummaryCompletedCointypeMarkettype",parameters);
+    }
+
+    public async Task<object> v2PrivatePostStatus (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostStatus",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyCoinDeposit (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyCoinDeposit",parameters);
+    }
+
+    public async Task<object> v2PrivatePostQuoteBuyNow (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostQuoteBuyNow",parameters);
+    }
+
+    public async Task<object> v2PrivatePostQuoteSellNow (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostQuoteSellNow",parameters);
+    }
+
+    public async Task<object> v2PrivatePostQuoteSwapNow (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostQuoteSwapNow",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyBuy (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyBuy",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyBuyEdit (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyBuyEdit",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMySell (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMySell",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMySellEdit (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMySellEdit",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyBuyNow (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyBuyNow",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMySellNow (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMySellNow",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMySwapNow (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMySwapNow",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyBuyCancel (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyBuyCancel",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyBuyCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyBuyCancelAll",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMySellCancel (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMySellCancel",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMySellCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMySellCancelAll",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyCoinWithdrawSenddetails (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyCoinWithdrawSenddetails",parameters);
+    }
+
+    public async Task<object> v2PrivatePostMyCoinWithdrawSend (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostMyCoinWithdrawSend",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoStatus (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoStatus",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoOrdersMarketOpen (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoOrdersMarketOpen",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoOrdersMarketCompleted (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoOrdersMarketCompleted",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyBalances (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyBalances",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyBalanceCointype (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyBalanceCointype",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyOrdersMarketOpen (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyOrdersMarketOpen",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyOrdersLimitOpen (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyOrdersLimitOpen",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyOrdersCompleted (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyOrdersCompleted",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyOrdersMarketCompleted (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyOrdersMarketCompleted",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMySendreceive (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMySendreceive",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyDeposits (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyDeposits",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyWithdrawals (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyWithdrawals",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyAffiliatepayments (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyAffiliatepayments",parameters);
+    }
+
+    public async Task<object> v2PrivatePostRoMyReferralpayments (object parameters = null)
+    {
+        return await this.callAsync ("v2PrivatePostRoMyReferralpayments",parameters);
+    }
+
 }

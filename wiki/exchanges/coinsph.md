@@ -56,7 +56,7 @@ coinsph.fetchCurrencies ([params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#test-connectivity  
 
@@ -116,7 +116,7 @@ coinsph.fetchMarkets ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -142,7 +142,7 @@ coinsph.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -168,7 +168,7 @@ coinsph.fetchTicker (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://coins-docs.github.io/rest-api/#order-book  
 
@@ -215,7 +215,7 @@ coinsph.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://coins-docs.github.io/rest-api/#recent-trades-list  
 
@@ -238,7 +238,7 @@ coinsph.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#account-trade-list-user_data  
 
@@ -261,7 +261,7 @@ coinsph.fetchMyTrades (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#account-trade-list-user_data  
 
@@ -285,7 +285,7 @@ coinsph.fetchOrderTrades (id, symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#accept-the-quote  
 
@@ -305,7 +305,7 @@ coinsph.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#new-order--trade  
 
@@ -332,7 +332,7 @@ coinsph.createOrder (symbol, type, side, amount[, price, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#query-order-user_data  
 
@@ -354,7 +354,7 @@ coinsph.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#current-open-orders-user_data  
 
@@ -377,7 +377,7 @@ coinsph.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#history-orders-user_data  
 
@@ -400,7 +400,7 @@ coinsph.fetchClosedOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#cancel-order-trade  
 
@@ -422,7 +422,7 @@ coinsph.cancelOrder (id, symbol[, params])
 cancel open orders of market
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade  
 
@@ -443,7 +443,7 @@ coinsph.cancelAllOrders (symbol[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#trade-fee-user_data  
 
@@ -464,7 +464,7 @@ coinsph.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://coins-docs.github.io/rest-api/#trade-fee-user_data  
 
@@ -484,7 +484,7 @@ coinsph.fetchTradingFees ([params])
 make a withdrawal to coins_ph account
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#withdrawuser_data  
 
@@ -508,7 +508,7 @@ coinsph.withdraw (code, amount, address, tag[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#deposit-history-user_data  
 
@@ -531,7 +531,7 @@ coinsph.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#withdraw-history-user_data  
 
@@ -554,7 +554,7 @@ coinsph.fetchWithdrawals (code[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>coinsph</code>](#coinsph)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://coins-docs.github.io/rest-api/#deposit-address-user_data  
 

@@ -307,13 +307,13 @@
             {
                 "description": "fetch all closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_currency?currency=BTC",
+                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_currency?currency=BTC&count=1000",
                 "input": []
             },
             {
                 "description": "Spot fetch closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT",
+                "url": "https://www.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT&count=1000",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -321,7 +321,7 @@
             {
                 "description": "Swap fetch closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT-PERPETUAL",
+                "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC_USDT-PERPETUAL&count=1000",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -329,7 +329,7 @@
             {
                 "description": "Option fetch closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC-26JAN24-39000-C",
+                "url": "https://test.deribit.com/api/v2/private/get_order_history_by_instrument?instrument_name=BTC-26JAN24-39000-C&count=1000",
                 "input": [
                     "BTC/USD:BTC-240126-39000-C"
                 ]
@@ -814,6 +814,16 @@
                 "url": "https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=option",
                 "input": [
                   "BTC"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch the open interest of an inverse perpetual market",
+                "method": "fetchOpenInterest",
+                "url": "https://test.deribit.com/api/v2/public/get_book_summary_by_instrument?instrument_name=BTC-PERPETUAL",
+                "input": [
+                    "BTC/USD:BTC"
                 ]
             }
         ]

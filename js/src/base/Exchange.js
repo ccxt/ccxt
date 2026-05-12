@@ -6,9 +6,12 @@
 
 // ----------------------------------------------------------------------------
 import * as functions from './functions.js';
-import { keys as keysFunc, values as valuesFunc, 
-// inArray as inArrayFunc,
-vwap as vwapFunc, } from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
 ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
@@ -20,27 +23,31 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './
 // ----------------------------------------------------------------------------
 //
 import { axolotl } from './functions/crypto.js';
-import totp from './functions/totp.js';
+import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
+import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
+import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
+import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
+import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
+const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
-(async () => {
-    try {
-        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
-    }
-    catch {
-        // TODO: handle error
-    }
-})();
+let encodeAsAny = undefined;
+let AuthInfo = undefined;
+let Tx = undefined;
+let TxBody = undefined;
+let TxRaw = undefined;
+let SignDoc = undefined;
+let SignMode = undefined;
 // -----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -81,9 +88,8 @@ export default class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orderbooks = {};
         this.tickers = {};
         this.fundingRates = {};
@@ -91,7 +97,7 @@ export default class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
@@ -109,10 +115,12 @@ export default class Exchange {
         this.markets = undefined;
         this.features = undefined;
         this.status = undefined;
-        this.rateLimit = undefined; // milliseconds
+        this.rateLimit = 2000; // milliseconds
         this.tokenBucket = undefined;
         this.throttler = undefined;
-        this.enableRateLimit = undefined;
+        this.enableRateLimit = true;
+        this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
+        this.rateLimiterAlgorithm = 'leakyBucket';
         this.httpExceptions = undefined;
         this.limits = undefined;
         this.markets_by_id = undefined;
@@ -134,10 +142,8 @@ export default class Exchange {
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;
-        this.marketsByAltname = undefined;
         this.name = undefined;
         this.targetAccount = undefined;
-        this.stablePairs = {};
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -154,11 +160,8 @@ export default class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = keysFunc;
-        this.values = valuesFunc;
         this.extend = extend;
         this.clone = clone;
-        this.flatten = flatten;
         this.unique = unique;
         this.indexBy = indexBy;
         this.indexBySafe = indexBy;
@@ -193,8 +196,6 @@ export default class Exchange {
         this.implodeParams = implodeParams;
         this.extractParams = extractParams;
         this.json = json;
-        this.vwap = vwapFunc;
-        this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
         this.arrayConcat = arrayConcat;
@@ -210,8 +211,6 @@ export default class Exchange {
         this.safeStringUpper = safeStringUpper;
         this.safeTimestamp = safeTimestamp;
         this.binaryConcatArray = binaryConcatArray;
-        this.uuidv1 = uuidv1;
-        this.numberToLE = numberToLE;
         this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
         this.stringToBase64 = stringToBase64;
@@ -230,7 +229,6 @@ export default class Exchange {
         this.safeStringLower2 = safeStringLower2;
         this.safeStringUpper2 = safeStringUpper2;
         this.isEmpty = isEmpty;
-        this.ordered = ordered;
         this.filterBy = filterBy;
         this.uuid16 = uuid16;
         this.urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -253,6 +251,11 @@ export default class Exchange {
         this.crc32 = crc32;
         this.packb = packb;
         this.urlencodeBase64 = urlencodeBase64;
+        // io
+        this.readFile = readFile;
+        this.writeFile = writeFile;
+        this.existsFile = existsFile;
+        this.getTempDir = getTempDir;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -299,12 +302,12 @@ export default class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -368,6 +371,41 @@ export default class Exchange {
         if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
             this.setSandboxMode(true);
         }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles();
+    }
+    async loadExchangeSpecificFiles() {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+            }
+            catch (e) {
+                // TODO: handle error
+            }
+        }
+    }
+    uuid5(namespace, name) {
+        const nsBytes = namespace
+            .replace(/-/g, '')
+            .match(/.{1,2}/g)
+            .map((byte) => parseInt(byte, 16));
+        const nameBytes = new TextEncoder().encode(name);
+        const data = new Uint8Array([...nsBytes, ...nameBytes]);
+        const nsHash = sha1(data);
+        // eslint-disable-next-line
+        nsHash[6] = (nsHash[6] & 0x0f) | 0x50;
+        // eslint-disable-next-line
+        nsHash[8] = (nsHash[8] & 0x3f) | 0x80;
+        const hex = [...nsHash.slice(0, 16)]
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+        return [
+            hex.substring(0, 8),
+            hex.substring(8, 12),
+            hex.substring(12, 16),
+            hex.substring(16, 20),
+            hex.substring(20, 32),
+        ].join('-');
     }
     encodeURIComponent(...args) {
         // @ts-expect-error
@@ -562,11 +600,22 @@ export default class Exchange {
         return undefined;
     }
     isBinaryMessage(msg) {
-        return msg instanceof Uint8Array;
+        return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
+    }
+    stringToBinary(content) {
+        // same as: this.base64ToBinary (this.stringToBase64 (str));
+        return this.encode(content);
+    }
+    binaryToString(binary) {
+        return this.decode(binary);
     }
     decodeProtoMsg(data) {
         if (!protobufMexc) {
             throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof ArrayBuffer) {
+            // browser case
+            data = new Uint8Array(data);
         }
         if (data instanceof Uint8Array) {
             const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
@@ -634,12 +683,35 @@ export default class Exchange {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
             }
-            else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            else if (this.isDictionary(userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend(userAgent, headers);
             }
         }
         // set final headers
         headers = this.setHeaders(headers);
+        // multipart/form-data
+        const headersKeys = Object.keys(headers);
+        for (let i = 0; i < headersKeys.length; i++) {
+            const key = headersKeys[i];
+            if (key.toLowerCase() === 'content-type') {
+                let value = headers[key];
+                if (value === 'multipart/form-data') {
+                    const bodyKeys = Object.keys(body);
+                    const boundary = '--------------------------' + this.randomBytes(12);
+                    const eol = '\r\n';
+                    let newBody = '';
+                    for (let j = 0; j < bodyKeys.length; j++) {
+                        const bodyKey = bodyKeys[j];
+                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + body[bodyKey] + eol;
+                    }
+                    newBody += '--' + boundary + '--' + eol;
+                    value += '; boundary=' + boundary;
+                    headers[key] = value;
+                    body = newBody;
+                    break;
+                }
+            }
+        }
         // log
         if (this.verbose) {
             this.log('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
@@ -713,6 +785,9 @@ export default class Exchange {
             }
             throw e;
         }
+    }
+    jsonStringifyWithNull(obj) {
+        return JSON.stringify(obj, (_, v) => (v === undefined ? null : v));
     }
     parseJson(jsonString) {
         try {
@@ -1240,6 +1315,11 @@ export default class Exchange {
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
     }
+    exceptionMessage(exc, includeStack = true) {
+        const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
+        const length = Math.min(100000, message.length);
+        return message.slice(0, length);
+    }
     axolotl(payload, hexKey, ed25519) {
         return axolotl(payload, hexKey, ed25519);
     }
@@ -1259,6 +1339,23 @@ export default class Exchange {
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+    }
+    ethGetAddressFromPrivateKey(privateKey) {
+        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
+        // Removes the "0x" prefix if present
+        const cleanPrivateKey = this.remove0xPrefix(privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        const publicKeyBytes = secp256k1.getPublicKey(cleanPrivateKey);
+        // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
+        // secp256k1.getPublicKey returns compressed key, we need uncompressed
+        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        // Hash the public key with Keccak256
+        const publicKeyHash = keccak_256(publicKeyUncompressed);
+        // Take the last 20 bytes (40 hex chars)
+        const addressBytes = publicKeyHash.slice(-20);
+        // Convert to hex and add 0x prefix
+        const addressHex = '0x' + this.binaryToBase16(addressBytes);
+        return addressHex;
     }
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = ethSigToPrivate(signature);
@@ -1342,13 +1439,135 @@ export default class Exchange {
         const zkSign = tx?.signature?.signature;
         return zkSign;
     }
+    async loadDydxProtos() {
+        // load dydx protos
+        const tasks = [
+            import('../static_dependencies/dydx-v4-client/registry.js'),
+            import('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js'),
+            import('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js'),
+        ];
+        const modules = await Promise.all(tasks);
+        encodeAsAny = modules[0].encodeAsAny;
+        AuthInfo = modules[1].AuthInfo;
+        Tx = modules[1].Tx;
+        TxBody = modules[1].TxBody;
+        TxRaw = modules[1].TxRaw;
+        SignDoc = modules[1].SignDoc;
+        SignMode = modules[2].SignMode;
+    }
+    toDydxLong(numStr) {
+        return Long.fromString(numStr);
+    }
+    retrieveDydxCredentials(entropy) {
+        let credentials = undefined;
+        if (entropy.indexOf(' ') > 0) {
+            credentials = deriveHDKeyFromMnemonic(entropy);
+            credentials['mnemonic'] = entropy;
+            return credentials;
+        }
+        credentials = exportMnemonicAndPrivateKey(this.base16ToBinary(entropy));
+        return credentials;
+    }
+    encodeDydxTxForSimulation(message, memo, sequence, publicKey) {
+        if (!encodeAsAny) {
+            throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (!publicKey) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const messages = [message];
+        const encodedMessages = messages.map((msg) => encodeAsAny(msg));
+        const tx = Tx.fromPartial({
+            'body': TxBody.fromPartial({
+                'messages': encodedMessages,
+                'memo': memo,
+            }),
+            'authInfo': AuthInfo.fromPartial({
+                'fee': {},
+                'signerInfos': [
+                    {
+                        'publicKey': encodeAsAny({
+                            'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                            'value': publicKey,
+                        }),
+                        'sequence': sequence,
+                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
+                    },
+                ],
+            }),
+            'signatures': [new Uint8Array()],
+        });
+        return this.binaryToBase64(Tx.encode(tx).finish());
+    }
+    encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee = undefined) {
+        if (!encodeAsAny) {
+            throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        if (!account.pub_key) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const messages = [message];
+        const sequence = this.milliseconds();
+        if (fee === undefined) {
+            fee = {
+                'amount': [],
+                'gasLimit': 1000000,
+            };
+        }
+        const encodedMessages = messages.map((msg) => encodeAsAny(msg));
+        const nonCriticalExtensionOptions = [
+            encodeAsAny({
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': {
+                    'selectedAuthenticators': authenticators ?? [],
+                },
+            }),
+        ];
+        const txBodyBytes = TxBody.encode(TxBody.fromPartial({
+            'messages': encodedMessages,
+            'memo': memo,
+            'extensionOptions': [],
+            'nonCriticalExtensionOptions': nonCriticalExtensionOptions,
+        })).finish();
+        const authInfoBytes = AuthInfo.encode(AuthInfo.fromPartial({
+            'fee': fee,
+            'signerInfos': [
+                {
+                    'publicKey': encodeAsAny({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': account.pub_key,
+                    }),
+                    'sequence': sequence,
+                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
+                },
+            ],
+        })).finish();
+        const signDoc = SignDoc.fromPartial({
+            'accountNumber': account.account_number,
+            'authInfoBytes': authInfoBytes,
+            'bodyBytes': txBodyBytes,
+            'chainId': chainId,
+        });
+        const signingHash = this.hash(SignDoc.encode(signDoc).finish(), sha256, 'hex');
+        return [signingHash, signDoc];
+    }
+    encodeDydxTxRaw(signDoc, signature) {
+        if (!encodeAsAny) {
+            throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        return '0x' + this.binaryToBase16(TxRaw.encode(TxRaw.fromPartial({
+            'bodyBytes': signDoc.bodyBytes,
+            'authInfoBytes': signDoc.authInfoBytes,
+            'signatures': [this.base16ToBinary(signature)],
+        })).finish());
+    }
     intToBase16(elem) {
         return elem.toString(16);
     }
     extendExchangeOptions(newOptions) {
         this.options = this.extend(this.options, newOptions);
     }
-    createSafeDictionary() {
+    createSafeDictionary(isWs = false) {
         return {};
     }
     convertToSafeDictionary(dict) {
@@ -1370,6 +1589,153 @@ export default class Exchange {
     }
     binaryLength(binary) {
         return binary.length;
+    }
+    lockId() {
+        return undefined; // c# stub
+    }
+    unlockId() {
+        return undefined; // c# stub
+    }
+    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient = false) {
+        // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
+        // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        if (libraryPath === undefined || libraryPath === '') {
+            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+        }
+        if (!isNode) {
+            throw new NotSupported(this.id + ' loadLighterLibrary() is only supported in node environment.');
+        }
+        await functions.initFileSystem();
+        const wasmExecPath = this.safeString(this.options, 'wasmExecPath');
+        if (wasmExecPath === undefined || wasmExecPath === '') {
+            throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
+        }
+        await import(wasmExecPath);
+        const go = new globalThis.Go();
+        // read wasm from disks
+        const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
+        const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+        go.run(instance);
+        if (createClient) {
+            this.lighterCreateClient(undefined, chainId, privateKey, apiKeyIndex, accountIndex);
+        }
+        return {}; // empty object we will read it from globalThis
+    }
+    lighterCreateClient(signer, chainId, privateKey, apiKeyIndex, accountIndex) {
+        const url = this.implodeHostname(this.urls['api']['public']);
+        const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
+        this.checkLighterSignedError(res);
+        return signer;
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders(signer, request) {
+        const orders = request['orders'];
+        const ordersArr = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            ordersArr.push({
+                'MarketIndex': parseInt(order['market_index']),
+                'ClientOrderIndex': order['client_order_index'],
+                'BaseAmount': order['base_amount'],
+                'Price': order['avg_execution_price'],
+                'IsAsk': order['is_ask'],
+                'Type': order['order_type'],
+                'TimeInForce': order['time_in_force'],
+                'ReduceOnly': order['reduce_only'],
+                'TriggerPrice': order['trigger_price'],
+                'OrderExpiry': order['order_expiry'],
+            });
+        }
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateOrder(signer, request) {
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    checkLighterSignedError(result) {
+        if ('error' in result) {
+            throw new Error('Lighter signing error: ' + result.error);
+        }
+    }
+    lighterSignCancelOrder(signer, request) {
+        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignWithdraw(signer, request) {
+        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount(signer, request) {
+        const res = (globalThis.SignCreateSubAccount(1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignCancelAllOrders(signer, request) {
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignModifyOrder(signer, request) {
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignTransfer(signer, request) {
+        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignUpdateLeverage(signer, request) {
+        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterCreateAuthToken(signer, request) {
+        const res = globalThis.CreateAuthToken(request['deadline'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return res.authToken;
+    }
+    lighterSignUpdateMargin(signer, request) {
+        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignApproveIntegrator(signer, request) {
+        const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo, res.messageToSign];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterGenerateApiKey(signer) {
+        const res = globalThis.GenerateAPIKey();
+        this.checkLighterSignedError(res);
+        return [res.privateKey, res.publicKey];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignChangePubkey(signer, request) {
+        const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo, res.messageToSign];
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1413,15 +1779,16 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000,
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit,
+            'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
             'timeout': this.timeout,
-            'certified': false,
-            'pro': false,
-            'alias': false,
+            'certified': this.certified,
+            'pro': this.pro,
+            'alias': this.alias,
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -1440,8 +1807,10 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
+                'cancelOrdersWithClientOrderId': undefined,
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
@@ -1491,9 +1860,11 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrderWithClientOrderId': undefined,
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -1569,6 +1940,7 @@ export default class Exchange {
                 'fetchOption': undefined,
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
+                'fetchOrderWithClientOrderId': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
@@ -1578,6 +1950,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -1660,9 +2034,12 @@ export default class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -1699,6 +2076,7 @@ export default class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
@@ -1740,6 +2118,7 @@ export default class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
+            'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
@@ -1771,7 +2150,11 @@ export default class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, [key], defaultValue);
+        const value = this.safeValue(dictionary, key, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
     }
     safeDictN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -1784,10 +2167,8 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object')) {
-            if (!Array.isArray(value)) {
-                return value;
-            }
+        if (this.isDictionary(value)) {
+            return value;
         }
         return defaultValue;
     }
@@ -1798,7 +2179,14 @@ export default class Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, [key], defaultValue);
+        const value = this.safeValue(dictionary, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (this.isDictionary(value)) {
+            return value;
+        }
+        return defaultValue;
     }
     safeDict2(dictionary, key1, key2, defaultValue = undefined) {
         /**
@@ -1825,6 +2213,9 @@ export default class Exchange {
         }
         return defaultValue;
     }
+    isDictionary(value) {
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
+    }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
@@ -1841,7 +2232,14 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, [key], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray(value)) {
+            return value;
+        }
+        return defaultValue;
     }
     handleDeltas(orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
@@ -1858,7 +2256,7 @@ export default class Exchange {
         }
     }
     getCacheIndex(orderbook, deltas) {
-        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
     arraysConcat(arraysOfArrays) {
@@ -2394,8 +2792,11 @@ export default class Exchange {
     async watchFundingRate(symbol, params = {}) {
         throw new NotSupported(this.id + ' watchFundingRate() is not supported yet');
     }
-    async watchFundingRates(symbols, params = {}) {
+    async watchFundingRates(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchFundingRates() is not supported yet');
+    }
+    async unWatchFundingRates(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' unWatchFundingRates() is not supported yet');
     }
     async watchFundingRatesForSymbols(symbols, params = {}) {
         return await this.watchFundingRates(symbols, params);
@@ -2452,7 +2853,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest change to fetch
          * @param {int} [limit] the maximum amount of changes to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
          */
         throw new NotSupported(this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
@@ -2466,7 +2867,13 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -2500,6 +2907,9 @@ export default class Exchange {
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric((value % 1));
         return res === 0;
+    }
+    isEmptyString(value) {
+        return !this.valueIsDefined(value) || value === '';
     }
     safeNumberOmitZero(obj, key, defaultValue = undefined) {
         const value = this.safeString(obj, key);
@@ -2537,12 +2947,16 @@ export default class Exchange {
         if (this.rateLimit > 0) {
             refillRate = 1 / this.rateLimit;
         }
+        const useLeaky = (this.rollingWindowSize === 0.0) || (this.rateLimiterAlgorithm === 'leakyBucket');
+        const algorithm = useLeaky ? 'leakyBucket' : 'rollingWindow';
         const defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
             'refillRate': refillRate,
+            'algorithm': algorithm,
+            'windowSize': this.rollingWindowSize,
+            'rateLimit': this.rateLimit,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
@@ -2645,7 +3059,7 @@ export default class Exchange {
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -2660,7 +3074,7 @@ export default class Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3119,6 +3533,7 @@ export default class Exchange {
         this.symbols = sourceExchange.symbols;
         this.ids = sourceExchange.ids;
         this.currencies = sourceExchange.currencies;
+        this.currencies_by_id = sourceExchange.currencies_by_id;
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
@@ -3635,7 +4050,7 @@ export default class Exchange {
                 fee = this.parseFeeNumeric(fee);
             }
             if (!feesDefined) {
-                // just set it directly, no further processing needed
+                // just set it directly, no further processing needed.
                 fees = [fee];
             }
             // 'fees' were set, so reparse them
@@ -3693,6 +4108,9 @@ export default class Exchange {
             }
         }
         return reversed;
+    }
+    stringToBase16(str) {
+        return '0x' + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)));
     }
     reduceFeesByCurrency(fees) {
         //
@@ -3901,6 +4319,12 @@ export default class Exchange {
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
         }
         throw new NotSupported(this.id + ' fetchOHLCV() is not supported yet' + message);
+    }
+    async fetchSpotOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSpotOHLCV() is not supported yet');
+    }
+    async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractOHLCV() is not supported yet');
     }
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let message = '';
@@ -4401,6 +4825,19 @@ export default class Exchange {
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    parseADLRank(info, market = undefined) {
+        throw new NotSupported(this.id + ' parseADLRank() is not supported yet');
+    }
+    parseADLRanks(ranks, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols(symbols);
+        ranks = this.toArray(ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend(this.parseADLRank(ranks[i], undefined), params);
+            result.push(rank);
+        }
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+    }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
         const result = [];
@@ -4622,6 +5059,30 @@ export default class Exchange {
         }
         return results;
     }
+    filterOutByArray(objects, key, values = undefined, indexed = true) {
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (values === undefined || !values) {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (indexed) {
+                return this.indexBy(objects, key);
+            }
+            else {
+                return objects;
+            }
+        }
+        const results = [];
+        for (let i = 0; i < objects.length; i++) {
+            if (!this.inArray(objects[i][key], values)) {
+                results.push(objects[i]);
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (indexed) {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
     async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
@@ -4631,20 +5092,21 @@ export default class Exchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
-        this.lastRestRequestTimestamp = this.milliseconds();
-        const request = this.sign(path, api, method, params, headers, body);
-        this.last_request_headers = request['headers'];
-        this.last_request_body = request['body'];
-        this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
+                this.lastRestRequestTimestamp = this.milliseconds();
+                const request = this.sign(path, api, method, params, headers, body);
+                this.last_request_headers = request['headers'];
+                this.last_request_body = request['body'];
+                this.last_request_url = request['url'];
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
                         if (this.verbose) {
-                            this.log('Request failed with the error: ' + e.toString() + ', retrying ' + (i + 1).toString() + ' of ' + retries.toString() + '...');
+                            const index = i + 1;
+                            this.log('Request failed with the error: ' + e.toString() + ', retrying ' + index.toString() + ' of ' + retries.toString() + '...');
                         }
                         if ((retryDelay !== undefined) && (retryDelay !== 0)) {
                             await this.sleep(retryDelay);
@@ -4752,6 +5214,10 @@ export default class Exchange {
         await this.cancelOrder(id, symbol);
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
+    async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.editOrder('', symbol, type, side, amount, price, extendedParams);
+    }
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, params);
@@ -4778,7 +5244,7 @@ export default class Exchange {
          * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -4789,7 +5255,7 @@ export default class Exchange {
          * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported(this.id + ' fetchPositionsForSymbol() is not supported yet');
     }
@@ -4815,8 +5281,8 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchLedgerEntry() is not supported yet');
     }
     parseBidAsk(bidask, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
-        const price = this.safeNumber(bidask, priceKey);
-        const amount = this.safeNumber(bidask, amountKey);
+        const price = this.safeFloat(bidask, priceKey);
+        const amount = this.safeFloat(bidask, amountKey);
         const countOrId = this.safeInteger(bidask, countOrIdKey);
         const bidAsk = [price, amount];
         if (countOrId !== undefined) {
@@ -4842,10 +5308,6 @@ export default class Exchange {
         });
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
-        const result = this.safeMarketStructure({
-            'symbol': marketId,
-            'marketId': marketId,
-        });
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
@@ -4873,25 +5335,26 @@ export default class Exchange {
             else if (delimiter !== undefined && delimiter !== '') {
                 const parts = marketId.split(delimiter);
                 const partsLength = parts.length;
+                const result = this.safeMarketStructure({
+                    'symbol': marketId,
+                    'marketId': marketId,
+                });
                 if (partsLength === 2) {
                     result['baseId'] = this.safeString(parts, 0);
                     result['quoteId'] = this.safeString(parts, 1);
                     result['base'] = this.safeCurrencyCode(result['baseId']);
                     result['quote'] = this.safeCurrencyCode(result['quoteId']);
                     result['symbol'] = result['base'] + '/' + result['quote'];
-                    return result;
                 }
-                else {
-                    return result;
-                }
+                return result;
             }
         }
         if (market !== undefined) {
             return market;
         }
-        return result;
+        return this.safeMarketStructure({ 'symbol': marketId, 'marketId': marketId });
     }
-    marketOrNull(symbol) {
+    marketOrNull(symbol = undefined) {
         if (symbol === undefined) {
             return undefined;
         }
@@ -5221,11 +5684,17 @@ export default class Exchange {
     async fetchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
     }
+    async fetchSpotTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchSpotTickers() is not supported yet');
+    }
+    async fetchContractTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractTickers() is not supported yet');
+    }
     async fetchMarkPrices(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchMarkPrices() is not supported yet');
     }
     async fetchTickersWs(symbols = undefined, params = {}) {
-        throw new NotSupported(this.id + ' fetchTickers() is not supported yet');
+        throw new NotSupported(this.id + ' fetchTickersWs() is not supported yet');
     }
     async fetchOrderBooks(symbols = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBooks() is not supported yet');
@@ -5239,8 +5708,24 @@ export default class Exchange {
     async unWatchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' unWatchTickers() is not supported yet');
     }
+    async unWatchFundingRate(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchFundingRate() is not supported yet');
+    }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrder() is not supported yet');
+    }
+    /**
+     * @method
+     * @name fetchOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.fetchOrder('', symbol, extendedParams);
     }
     async fetchOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderWs() is not supported yet');
@@ -5257,6 +5742,9 @@ export default class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        throw new NotSupported(this.id + ' createTwapOrder() is not supported yet');
+    }
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
         throw new NotSupported(this.id + ' createConvertTrade() is not supported yet');
     }
@@ -5268,6 +5756,30 @@ export default class Exchange {
     }
     async fetchPositionMode(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchPositionMode() is not supported yet');
+    }
+    async fetchADLRank(symbol, params = {}) {
+        throw new NotSupported(this.id + ' fetchADLRank() is not supported yet');
+    }
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+    async fetchPositionADLRank(symbol, params = {}) {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank([symbol], params);
+            const rank = this.safeDict(ranks, 0);
+            if (rank === undefined) {
+                throw new NullResponse(this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            }
+            else {
+                return rank;
+            }
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
     async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
@@ -5282,7 +5794,7 @@ export default class Exchange {
          * @param {float} trailingAmount the quote amount to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired(this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
@@ -5309,7 +5821,7 @@ export default class Exchange {
          * @param {float} trailingAmount the quote amount to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired(this.id + ' createTrailingAmountOrderWs() requires a trailingAmount argument');
@@ -5336,7 +5848,7 @@ export default class Exchange {
          * @param {float} trailingPercent the percent to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired(this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
@@ -5363,7 +5875,7 @@ export default class Exchange {
          * @param {float} trailingPercent the percent to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired(this.id + ' createTrailingPercentOrderWs() requires a trailingPercent argument');
@@ -5386,7 +5898,7 @@ export default class Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.has['createMarketOrderWithCost'] || (this.has['createMarketBuyOrderWithCost'] && this.has['createMarketSellOrderWithCost'])) {
             return await this.createOrder(symbol, 'market', side, cost, 1, params);
@@ -5401,7 +5913,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.options['createMarketBuyOrderRequiresPrice'] || this.has['createMarketBuyOrderWithCost']) {
             return await this.createOrder(symbol, 'market', 'buy', cost, 1, params);
@@ -5416,7 +5928,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.options['createMarketSellOrderRequiresPrice'] || this.has['createMarketSellOrderWithCost']) {
             return await this.createOrder(symbol, 'market', 'sell', cost, 1, params);
@@ -5432,7 +5944,7 @@ export default class Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (this.has['createMarketOrderWithCostWs'] || (this.has['createMarketBuyOrderWithCostWs'] && this.has['createMarketSellOrderWithCostWs'])) {
             return await this.createOrderWs(symbol, 'market', side, cost, 1, params);
@@ -5451,12 +5963,12 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5474,12 +5986,12 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5497,12 +6009,12 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5520,12 +6032,12 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5543,12 +6055,12 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5566,12 +6078,12 @@ export default class Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5598,7 +6110,7 @@ export default class Exchange {
          * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
          * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLoss']) {
@@ -5676,7 +6188,7 @@ export default class Exchange {
          * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
          * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, params);
         if (this.has['createOrderWithTakeProfitAndStopLossWs']) {
@@ -5687,6 +6199,12 @@ export default class Exchange {
     async createOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' createOrders() is not supported yet');
     }
+    async createSpotOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' createSpotOrders() is not supported yet');
+    }
+    async createContractOrders(orders, params = {}) {
+        throw new NotSupported(this.id + ' createContractOrders() is not supported yet');
+    }
     async editOrders(orders, params = {}) {
         throw new NotSupported(this.id + ' editOrders() is not supported yet');
     }
@@ -5696,17 +6214,55 @@ export default class Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrder() is not supported yet');
     }
+    async cancelSpotOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelSpotOrder() is not supported yet');
+    }
+    async cancelContractOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelContractOrder() is not supported yet');
+    }
+    /**
+     * @method
+     * @name cancelOrderWithClientOrderId
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string} clientOrderId client order Id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrderWithClientOrderId(clientOrderId, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.cancelOrder('', symbol, extendedParams);
+    }
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrderWs() is not supported yet');
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrders() is not supported yet');
     }
+    /**
+     * @method
+     * @name cancelOrdersWithClientOrderIds
+     * @description create a market order by providing the symbol, side and cost
+     * @param {string[]} clientOrderIds client order Ids
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrdersWithClientOrderIds(clientOrderIds, symbol = undefined, params = {}) {
+        const extendedParams = this.extend(params, { 'clientOrderIds': clientOrderIds });
+        return await this.cancelOrders([], symbol, extendedParams);
+    }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrders() is not supported yet');
+    }
+    async cancelAllSpotOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllSpotOrders() is not supported yet');
+    }
+    async cancelAllContractOrders(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelAllContractOrders() is not supported yet');
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         throw new NotSupported(this.id + ' cancelAllOrdersAfter() is not supported yet');
@@ -5755,6 +6311,9 @@ export default class Exchange {
             return this.filterBy(orders, 'status', 'closed');
         }
         throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchCanceledOrders() is not supported yet');
     }
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
@@ -5805,7 +6364,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported(this.id + ' fetchDepositsWithdrawals() is not supported yet');
     }
@@ -5866,6 +6425,9 @@ export default class Exchange {
         else {
             throw new NotSupported(this.id + ' fetchDepositAddress() is not supported yet');
         }
+    }
+    async fetchContractDepositAddress(code, params = {}) {
+        throw new NotSupported(this.id + ' fetchContractDepositAddress() is not supported yet');
     }
     account() {
         return {
@@ -5946,7 +6508,7 @@ export default class Exchange {
         return false;
     }
     handleWithdrawTagAndParams(tag, params) {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary(tag)) {
             params = this.extend(tag, params);
             tag = undefined;
         }
@@ -5999,7 +6561,7 @@ export default class Exchange {
             return undefined;
         }
         const market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
     priceToPrecision(symbol, price) {
         if (price === undefined) {
@@ -6219,6 +6781,9 @@ export default class Exchange {
         }
         const query = this.extend(params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs(symbol, 'market', side, amount, undefined, query);
+    }
+    async createSubAccount(name, params = {}) {
+        throw new NotSupported(this.id + ' createSubAccount() is not supported yet');
     }
     safeCurrencyCode(currencyId, currency = undefined) {
         currency = this.safeCurrency(currencyId, currency);
@@ -6835,7 +7400,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
@@ -6872,7 +7437,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         if (this.has['fetchDepositsWithdrawals']) {
             return await this.fetchDepositsWithdrawals(code, since, limit, params);
@@ -6894,6 +7459,14 @@ export default class Exchange {
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    filterByArrayADLRanks(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
         return this.filterByArray(objects, key, values, indexed);
     }
@@ -6999,7 +7572,8 @@ export default class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
@@ -7278,7 +7852,7 @@ export default class Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
         const result = [];
         for (let i = 0; i < liquidations.length; i++) {
@@ -7493,7 +8067,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the position
          * @param {int} [limit] the maximum amount of candles to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if (this.has['fetchPositionsHistory']) {
             const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
@@ -7502,6 +8076,9 @@ export default class Exchange {
         else {
             throw new NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
         }
+    }
+    async loadMarketsAndSignIn() {
+        await Promise.all([this.loadMarkets(), this.signIn()]);
     }
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -7512,7 +8089,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the position
          * @param {int} [limit] the maximum amount of candles to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         throw new NotSupported(this.id + ' fetchPositionsHistory () is not supported yet');
     }
@@ -7539,7 +8116,7 @@ export default class Exchange {
          * @param {string} id transfer id
          * @param {[string]} code unified currency code
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
          */
         throw new NotSupported(this.id + ' fetchTransfer () is not supported yet');
     }
@@ -7552,7 +8129,7 @@ export default class Exchange {
          * @param {int} [since] timestamp in ms of the earliest transfer to fetch
          * @param {int} [limit] the maximum amount of transfers to fetch
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
          */
         throw new NotSupported(this.id + ' fetchTransfers () is not supported yet');
     }
@@ -7575,7 +8152,7 @@ export default class Exchange {
          * @description watches a mark price for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported(this.id + ' watchMarkPrice () is not supported yet');
     }
@@ -7586,7 +8163,7 @@ export default class Exchange {
          * @description watches the mark price for all markets
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported(this.id + ' watchMarkPrices () is not supported yet');
     }
@@ -7600,7 +8177,7 @@ export default class Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         throw new NotSupported(this.id + ' withdrawWs () is not supported yet');
     }
@@ -7611,7 +8188,7 @@ export default class Exchange {
          * @description unWatches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported(this.id + ' unWatchMyTrades () is not supported yet');
     }
@@ -7622,7 +8199,7 @@ export default class Exchange {
          * @description create a list of trade orders
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         throw new NotSupported(this.id + ' createOrdersWs () is not supported yet');
     }
@@ -7634,7 +8211,7 @@ export default class Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
          */
         throw new NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }
@@ -7645,7 +8222,7 @@ export default class Exchange {
          * @description unWatches best bid & ask for symbols
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
          */
         throw new NotSupported(this.id + ' unWatchBidsAsks () is not supported yet');
     }
@@ -7741,7 +8318,7 @@ export default class Exchange {
                     }
                 }
             }
-            else if (topic === 'ticker' && (this.tickers !== undefined)) {
+            else if ((topic === 'ticker' || topic === 'markPrice') && (this.tickers !== undefined)) {
                 const tickerSymbols = Object.keys(this.tickers);
                 for (let i = 0; i < tickerSymbols.length; i++) {
                     const tickerSymbol = tickerSymbols[i];
@@ -7760,6 +8337,35 @@ export default class Exchange {
                 }
             }
         }
+    }
+    timeframeFromMilliseconds(ms) {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
+    }
+    async isUTAEnabled(params = {}) {
+        return false; // stub
     }
 }
 export { Exchange, };

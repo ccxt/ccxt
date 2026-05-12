@@ -81,7 +81,7 @@ probit.fetchCurrencies ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs-en.probit.com/reference/balance  
 
@@ -101,7 +101,7 @@ probit.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs-en.probit.com/reference/order_book  
 
@@ -123,7 +123,7 @@ probit.fetchOrderBook (symbol[, limit, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs-en.probit.com/reference/ticker  
 
@@ -144,7 +144,7 @@ probit.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs-en.probit.com/reference/ticker  
 
@@ -165,7 +165,7 @@ probit.fetchTicker (symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs-en.probit.com/reference/trade  
 
@@ -188,7 +188,7 @@ probit.fetchMyTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs-en.probit.com/reference/trade-1  
 
@@ -256,7 +256,7 @@ probit.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs-en.probit.com/reference/open_order-1  
 
@@ -279,7 +279,7 @@ probit.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs-en.probit.com/reference/order  
 
@@ -302,7 +302,7 @@ probit.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs-en.probit.com/reference/order-3  
 
@@ -324,7 +324,7 @@ probit.fetchOrder (id, symbol[, params])
 create a trade order
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs-en.probit.com/reference/order-1  
 
@@ -350,7 +350,7 @@ probit.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs-en.probit.com/reference/order-2  
 
@@ -372,7 +372,7 @@ probit.cancelOrder (id, symbol[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs-en.probit.com/reference/deposit_address  
 
@@ -393,7 +393,7 @@ probit.fetchDepositAddress (code[, params])
 fetch deposit addresses for multiple currencies and chain types
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - a list of [address structures](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs-en.probit.com/reference/deposit_address  
 
@@ -414,7 +414,7 @@ probit.fetchDepositAddresses (codes[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs-en.probit.com/reference/withdrawal  
 
@@ -438,7 +438,7 @@ probit.withdraw (code, amount, address, tag[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -460,7 +460,7 @@ probit.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made to an account
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -482,7 +482,7 @@ probit.fetchWithdrawals (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs-en.probit.com/reference/transferpayment  
 
@@ -506,7 +506,7 @@ probit.fetchDepositsWithdrawals (code[, since, limit, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fees structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://docs-en.probit.com/reference/currency  
 
@@ -547,7 +547,7 @@ probit.signIn ([params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs-en.probit.com/reference/balance-1  
 
@@ -567,7 +567,7 @@ probit.watchBalance ([params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs-en.probit.com/reference/marketdata  
 
@@ -589,7 +589,7 @@ probit.watchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs-en.probit.com/reference/trade_history  
 
@@ -613,7 +613,7 @@ probit.watchTrades (symbol[, since, limit, params])
 get the list of trades associated with the user
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs-en.probit.com/reference/trade_history  
 
@@ -636,7 +636,7 @@ probit.watchMyTrades (symbol[, since, limit, params])
 watches information on an order made by the user
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs-en.probit.com/reference/open_order  
 
@@ -660,7 +660,7 @@ probit.watchOrders (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>probit</code>](#probit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs-en.probit.com/reference/marketdata  
 

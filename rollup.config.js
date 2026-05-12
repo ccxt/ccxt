@@ -26,7 +26,8 @@ export default [
         transformMixedEsModules: true,
         dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
       }),
-      execute("echo '{ \"type\": \"commonjs\" }' > ./dist/cjs/package.json") // this is needed to make node treat files inside dist/cjs as CJS modules
+      execute("echo '{ \"type\": \"commonjs\" }' > ./dist/cjs/package.json"), // this is needed to make node treat files inside dist/cjs as CJS modules
+      execute("echo 'import * as ccxt from \"./js/ccxt.js\";\\nexport = ccxt;' > ./index.d.cts") // CJS type declarations for node16/nodenext moduleResolution
     ],
     onwarn: ( warning, next ) => {
       if ( warning.message.indexOf('is implicitly using "default" export mode') > -1 ) return;

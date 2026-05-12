@@ -14,15 +14,15 @@ import { unCamelCase } from '../base/functions/string.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    throw new Error(exceptionMessage(e));
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 process.on('unhandledRejection', (e) => {
-    if (e.message.includes('connection closed by remote server')) {
-        // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
-        return;
-    }
-    throw new Error(exceptionMessage(e));
+    // if (e.message.includes ('connection closed by remote server')) {
+    //     // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
+    //     return;
+    // }
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 const AuthenticationError = ccxt.AuthenticationError;
@@ -184,11 +184,20 @@ function getLang() {
 function getExt() {
     return EXT;
 }
+function isWindows() {
+    return process.platform === "win32";
+}
+function isLinux() {
+    return process.platform === "linux";
+}
+function isAmd64() {
+    return process.arch === "x64";
+}
 export { 
 // errors
 AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

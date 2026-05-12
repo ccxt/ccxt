@@ -6,7 +6,7 @@ type Alpaca struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewAlpaca(userConfig map[string]interface{}) *Alpaca {
+func NewAlpaca(userConfig map[string]any) *Alpaca {
 	p := NewAlpacaCore()
 	p.Init(userConfig)
 	return &Alpaca{
@@ -33,7 +33,7 @@ func NewAlpacaFromCore(core *AlpacaCore) *Alpaca {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Alpaca) FetchTime(params ...interface{}) (int64, error) {
+func (this *Alpaca) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -49,7 +49,7 @@ func (this *Alpaca) FetchTime(params ...interface{}) (int64, error) {
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Alpaca) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Alpaca) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -69,7 +69,7 @@ func (this *Alpaca) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
  * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Alpaca) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -79,17 +79,17 @@ func (this *Alpaca) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -119,12 +119,12 @@ func (this *Alpaca) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -158,22 +158,22 @@ func (this *Alpaca) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -192,7 +192,7 @@ func (this *Alpaca) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Alpaca) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -202,7 +202,7 @@ func (this *Alpaca) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -221,7 +221,7 @@ func (this *Alpaca) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @param {string[]} symbols unified symbols of the markets to fetch tickers for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Alpaca) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -231,12 +231,12 @@ func (this *Alpaca) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -256,7 +256,7 @@ func (this *Alpaca) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
 
@@ -266,7 +266,7 @@ func (this *Alpaca) CreateMarketOrderWithCost(symbol string, side string, cost f
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -285,7 +285,7 @@ func (this *Alpaca) CreateMarketOrderWithCost(symbol string, side string, cost f
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -295,7 +295,7 @@ func (this *Alpaca) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -314,7 +314,7 @@ func (this *Alpaca) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 
@@ -324,7 +324,7 @@ func (this *Alpaca) CreateMarketSellOrderWithCost(symbol string, cost float64, o
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -348,7 +348,7 @@ func (this *Alpaca) CreateMarketSellOrderWithCost(symbol string, cost float64, o
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
  * @param {float} [params.cost] *market orders only* the cost of the order in units of the quote currency
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -358,12 +358,12 @@ func (this *Alpaca) CreateOrder(symbol string, typeVar string, side string, amou
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -382,7 +382,7 @@ func (this *Alpaca) CreateOrder(symbol string, typeVar string, side string, amou
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -392,12 +392,12 @@ func (this *Alpaca) CancelOrder(id string, options ...CancelOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -415,7 +415,7 @@ func (this *Alpaca) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @see https://docs.alpaca.markets/reference/deleteallorders
  * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -425,12 +425,12 @@ func (this *Alpaca) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -449,7 +449,7 @@ func (this *Alpaca) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -459,12 +459,12 @@ func (this *Alpaca) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -485,7 +485,7 @@ func (this *Alpaca) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -495,22 +495,22 @@ func (this *Alpaca) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -531,7 +531,7 @@ func (this *Alpaca) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -541,22 +541,22 @@ func (this *Alpaca) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -577,7 +577,7 @@ func (this *Alpaca) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -587,22 +587,22 @@ func (this *Alpaca) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -628,7 +628,7 @@ func (this *Alpaca) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @param {string} [params.triggerPrice] the price to trigger a stop order
  * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
  * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Alpaca) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -638,17 +638,17 @@ func (this *Alpaca) EditOrder(id string, symbol string, typeVar string, side str
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -670,7 +670,7 @@ func (this *Alpaca) EditOrder(id string, symbol string, typeVar string, side str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {string} [params.page_token] page_token - used for paging
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Alpaca) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -680,22 +680,22 @@ func (this *Alpaca) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -713,7 +713,7 @@ func (this *Alpaca) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Alpaca) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -723,7 +723,7 @@ func (this *Alpaca) FetchDepositAddress(code string, options ...FetchDepositAddr
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -744,7 +744,7 @@ func (this *Alpaca) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {string} address the address to withdraw to
  * @param {string} tag a memo for the transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Alpaca) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -754,12 +754,12 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -769,7 +769,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	}
 	return NewTransaction(res), nil
 }
-func (this *Alpaca) FetchTransactionsHelper(typeVar interface{}, code interface{}, since interface{}, limit interface{}, params interface{}) ([]Transaction, error) {
+func (this *Alpaca) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) ([]Transaction, error) {
 	res := <-this.Core.FetchTransactionsHelper(typeVar, code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -786,7 +786,7 @@ func (this *Alpaca) FetchTransactionsHelper(typeVar interface{}, code interface{
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Alpaca) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
@@ -796,22 +796,22 @@ func (this *Alpaca) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawals
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -831,7 +831,7 @@ func (this *Alpaca) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawals
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposit structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Alpaca) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -841,22 +841,22 @@ func (this *Alpaca) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -876,7 +876,7 @@ func (this *Alpaca) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawal structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Alpaca) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -886,22 +886,22 @@ func (this *Alpaca) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -918,9 +918,9 @@ func (this *Alpaca) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.alpaca.markets/reference/getaccount-1
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Alpaca) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Alpaca) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -930,11 +930,20 @@ func (this *Alpaca) FetchBalance(params ...interface{}) (Balances, error) {
 
 // missing typed methods from base
 // nolint
-func (this *Alpaca) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Alpaca) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
-func (this *Alpaca) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Alpaca) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrders(ids, options...)
+}
+func (this *Alpaca) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
+func (this *Alpaca) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Alpaca) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Alpaca) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1008,10 +1017,13 @@ func (this *Alpaca) EditLimitOrder(id string, symbol string, side string, amount
 func (this *Alpaca) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
 }
+func (this *Alpaca) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
+}
 func (this *Alpaca) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Alpaca) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Alpaca) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Alpaca) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1023,13 +1035,13 @@ func (this *Alpaca) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, err
 func (this *Alpaca) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Alpaca) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Alpaca) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Alpaca) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Alpaca) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Alpaca) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1044,10 +1056,10 @@ func (this *Alpaca) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 func (this *Alpaca) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Alpaca) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Alpaca) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
-func (this *Alpaca) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Alpaca) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Alpaca) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -1056,13 +1068,13 @@ func (this *Alpaca) FetchDepositAddresses(options ...FetchDepositAddressesOption
 func (this *Alpaca) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Alpaca) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Alpaca) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Alpaca) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Alpaca) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Alpaca) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -1092,7 +1104,7 @@ func (this *Alpaca) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOpt
 func (this *Alpaca) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Alpaca) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Alpaca) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Alpaca) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1161,6 +1173,9 @@ func (this *Alpaca) FetchOption(symbol string, options ...FetchOptionOptions) (O
 func (this *Alpaca) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
+func (this *Alpaca) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
+}
 func (this *Alpaca) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
 }
@@ -1170,7 +1185,7 @@ func (this *Alpaca) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Alpaca) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Alpaca) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Alpaca) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Alpaca) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1179,7 +1194,7 @@ func (this *Alpaca) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Alpaca) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Alpaca) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Alpaca) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1197,22 +1212,22 @@ func (this *Alpaca) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Alpaca) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Alpaca) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Alpaca) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Alpaca) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Alpaca) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Alpaca) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Alpaca) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Alpaca) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Alpaca) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Alpaca) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1227,10 +1242,10 @@ func (this *Alpaca) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 func (this *Alpaca) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Alpaca) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Alpaca) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Alpaca) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Alpaca) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Alpaca) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -1308,13 +1323,13 @@ func (this *Alpaca) CreateTriggerOrderWs(symbol string, typeVar string, side str
 func (this *Alpaca) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Alpaca) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Alpaca) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Alpaca) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Alpaca) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Alpaca) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1356,46 +1371,46 @@ func (this *Alpaca) FetchTickerWs(symbol string, options ...FetchTickerWsOptions
 func (this *Alpaca) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Alpaca) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Alpaca) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Alpaca) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Alpaca) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Alpaca) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Alpaca) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Alpaca) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Alpaca) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Alpaca) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Alpaca) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Alpaca) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Alpaca) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Alpaca) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Alpaca) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Alpaca) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Alpaca) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Alpaca) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Alpaca) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Alpaca) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

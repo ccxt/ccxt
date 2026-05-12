@@ -182,7 +182,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -202,7 +202,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->un_watch_tickers(array( $symbol ), $params));
         }) ();
@@ -217,7 +217,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -243,7 +243,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -342,7 +342,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -365,7 +365,7 @@ class backpack extends \ccxt\async\backpack {
              * unWatches best bid & ask for $symbols
              * @param {string[]} $symbols unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -491,7 +491,7 @@ class backpack extends \ccxt\async\backpack {
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0]))) {
+            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
             }
             Async\await($this->load_markets());
@@ -527,7 +527,7 @@ class backpack extends \ccxt\async\backpack {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $symbolsLength = count($symbolsAndTimeframes);
-            if ($symbolsLength === 0 || gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0]))) {
+            if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
             }
             Async\await($this->load_markets());
@@ -626,7 +626,7 @@ class backpack extends \ccxt\async\backpack {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -641,7 +641,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
         }) ();
@@ -658,7 +658,7 @@ class backpack extends \ccxt\async\backpack {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -680,7 +680,8 @@ class backpack extends \ccxt\async\backpack {
                 $tradeSymbol = $this->safe_string($first, 'symbol');
                 $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
         }) ();
     }
 
@@ -693,7 +694,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string[]} $symbols unified $symbol of the market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -809,7 +810,7 @@ class backpack extends \ccxt\async\backpack {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
@@ -826,7 +827,7 @@ class backpack extends \ccxt\async\backpack {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -851,7 +852,7 @@ class backpack extends \ccxt\async\backpack {
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified array of symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
         }) ();
@@ -864,7 +865,7 @@ class backpack extends \ccxt\async\backpack {
              * @param {string[]} $symbols unified array of $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -979,7 +980,7 @@ class backpack extends \ccxt\async\backpack {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1010,7 +1011,7 @@ class backpack extends \ccxt\async\backpack {
              *
              * @param {string} [$symbol] unified $market $symbol of the $market orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;

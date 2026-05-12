@@ -10,13 +10,12 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $without_symbol = test_watch_tickers_helper($exchange, $skipped_properties, null);
         $with_symbol = test_watch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-        Async\await(Promise\all([$with_symbol, $without_symbol]));
+        \React\Async\await(\React\Promise\all([$with_symbol, $without_symbol]));
     }) ();
 }
 
@@ -31,7 +30,7 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
             $success = true;
             $should_return = false;
             try {
-                $response = Async\await($exchange->watch_tickers($arg_symbols, $arg_params));
+                $response = \React\Async\await($exchange->watch_tickers($arg_symbols, $arg_params));
             } catch(\Throwable $e) {
                 // for some exchanges, specifically watchTickers method not subscribe
                 // to "all tickers" itself, and it requires symbols to be set

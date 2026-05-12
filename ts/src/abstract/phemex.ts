@@ -47,6 +47,7 @@ interface Exchange {
     privateGetAccountsAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetGAccountsAccountPositions (params?: {}): Promise<implicitReturnType>;
     privateGetGAccountsPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetGAccountsRiskUnit (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesFundingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesFundingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesOrders (params?: {}): Promise<implicitReturnType>;
@@ -58,6 +59,7 @@ interface Exchange {
     privateGetApiDataFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataGFuturesTradingFees (params?: {}): Promise<implicitReturnType>;
     privateGetApiDataFuturesV2TradeAccountDetail (params?: {}): Promise<implicitReturnType>;
+    privateGetApiDataGFuturesClosedPosition (params?: {}): Promise<implicitReturnType>;
     privateGetGOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersActiveList (params?: {}): Promise<implicitReturnType>;
     privateGetExchangeOrderList (params?: {}): Promise<implicitReturnType>;
