@@ -2360,7 +2360,37 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode' ]);
+        const triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.priceToPrecision (symbol, triggerPriceStr);
+        const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLossOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
+        // const stopLoss = this.safeValue (params, 'stopLoss');
+        // const takeProfit = this.safeValue (params, 'takeProfit');
+        // const hasStopLoss = (stopLoss !== undefined);
+        // const hasTakeProfit = (takeProfit !== undefined);
+        // const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit;
+        if (triggerPrice !== undefined) {
+            const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
+            const trigger = {
+                'triggerPrice': triggerPriceStr,
+            };
+            if (triggerDirection !== undefined) {
+                trigger['direction'] = triggerDirection;
+            }
+            request['type'] = 'CONDITIONAL';
+            request['trigger'] = trigger;
+        } else if (isStopLossOrder || isTakeProfitOrder) {
+            if (isBuy) {
+                request['direction'] = isStopLossOrder ? 'UP' : 'DOWN';
+            } else {
+                request['direction'] = isStopLossOrder ? 'DOWN' : 'UP';
+            }
+            triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stpoLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         return {
             'request': this.extend (request, params),
             'market': market,
@@ -2407,21 +2437,9 @@ export default class extended extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const market = extendedOrderRequest['market'] as Market;
         const now = this.safeInteger (extendedOrderRequest, 'timestamp');
-        const priceString = this.safeString (extendedOrderRequest, 'price');
-        const amountString = this.safeString (extendedOrderRequest, 'amount');
-        return this.safeOrder ({
-            'info': response,
-            'id': this.safeString (data, 'id'),
-            'clientOrderId': this.safeString (data, 'externalId'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'status': 'open',
-        }, market);
+        data['timestamp'] = now;
+        data['status'] = 'NEW';
+        return this.parseOrder (this.extend (request, data), market);
     }
 
     /**
@@ -2822,7 +2840,7 @@ export default class extended extends Exchange {
         //
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (order, 'createdTime');
+        const timestamp = this.safeInteger2 (order, 'createdTime', 'timestamp');
         const lastUpdateTimestamp = this.safeInteger (order, 'updatedTime');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeStringLower (order, 'side');
