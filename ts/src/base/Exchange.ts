@@ -5733,7 +5733,9 @@ export default class Exchange {
         this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
-                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
+                // get new headers and body in case they were changed by sign() because of new timestamp
+                const repeatedRequest = this.sign (path, api, method, params, headers, body);
+                return await this.fetch (repeatedRequest['url'], repeatedRequest['method'], repeatedRequest['headers'], repeatedRequest['body']);
             } catch (e) {
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
