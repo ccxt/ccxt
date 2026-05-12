@@ -2,9 +2,9 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Bool, Int, OrderBook, Trade } from '../base/types.js';
+import type { Bool, Int, OHLCV, OrderBook, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 // ----------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@ export default class extended extends extendedRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
             },
@@ -209,6 +210,115 @@ export default class extended extends extendedRest {
         client.resolve (stored, messageHash);
     }
 
+    /**
+     * @method
+     * @name extended#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.docs.extended.exchange/#candles-stream
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.candleType] candle type: 'trades' (default), 'mark-prices', or 'index-prices'
+     * @param {string} [params.price] *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const price = this.safeString (params, 'price');
+        let candleType = this.safeString (params, 'candleType');
+        if (candleType === undefined) {
+            if (price === 'mark') {
+                candleType = 'mark-prices';
+            } else if (price === 'index') {
+                candleType = 'index-prices';
+            } else {
+                candleType = 'trades';
+            }
+        }
+        params = this.omit (params, [ 'candleType', 'price' ]);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType;
+        const query = this.urlencode (this.extend ({ 'interval': interval }, params));
+        const url = this.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const ohlcv = await this.watch (url, messageHash, undefined, messageHash, {
+            'name': 'ohlcv',
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'candleType': candleType,
+            'limit': limit,
+            'messageHash': messageHash,
+        });
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         "ts": 1695738675123,
+        //         "data": [
+        //             {
+        //                 "T": 1695738674000,
+        //                 "o": "1000.0000",
+        //                 "l": "800.0000",
+        //                 "h": "2400.0000",
+        //                 "c": "2100.0000",
+        //                 "v": "10.0000"
+        //             }
+        //         ],
+        //         "seq": 1
+        //     }
+        //
+        const subscription = this.findOhlcvSubscription (client);
+        if (subscription === undefined) {
+            return;
+        }
+        const symbol = this.safeString (subscription, 'symbol');
+        const timeframe = this.safeString (subscription, 'timeframe');
+        const candleType = this.safeString (subscription, 'candleType');
+        const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
+        const messageHash = this.safeString (subscription, 'messageHash');
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], cacheKey);
+        if (stored === undefined) {
+            const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][cacheKey] = stored;
+        }
+        const previousNonce = this.safeInteger (subscription, 'nonce');
+        const nonce = this.safeInteger (message, 'seq');
+        if ((previousNonce !== undefined) && (nonce !== undefined) && (nonce <= previousNonce)) {
+            return;
+        }
+        subscription['nonce'] = nonce;
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const parsed = this.parseOHLCV (data[i]);
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash);
+    }
+
+    findOhlcvSubscription (client: Client) {
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const subscription = this.safeDict (client.subscriptions, key);
+            const name = this.safeString (subscription, 'name');
+            if (name === 'ohlcv') {
+                return subscription;
+            }
+        }
+        return undefined;
+    }
+
     handleErrorMessage (client: Client, message): Bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
@@ -231,7 +341,13 @@ export default class extended extends extendedRest {
         }
         const data = this.safeValue (message, 'data');
         if (Array.isArray (data)) {
-            this.handleTrades (client, message);
+            const first = this.safeDict (data, 0, {});
+            const side = this.safeString (first, 'S');
+            if (side !== undefined) {
+                this.handleTrades (client, message);
+            } else {
+                this.handleOHLCV (client, message);
+            }
         } else if (data !== undefined) {
             this.handleOrderBook (client, message);
         }
