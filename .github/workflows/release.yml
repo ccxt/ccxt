@@ -148,9 +148,15 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
         run: cd python && ./deploy.sh && cd ..;
-      - uses: JS-DevTools/npm-publish@v3
+      # - uses: JS-DevTools/npm-publish@v3
+      #   with:
+      #     token: ${{ secrets.NPM_PROD }}
+      - uses: actions/setup-node@v6
         with:
-          token: ${{ secrets.NPM_PROD }}
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
+      - run: npm publish # use trusted publishing from npm
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest
