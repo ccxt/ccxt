@@ -2411,8 +2411,8 @@ export default class extended extends Exchange {
         const amountString = this.safeString (extendedOrderRequest, 'amount');
         return this.safeOrder ({
             'info': response,
-            'id': this.safeString (data, 'externalId'),
-            'clientOrderId': this.safeString (data, 'id'),
+            'id': this.safeString (data, 'id'),
+            'clientOrderId': this.safeString (data, 'externalId'),
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'symbol': market['symbol'],
