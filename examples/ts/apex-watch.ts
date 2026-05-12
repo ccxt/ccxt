@@ -19,8 +19,10 @@ async function main () {
             'brokerId': '',
         },
     });
-    const tickers = await exchange.watchTickers ([ 'BTC-USDT', 'ETH-USDT' ]);
-    console.log (tickers);
+    while (true) {
+        const tickers = await exchange.watchTickers ([ 'BTC-USDT', 'ETH-USDT' ]);
+        console.log (tickers);
+    }
 }
 
 main ();
