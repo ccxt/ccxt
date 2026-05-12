@@ -47,3 +47,5 @@ jobs:
         run: npm run tsBuild
       - run: node -v && npm -v
       - run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
