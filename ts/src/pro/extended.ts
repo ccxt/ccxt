@@ -2,8 +2,9 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Bool, Int, OrderBook } from '../base/types.js';
+import type { Bool, Int, OrderBook, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 // ----------------------------------------------------------------------------
 
@@ -13,6 +14,7 @@ export default class extended extends extendedRest {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -128,6 +130,85 @@ export default class extended extends extendedRest {
         }
     }
 
+    /**
+     * @method
+     * @name extended#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api.docs.extended.exchange/#trades-stream
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'trades:' + symbol;
+        const query = this.urlencode (params);
+        let url = this.urls['api']['ws'] + '/publicTrades/' + market['id'];
+        if (query.length > 0) {
+            url += '?' + query;
+        }
+        const trades = await this.watch (url, messageHash, undefined, messageHash, {
+            'symbol': symbol,
+            'limit': limit,
+        });
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         "ts": 1701563440000,
+        //         "data": [
+        //             {
+        //                 "m": "BTC-USD",
+        //                 "S": "BUY",
+        //                 "tT": "TRADE",
+        //                 "T": 1701563440000,
+        //                 "p": "25670",
+        //                 "q": "0.1",
+        //                 "i": 25124
+        //             }
+        //         ],
+        //         "seq": 2
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        if (data.length === 0) {
+            return;
+        }
+        const first = this.safeDict (data, 0, {});
+        const marketId = this.safeString (first, 'm');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'trades:' + symbol;
+        const subscription = this.safeDict (client.subscriptions, messageHash, {});
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            const defaultLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        const previousNonce = this.safeInteger (subscription, 'nonce');
+        const nonce = this.safeInteger (message, 'seq');
+        if ((previousNonce !== undefined) && (nonce !== undefined) && (nonce <= previousNonce)) {
+            return;
+        }
+        subscription['nonce'] = nonce;
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseTrade (data[i], market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
+    }
+
     handleErrorMessage (client: Client, message): Bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
@@ -148,9 +229,10 @@ export default class extended extends extendedRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const data = this.safeDict (message, 'data');
-        const marketId = this.safeString (data, 'm');
-        if (marketId !== undefined) {
+        const data = this.safeValue (message, 'data');
+        if (Array.isArray (data)) {
+            this.handleTrades (client, message);
+        } else if (data !== undefined) {
             this.handleOrderBook (client, message);
         }
     }

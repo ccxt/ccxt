@@ -273,7 +273,7 @@ export default class extended extends Exchange {
                     '1053': InvalidOrder, // Leverage has invalid precision.
                     '1100': InvalidOrder, // Invalid Starknet public key.
                     '1101': InvalidOrder, // Invalid Starknet signature.
-                    '1102': InvalidOrder, // Invalid Starknet vault.		
+                    '1102': InvalidOrder, // Invalid Starknet vault.
                     '1120': InvalidOrder, // Order quantity less than min trade size, based on market-specific trading rules.
                     '1121': InvalidOrder, // Invalid quantity due to the wrong size increment, based on market-specific Minimum Change in Trade Size trading rule.
                     '1122': InvalidOrder, // Order value exceeds max order value, based on market-specific trading rules.
@@ -302,8 +302,8 @@ export default class extended extends Exchange {
                     '1145': InvalidOrder, // Non reduce-only orders are not allowed.
                     '1146': InvalidOrder, // Twap order must have time in force GTT.
                     '1147': InvalidOrder, // Open loss exceeds equity.
-                    '1148': InvalidOrder, // TP/SL open loss exceeds equity.	
-                    '1500': InvalidOrder, // Account not selected.	
+                    '1148': InvalidOrder, // TP/SL open loss exceeds equity.
+                    '1500': InvalidOrder, // Account not selected.
                     '1600': BadRequest, // Withdrawal amount must be positive.
                     '1601': BadRequest, // Withdrawal description is too long.
                     '1602': BadRequest, // Withdrawal request does not match settlement.
@@ -522,7 +522,7 @@ export default class extended extends Exchange {
         if (quoteId === 'USD') {
             quoteId = 'USDC';
         }
-        let base = this.safeCurrencyCode (baseId);
+        const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const status = this.safeString (market, 'status');
         const active = (status === 'ACTIVE');
