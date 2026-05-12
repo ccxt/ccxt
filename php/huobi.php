@@ -10,7 +10,7 @@ use ccxt\abstract\huobi as htx;
 
 class huobi extends htx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'huobi',
             'alias' => true,

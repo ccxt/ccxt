@@ -10,8 +10,10 @@ public partial class bequant : hitbtc
     public override object describe()
     {
         // eslint-disable-next-line new-cap
-        object describeExtended = this.getDescribeForExtendedWsExchange(new ccxt.bequant(), new ccxt.hitbtc(), base.describe());
-        return this.deepExtend(describeExtended, new Dictionary<string, object>() {
+        var restInstance = new ccxt.bequant();
+        object restDescribe = restInstance.describe();
+        object extended = this.deepExtend(base.describe(), restDescribe);
+        return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bequant" },
             { "name", "Bequant" },
             { "countries", new List<object>() {"MT"} },
@@ -21,6 +23,10 @@ public partial class bequant : hitbtc
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bequant.io/api/3" },
                     { "private", "https://api.bequant.io/api/3" },
+                    { "ws", new Dictionary<string, object>() {
+                        { "public", "wss://api.bequant.io/api/3/ws/public" },
+                        { "private", "wss://api.bequant.io/api/3/ws/trading" },
+                    } },
                 } },
                 { "www", "https://bequant.io" },
                 { "doc", new List<object>() {"https://api.bequant.io/"} },

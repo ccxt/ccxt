@@ -1,0 +1,434 @@
+package ccxt
+
+import "sync"
+
+// func (this *Exchange) Describe() map[string]any {
+// 	return map[string]any{
+// 		"id":              nil,
+// 		"name":            nil,
+// 		"countries":       nil,
+// 		"enableRateLimit": true,
+// 		"rateLimit":       2000,
+// 		"certified":       false,
+// 		"pro":             false,
+// 		"alias":           false,
+// 		"dex":             false,
+// 		"has": map[string]any{
+// 			"publicAPI":                              true,
+// 			"privateAPI":                             true,
+// 			"CORS":                                   nil,
+// 			"sandbox":                                nil,
+// 			"spot":                                   nil,
+// 			"margin":                                 nil,
+// 			"swap":                                   nil,
+// 			"future":                                 nil,
+// 			"option":                                 nil,
+// 			"addMargin":                              nil,
+// 			"borrowCrossMargin":                      nil,
+// 			"borrowIsolatedMargin":                   nil,
+// 			"borrowMargin":                           nil,
+// 			"cancelAllOrders":                        nil,
+// 			"cancelAllOrdersWs":                      nil,
+// 			"cancelOrder":                            true,
+// 			"cancelOrderWs":                          nil,
+// 			"cancelOrders":                           nil,
+// 			"cancelOrdersWs":                         nil,
+// 			"closeAllPositions":                      nil,
+// 			"closePosition":                          nil,
+// 			"createDepositAddress":                   nil,
+// 			"createLimitBuyOrder":                    nil,
+// 			"createLimitBuyOrderWs":                  nil,
+// 			"createLimitOrder":                       true,
+// 			"createLimitOrderWs":                     nil,
+// 			"createLimitSellOrder":                   nil,
+// 			"createLimitSellOrderWs":                 nil,
+// 			"createMarketBuyOrder":                   nil,
+// 			"createMarketBuyOrderWs":                 nil,
+// 			"createMarketBuyOrderWithCost":           nil,
+// 			"createMarketBuyOrderWithCostWs":         nil,
+// 			"createMarketOrder":                      true,
+// 			"createMarketOrderWs":                    true,
+// 			"createMarketOrderWithCost":              nil,
+// 			"createMarketOrderWithCostWs":            nil,
+// 			"createMarketSellOrder":                  nil,
+// 			"createMarketSellOrderWs":                nil,
+// 			"createMarketSellOrderWithCost":          nil,
+// 			"createMarketSellOrderWithCostWs":        nil,
+// 			"createOrder":                            true,
+// 			"createOrderWs":                          nil,
+// 			"createOrders":                           nil,
+// 			"createOrderWithTakeProfitAndStopLoss":   nil,
+// 			"createOrderWithTakeProfitAndStopLossWs": nil,
+// 			"createPostOnlyOrder":                    nil,
+// 			"createPostOnlyOrderWs":                  nil,
+// 			"createReduceOnlyOrder":                  nil,
+// 			"createReduceOnlyOrderWs":                nil,
+// 			"createStopLimitOrder":                   nil,
+// 			"createStopLimitOrderWs":                 nil,
+// 			"createStopLossOrder":                    nil,
+// 			"createStopLossOrderWs":                  nil,
+// 			"createStopMarketOrder":                  nil,
+// 			"createStopMarketOrderWs":                nil,
+// 			"createStopOrder":                        nil,
+// 			"createStopOrderWs":                      nil,
+// 			"createTakeProfitOrder":                  nil,
+// 			"createTakeProfitOrderWs":                nil,
+// 			"createTrailingAmountOrder":              nil,
+// 			"createTrailingAmountOrderWs":            nil,
+// 			"createTrailingPercentOrder":             nil,
+// 			"createTrailingPercentOrderWs":           nil,
+// 			"createTriggerOrder":                     nil,
+// 			"createTriggerOrderWs":                   nil,
+// 			"deposit":                                nil,
+// 			"editOrder":                              "emulated",
+// 			"editOrderWs":                            nil,
+// 			"fetchAccounts":                          nil,
+// 			"fetchBalance":                           true,
+// 			"fetchBalanceWs":                         nil,
+// 			"fetchBidsAsks":                          nil,
+// 			"fetchBorrowInterest":                    nil,
+// 			"fetchBorrowRate":                        nil,
+// 			"fetchBorrowRateHistories":               nil,
+// 			"fetchBorrowRateHistory":                 nil,
+// 			"fetchBorrowRates":                       nil,
+// 			"fetchBorrowRatesPerSymbol":              nil,
+// 			"fetchCanceledAndClosedOrders":           nil,
+// 			"fetchCanceledOrders":                    nil,
+// 			"fetchClosedOrder":                       nil,
+// 			"fetchClosedOrders":                      nil,
+// 			"fetchClosedOrdersWs":                    nil,
+// 			"fetchConvertCurrencies":                 nil,
+// 			"fetchConvertQuote":                      nil,
+// 			"fetchConvertTrade":                      nil,
+// 			"fetchConvertTradeHistory":               nil,
+// 			"fetchCrossBorrowRate":                   nil,
+// 			"fetchCrossBorrowRates":                  nil,
+// 			"fetchCurrencies":                        "emulated",
+// 			"fetchCurrenciesWs":                      "emulated",
+// 			"fetchDeposit":                           nil,
+// 			"fetchDepositAddress":                    nil,
+// 			"fetchDepositAddresses":                  nil,
+// 			"fetchDepositAddressesByNetwork":         nil,
+// 			"fetchDeposits":                          nil,
+// 			"fetchDepositsWithdrawals":               nil,
+// 			"fetchDepositsWs":                        nil,
+// 			"fetchDepositWithdrawFee":                nil,
+// 			"fetchDepositWithdrawFees":               nil,
+// 			"fetchFundingHistory":                    nil,
+// 			"fetchFundingRate":                       nil,
+// 			"fetchFundingRateHistory":                nil,
+// 			"fetchFundingRates":                      nil,
+// 			"fetchGreeks":                            nil,
+// 			"fetchIndexOHLCV":                        nil,
+// 			"fetchIsolatedBorrowRate":                nil,
+// 			"fetchIsolatedBorrowRates":               nil,
+// 			"fetchMarginAdjustmentHistory":           nil,
+// 			"fetchIsolatedPositions":                 nil,
+// 			"fetchL2OrderBook":                       true,
+// 			"fetchL3OrderBook":                       nil,
+// 			"fetchLastPrices":                        nil,
+// 			"fetchLedger":                            nil,
+// 			"fetchLedgerEntry":                       nil,
+// 			"fetchLeverage":                          nil,
+// 			"fetchLeverages":                         nil,
+// 			"fetchLeverageTiers":                     nil,
+// 			"fetchLiquidations":                      nil,
+// 			"fetchMarginMode":                        nil,
+// 			"fetchMarginModes":                       nil,
+// 			"fetchMarketLeverageTiers":               nil,
+// 			"fetchMarkets":                           true,
+// 			"fetchMarketsWs":                         nil,
+// 			"fetchMarkOHLCV":                         nil,
+// 			"fetchMyLiquidations":                    nil,
+// 			"fetchMySettlementHistory":               nil,
+// 			"fetchMyTrades":                          nil,
+// 			"fetchMyTradesWs":                        nil,
+// 			"fetchOHLCV":                             nil,
+// 			"fetchOHLCVWs":                           nil,
+// 			"fetchOpenInterest":                      nil,
+// 			"fetchOpenInterestHistory":               nil,
+// 			"fetchOpenOrder":                         nil,
+// 			"fetchOpenOrders":                        nil,
+// 			"fetchOpenOrdersWs":                      nil,
+// 			"fetchOption":                            nil,
+// 			"fetchOptionChain":                       nil,
+// 			"fetchOrder":                             nil,
+// 			"fetchOrderBook":                         true,
+// 			"fetchOrderBooks":                        nil,
+// 			"fetchOrderBookWs":                       nil,
+// 			"fetchOrders":                            nil,
+// 			"fetchOrdersByStatus":                    nil,
+// 			"fetchOrdersWs":                          nil,
+// 			"fetchOrderTrades":                       nil,
+// 			"fetchOrderWs":                           nil,
+// 			"fetchPermissions":                       nil,
+// 			"fetchPosition":                          nil,
+// 			"fetchPositionHistory":                   nil,
+// 			"fetchPositionsHistory":                  nil,
+// 			"fetchPositionWs":                        nil,
+// 			"fetchPositionMode":                      nil,
+// 			"fetchPositions":                         nil,
+// 			"fetchPositionsWs":                       nil,
+// 			"fetchPositionsForSymbol":                nil,
+// 			"fetchPositionsForSymbolWs":              nil,
+// 			"fetchPositionsRisk":                     nil,
+// 			"fetchPremiumIndexOHLCV":                 nil,
+// 			"fetchSettlementHistory":                 nil,
+// 			"fetchStatus":                            nil,
+// 			"fetchTicker":                            true,
+// 			"fetchTickerWs":                          nil,
+// 			"fetchTickers":                           nil,
+// 			"fetchTickersWs":                         nil,
+// 			"fetchTime":                              nil,
+// 			"fetchTrades":                            true,
+// 			"fetchTradesWs":                          nil,
+// 			"fetchTradingFee":                        nil,
+// 			"fetchTradingFees":                       nil,
+// 			"fetchTradingFeesWs":                     nil,
+// 			"fetchTradingLimits":                     nil,
+// 			"fetchTransactionFee":                    nil,
+// 			"fetchTransactionFees":                   nil,
+// 			"fetchTransactions":                      nil,
+// 			"fetchTransfer":                          nil,
+// 			"fetchTransfers":                         nil,
+// 			"fetchUnderlyingAssets":                  nil,
+// 			"fetchVolatilityHistory":                 nil,
+// 			"fetchWithdrawAddresses":                 nil,
+// 			"fetchWithdrawal":                        nil,
+// 			"fetchWithdrawals":                       nil,
+// 			"fetchWithdrawalsWs":                     nil,
+// 			"fetchWithdrawalWhitelist":               nil,
+// 			"reduceMargin":                           nil,
+// 			"repayCrossMargin":                       nil,
+// 			"repayIsolatedMargin":                    nil,
+// 			"setLeverage":                            nil,
+// 			"setMargin":                              nil,
+// 			"setMarginMode":                          nil,
+// 			"setPositionMode":                        nil,
+// 			"signIn":                                 nil,
+// 			"transfer":                               nil,
+// 			"watchBalance":                           nil,
+// 			"watchMyTrades":                          nil,
+// 			"watchOHLCV":                             nil,
+// 			"watchOHLCVForSymbols":                   nil,
+// 			"watchOrderBook":                         nil,
+// 			"watchOrderBookForSymbols":               nil,
+// 			"watchOrders":                            nil,
+// 			"watchOrdersForSymbols":                  nil,
+// 			"watchPosition":                          nil,
+// 			"watchPositions":                         nil,
+// 			"watchStatus":                            nil,
+// 			"watchTicker":                            nil,
+// 			"watchTickers":                           nil,
+// 			"watchTrades":                            nil,
+// 			"watchTradesForSymbols":                  nil,
+// 			"watchLiquidations":                      nil,
+// 			"watchLiquidationsForSymbols":            nil,
+// 			"watchMyLiquidations":                    nil,
+// 			"watchMyLiquidationsForSymbols":          nil,
+// 			"withdraw":                               nil,
+// 			"ws":                                     nil,
+// 		},
+// 		"urls": map[string]any{
+// 			"logo": nil,
+// 			"api":  nil,
+// 			"www":  nil,
+// 			"doc":  nil,
+// 			"fees": nil,
+// 		},
+// 		"api": nil,
+// 		"requiredCredentials": map[string]any{
+// 			"apiKey":        true,
+// 			"secret":        true,
+// 			"uid":           false,
+// 			"accountId":     false,
+// 			"login":         false,
+// 			"password":      false,
+// 			"twofa":         false,
+// 			"privateKey":    false,
+// 			"walletAddress": false,
+// 			"token":         false,
+// 		},
+// 		"markets":    nil,
+// 		"currencies": map[string]any{},
+// 		"timeframes": nil,
+// 		"fees": map[string]any{
+// 			"trading": map[string]any{
+// 				"tierBased":  nil,
+// 				"percentage": nil,
+// 				"taker":      nil,
+// 				"maker":      nil,
+// 			},
+// 			"funding": map[string]any{
+// 				"tierBased":  nil,
+// 				"percentage": nil,
+// 				"withdraw":   map[string]any{},
+// 				"deposit":    map[string]any{},
+// 			},
+// 		},
+// 		"status": map[string]any{
+// 			"status":  "ok",
+// 			"updated": nil,
+// 			"eta":     nil,
+// 			"url":     nil,
+// 		},
+// 		"exceptions": nil,
+// 		"httpExceptions": map[string]any{
+// 			"422": ExchangeError,
+// 			"418": DDoSProtection,
+// 			"429": RateLimitExceeded,
+// 			"404": ExchangeNotAvailable,
+// 			"409": ExchangeNotAvailable,
+// 			"410": ExchangeNotAvailable,
+// 			"451": ExchangeNotAvailable,
+// 			"500": ExchangeNotAvailable,
+// 			"501": ExchangeNotAvailable,
+// 			"502": ExchangeNotAvailable,
+// 			"520": ExchangeNotAvailable,
+// 			"521": ExchangeNotAvailable,
+// 			"522": ExchangeNotAvailable,
+// 			"525": ExchangeNotAvailable,
+// 			"526": ExchangeNotAvailable,
+// 			"400": ExchangeNotAvailable,
+// 			"403": ExchangeNotAvailable,
+// 			"405": ExchangeNotAvailable,
+// 			"503": ExchangeNotAvailable,
+// 			"530": ExchangeNotAvailable,
+// 			"408": RequestTimeout,
+// 			"504": RequestTimeout,
+// 			"401": AuthenticationError,
+// 			"407": AuthenticationError,
+// 			"511": AuthenticationError,
+// 		},
+// 		"commonCurrencies": map[string]any{
+// 			"XBT":   "BTC",
+// 			"BCC":   "BCH",
+// 			"BCHSV": "BSV",
+// 		},
+// 		"precisionMode": DECIMAL_PLACES,
+// 		"paddingMode":   NO_PADDING,
+// 		"limits": map[string]any{
+// 			"leverage": map[string]any{
+// 				"min": nil,
+// 				"max": nil,
+// 			},
+// 			"amount": map[string]any{
+// 				"min": nil,
+// 				"max": nil,
+// 			},
+// 			"price": map[string]any{
+// 				"min": nil,
+// 				"max": nil,
+// 			},
+// 			"cost": map[string]any{
+// 				"min": nil,
+// 				"max": nil,
+// 			},
+// 		},
+// 	} // return
+// }
+
+// type Dict map[string]any
+
+func (this *Exchange) initializeProperties(extendedProperties map[string]any) {
+
+	this.TransformedApi = map[string]any{}
+	this.Version = SafeString(extendedProperties, "version", "").(string)
+	this.cacheLoaded = false
+	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
+	this.RequiredCredentials = reqCred.(map[string]interface{})
+	this.ApiKey = SafeString(extendedProperties, "apiKey", nil)
+	this.Secret = SafeString(extendedProperties, "secret", nil)
+	this.Password = SafeString(extendedProperties, "password", nil)
+	this.Login = SafeString(extendedProperties, "login", nil)
+	this.Twofa = SafeString(extendedProperties, "twofa", nil)
+	this.PrivateKey = SafeString(extendedProperties, "privateKey", nil)
+	this.WalletAddress = SafeString(extendedProperties, "walletAddress", nil)
+	this.Token = SafeString(extendedProperties, "token", nil)
+	this.Uid = SafeString(extendedProperties, "uid", nil)
+	this.AccountId = SafeString(extendedProperties, "accountId", nil)
+
+	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{
+		"chrome":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
+		"chrome39":  "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36",
+		"chrome100": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
+	}).(map[string]interface{})
+	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
+	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000).(int64)
+	this.MAX_VALUE = SafeFloat(extendedProperties, "MAX_VALUE", 1.7976931348623157e+308).(float64) // math.MaxFloat64
+	this.Id = SafeString(extendedProperties, "id", "Exchange").(string)
+	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
+
+	this.Api = SafeValue(extendedProperties, "api", map[string]any{}).(map[string]any)
+	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
+	this.Urls = SafeValue(extendedProperties, "urls", map[string]any{}).(map[string]any)
+
+	this.Options = this.MapToSafeMap(this.GetDefaultOptions().(map[string]any))
+	extendedOptions := SafeValue(extendedProperties, "options", map[string]any{}).(map[string]any)
+	for k, v := range extendedOptions {
+		// this.Options[k] = v
+		this.Options.Store(k, v)
+	}
+
+	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
+	this.Timeframes = SafeValue(extendedProperties, "timeframes", map[string]any{}).(map[string]any)
+	this.Features = SafeValue(extendedProperties, "features", map[string]any{}).(map[string]any)
+	this.Fees = SafeValue(extendedProperties, "fees", map[string]any{}).(map[string]any)
+	this.Has = SafeValue(extendedProperties, "has", map[string]any{}).(map[string]any)
+	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]any{}).(map[string]any)
+	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]any{}).(map[string]any)
+	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
+	if propertiesMarkets != nil {
+		this.Markets = this.MapToSafeMap(propertiesMarkets.(map[string]any))
+	}
+	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]any{}).(map[string]any)
+	if len(propCurrencies) > 0 {
+		this.Currencies = this.MapToSafeMap(propCurrencies)
+	}
+	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
+	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
+	this.RollingWindowSize = SafeFloat(extendedProperties, "rollingWindowSize", 0.0).(float64)
+	this.RateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket").(string)
+	// this.status = SafeValue(extendedProperties, "status",map[string]any{}).(map[string]any)
+	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode).(int64))
+	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode).(int64))
+	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]any{}).(map[string]any)
+	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
+	this.SubstituteCommonCurrencyCodes = subVal != nil && subVal.(bool)
+	this.Name = SafeString(extendedProperties, "name", "").(string)
+	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", nil)
+	this.HttpProxy = SafeString(extendedProperties, "httpProxy", nil)
+	this.NewUpdates = SafeValue(extendedProperties, "newUpdates", true).(bool)
+	this.Accounts = SafeValue(extendedProperties, "accounts", []any{}).([]any)
+
+	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]any{}).(map[string]any)
+	this.Headers = SafeValue(extendedProperties, "headers", map[string]any{}).(map[string]any)
+	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
+
+	this.ReturnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false).(bool)
+}
+
+func (this *Exchange) MapToSafeMap(input map[string]any) *sync.Map {
+	if input == nil {
+		return nil
+	}
+	var sm sync.Map
+	for k, v := range input {
+		sm.Store(k, v)
+	}
+	return &sm
+}
+
+func (this *Exchange) SafeMapToMap(sm *sync.Map) map[string]any {
+	if sm == nil {
+		return nil
+	}
+	result := make(map[string]any)
+	sm.Range(func(key, value any) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
+}

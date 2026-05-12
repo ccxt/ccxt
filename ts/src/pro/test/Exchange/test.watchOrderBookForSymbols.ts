@@ -3,13 +3,16 @@ import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { InvalidNonce } from '../../../base/errors.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchOrderBookForSymbols (exchange, skippedProperties, symbols) {
+async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchOrderBookForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
+    const returnedSymbols = [];
+    while (now < ends || returnedSymbols.length < symbols.length) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOrderBookForSymbols (symbols);
         } catch (e) {
@@ -18,14 +21,22 @@ async function testWatchOrderBookForSymbols (exchange, skippedProperties, symbol
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
+        if (success === true) {
         // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an object. ' + exchange.json (response));
-        now = exchange.milliseconds ();
-        testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
-        testOrderBook (exchange, skippedProperties, method, response, undefined);
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
+            testOrderBook (exchange, skippedProperties, method, response, undefined);
+            const symbol = response['symbol'];
+            if (!exchange.inArray (symbol, returnedSymbols)) {
+                returnedSymbols.push (symbol);
+            }
+        }
     }
+    return true;
 }
 
 // function fixPhpObjectArray (exchange, response, skippedProperties) {

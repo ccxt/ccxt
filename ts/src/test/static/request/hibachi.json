@@ -1,0 +1,130 @@
+{
+    "exchange": "hibachi",
+    "skipKeys": ["accountId", "signature", "nonce", "timestamp"],
+    "options": {},
+    "outputType": "both",
+    "privateKey": "AF4Edn4Qf3/QH0pCYGaaagg+I2DhgL5YyjvlWlMx4iE=",
+    "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api.hibachi.xyz/trade/account/info?accountId=13787",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.hibachi.xyz/trade/order",
+                "input": [
+                    "123"
+                ],
+                "output": "{\"accountId\":13787,\"orderId\":\"123\",\"signature\":\"1714d09b8210f9d0915626a441b34c829db86e27fd0b0ee18e6aefa7e24d6eb1\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hibachi.xyz/trade/orders?accountId=13787",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.hibachi.xyz/trade/account/trades?accountId=13787",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch market order",
+                "method": "fetchOrder",
+                "url": "https://api.hibachi.xyz/trade/order?orderId=589562638199161856&accountId=13787",
+                "input": [
+                    "589562638199161856"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://api.hibachi.xyz/trade/order",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100
+                ],
+                "output": "{\"accountId\":13787,\"symbol\":\"SOL/USDT-P\",\"nonce\":1754047202955,\"side\":\"BID\",\"orderType\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"100\",\"signature\":\"68a9e317eb1efd88267fd5d01a404bc6fbc2ea270c0a942f7ed1bfa1dd964c2e\",\"maxFeesPercent\":\"0.00045\"}"
+            },
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "url": "https://api.hibachi.xyz/trade/order",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "output": "{\"accountId\":13787,\"symbol\":\"SOL/USDT-P\",\"nonce\":1754046927291,\"side\":\"BID\",\"orderType\":\"MARKET\",\"quantity\":\"0.1\",\"price\":\"\",\"signature\":\"b15bd932744c622dafd92fca1e45119473a5df91d1d495f92e12624399395405\",\"maxFeesPercent\":\"0.00045\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://data-api.hibachi.xyz/market/data/orderbook?symbol=ETH%2FUSDT-P",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "method": "fetchTrades",
+                "url": "https://data-api.hibachi.xyz/market/data/trades?symbol=ETH%2FUSDT-P",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1754042749000
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.hibachi.xyz/trade/account/info?accountId=13787",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://data-api.hibachi.xyz/market/data/klines?symbol=ETH%2FUSDT-P&interval=1h&fromMs=1754020936000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1754020936000
+                ],
+                "output": null
+            }
+        ]
+  }
+}

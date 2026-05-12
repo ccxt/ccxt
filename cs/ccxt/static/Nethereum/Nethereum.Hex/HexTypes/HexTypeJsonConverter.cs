@@ -5,13 +5,13 @@ namespace Nethereum.Hex.HexTypes
 {
     public class HexRPCTypeJsonConverter<T, TValue> : JsonConverter where T : HexRPCType<TValue>
     {
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var hexRPCType = (T) value;
+            var hexRPCType = (T)value;
             writer.WriteValue(hexRPCType.HexValue);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
             if (reader.Value == null) return null;

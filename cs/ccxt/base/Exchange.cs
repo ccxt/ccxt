@@ -1,14 +1,23 @@
+using Google.Protobuf;
+using System.Collections;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
-
+using StarkSharp.StarkCurve.Signature;
+using StarkSharp.Rpc.Utils;
+using StarkSharp.StarkSharp.Base.StarkSharp.Hash;
+using System.IO.Compression;
+using System.Numerics;
 namespace ccxt;
+
 
 using dict = Dictionary<string, object>;
 
 public partial class Exchange
 {
+
+    protected readonly object idLock = new object();
 
     public Exchange(object userConfig2 = null)
     {
@@ -17,38 +26,34 @@ public partial class Exchange
         var empty = new List<string>();
         transformApiNew(this.api);
 
-        this.initRestLimiter();
         this.initHttpClient();
 
-        if (this.markets != null)
-        {
-            this.setMarkets(this.markets);
-        }
         this.afterConstruct();
 
-        var isSandbox2 = this.safeBool2(this.options, "sandbox", "testnet", false);
-        var isSandbox = (isSandbox2 != null) ? (bool)isSandbox2 : false;
-        if (isSandbox)
+        if (isTrue(isTrue(this.safeBool(userConfig, "sandbox")) || isTrue(this.safeBool(userConfig, "testnet"))))
         {
-            this.setSandboxMode(isSandbox);
+            this.setSandboxMode(true);
         }
     }
 
     private void initHttpClient()
     {
+        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpsProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else
         {
-            this.httpClient = new HttpClient();
+            this.httpClient = new HttpClient(handler);
         }
     }
 
@@ -163,6 +168,13 @@ public partial class Exchange
         var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
 
+        var proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        if (proxyUrl != null)
+        {
+            proxyUrl = proxyUrl.ToString();
+            url = proxyUrl + this.urlEncoderForProxyUrl(url).ToString();
+        }
+
         if (this.verbose)
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
 
@@ -202,7 +214,7 @@ public partial class Exchange
         {
             if (key.ToLower() != "content-type")
             {
-                request.Headers.Add(key, headers[key].ToString());
+                request.Headers.TryAddWithoutValidation(key, headers[key].ToString());
             }
             else
             {
@@ -226,13 +238,27 @@ public partial class Exchange
             {
                 contentType = contentType == "" ? "application/json" : contentType;
 #if NET7_0_OR_GREATER
-            var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
+                var contentTypeHeader = new MediaTypeWithQualityHeaderValue(contentType);
 #else
                 var contentTypeHeader = contentType;
 #endif
 
-                var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-                request.Content = stringContent;
+                if (contentType == "multipart/form-data") {
+                    var formdata = new MultipartFormDataContent();
+                    var body3 = body2 as dict;
+                    var bodyList = body3.Keys;
+                    foreach (string key in bodyList) {
+                        formdata.Add(new StringContent(getValue(body3, key).ToString(), Encoding.UTF8), key);
+                    }
+                    request.Content = formdata;
+                } else {
+                    var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                    if (stringContent != null)
+                    {
+                        stringContent.Headers.ContentType.CharSet = "";
+                    }
+                    request.Content = stringContent;
+                }
 
                 if (method == "POST")
                 {
@@ -271,7 +297,19 @@ public partial class Exchange
                     // response = await httpClient.SendAsync(patchRequest);
                     response = await httpClient.SendAsync(request);
                 }
-                result = await response.Content.ReadAsStringAsync();
+
+                var responseEncoding = response.Content.Headers.ContentEncoding;
+                if (responseEncoding.Contains("gzip"))
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    using var decompressedStream = new GZipStream(stream, CompressionMode.Decompress);
+                    using var streamReader = new StreamReader(decompressedStream);
+                    result = await streamReader.ReadToEndAsync();
+                }
+                else
+                {
+                    result = await response.Content.ReadAsStringAsync();
+                }
             }
 
         }
@@ -288,10 +326,15 @@ public partial class Exchange
 
         this.httpClient.DefaultRequestHeaders.Clear();
 
-        var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
+        var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;
         this.last_request_headers = headers;
-        var httpStatusCode = (int)response?.StatusCode;
+        var statusCode = -1;
+        if (response != null)
+        {
+            statusCode = (int)response.StatusCode;
+        }
+        var httpStatusCode = statusCode;
         var httpStatusText = response?.ReasonPhrase;
 
         if (this.verbose)
@@ -302,6 +345,11 @@ public partial class Exchange
         try
         {
             responseBody = JsonHelper.Deserialize(result);
+            if (this.returnResponseHeaders && responseBody is Dictionary<string, object> dict)
+            {
+                dict["headers"] = responseHeaders;
+                responseBody = dict;
+            }
         }
         catch (Exception e)
         {
@@ -375,7 +423,21 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
-
+    // it's 32 bits
+    public int randNumber(int size)
+    {
+        Random random = new Random();
+        string number = "";
+        for (int i = 0; i < size; i++)
+        {
+            number += random.Next(0, 10);
+        }
+        return int.Parse(number);
+    }
+    public int binaryLength(object binary)
+    {
+        return getArrayLength(binary);
+    }
     public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
@@ -424,8 +486,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.options.TryAdd("cachedCurrencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
 
@@ -490,9 +554,22 @@ public partial class Exchange
         return "";
     }
 
-    public bool checkAddress(object address)
+    public string uuid5(object namesp, object name)
     {
-        return true;
+        return "";
+    }
+
+    public List<string> unique(object obj)
+    {
+        if (obj is List<string> stringList)
+        {
+            return stringList.Distinct().ToList();
+        }
+        if (obj is List<object> objectList)
+        {
+             return objectList.Select(x => x.ToString()).Distinct().ToList();
+        }
+        return new List<string>();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -541,24 +618,23 @@ public partial class Exchange
         await (await this.throttler.throttle(cost));
     }
 
-    public void initRestLimiter()
-    {
-        if (this.id != null && this.rateLimit == -1)
-        {
-            throw new Exception(this.id + ".rateLimit property is not configured'");
-        }
-        this.tokenBucket = (dict)this.extend(new dict() {
-            {"delay" , 0.001},
-            {"capacity" , 1},
-            {"cost" , 1},
-            {"maxCapacity", 1000},
-            {"refillRate", (this.rateLimit > 0) ? 1 / this.rateLimit : float.MaxValue},
-        }, this.tokenBucket);
-        this.throttler = new Throttler(this.tokenBucket);
-    }
-
     public object clone(object o)
     {
+        if (o is dict srcDict)
+        {
+            var result = new dict(srcDict.Count);
+            foreach (var kvp in srcDict)
+                result[kvp.Key] = clone(kvp.Value);
+            return result;
+        }
+        if (o is List<object> srcList)
+        {
+            var result = new List<object>(srcList.Count);
+            foreach (var item in srcList)
+                result.Add(clone(item));
+            return result;
+        }
+        // scalars (string, number, bool, null) are immutable – return as-is
         return o;
     }
 
@@ -679,6 +755,24 @@ public partial class Exchange
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
+
+        if (array is byte[])
+        {
+            var byteArray = (byte[])array;
+            if (second == null)
+            {
+                if (firstInt < 0)
+                {
+                    var index = byteArray.Length + firstInt;
+                    index = index < 0 ? 0 : index;
+                    return byteArray[index..].ToList();
+                }
+                return byteArray[firstInt..].ToList();
+            }
+            var secondInt2 = Convert.ToInt32(second);
+            return byteArray[firstInt..secondInt2];
+        }
+
         var parsedArray = ((IList<object>)array);
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
@@ -740,17 +834,187 @@ public partial class Exchange
         return Task.Delay(Convert.ToInt32(ms));
     }
 
+    public void initThrottler()
+    {
+        this.throttler = new Throttler(this.tokenBucket);
+    }
+
     public bool isEmpty(object a)
     {
         if (a == null)
             return true;
-        if (a.GetType() == typeof(string))
-            return a.ToString().Length == 0;
+        if (a is String)
+            return false; // disregard strings
         if (a is IList<object>)
             return ((IList<object>)a).Count == 0;
         if (a is IDictionary<string, object>)
             return ((IDictionary<string, object>)a).Count == 0;
+        // This catches List<T>, Dictionary<K,V>, Arrays, etc. without needing to know the specific T, K, or V.
+        if (a is ICollection collection)
+            return collection.Count == 0;
+
+        // This catches specialized collections that only implement IEnumerable 
+        if (a is IEnumerable enumerable) {
+            var enumerator = enumerable.GetEnumerator();
+            return !enumerator.MoveNext(); 
+        }
+
         return false;
+    }
+
+    public object retrieveStarkAccount(object signature, object accountClassHash, object accountProxyClassHash)
+    {
+        var signatureStr = signature.ToString();
+        var accountClassHashStr = accountClassHash.ToString();
+        var accountProxyClassHashStr = accountProxyClassHash.ToString();
+        BigInteger privatekey = ECDSA.EthSigToPrivate(signatureStr);
+        BigInteger publicKey = ECDSA.PrivateToStarkKey(privatekey);
+        // compute address
+        List<string> calldata = new List<string>{
+            accountClassHash.ToString(),
+            StarknetOps.CalculateFunctionSelector("initialize"),
+            "2",
+            publicKey.ToString("x"),
+            "0",
+        };
+        BigInteger accountAddress = Address.ComputeStarknetAddress(
+            accountProxyClassHash.ToString(),
+            calldata,
+            publicKey.ToString("x")
+        );
+        var account = createSafeDictionary();
+        account["privateKey"] = privatekey.ToString("x");
+        account["publicKey"] = add("0x", publicKey.ToString("x"));
+        account["address"] = add("0x", accountAddress.ToString("x"));
+        return account;
+    }
+
+    public object starknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString().Replace("0x", "");
+        var msgHashStr = msgHash.ToString().Replace("0x", "");
+        var bigIntHash = BigInteger.Parse(msgHashStr, System.Globalization.NumberStyles.HexNumber);
+        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
+    {
+        var domain = domain2 as IDictionary<string, object>;
+        var messageTypes = messageTypes2 as IDictionary<string, object>;
+        var messageTypesKeys = messageTypes.Keys.ToArray();
+        var domainValues = domain.Values.ToArray();
+        var domainTypes = new Dictionary<string, string>();
+        var messageData = messageData2 as IDictionary<string, object>;
+
+        var typeRaw = new TypedDataRaw(); // contains all domain + message info
+
+        // infer types from values
+        foreach (var key in domain.Keys)
+        {
+            // var type = domainValue.GetType();
+            var domainValue = domain[key];
+            if (domainValue is string && (domainValue as string).StartsWith("0x"))
+                domainTypes.Add(key, "address");
+            else if (domainValue is string)
+                domainTypes.Add(key, "string");
+            else
+                domainTypes.Add(key, "uint256"); // handle other use cases later
+        }
+
+        var types = new Dictionary<string, MemberDescription[]>();
+
+        // fill in domain types
+        var domainTypesDescription = new List<MemberDescription> { };
+        var domainValuesArray = new List<MemberValue> { };
+        var sip12Domain = new List<object[]> { };
+        sip12Domain.Add(new object[]{
+                "name",
+                "felt"
+        });
+        sip12Domain.Add(new object[]{
+                "chainId",
+                "felt"
+        });
+        sip12Domain.Add(new object[]{
+                "version",
+                "felt"
+        });
+        foreach (var d in sip12Domain)
+        {
+            var key = d[0] as string;
+            var type = d[1] as string;
+            for (var i = 0; i < domain.Count; i++)
+            {
+                if (String.Equals(key, domain.Keys.ElementAt(i)))
+                {
+                    var value = domainValues[i];
+                    var memberDescription = new MemberDescription();
+                    memberDescription.Name = key;
+                    memberDescription.Type = type;
+                    domainTypesDescription.Add(memberDescription);
+
+                    var memberValue = new MemberValue();
+                    memberValue.TypeName = type;
+                    memberValue.Value = value;
+                    domainValuesArray.Add(memberValue);
+                }
+            }
+        }
+        types["StarkNetDomain"] = domainTypesDescription.ToArray();
+        typeRaw.DomainRawValues = domainValuesArray.ToArray();
+
+        // fill in message types
+        var messageTypesDict = new Dictionary<string, string>();
+        var typeName = messageTypesKeys[0];
+        var messageTypesContent = messageTypes[typeName] as IList<object>;
+        var messageTypesDescription = new List<MemberDescription> { };
+        for (var i = 0; i < messageTypesContent.Count; i++)
+        {
+            var elem = messageTypesContent[i] as IDictionary<string, object>; // {\"name\":\"source\",\"type\":\"string\"}
+            var name = elem["name"] as string;
+            var type = elem["type"] as string;
+            messageTypesDict[name] = type;
+            // var key = messageTypesContent.Keys.ElementAt(i);
+            // var value = messageTypesContent.Values.ElementAt(i);
+            var member = new MemberDescription();
+            member.Name = name;
+            member.Type = type;
+            messageTypesDescription.Add(member);
+        }
+        types[typeName] = messageTypesDescription.ToArray();
+
+        // fill in message values
+        var messageValues = new List<MemberValue> { };
+        for (var i = 0; i < messageData.Count; i++)
+        {
+
+            var key = messageData.Keys.ElementAt(i);// for instance source
+            var type = messageTypesDict[key];
+            var value = messageData.Values.ElementAt(i); // 1
+            var member = new MemberValue();
+            member.TypeName = type;
+            member.Value = value;
+            messageValues.Add(member);
+        }
+        typeRaw.Message = messageValues.ToArray();
+        typeRaw.Types = types;
+        typeRaw.PrimaryType = typeName;
+
+        var encodedFromRaw = new TypedData().EncodeTypedDataRaw((typeRaw), address);
+
+        return encodedFromRaw;
+    }
+
+    public ECDSA.ECSignature Stark()
+    {
+        // debug only remove later
+        var msgHash = "111111";
+        var bytes = Exchange.StringToByteArray(msgHash);
+        var bigInt = new BigInteger(bytes);
+        var res = ECDSA.Sign(bigInt, bigInt);
+        return res;
     }
 
     public object spawn(object action, object[] args = null)
@@ -803,6 +1067,30 @@ public partial class Exchange
         {
             prop.SetValue(obj, defaultValue);
         }
+    }
+
+    public string exceptionMessage(object exc, bool includeStack = true)
+    {
+        var e = exc as Exception;
+        if (e != null && e is System.AggregateException)
+        {
+            //     foreach (var innerExc in e.InnerExceptions) {
+            //         message += innerExc.Message + '\n';
+            var inner = e.InnerException;
+            if (inner != null)
+            {
+                e = inner;
+            }
+        }
+        var message = e != null ? (includeStack ? e.ToString() : e.Message) : "Exception occurred, but no message available.";
+        return message.Substring(0, Math.Min(100000, message.Length));
+    }
+
+    public object getProperty(object obj, object property, object defaultValue = null)
+    {
+        var type = obj.GetType();
+        var prop = type.GetProperty(property.ToString());
+        return (prop != null) ? prop.GetValue(obj) : defaultValue;
     }
 
     public object fixStringifiedJsonMembers(object content2)
@@ -890,10 +1178,26 @@ public partial class Exchange
         this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
     }
 
-    public IDictionary<string, object> createSafeDictionary()
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
     {
-        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
+
+    public IDictionary<string, object> createSafeDictionary(bool isWs = false)
+    {
+        return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;
+    }
+
+    public IDictionary<string, object> mapToSafeMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
+    public IDictionary<string, object> safeMapToMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)
@@ -927,6 +1231,99 @@ public partial class Exchange
             return result;
         }
     }
+
+    public async Task<object> getZKContractSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public async Task<object> getZKTransferSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public async Task<object> loadDydxProtos()
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public Int64 toDydxLong(object numStr)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object retrieveDydxCredentials(object entropy)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxForSimulation(
+        object message,
+        object memo,
+        object sequence,
+        object publicKey)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxForSigning(
+        object message,
+        object memo,
+        object chainId,
+        object account,
+        object authenticators,
+        object fee)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public object encodeDydxTxRaw(object signDoc, object signature)
+    {
+        throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
+    }
+
+    public bool isBinaryMessage(object msg)
+    {
+        if (msg is byte[] bytes)
+        {
+            return bytes.Length > 0;
+        }
+        if (msg is string str)
+        {
+            return str.StartsWith("0x") && str.Length > 2;
+        }
+        return false;
+    }
+
+    public object decodeProtoMsg(object data)
+    {
+        if (data is byte[] bytes)
+        {
+            try
+            {
+                var message = PushDataV3ApiWrapper.Parser.ParseFrom(bytes);
+                string json = Google.Protobuf.JsonFormatter.Default.Format(message);
+                var dict = this.parseJson(json);
+                return dict;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to decode protobuf message: " + e.Message);
+            }
+        }
+        throw new Exception("Data is not a valid byte array for protobuf decoding.");
+    }
+
+    public void lockId()
+    {
+        Monitor.Enter(this.idLock);
+    }
+
+    public void unlockId()
+    {
+        Monitor.Exit(this.idLock);
+    }
+
 
 }
 

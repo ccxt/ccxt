@@ -1,5 +1,5 @@
 // @ts-nocheck
-
+import { Unpromise } from "../../static_dependencies/watchable/src/unpromise.js";
 export interface FutureInterface extends Promise<any> {
     resolve(value: unknown): void;
     reject(reason?: any): void;
@@ -17,14 +17,14 @@ export function Future (): FutureInterface {
 
     p.resolve = function _resolve () {
         // eslint-disable-next-line prefer-rest-params
-        setTimeout (() => {
+        queueMicrotask (() => {
             resolve.apply (this, arguments)
         })
     }
 
     p.reject = function _reject () {
         // eslint-disable-next-line prefer-rest-params
-        setTimeout (() => {
+        queueMicrotask (() => {
             reject.apply (this, arguments)
         })
     }
@@ -39,4 +39,4 @@ function wrapFuture (aggregatePromise): FutureInterface {
     return p
 }
 
-Future.race = (futures) : FutureInterface => wrapFuture (Promise.race (futures))
+Future.race = (futures) : FutureInterface => wrapFuture (Unpromise.race (futures))

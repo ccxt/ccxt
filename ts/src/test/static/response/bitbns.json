@@ -42,7 +42,7 @@
                         "price": 70981.3624,
                         "amount": 0.00041375,
                         "cost": 29.44,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -7180,6 +7180,8 @@
                     "average": 71940.68119999999,
                     "baseVolume": 0.14916274,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC/USDT",
                         "info": {

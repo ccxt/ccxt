@@ -18,10 +18,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 5,
-            "price": 2,
-            "base": 8,
-            "quote": 8
+            "amount": 0.00001,
+            "price": 0.01,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -149,10 +149,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 3,
-            "price": 2,
-            "base": 8,
-            "quote": 8
+            "amount": 0.001,
+            "price": 0.01,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -280,10 +280,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 4,
-            "price": 2,
-            "base": 8,
-            "quote": 8
+            "amount": 0.0001,
+            "price": 0.01,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -411,10 +411,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 3,
-            "price": 2,
-            "base": 8,
-            "quote": 8
+            "amount": 0.001,
+            "price": 0.01,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -542,10 +542,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 1,
-            "price": 4,
-            "base": 8,
-            "quote": 8
+            "amount": 0.1,
+            "price": 0.0001,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -673,10 +673,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 0,
-            "price": 4,
-            "base": 8,
-            "quote": 8
+            "amount": 1,
+            "price": 0.0001,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -804,10 +804,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 2,
-            "price": 2,
-            "base": 8,
-            "quote": 8
+            "amount": 0.01,
+            "price": 0.01,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -935,10 +935,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 1,
-            "price": 5,
-            "base": 8,
-            "quote": 8
+            "amount": 0.1,
+            "price": 0.00001,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},
@@ -1066,10 +1066,10 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 4,
-            "price": 2,
-            "base": 8,
-            "quote": 8
+            "amount": 0.0001,
+            "price": 0.01,
+            "base": 0.00000001,
+            "quote": 0.00000001
         },
         "limits": {
             "leverage": {},

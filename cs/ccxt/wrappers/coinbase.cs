@@ -36,7 +36,7 @@ public partial class coinbase
     /// fetch all the accounts associated with a profile
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -53,7 +53,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
     public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
@@ -73,7 +73,7 @@ public partial class coinbase
     /// fetch all the portfolios
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getportfolios"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -83,7 +83,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
     public async Task<List<Account>> FetchPortfolios(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPortfolios(parameters);
@@ -103,11 +103,11 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch sells
@@ -135,7 +135,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [list of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Trade>> FetchMySells(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -169,7 +169,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of  [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Trade>> FetchMyBuys(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -185,10 +185,10 @@ public partial class coinbase
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch all withdrawals made from an account
+    /// Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-withdrawals#list-withdrawals"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -208,9 +208,15 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.currencyType</term>
+    /// <description>
+    /// string : "fiat" or "crypto"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -219,10 +225,10 @@ public partial class coinbase
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetch all deposits made to an account
+    /// Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#list-deposits"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -242,9 +248,15 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.currencyType</term>
+    /// <description>
+    /// string : "fiat" or "crypto"
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -253,10 +265,50 @@ public partial class coinbase
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// fetch history of deposits and withdrawals
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code for the currency of the deposit/withdrawals, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest deposit/withdrawal, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
     /// retrieves data on all markets for coinbase
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproducts"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates"/>  <br/>
     /// <list type="table">
@@ -264,6 +316,12 @@ public partial class coinbase
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : use private endpoint for fetching markets
     /// </description>
     /// </item>
     /// </list>
@@ -274,15 +332,15 @@ public partial class coinbase
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsV2(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarketsV2(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsV2(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsV3(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchMarketsV3(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsV3(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
     {
@@ -293,7 +351,7 @@ public partial class coinbase
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -302,29 +360,35 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : use private endpoint for fetching tickers
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, Ticker>> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersV2(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
-    public async Task<Dictionary<string, Ticker>> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersV3(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price"/>  <br/>
@@ -335,9 +399,15 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : whether to use the private endpoint for fetching the ticker
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -357,9 +427,9 @@ public partial class coinbase
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getaccounts"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts"/>  <br/>
     /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmbalancesummary"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -376,23 +446,35 @@ public partial class coinbase
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// object : "spot" (default) or "swap" or "future"
+    /// string : "spot" (default) or "swap" or "future"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : default 250, maximum number of accounts to return
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
         return new Balances(res);
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#list-transactions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -402,7 +484,7 @@ public partial class coinbase
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -414,24 +496,24 @@ public partial class coinbase
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -441,7 +523,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
@@ -451,7 +533,7 @@ public partial class coinbase
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -555,9 +637,15 @@ public partial class coinbase
     /// string : amount of tradable balance
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// float : set to true for closing a position or use closePosition
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -568,7 +656,7 @@ public partial class coinbase
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -578,17 +666,17 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -598,8 +686,8 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
@@ -608,12 +696,12 @@ public partial class coinbase
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_editorder"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -630,7 +718,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -642,7 +730,7 @@ public partial class coinbase
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -652,7 +740,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -662,7 +750,7 @@ public partial class coinbase
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -696,7 +784,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64 limit = 100, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -714,7 +802,7 @@ public partial class coinbase
     /// fetches information on all currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -748,7 +836,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -760,7 +848,7 @@ public partial class coinbase
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -794,7 +882,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -806,7 +894,7 @@ public partial class coinbase
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -828,7 +916,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -840,7 +928,7 @@ public partial class coinbase
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpubliccandles"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -872,6 +960,12 @@ public partial class coinbase
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the candles
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -886,7 +980,7 @@ public partial class coinbase
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicmarkettrades"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -906,9 +1000,15 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the trades
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -920,7 +1020,7 @@ public partial class coinbase
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -954,7 +1054,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -966,7 +1066,7 @@ public partial class coinbase
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getpublicproductbook"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -980,9 +1080,15 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the order book
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -993,7 +1099,7 @@ public partial class coinbase
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getbestbidask"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1003,17 +1109,17 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Dictionary<string, Ticker>> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return ((Dictionary<string, Ticker>)res);
+        return new Tickers(res);
     }
     /// <summary>
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
@@ -1027,18 +1133,30 @@ public partial class coinbase
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.travel_rule_data</term>
+    /// <description>
+    /// object : some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
@@ -1066,17 +1184,57 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDeposit(id, code, parameters);
         return new Transaction(res);
     }
     /// <summary>
+    /// fetch the deposit id for a fiat currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethods"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [deposit id structures]{@link https://docs.ccxt.com/?id=deposit-id-structure}.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchDepositMethodIds(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositMethodIds(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// fetch the deposit id for a fiat currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpaymentmethod"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositMethodId(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositMethodId(id, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetch a quote for converting from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_createconvertquote"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1098,7 +1256,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -1109,7 +1267,7 @@ public partial class coinbase
     /// convert from one currency to another
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_commitconverttrade"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -1125,7 +1283,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -1136,7 +1294,7 @@ public partial class coinbase
     /// fetch the data for a conversion trade
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getconverttrade"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1146,7 +1304,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchConvertTrade(id, code, parameters);
@@ -1156,8 +1314,8 @@ public partial class coinbase
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmpositions"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxpositions"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1173,7 +1331,7 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -1183,8 +1341,8 @@ public partial class coinbase
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getintxposition"/>  <br/>
-    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfcmposition"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition"/>  <br/>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1206,15 +1364,87 @@ public partial class coinbase
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
         return new Position(res);
     }
-    public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
+    /// <summary>
+    /// fetch the trading fees for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
-        var res = this.createAuthToken(seconds, method, url);
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
+    /// Fetch details for a specific portfolio by UUID
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// Dict : Extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>any[]</term> An account structure <https://docs.ccxt.com/?id=account-structure>.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchPortfolioDetails(string portfolioUuid, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPortfolioDetails(portfolioUuid, parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    public string CreateAuthToken(Int64 seconds, string method = null, string url = null, bool useEddsa = false)
+    {
+        var res = this.createAuthToken(seconds, method, url, useEddsa);
         return ((string)res);
+    }
+    /// <summary>
+    /// fetch deposit addresses for multiple currencies (when available)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : account ID to fetch deposit addresses for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code.</returns>
+    public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddresses(codes, parameters);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
 }

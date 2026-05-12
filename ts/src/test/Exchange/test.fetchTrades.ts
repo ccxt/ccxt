@@ -23,6 +23,9 @@ async function testFetchTradesResponse (exchange, skippedProperties, symbol, met
     if (('side' in skippedProperties) || ('timestamp' in skippedProperties)) {
         await testFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades);
     }
+    if (!('timestampSort' in skippedProperties)) {
+        testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
+    }
 }
 
 async function testFetchTradesStructure (exchange, skippedProperties, symbol, method, trades) {
@@ -89,6 +92,7 @@ async function testFetchTradesSideSequence (exchange, skippedProperties, symbol,
             assert (side === 'sell', 'Side should be `sell` if price is decreasing' + testSharedMethods.logTemplate (exchange, method, trade));
         }
     }
+    return true;
 }
 
 export default testFetchTrades;

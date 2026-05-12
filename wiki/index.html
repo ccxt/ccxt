@@ -36,7 +36,9 @@
       window.$docsify = {
         name: "ccxt",
         repo: "ccxt/ccxt",
-        search: "auto",
+        search: {
+          paths: [ '/baseSpec' ],
+        },
         homepage: 'Manual.md',
         logo: 'https://user-images.githubusercontent.com/1294454/112665445-2008ec80-8e6c-11eb-9647-623a347ddade.png',
         loadSidebar: true,
@@ -44,14 +46,37 @@
         coverpage: false,
         onlyCover: false,
         sidebarDisplayLevel: 1,
+        requestHeaders: {
+          'cache-control': 'max-age=6000'
+        },
+        routerMode: 'history',
+        alias: {
+          '/exchanges/_sidebar.md': '/_sidebar.md'  // Redirects any nested _sidebar.md to root
+        },
         tabs: {
           persist    : true,      // default
           sync       : true,      // default
           theme      : 'classic', // default
           tabComments: true,      // default
           tabHeadings: true       // default
-        }
+        },
       };
+      if (typeof navigator.serviceWorker !== 'undefined') {
+        navigator.serviceWorker.register('sw.js').then (registration => {
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (!newWorker) return;
+
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New service worker is ready → force a one-time reload
+                // (or show a toast: "New version available – reload")
+                window.location.reload();
+              }
+            });
+        })
+      })
+    }
     </script>
     <!-- Docsify v4 -->
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
