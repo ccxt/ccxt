@@ -157,7 +157,10 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false  # never use caching in release builds
-      - run: npm publish # use trusted publishing from npm
+      - run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest
