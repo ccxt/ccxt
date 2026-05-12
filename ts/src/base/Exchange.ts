@@ -5726,9 +5726,9 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
-        this.lastRestRequestTimestamp = this.milliseconds ();
         for (let i = 0; i < retries + 1; i++) {
             try {
+                this.lastRestRequestTimestamp = this.milliseconds ();
                 const request = this.sign (path, api, method, params, headers, body);
                 this.last_request_headers = request['headers'];
                 this.last_request_body = request['body'];
