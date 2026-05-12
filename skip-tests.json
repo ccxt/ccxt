@@ -389,6 +389,7 @@
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
                 "sortedTimestamp": "messed order coming from exchange"
+            },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
             },
@@ -877,9 +878,6 @@
             },
             "fetchOHLCV": "cant be tested because of additional required param",
             "watchOHLCV": "does not work for 1min",
-            "watchTrades": {
-                "sortedTimestamp": "broken sequence"
-            }
             "watchTicker": "private endpoint",
             "watchOrderBook": "private endpoint"
         }
