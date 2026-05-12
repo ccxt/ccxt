@@ -1,7 +1,6 @@
+// AUTO-TRANSPILE //
 
 import ccxt from '../../js/ccxt.js';
-
-// AUTO-TRANSPILE //
 
 // 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/README?id=proxy
 // 2) in python, uncomment the below:
