@@ -44,4 +44,5 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false  # never use caching in release builds
+      - run: node -v && npm -v
       - run: npm publish
