@@ -12,7 +12,6 @@ permissions:
   id-token: write
   contents: write
 
-
 jobs:
   manual-job:
     runs-on: ubuntu-latest
@@ -35,14 +34,16 @@ jobs:
         with:
           fetch-depth: 2
           fetch-tags: true
-      - name: Install NPM dependencies
-        run: npm ci
-      - name: Transpile TS
-        run: npm run tsBuild
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false  # never use caching in release builds
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Pre-transpile
+        run: npm run  pre-transpile-js
+      - name: Transpile TS
+        run: npm run tsBuild
       - run: node -v && npm -v
-      - run: npm publish
+      - run: npm publish --provenance
