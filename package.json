@@ -20,7 +20,9 @@
     "node": ">=15.0.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.com"
+    "registry": "https://registry.npmjs.com",
+      "access": "public",
+      "provenance": true
   },
   "repository": {
     "type": "git",
