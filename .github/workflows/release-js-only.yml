@@ -9,6 +9,7 @@ on:
         default: 'default-value'
 
 permissions:
+  id-token: write
   contents: write
 
 
@@ -38,6 +39,9 @@ jobs:
         run: npm ci
       - name: Transpile TS
         run: npm run tsBuild
-      - uses: JS-DevTools/npm-publish@v3
+      - uses: actions/setup-node@v6
         with:
-          token: ${{ secrets.NPM_PROD }}
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
+      - run: npm publish
