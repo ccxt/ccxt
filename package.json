@@ -20,7 +20,7 @@
     "node": ">=15.0.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.com",
+    "registry": "https://registry.npmjs.org",
       "access": "public",
       "provenance": true
   },
