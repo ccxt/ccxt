@@ -5727,15 +5727,13 @@ export default class Exchange {
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
         this.lastRestRequestTimestamp = this.milliseconds ();
-        const request = this.sign (path, api, method, params, headers, body);
-        this.last_request_headers = request['headers'];
-        this.last_request_body = request['body'];
-        this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
-                // get new headers and body in case they were changed by sign() because of new timestamp
-                const repeatedRequest = this.sign (path, api, method, params, headers, body);
-                return await this.fetch (repeatedRequest['url'], repeatedRequest['method'], repeatedRequest['headers'], repeatedRequest['body']);
+                const request = this.sign (path, api, method, params, headers, body);
+                this.last_request_headers = request['headers'];
+                this.last_request_body = request['body'];
+                this.last_request_url = request['url'];
+                return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
                 if (e instanceof OperationFailed) {
                     if (i < retries) {
