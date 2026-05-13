@@ -1629,29 +1629,12 @@ class NewTranspiler {
         content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
         content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
 
-        // ── Object.keys(x) / Object.values(x) → thread-safe snapshot.
-        // ast-transpiler ≤ 0.0.85 emits `new ArrayList<>(((Map<String,Object>)x).keySet())`,
-        // which races against concurrent Map mutation in WS handlers
-        // (ConcurrentModificationException from HashMap$KeySpliterator).
-        // PR #48 (not yet released) emits Helpers.objectKeys(x) directly;
-        // until then, the regex below routes the inlined emit through the
-        // synchronized helper. REMOVE these patterns once we bump the dep
-        // to 0.0.86+.
-        const objectKeysPatterns: Array<[RegExp, string]> = [
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)((?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)\)\.keySet\(\)\)/gm,
-                'Helpers.objectKeys($1)'],
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)((?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)\)\.values\(\)\)/gm,
-                'Helpers.objectValues($1)'],
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)(Helpers\.GetValue\((?:[^()]|\([^()]*\))+\))\)\.keySet\(\)\)/gm,
-                'Helpers.objectKeys($1)'],
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)(Helpers\.GetValue\((?:[^()]|\([^()]*\))+\))\)\.values\(\)\)/gm,
-                'Helpers.objectValues($1)'],
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)\(\(java\.util\.Map\)([a-zA-Z_]\w*\.[a-zA-Z_]\w*)\)\)\.keySet\(\)\)/gm,
-                'Helpers.objectKeys($1)'],
-        ];
-        for (const [re, repl] of objectKeysPatterns) {
-            content = content.replace(re, repl);
-        }
+        // Object.keys / Object.values / Array.isArray are now emitted as
+        // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
+        // by ast-transpiler (PR #48). The earlier regex post-process here
+        // routed the older `new ArrayList<>(((Map<String,Object>)x).keySet())`
+        // shape; it's been removed since #48 covers every argument shape
+        // (this.x, Helpers.GetValue(...), nested casts) that the regex missed.
 
         // ── Pattern 6: Method reference for ping ──
         content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),
@@ -1956,13 +1939,6 @@ class NewTranspiler {
         content = content.replace(/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm,
             '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
 
-        // ── Hoist per-branch final-snapshots that ast-transpiler ≤0.0.85 emits
-        // inside an if-branch but references after the block. Once ast-transpiler
-        // PR #47 is released (and we bump the dep), THIS PASS BECOMES HARMFUL —
-        // it'll hoist correctly-scoped per-region snapshots and reintroduce the
-        // pre-assignment-value bug. Keep until the next ast-transpiler release.
-        content = this.hoistFinalVarsAcrossIfElse(content);
-
         // ── Fix effectively final for anonymous inner class captures ──
         content = this.fixEffectivelyFinal(content);
 
@@ -2035,93 +2011,6 @@ class NewTranspiler {
                 }
             }
         }
-        return lines.join('\n');
-    }
-
-    /**
-     * Workaround for ast-transpiler ≤ 0.0.85 emitting per-branch final-snapshots
-     * inside the if-branch but referencing the same name from outside the block.
-     * Hoists the `final Object finalX = X;` declaration to before the if so the
-     * symbol is in scope at the use-site.
-     *
-     * REMOVE this pass (and the call site above) once we bump to ast-transpiler
-     * 0.0.86+ which contains PR #47 (per-region symbol-versioned snapshots) and
-     * PR #48 (Helpers.objectKeys/Values/isArray direct emit). PR #47 emits each
-     * branch's own distinct snapshot with a `_N` suffix, so this hoist would
-     * actively corrupt the output by collapsing them.
-     */
-    hoistFinalVarsAcrossIfElse(content: string): string {
-        const lines = content.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            const finalMatch = lines[i].match(/^(\s*)final\s+Object\s+(final\w+)\s*=\s*(\w+)\s*;/);
-            if (!finalMatch) continue;
-            const indent = finalMatch[1];
-            const varName = finalMatch[2];
-            const sourceVar = finalMatch[3];
-
-            let braceDepth = 0;
-            let enclosingBlockStart = -1;
-            for (let j = i - 1; j >= 0; j--) {
-                for (let ci = lines[j].length - 1; ci >= 0; ci--) {
-                    if (lines[j][ci] === '}') braceDepth++;
-                    if (lines[j][ci] === '{') braceDepth--;
-                    if (braceDepth === -1) {
-                        enclosingBlockStart = j;
-                        break;
-                    }
-                }
-                if (enclosingBlockStart >= 0) break;
-            }
-            if (enclosingBlockStart < 0) continue;
-
-            braceDepth = 0;
-            let blockEnd = -1;
-            for (let j = enclosingBlockStart; j < lines.length; j++) {
-                for (const ch of lines[j]) {
-                    if (ch === '{') braceDepth++;
-                    if (ch === '}') braceDepth--;
-                }
-                if (braceDepth === 0) {
-                    blockEnd = j;
-                    break;
-                }
-            }
-            if (blockEnd < 0) continue;
-
-            let blockHeaderLine = enclosingBlockStart;
-            if (lines[enclosingBlockStart].trim() === '{') {
-                blockHeaderLine = enclosingBlockStart - 1;
-                while (blockHeaderLine >= 0 && lines[blockHeaderLine].trim() === '') blockHeaderLine--;
-            }
-            const blockHeader2 = blockHeaderLine >= 0 ? lines[blockHeaderLine].trim() : '';
-            if (!blockHeader2.startsWith('if ') && !blockHeader2.startsWith('if(') && !blockHeader2.includes('if (')) continue;
-
-            let usedAfter = false;
-            for (let j = blockEnd + 1; j < lines.length; j++) {
-                if (lines[j].match(/^\s*(?:public|private|protected)\s+/)) break;
-                if (lines[j].includes(varName) && !lines[j].match(/^\s*final\s+Object\s+/)) {
-                    usedAfter = true;
-                    break;
-                }
-            }
-
-            if (usedAfter) {
-                let stmtStart = enclosingBlockStart;
-                if (lines[enclosingBlockStart].trim() === '{') {
-                    stmtStart = enclosingBlockStart - 1;
-                    while (stmtStart >= 0 && lines[stmtStart].trim() === '') stmtStart--;
-                }
-                while (stmtStart > 0 && lines[stmtStart - 1].trim().endsWith('&&') ||
-                       (stmtStart > 0 && lines[stmtStart - 1].trim().endsWith('||'))) {
-                    stmtStart--;
-                }
-                lines[i] = '';
-                lines.splice(stmtStart, 0, `${indent}final Object ${varName} = ${sourceVar};`);
-                i++;
-            }
-        }
-
         return lines.join('\n');
     }
 
