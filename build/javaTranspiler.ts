@@ -1629,6 +1629,38 @@ class NewTranspiler {
         content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
         content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
 
+        // ── Object.keys(x) / Object.values(x) → thread-safe snapshots.
+        // ast-transpiler emits `new ArrayList<>(((Map<String,Object>)x).keySet())`
+        // or `.values()`, which race when x is a plain HashMap and the WS
+        // thread is mutating it. Helpers.objectKeys / Helpers.objectValues take
+        // the map's monitor while copying; Helpers.addElementToObject takes the
+        // same monitor on Map puts.
+        // Patterns covered (in order, since the second only triggers on what's
+        // left over from the first):
+        //   1. Dotted-identifier / `this.x.y` target — most common
+        //   2. Function-call target like `Helpers.GetValue(...)` — Map nested in another structure
+        //   3. Non-parameterized `(Map)` cast — already half-converted by another regex
+        const objectKeysPatterns: Array<[RegExp, string]> = [
+            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)((?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)\)\.keySet\(\)\)/gm,
+                'Helpers.objectKeys($1)'],
+            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)((?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)\)\.values\(\)\)/gm,
+                'Helpers.objectValues($1)'],
+            // Helpers.GetValue(...) — function call target; pattern handles up to
+            // two levels of nesting (e.g. GetValue(a, GetValue(b, c))), which is
+            // the deepest we see in practice.
+            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)(Helpers\.GetValue\((?:[^()]|\([^()]*\))+\))\)\.keySet\(\)\)/gm,
+                'Helpers.objectKeys($1)'],
+            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)(Helpers\.GetValue\((?:[^()]|\([^()]*\))+\))\)\.values\(\)\)/gm,
+                'Helpers.objectValues($1)'],
+            // Already cast-wrapped: `((java.util.Map)client.subscriptions)` (from the
+            // earlier WS-specific post-process above) — re-wrap into the helper.
+            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)\(\(java\.util\.Map\)([a-zA-Z_]\w*\.[a-zA-Z_]\w*)\)\)\.keySet\(\)\)/gm,
+                'Helpers.objectKeys($1)'],
+        ];
+        for (const [re, repl] of objectKeysPatterns) {
+            content = content.replace(re, repl);
+        }
+
         // ── Pattern 6: Method reference for ping ──
         content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),
             `(java.util.function.Function<Client, Object>) ${cap}.this::ping`);
@@ -1932,9 +1964,6 @@ class NewTranspiler {
         content = content.replace(/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm,
             '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
 
-        // ── Fix final variable scoping across if/else blocks ──
-        content = this.hoistFinalVarsAcrossIfElse(content);
-
         // ── Fix effectively final for anonymous inner class captures ──
         content = this.fixEffectivelyFinal(content);
 
@@ -2007,81 +2036,6 @@ class NewTranspiler {
                 }
             }
         }
-        return lines.join('\n');
-    }
-
-    hoistFinalVarsAcrossIfElse(content: string): string {
-        const lines = content.split('\n');
-
-        for (let i = 0; i < lines.length; i++) {
-            const finalMatch = lines[i].match(/^(\s*)final\s+Object\s+(final\w+)\s*=\s*(\w+)\s*;/);
-            if (!finalMatch) continue;
-            const indent = finalMatch[1];
-            const varName = finalMatch[2];
-            const sourceVar = finalMatch[3];
-
-            let braceDepth = 0;
-            let enclosingBlockStart = -1;
-            for (let j = i - 1; j >= 0; j--) {
-                for (let ci = lines[j].length - 1; ci >= 0; ci--) {
-                    if (lines[j][ci] === '}') braceDepth++;
-                    if (lines[j][ci] === '{') braceDepth--;
-                    if (braceDepth === -1) {
-                        enclosingBlockStart = j;
-                        break;
-                    }
-                }
-                if (enclosingBlockStart >= 0) break;
-            }
-            if (enclosingBlockStart < 0) continue;
-
-            braceDepth = 0;
-            let blockEnd = -1;
-            for (let j = enclosingBlockStart; j < lines.length; j++) {
-                for (const ch of lines[j]) {
-                    if (ch === '{') braceDepth++;
-                    if (ch === '}') braceDepth--;
-                }
-                if (braceDepth === 0) {
-                    blockEnd = j;
-                    break;
-                }
-            }
-            if (blockEnd < 0) continue;
-
-            let blockHeaderLine = enclosingBlockStart;
-            if (lines[enclosingBlockStart].trim() === '{') {
-                blockHeaderLine = enclosingBlockStart - 1;
-                while (blockHeaderLine >= 0 && lines[blockHeaderLine].trim() === '') blockHeaderLine--;
-            }
-            const blockHeader2 = blockHeaderLine >= 0 ? lines[blockHeaderLine].trim() : '';
-            if (!blockHeader2.startsWith('if ') && !blockHeader2.startsWith('if(') && !blockHeader2.includes('if (')) continue;
-
-            let usedAfter = false;
-            for (let j = blockEnd + 1; j < lines.length; j++) {
-                if (lines[j].match(/^\s*(?:public|private|protected)\s+/)) break;
-                if (lines[j].includes(varName) && !lines[j].match(/^\s*final\s+Object\s+/)) {
-                    usedAfter = true;
-                    break;
-                }
-            }
-
-            if (usedAfter) {
-                let stmtStart = enclosingBlockStart;
-                if (lines[enclosingBlockStart].trim() === '{') {
-                    stmtStart = enclosingBlockStart - 1;
-                    while (stmtStart >= 0 && lines[stmtStart].trim() === '') stmtStart--;
-                }
-                while (stmtStart > 0 && lines[stmtStart - 1].trim().endsWith('&&') ||
-                       (stmtStart > 0 && lines[stmtStart - 1].trim().endsWith('||'))) {
-                    stmtStart--;
-                }
-                lines[i] = '';
-                lines.splice(stmtStart, 0, `${indent}final Object ${varName} = ${sourceVar};`);
-                i++;
-            }
-        }
-
         return lines.join('\n');
     }
 

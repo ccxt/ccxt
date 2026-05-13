@@ -379,6 +379,12 @@ public class WsClient {
     }
 
     void onMessage(Object message) {
+        // Any received frame counts as keepalive — many exchanges (lbank,
+        // hashkey, krakenfutures, …) use application-level ping/pong rather
+        // than WS protocol PING/PONG, so onPong() never fires. Without this,
+        // pingLoop kills the connection after `keepAlive * maxPingPongMisses`
+        // ms even though the link is healthy and delivering data.
+        this.lastPong = System.currentTimeMillis();
         if (this.handleMessageCallback != null) {
             // Offload to a per-client single-thread executor: keeps Netty's event loop
             // unblocked AND preserves frame ordering per connection. Cross-frame races

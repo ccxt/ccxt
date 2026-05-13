@@ -856,6 +856,31 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     }
 
 
+    /**
+     * Snapshot-copy of a Map's keys under the map's intrinsic lock, so concurrent
+     * put/remove from a WS-handler thread doesn't IOOBE the iteration. Used by
+     * the transpile of `Object.keys(x)` — see post-process in build/javaTranspiler.ts.
+     * For non-Map targets returns an empty list (matches JS Object.keys on non-objects).
+     */
+    public static List<Object> objectKeys(Object target) {
+        if (target instanceof Map<?, ?> m) {
+            synchronized (m) {
+                return new ArrayList<>(m.keySet());
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    /** Same as {@link #objectKeys} but for values — transpile of `Object.values(x)`. */
+    public static List<Object> objectValues(Object target) {
+        if (target instanceof Map<?, ?> m) {
+            synchronized (m) {
+                return new ArrayList<>(m.values());
+            }
+        }
+        return new ArrayList<>();
+    }
+
     @SuppressWarnings("unchecked")
     public static void addElementToObject(Object target, Object... args) {
         if (target instanceof Map<?, ?> map) {
@@ -868,10 +893,14 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
             // "key is not set" (safeValue returns null either way).
             // Other maps (request payloads, responses) keep explicit null
             // entries — many static-request/response tests check for them.
-            if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
-                m.remove(args[0]);
-            } else {
-                m.put(args[0], args[1]);
+            // The synchronized block pairs with objectKeys() above: any reader
+            // taking the map's monitor sees a stable view of put/remove here.
+            synchronized (m) {
+                if (args[1] == null && m instanceof java.util.concurrent.ConcurrentHashMap) {
+                    m.remove(args[0]);
+                } else {
+                    m.put(args[0], args[1]);
+                }
             }
             return;
         }
@@ -899,21 +928,28 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 "List requires (value) to append or (index(Integer), value) to insert");
         }
 
-        // Fallback: set field via reflection for arbitrary objects (e.g., WsOrderBook)
+        // Fallback: set field via reflection for arbitrary objects (e.g., WsOrderBook).
+        // Sync on the target so a sequence of writes (e.g. timestamp + datetime updated
+        // together by an exchange's handler) appears atomic to readers that take the
+        // same monitor (see WsOrderBook.toMap, which synchronizes on `this`). Without
+        // it, apex/gate orderbooks showed datetime drift / null because the two writes
+        // weren't memory-visible together.
         if (args.length == 2 && args[0] instanceof String fieldName) {
-            try {
-                java.lang.reflect.Field field = target.getClass().getField(fieldName);
-                field.setAccessible(true);
-                field.set(target, args[1]);
-                return;
-            } catch (NoSuchFieldException e) {
+            synchronized (target) {
                 try {
-                    String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-                    java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
-                    method.invoke(target, args[1]);
+                    java.lang.reflect.Field field = target.getClass().getField(fieldName);
+                    field.setAccessible(true);
+                    field.set(target, args[1]);
                     return;
-                } catch (Exception e2) { /* fall through */ }
-            } catch (Exception e) { /* fall through */ }
+                } catch (NoSuchFieldException e) {
+                    try {
+                        String setter = "set" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
+                        java.lang.reflect.Method method = target.getClass().getMethod(setter, Object.class);
+                        method.invoke(target, args[1]);
+                        return;
+                    } catch (Exception e2) { /* fall through */ }
+                } catch (Exception e) { /* fall through */ }
+            }
         }
         throw new IllegalArgumentException("Target is neither Map nor List: " + typeName(target));
     }

@@ -363,7 +363,13 @@ public class Exchange {
         this.httpProxy  = SafeMethods.SafeString(extendedProperties, "httpProxy");
         this.proxyUrl   = SafeMethods.SafeString(extendedProperties, "proxyUrl");
 
-        Boolean newUpdatesTmp = (Boolean) SafeMethods.SafeValue(extendedProperties, "newUpdates", false);
+        // TS default for newUpdates is `true` (Exchange.ts:414, and the
+        // constructor's `... !== undefined ? ... : true` ternary). Passing
+        // `false` as the safeValue fallback made Java effectively default
+        // to false — `if (this.newUpdates) return filterByArrayTickers(...)`
+        // never fired, so watchTickers returned the unfiltered live map
+        // and tests received "any" ticker instead of the requested symbol.
+        Boolean newUpdatesTmp = (Boolean) SafeMethods.SafeValue(extendedProperties, "newUpdates", true);
         this.newUpdates = (newUpdatesTmp != null) ? newUpdatesTmp : true;
 
         this.accounts = (List<Object>) this.safeValue(extendedProperties, "accounts");
@@ -8143,10 +8149,10 @@ public Object describe()
         {
             return market;
         }
-        final Object finalMarketId = marketId;
+        final Object finalMarketId_2 = marketId;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "symbol", finalMarketId );
-            put( "marketId", finalMarketId );
+            put( "symbol", finalMarketId_2 );
+            put( "marketId", finalMarketId_2 );
         }});
     }
 

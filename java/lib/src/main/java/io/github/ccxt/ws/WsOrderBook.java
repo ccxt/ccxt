@@ -116,8 +116,12 @@ public class WsOrderBook {
     }
 
     /** Map view of the orderbook; asks/bids are snapshot copies so callers can iterate
-     *  without racing the WsClient thread that keeps applying deltas to the live sides. */
-    public Map<String, Object> toMap() {
+     *  without racing the WsClient thread that keeps applying deltas to the live sides.
+     *  Synchronized so the scalar fields (timestamp/datetime/nonce/symbol) are read
+     *  atomically as a group — pairs with Helpers.addElementToObject's reflective
+     *  branch, which takes the same monitor when an exchange handler does e.g.
+     *  `addElementToObject(orderbook, "timestamp", ts)` and then `... "datetime", iso`. */
+    public synchronized Map<String, Object> toMap() {
         Map<String, Object> result = new HashMap<>();
         result.put("symbol", this.symbol);
         result.put("asks", this.asks.snapshot());

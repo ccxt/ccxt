@@ -183,13 +183,19 @@ public final class Functions {
             return new ArrayList<>((List<Object>) l);
         }
 
-        // treat as map -> return values as list (preserve insertion order if possible)
+        // treat as map -> return values as list (preserve insertion order if possible).
+        // Take the map's intrinsic lock so this iteration can't observe a concurrent
+        // put/remove from a WS handler (paired with the synchronized block in
+        // Helpers.addElementToObject's Map branch). Symptom without this: binance
+        // watchTickers ConcurrentModificationException from HashMap$KeySpliterator.
         Map<String, Object> b = (Map<String, Object>) a;
-        List<Object> out = new ArrayList<>(b.size());
-        for (String key : b.keySet()) {
-            out.add(b.get(key));
+        synchronized (b) {
+            List<Object> out = new ArrayList<>(b.size());
+            for (String key : b.keySet()) {
+                out.add(b.get(key));
+            }
+            return out;
         }
-        return out;
     }
 
     // -------------------------------------------------
