@@ -1263,12 +1263,10 @@ class weex(ccxt.async_support.weex):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        newOrders = []
         for i in range(0, len(data)):
             rawOrder = self.safe_dict(data, i, {})
             parsed = self.parse_ws_order(rawOrder)
             orders.append(parsed)
-            newOrders.append(parsed)
             symbol = parsed['symbol']
             symbols[symbol] = True
         messageHash = 'orders'
@@ -1279,8 +1277,8 @@ class weex(ccxt.async_support.weex):
         for i in range(0, len(symbolKeys)):
             symbol = symbolKeys[i]
             symbolMessageHash = messageHash + '::' + symbol
-            client.resolve(newOrders, symbolMessageHash)
-        client.resolve(newOrders, messageHash)
+            client.resolve(orders, symbolMessageHash)
+        client.resolve(self.orders, messageHash)
 
     def parse_ws_order(self, order, market=None):
         #

@@ -1486,7 +1486,7 @@ class weex extends weex$1["default"] {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
         if (market['spot']) {

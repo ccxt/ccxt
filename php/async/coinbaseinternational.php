@@ -2344,45 +2344,6 @@ class coinbaseinternational extends Exchange {
         }) ();
     }
 
-    public function safe_network($network) {
-        $withdrawEnabled = $this->safe_bool($network, 'withdraw');
-        $depositEnabled = $this->safe_bool($network, 'deposit');
-        $limits = $this->safe_dict($network, 'limits');
-        $withdraw = $this->safe_dict($limits, 'withdraw');
-        $withdrawMax = $this->safe_number($withdraw, 'max');
-        $deposit = $this->safe_dict($limits, 'deposit');
-        $depositMax = $this->safe_number($deposit, 'max');
-        if ($withdrawEnabled === null && $withdrawMax !== null) {
-            $withdrawEnabled = ($withdrawMax > 0);
-        }
-        if ($depositEnabled === null && $depositMax !== null) {
-            $depositEnabled = ($depositMax > 0);
-        }
-        $networkId = $this->safe_string($network, 'id');
-        $isEnabled = ($withdrawEnabled && $depositEnabled);
-        return array(
-            'info' => $network['info'],
-            'id' => $networkId,
-            'name' => $this->safe_string($network, 'name'),
-            'network' => $this->safe_string($network, 'network'),
-            'active' => $this->safe_bool($network, 'active', $isEnabled),
-            'deposit' => $depositEnabled,
-            'withdraw' => $withdrawEnabled,
-            'fee' => $this->safe_number($network, 'fee'),
-            'precision' => $this->safe_number($network, 'precision'),
-            'limits' => array(
-                'withdraw' => array(
-                    'min' => $this->safe_number($withdraw, 'min'),
-                    'max' => $withdrawMax,
-                ),
-                'deposit' => array(
-                    'min' => $this->safe_number($deposit, 'min'),
-                    'max' => $depositMax,
-                ),
-            ),
-        );
-    }
-
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $api[0];
         $signed = $api[1] === 'private';

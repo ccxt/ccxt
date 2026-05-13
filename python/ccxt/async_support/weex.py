@@ -1459,7 +1459,7 @@ class weex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = None
         if market['spot']:
             response = await self.publicGetApiV3MarketTrades(self.extend(request, params))

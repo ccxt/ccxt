@@ -3548,6 +3548,37 @@ public partial class Exchange
         return ohlcv;
     }
 
+    public virtual object safeNetwork(object network)
+    {
+        object withdrawEnabled = this.safeBool(network, "withdraw");
+        object depositEnabled = this.safeBool(network, "deposit");
+        object limits = this.safeDict(network, "limits");
+        object withdraw = this.safeDict(limits, "withdraw");
+        object deposit = this.safeDict(limits, "deposit");
+        object isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
+        return new Dictionary<string, object>() {
+            { "info", getValue(network, "info") },
+            { "id", this.safeString(network, "id") },
+            { "name", this.safeString(network, "name") },
+            { "network", this.safeString(network, "network") },
+            { "active", this.safeBool(network, "active", isEnabled) },
+            { "deposit", depositEnabled },
+            { "withdraw", withdrawEnabled },
+            { "fee", this.safeNumber(network, "fee") },
+            { "precision", this.safeNumber(network, "precision") },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(withdraw, "min") },
+                    { "max", this.safeNumber(withdraw, "max") },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(deposit, "min") },
+                    { "max", this.safeNumber(deposit, "max") },
+                } },
+            } },
+        };
+    }
+
     public virtual object networkCodeToId(object networkCode, object currencyCode = null)
     {
         /**

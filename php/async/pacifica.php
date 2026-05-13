@@ -1026,53 +1026,52 @@ class pacifica extends Exchange {
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $defaultMaxLimit));
-            } else {
-                $tf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $request = array(
-                    'symbol' => $market['id'],
-                    'interval' => $tf,
-                    'start_time' => $since,
-                );
-                list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-                $nowMillis = $this->milliseconds();
-                $until = $this->safe_integer($request, 'end_time');
-                if ($until === null) {
-                    if ($limit !== null) {
-                        $until = $since . ($limit * ($this->parse_timeframe($tf) * 1000)) - 1;
-                    }
-                    if ($until === null) {
-                        $until = $since . ($defaultMaxLimit * ($this->parse_timeframe($tf) * 1000)) - 1;
-                    }
-                    if ($until > $nowMillis) {
-                        $until = $nowMillis;
-                    }
-                    $request['end_time'] = $until;
-                }
-                $response = Async\await($this->publicGetKline ($this->extend($request, $params)));
-                //
-                // {
-                //   "success" => true,
-                //   "data" => array(
-                //     {
-                //       "t" => 1748954160000,
-                //       "T" => 1748954220000,
-                //       "s" => "BTC",
-                //       "i" => "1m",
-                //       "o" => "105376",
-                //       "c" => "105376",
-                //       "h" => "105376",
-                //       "l" => "105376",
-                //       "v" => "0.00022",
-                //       "n" => 2
-                //     }
-                //   ),
-                //   "error" => null,
-                //   "code" => null
-                // }
-                //
-                $candles = $this->safe_list($response, 'data', array());
-                return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
             }
+            $tf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $request = array(
+                'symbol' => $market['id'],
+                'interval' => $tf,
+                'start_time' => $since,
+            );
+            list($request, $params) = $this->handle_until_option('end_time', $request, $params);
+            $nowMillis = $this->milliseconds();
+            $until = $this->safe_integer($request, 'end_time');
+            if ($until === null) {
+                if ($limit !== null) {
+                    $until = $since . ($limit * ($this->parse_timeframe($tf) * 1000)) - 1;
+                }
+                if ($until === null) {
+                    $until = $since . ($defaultMaxLimit * ($this->parse_timeframe($tf) * 1000)) - 1;
+                }
+                if ($until > $nowMillis) {
+                    $until = $nowMillis;
+                }
+                $request['end_time'] = $until;
+            }
+            $response = Async\await($this->publicGetKline ($this->extend($request, $params)));
+            //
+            // {
+            //   "success" => true,
+            //   "data" => array(
+            //     {
+            //       "t" => 1748954160000,
+            //       "T" => 1748954220000,
+            //       "s" => "BTC",
+            //       "i" => "1m",
+            //       "o" => "105376",
+            //       "c" => "105376",
+            //       "h" => "105376",
+            //       "l" => "105376",
+            //       "v" => "0.00022",
+            //       "n" => 2
+            //     }
+            //   ),
+            //   "error" => null,
+            //   "code" => null
+            // }
+            //
+            $candles = $this->safe_list($response, 'data', array());
+            return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
         }) ();
     }
 

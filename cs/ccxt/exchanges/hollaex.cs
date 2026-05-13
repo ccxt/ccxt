@@ -957,14 +957,11 @@ public partial class hollaex : Exchange
         object timeDelta = multiply(multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
         object start = since;
         object now = this.milliseconds();
-        if (isTrue(isTrue(isEqual(until, null)) && isTrue(isEqual(start, null))))
-        {
-            until = now;
-            start = subtract(until, timeDelta);
-        } else if (isTrue(isEqual(until, null)))
+        if (isTrue(isEqual(until, null)))
         {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        } else if (isTrue(isEqual(start, null)))
+        }
+        if (isTrue(isEqual(start, null)))
         {
             start = subtract(until, timeDelta);
         }

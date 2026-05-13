@@ -1961,12 +1961,12 @@ class xt extends Exchange {
             $response = null;
             if ($market['spot']) {
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['limit'] = min ($limit, 1000);
                 }
                 $response = Async\await($this->publicSpotGetTradeRecent ($this->extend($request, $params)));
             } else {
                 if ($limit !== null) {
-                    $request['num'] = $limit;
+                    $request['num'] = min ($limit, 1000);
                 }
                 if ($market['linear']) {
                     $response = Async\await($this->publicLinearGetFutureMarketV1PublicQDeal ($this->extend($request, $params)));
