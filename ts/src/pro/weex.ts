@@ -1346,12 +1346,10 @@ export default class weex extends weexRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const newOrders = [];
         for (let i = 0; i < data.length; i++) {
             const rawOrder = this.safeDict (data, i, {});
             const parsed = this.parseWsOrder (rawOrder);
             orders.append (parsed);
-            newOrders.push (parsed);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
         }
@@ -1364,9 +1362,9 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolKeys.length; i++) {
             const symbol = symbolKeys[i];
             const symbolMessageHash = messageHash + '::' + symbol;
-            client.resolve (newOrders, symbolMessageHash);
+            client.resolve (orders, symbolMessageHash);
         }
-        client.resolve (newOrders, messageHash);
+        client.resolve (this.orders, messageHash);
     }
 
     parseWsOrder (order, market = undefined) {
