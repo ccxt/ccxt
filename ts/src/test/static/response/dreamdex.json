@@ -1,0 +1,1506 @@
+{
+    "exchange": "dreamdex",
+    "skipKeys": [],
+    "methods": {
+        "fetchOrders": [
+            {
+                "description": "Spot orders for SOMI/USDso",
+                "method": "fetchOrders",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                            "status": "open",
+                            "createdAt": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "500",
+                            "filled": "150",
+                            "remaining": "350",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                        "clientOrderId": null,
+                        "timestamp": 1765534169841,
+                        "datetime": "2025-12-12T10:09:29.841Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "SOMI/USDso",
+                        "type": null,
+                        "side": "buy",
+                        "price": 1.25,
+                        "amount": 500,
+                        "filled": 150,
+                        "remaining": 350,
+                        "average": 1.25,
+                        "cost": 187.5,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                            "status": "open",
+                            "createdAt": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "500",
+                            "filled": "150",
+                            "remaining": "350",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Fully filled closed order for SOMI/USDso",
+                "method": "fetchOrders",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "01KC2A9P3QCR6HFZLG77DSK45B",
+                            "status": "closed",
+                            "createdAt": 1765534200000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.30",
+                            "amount": "200",
+                            "filled": "200",
+                            "remaining": "0",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0xaabbccddee1234567890abcdef1234567890abcdef1234567890abcdef123456"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC2A9P3QCR6HFZLG77DSK45B",
+                        "clientOrderId": null,
+                        "timestamp": 1765534200000,
+                        "datetime": "2025-12-12T10:10:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "closed",
+                        "symbol": "SOMI/USDso",
+                        "type": null,
+                        "side": "sell",
+                        "price": 1.3,
+                        "amount": 200,
+                        "filled": 200,
+                        "remaining": 0,
+                        "average": 1.3,
+                        "cost": 260,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC2A9P3QCR6HFZLG77DSK45B",
+                            "status": "closed",
+                            "createdAt": 1765534200000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.30",
+                            "amount": "200",
+                            "filled": "200",
+                            "remaining": "0",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0xaabbccddee1234567890abcdef1234567890abcdef1234567890abcdef123456"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Canceled order with partial fill for SOMI/USDso",
+                "method": "fetchOrders",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "01KC3B0Q4RDS7IGAMH88ETL56C",
+                            "status": "canceled",
+                            "createdAt": 1765534260000,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.20",
+                            "amount": "500",
+                            "filled": "200",
+                            "remaining": "300",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x1122334455667788990011223344556677889900112233445566778899001122"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC3B0Q4RDS7IGAMH88ETL56C",
+                        "clientOrderId": null,
+                        "timestamp": 1765534260000,
+                        "datetime": "2025-12-12T10:11:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "canceled",
+                        "symbol": "SOMI/USDso",
+                        "type": null,
+                        "side": "buy",
+                        "price": 1.2,
+                        "amount": 500,
+                        "filled": 200,
+                        "remaining": 300,
+                        "average": 1.2,
+                        "cost": 240,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC3B0Q4RDS7IGAMH88ETL56C",
+                            "status": "canceled",
+                            "createdAt": 1765534260000,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.20",
+                            "amount": "500",
+                            "filled": "200",
+                            "remaining": "300",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x1122334455667788990011223344556677889900112233445566778899001122"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Pending stop orders for SOMI/USDso",
+                "method": "fetchOrders",
+                "input": [
+                    "SOMI/USDso",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ],
+                "httpResponse": {
+                    "stopOrders": [
+                        {
+                            "id": "01KC3B1P4RDS7IGAMH88ETL56C",
+                            "status": "pending",
+                            "createdAt": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "type": "market",
+                            "side": "sell",
+                            "amount": "100",
+                            "triggerPrice": "1.00",
+                            "triggerOperator": "lte",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC3B1P4RDS7IGAMH88ETL56C",
+                        "clientOrderId": null,
+                        "timestamp": 1765534169841,
+                        "datetime": "2025-12-12T10:09:29.841Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "SOMI/USDso",
+                        "type": "market",
+                        "side": "sell",
+                        "price": null,
+                        "amount": 100,
+                        "filled": null,
+                        "remaining": null,
+                        "average": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC3B1P4RDS7IGAMH88ETL56C",
+                            "status": "pending",
+                            "createdAt": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "type": "market",
+                            "side": "sell",
+                            "amount": "100",
+                            "triggerPrice": "1.00",
+                            "triggerOperator": "lte",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": 1.0,
+                        "triggerPrice": 1.0,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Triggered stop order for SOMI/USDso",
+                "method": "fetchOrders",
+                "input": [
+                    "SOMI/USDso",
+                    null,
+                    null,
+                    {
+                        "stop": true
+                    }
+                ],
+                "httpResponse": {
+                    "stopOrders": [
+                        {
+                            "id": "01KC4C2Q5SES8JBBNJ99FUM67D",
+                            "status": "triggered",
+                            "createdAt": 1765534200000,
+                            "symbol": "SOMI:USDso",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": "200",
+                            "triggerPrice": "1.50",
+                            "triggerOperator": "gte",
+                            "spotOrderId": "01KC5D3R6TFT9KCCOK00GVN78E",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC4C2Q5SES8JBBNJ99FUM67D",
+                        "clientOrderId": null,
+                        "timestamp": 1765534200000,
+                        "datetime": "2025-12-12T10:10:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "closed",
+                        "symbol": "SOMI/USDso",
+                        "type": "limit",
+                        "side": "buy",
+                        "price": null,
+                        "amount": 200,
+                        "filled": 200,
+                        "remaining": 0,
+                        "average": null,
+                        "cost": null,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC4C2Q5SES8JBBNJ99FUM67D",
+                            "status": "triggered",
+                            "createdAt": 1765534200000,
+                            "symbol": "SOMI:USDso",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": "200",
+                            "triggerPrice": "1.50",
+                            "triggerOperator": "gte",
+                            "spotOrderId": "01KC5D3R6TFT9KCCOK00GVN78E",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": 1.5,
+                        "triggerPrice": 1.5,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "Cross-market orders (no symbol)",
+                "method": "fetchOrders",
+                "input": [],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                            "status": "open",
+                            "createdAt": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "500",
+                            "filled": "150",
+                            "remaining": "350",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                        "clientOrderId": null,
+                        "timestamp": 1765534169841,
+                        "datetime": "2025-12-12T10:09:29.841Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "SOMI/USDso",
+                        "type": null,
+                        "side": "buy",
+                        "price": 1.25,
+                        "amount": 500,
+                        "filled": 150,
+                        "remaining": 350,
+                        "average": 1.25,
+                        "cost": 187.5,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                            "status": "open",
+                            "createdAt": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "500",
+                            "filled": "150",
+                            "remaining": "350",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Order book for SOMI/USDso",
+                "method": "fetchOrderBook",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "orderbooks": [
+                        {
+                            "symbol": "SOMI:USDso",
+                            "timestamp": 1765534169841,
+                            "bids": [
+                                {
+                                    "price": "1.24",
+                                    "quantity": "500"
+                                },
+                                {
+                                    "price": "1.23",
+                                    "quantity": "300"
+                                }
+                            ],
+                            "asks": [
+                                {
+                                    "price": "1.26",
+                                    "quantity": "400"
+                                },
+                                {
+                                    "price": "1.27",
+                                    "quantity": "200"
+                                }
+                            ],
+                            "nonce": 42
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "SOMI/USDso",
+                    "bids": [
+                        [
+                            1.24,
+                            500
+                        ],
+                        [
+                            1.23,
+                            300
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            1.26,
+                            400
+                        ],
+                        [
+                            1.27,
+                            200
+                        ]
+                    ],
+                    "timestamp": 1765534169841,
+                    "datetime": "2025-12-12T10:09:29.841Z",
+                    "nonce": 42
+                }
+            },
+            {
+                "description": "Empty order book for SOMI/USDso",
+                "method": "fetchOrderBook",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "orderbooks": [
+                        {
+                            "symbol": "SOMI:USDso",
+                            "timestamp": 1765534300000,
+                            "bids": [],
+                            "asks": [],
+                            "nonce": 0
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "SOMI/USDso",
+                    "bids": [],
+                    "asks": [],
+                    "timestamp": 1765534300000,
+                    "datetime": "2025-12-12T10:11:40.000Z",
+                    "nonce": 0
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Ticker for SOMI/USDso",
+                "method": "fetchTicker",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "symbols": [
+                        {
+                            "symbol": "SOMI:USDso",
+                            "timestamp": 1765534169841,
+                            "open": "1.20",
+                            "high": "1.30",
+                            "low": "1.18",
+                            "close": "1.25",
+                            "volume": "1000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "SOMI/USDso",
+                    "timestamp": 1765534169841,
+                    "datetime": "2025-12-12T10:09:29.841Z",
+                    "high": 1.3,
+                    "low": 1.18,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 1.2,
+                    "close": 1.25,
+                    "last": 1.25,
+                    "previousClose": null,
+                    "change": 0.05,
+                    "percentage": 4.166666666666667,
+                    "average": 1.225,
+                    "baseVolume": 1000,
+                    "quoteVolume": null,
+                    "info": {
+                        "symbol": "SOMI:USDso",
+                        "timestamp": 1765534169841,
+                        "open": "1.20",
+                        "high": "1.30",
+                        "low": "1.18",
+                        "close": "1.25",
+                        "volume": "1000"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Tickers for all markets",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "symbols": [
+                        {
+                            "symbol": "SOMI:USDso",
+                            "timestamp": 1765534169841,
+                            "open": "1.20",
+                            "high": "1.30",
+                            "low": "1.18",
+                            "close": "1.25",
+                            "volume": "1000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "SOMI/USDso": {
+                        "symbol": "SOMI/USDso",
+                        "timestamp": 1765534169841,
+                        "datetime": "2025-12-12T10:09:29.841Z",
+                        "high": 1.3,
+                        "low": 1.18,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 1.2,
+                        "close": 1.25,
+                        "last": 1.25,
+                        "previousClose": null,
+                        "change": 0.05,
+                        "percentage": 4.166666666666667,
+                        "average": 1.225,
+                        "baseVolume": 1000,
+                        "quoteVolume": null,
+                        "info": {
+                            "symbol": "SOMI:USDso",
+                            "timestamp": 1765534169841,
+                            "open": "1.20",
+                            "high": "1.30",
+                            "low": "1.18",
+                            "close": "1.25",
+                            "volume": "1000"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Trades for SOMI/USDso",
+                "method": "fetchTrades",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "symbol": "SOMI:USDso",
+                    "trades": [
+                        {
+                            "id": "t1",
+                            "timestamp": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "100",
+                            "cost": "125"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "t1",
+                        "info": {
+                            "id": "t1",
+                            "timestamp": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "100",
+                            "cost": "125"
+                        },
+                        "timestamp": 1765534169841,
+                        "datetime": "2025-12-12T10:09:29.841Z",
+                        "symbol": "SOMI/USDso",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 1.25,
+                        "amount": 100,
+                        "cost": 125,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "Multiple trades (buy and sell) for SOMI/USDso",
+                "method": "fetchTrades",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "symbol": "SOMI:USDso",
+                    "trades": [
+                        {
+                            "id": "t10",
+                            "timestamp": 1765534200000,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.26",
+                            "amount": "250",
+                            "cost": "315"
+                        },
+                        {
+                            "id": "t11",
+                            "timestamp": 1765534201000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.24",
+                            "amount": "100",
+                            "cost": "124"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "t10",
+                        "info": {
+                            "id": "t10",
+                            "timestamp": 1765534200000,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.26",
+                            "amount": "250",
+                            "cost": "315"
+                        },
+                        "timestamp": 1765534200000,
+                        "datetime": "2025-12-12T10:10:00.000Z",
+                        "symbol": "SOMI/USDso",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 1.26,
+                        "amount": 250,
+                        "cost": 315,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "t11",
+                        "info": {
+                            "id": "t11",
+                            "timestamp": 1765534201000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.24",
+                            "amount": "100",
+                            "cost": "124"
+                        },
+                        "timestamp": 1765534201000,
+                        "datetime": "2025-12-12T10:10:01.000Z",
+                        "symbol": "SOMI/USDso",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 1.24,
+                        "amount": 100,
+                        "cost": 124,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "My trades for SOMI/USDso",
+                "method": "fetchMyTrades",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "symbol": "SOMI:USDso",
+                    "trades": [
+                        {
+                            "id": "123:456",
+                            "timestamp": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "100",
+                            "cost": "125"
+                        },
+                        {
+                            "id": "123:457",
+                            "timestamp": 1765534170000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.26",
+                            "amount": "50",
+                            "cost": "63"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "123:456",
+                        "info": {
+                            "id": "123:456",
+                            "timestamp": 1765534169841,
+                            "symbol": "SOMI:USDso",
+                            "side": "buy",
+                            "price": "1.25",
+                            "amount": "100",
+                            "cost": "125"
+                        },
+                        "timestamp": 1765534169841,
+                        "datetime": "2025-12-12T10:09:29.841Z",
+                        "symbol": "SOMI/USDso",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 1.25,
+                        "amount": 100,
+                        "cost": 125,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "123:457",
+                        "info": {
+                            "id": "123:457",
+                            "timestamp": 1765534170000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.26",
+                            "amount": "50",
+                            "cost": "63"
+                        },
+                        "timestamp": 1765534170000,
+                        "datetime": "2025-12-12T10:09:30.000Z",
+                        "symbol": "SOMI/USDso",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 1.26,
+                        "amount": 50,
+                        "cost": 63,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create limit buy order returns unsigned tx",
+                "method": "createOrder",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "buy",
+                    10,
+                    1.5
+                ],
+                "httpResponse": {
+                    "chainId": "5031",
+                    "data": "0x80702f830000000000000000000000000000000000000000",
+                    "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                    "value": "0"
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "SOMI/USDso",
+                    "type": "limit",
+                    "side": "buy",
+                    "price": 1.5,
+                    "amount": 10,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "chainId": "5031",
+                        "data": "0x80702f830000000000000000000000000000000000000000",
+                        "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                        "value": "0"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "Create wallet-funded order with approval required",
+                "method": "createOrder",
+                "input": [
+                    "SOMI/USDso",
+                    "limit",
+                    "sell",
+                    100,
+                    1.5,
+                    {
+                        "fundingSource": "wallet"
+                    }
+                ],
+                "httpResponse": {
+                    "chainId": "5031",
+                    "data": "0x80702f830000000000000000000000000000000000000000",
+                    "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                    "value": "0",
+                    "approval": {
+                        "token": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                        "amount": "100.5"
+                    }
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "SOMI/USDso",
+                    "type": "limit",
+                    "side": "sell",
+                    "price": 1.5,
+                    "amount": 100,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "chainId": "5031",
+                        "data": "0x80702f830000000000000000000000000000000000000000",
+                        "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                        "value": "0",
+                        "approval": {
+                            "token": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                            "amount": "100.5"
+                        }
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "OHLCV for SOMI/USDso",
+                "method": "fetchOHLCV",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "symbol": "SOMI:USDso",
+                    "interval": "1m",
+                    "candles": [
+                        {
+                            "timestamp": 1765534140000,
+                            "open": "1.24",
+                            "high": "1.26",
+                            "low": "1.23",
+                            "close": "1.25",
+                            "volume": "1000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1765534140000,
+                        1.24,
+                        1.26,
+                        1.23,
+                        1.25,
+                        1000
+                    ]
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Currencies list with SOMI and USDso",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "currencies": [
+                        {
+                            "id": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                            "code": "SOMI",
+                            "name": "Somnia Token",
+                            "decimals": 18
+                        },
+                        {
+                            "id": "0x00000022dA000002656c64D9eA6011ea952D008A",
+                            "code": "USDso",
+                            "name": "USD Somnia",
+                            "decimals": 18
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "SOMI": {
+                        "info": {
+                            "id": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                            "code": "SOMI",
+                            "name": "Somnia Token",
+                            "decimals": 18
+                        },
+                        "id": "SOMI",
+                        "numericId": null,
+                        "code": "SOMI",
+                        "precision": 1e-18,
+                        "type": "crypto",
+                        "name": "Somnia Token",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDso": {
+                        "info": {
+                            "id": "0x00000022dA000002656c64D9eA6011ea952D008A",
+                            "code": "USDso",
+                            "name": "USD Somnia",
+                            "decimals": 18
+                        },
+                        "id": "USDso",
+                        "numericId": null,
+                        "code": "USDso",
+                        "precision": 1e-18,
+                        "type": "crypto",
+                        "name": "USD Somnia",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Markets list with SOMI/USDso",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "symbol": "SOMI:USDso",
+                            "base": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                            "quote": "0x00000022dA000002656c64D9eA6011ea952D008A",
+                            "baseDecimals": 18,
+                            "quoteDecimals": 18,
+                            "contract": "0x035De7403eac6872787779CCA7CCF1b4CDb61379",
+                            "stopRegistry": "0x68c8f6fb1EA19A28F25358Ff00b8Ed8E1216df30",
+                            "tickSize": "0.0001",
+                            "lotSize": "0.01",
+                            "minQuantity": "1"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "SOMI:USDso",
+                        "symbol": "SOMI/USDso",
+                        "base": "SOMI",
+                        "quote": "USDso",
+                        "settle": null,
+                        "baseId": "SOMI",
+                        "quoteId": "USDso",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "taker": 0,
+                        "maker": 0,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "SOMI:USDso",
+                            "base": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                            "quote": "0x00000022dA000002656c64D9eA6011ea952D008A",
+                            "baseDecimals": 18,
+                            "quoteDecimals": 18,
+                            "contract": "0x035De7403eac6872787779CCA7CCF1b4CDb61379",
+                            "stopRegistry": "0x68c8f6fb1EA19A28F25358Ff00b8Ed8E1216df30",
+                            "tickSize": "0.0001",
+                            "lotSize": "0.01",
+                            "minQuantity": "1"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Vault balance for SOMI/USDso market",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "symbol": "SOMI/USDso"
+                    }
+                ],
+                "httpResponse": {
+                    "balances": [
+                        {
+                            "currency": "SOMI",
+                            "amount": "1000.5"
+                        },
+                        {
+                            "currency": "USDso",
+                            "amount": "500.25"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "currency": "SOMI",
+                            "amount": "1000.5"
+                        },
+                        {
+                            "currency": "USDso",
+                            "amount": "500.25"
+                        }
+                    ],
+                    "SOMI": {
+                        "free": 1000.5,
+                        "used": 0,
+                        "total": 1000.5
+                    },
+                    "USDso": {
+                        "free": 500.25,
+                        "used": 0,
+                        "total": 500.25
+                    },
+                    "free": {
+                        "SOMI": 1000.5,
+                        "USDso": 500.25
+                    },
+                    "used": {
+                        "SOMI": 0,
+                        "USDso": 0
+                    },
+                    "total": {
+                        "SOMI": 1000.5,
+                        "USDso": 500.25
+                    }
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Single open order for SOMI/USDso",
+                "method": "fetchOrder",
+                "input": [
+                    "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "status": "open",
+                    "createdAt": 1765534169841,
+                    "symbol": "SOMI:USDso",
+                    "side": "buy",
+                    "price": "1.25",
+                    "amount": "500",
+                    "filled": "150",
+                    "remaining": "350",
+                    "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                    "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                },
+                "parsedResponse": {
+                    "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "clientOrderId": null,
+                    "timestamp": 1765534169841,
+                    "datetime": "2025-12-12T10:09:29.841Z",
+                    "lastTradeTimestamp": null,
+                    "status": "open",
+                    "symbol": "SOMI/USDso",
+                    "type": null,
+                    "side": "buy",
+                    "price": 1.25,
+                    "amount": 500,
+                    "filled": 150,
+                    "remaining": 350,
+                    "average": 1.25,
+                    "cost": 187.5,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                        "status": "open",
+                        "createdAt": 1765534169841,
+                        "symbol": "SOMI:USDso",
+                        "side": "buy",
+                        "price": "1.25",
+                        "amount": "500",
+                        "filled": "150",
+                        "remaining": "350",
+                        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                        "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Open orders for SOMI/USDso",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "01KC4C1R5SFT8JHAMJ99FUM67D",
+                            "status": "open",
+                            "createdAt": 1765534320000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.30",
+                            "amount": "300",
+                            "filled": "0",
+                            "remaining": "300",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x2233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01KC4C1R5SFT8JHAMJ99FUM67D",
+                        "clientOrderId": null,
+                        "timestamp": 1765534320000,
+                        "datetime": "2025-12-12T10:12:00.000Z",
+                        "lastTradeTimestamp": null,
+                        "status": "open",
+                        "symbol": "SOMI/USDso",
+                        "type": null,
+                        "side": "sell",
+                        "price": 1.3,
+                        "amount": 300,
+                        "filled": 0,
+                        "remaining": 300,
+                        "average": 1.3,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": null,
+                        "info": {
+                            "id": "01KC4C1R5SFT8JHAMJ99FUM67D",
+                            "status": "open",
+                            "createdAt": 1765534320000,
+                            "symbol": "SOMI:USDso",
+                            "side": "sell",
+                            "price": "1.30",
+                            "amount": "300",
+                            "filled": "0",
+                            "remaining": "300",
+                            "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                            "txHash": "0x2233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011"
+                        },
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel partially filled order for SOMI/USDso",
+                "method": "cancelOrder",
+                "input": [
+                    "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "SOMI/USDso"
+                ],
+                "httpResponse": {
+                    "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "status": "canceled",
+                    "createdAt": 1765534169841,
+                    "symbol": "SOMI:USDso",
+                    "side": "buy",
+                    "price": "1.25",
+                    "amount": "500",
+                    "filled": "100",
+                    "remaining": "400",
+                    "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                    "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                },
+                "parsedResponse": {
+                    "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                    "clientOrderId": null,
+                    "timestamp": 1765534169841,
+                    "datetime": "2025-12-12T10:09:29.841Z",
+                    "lastTradeTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "SOMI/USDso",
+                    "type": null,
+                    "side": "buy",
+                    "price": 1.25,
+                    "amount": 500,
+                    "filled": 100,
+                    "remaining": 400,
+                    "average": 1.25,
+                    "cost": 125,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "id": "01KC1F8N2NBP5GEYKE66CRJ34A",
+                        "status": "canceled",
+                        "createdAt": 1765534169841,
+                        "symbol": "SOMI:USDso",
+                        "side": "buy",
+                        "price": "1.25",
+                        "amount": "500",
+                        "filled": "100",
+                        "remaining": "400",
+                        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+                        "txHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+                    },
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "vaultDeposit": [
+            {
+                "description": "Deposit SOMI into SOMI/USDso vault returns unsigned tx",
+                "method": "vaultDeposit",
+                "input": [
+                    "SOMI/USDso",
+                    "SOMI",
+                    100
+                ],
+                "httpResponse": {
+                    "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                    "data": "0x80702f830000000000000000000000000000000000000000",
+                    "value": "0",
+                    "chainId": "5031",
+                    "gasLimit": "250000",
+                    "nonce": "42"
+                },
+                "parsedResponse": {
+                    "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                    "data": "0x80702f830000000000000000000000000000000000000000",
+                    "value": "0",
+                    "chainId": "5031",
+                    "gasLimit": "250000",
+                    "nonce": "42"
+                }
+            }
+        ],
+        "vaultWithdraw": [
+            {
+                "description": "Withdraw USDso from SOMI/USDso vault returns unsigned tx",
+                "method": "vaultWithdraw",
+                "input": [
+                    "SOMI/USDso",
+                    "USDso",
+                    50
+                ],
+                "httpResponse": {
+                    "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                    "data": "0xa9059cbb0000000000000000000000000000000000000000",
+                    "value": "0",
+                    "chainId": "5031",
+                    "gasLimit": "200000",
+                    "nonce": "43"
+                },
+                "parsedResponse": {
+                    "to": "0xcee4c19f4518A10FBeF92390FE6d9e7B18A4070c",
+                    "data": "0xa9059cbb0000000000000000000000000000000000000000",
+                    "value": "0",
+                    "chainId": "5031",
+                    "gasLimit": "200000",
+                    "nonce": "43"
+                }
+            }
+        ],
+        "vaultApprove": [
+            {
+                "description": "Approve SOMI for SOMI/USDso vault returns unsigned tx",
+                "method": "vaultApprove",
+                "input": [
+                    "SOMI/USDso",
+                    "SOMI",
+                    100
+                ],
+                "httpResponse": {
+                    "to": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                    "data": "0x095ea7b30000000000000000000000000000000000000000",
+                    "value": "0",
+                    "chainId": "5031",
+                    "gasLimit": "100000",
+                    "nonce": "44"
+                },
+                "parsedResponse": {
+                    "to": "0x28f34DeFd2b4CB48d9eE6d89f2Be4Bc601694c00",
+                    "data": "0x095ea7b30000000000000000000000000000000000000000",
+                    "value": "0",
+                    "chainId": "5031",
+                    "gasLimit": "100000",
+                    "nonce": "44"
+                }
+            },
+            {
+                "description": "Approve native token returns null (no approval needed)",
+                "method": "vaultApprove",
+                "input": [
+                    "SOMI/USDso",
+                    "SOMI",
+                    100
+                ],
+                "httpResponse": null,
+                "parsedResponse": null
+            }
+        ]
+    }
+}

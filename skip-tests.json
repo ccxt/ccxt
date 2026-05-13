@@ -8,6 +8,21 @@
             }
         }
     },
+    "dreamdex": {
+        "preferredSpotSymbol": "SOMI/USDso",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "amountOfCurrencies": "only 5 currencies listed currently",
+                "activeMajorCurrencies": "has WBTC/WETH not BTC/ETH, no USDT",
+                "activeCurrenciesQuota": "only 5 currencies listed currently"
+            },
+            "ticker": {
+                "bid": "no bid/ask in ticker endpoint",
+                "ask": "no bid/ask in ticker endpoint",
+                "quoteVolume": "API returns base volume only"
+            }
+        }
+    },
     "alp": {
         "skipMethods": {
             "fetchCurrencies": {
