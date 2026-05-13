@@ -2263,7 +2263,7 @@ class bybit(ccxt.async_support.bybit):
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
             else:
-                messageHash = self.safe_string(message, 'reqId')
+                messageHash = self.safe_string_2(message, 'req_id', 'reqId')
                 client.reject(error, messageHash)
             return True
 

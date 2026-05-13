@@ -27,7 +27,7 @@ public class TestFetchCurrencies extends BaseTest {
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
         if (!Helpers.isTrue(isFetchCurrenciesPrivate))
         {
-            Object values = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)currencies).values());
+            Object values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
             Object currenciesLength = Helpers.getArrayLength(values);
             // ensure exchange returns enough length of currencies
@@ -69,7 +69,7 @@ public class TestFetchCurrencies extends BaseTest {
     {
         // detect if there are currencies with different ids for the same code
         Object ids = new java.util.HashMap<String, Object>() {{}};
-        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)currencyValues).keySet());
+        Object keys = Helpers.objectKeys(currencyValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -17,15 +17,15 @@ public class TestLoadMarkets extends BaseTest {
 
         Object method = "loadMarkets";
         Object markets = (exchange.loadMarkets()).join();
-        Assert(Helpers.isObject(exchange.markets), ".markets is not an object");
-        Assert((Helpers.isArrayJs(exchange.symbols)), ".symbols is not an array");
+        Assert((exchange.markets instanceof java.util.Map), ".markets is not an object");
+        Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
         Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
-        Object marketKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)exchange.markets).keySet());
+        Object marketKeys = Helpers.objectKeys(exchange.markets);
         Object marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(Helpers.isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        Object marketValues = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)markets).values());
+        Object marketValues = Helpers.objectValues(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));

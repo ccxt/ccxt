@@ -16,7 +16,7 @@ public class TestFetchOHLCV extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchOHLCV";
-        Object timeframeKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)exchange.timeframes).keySet());
+        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";

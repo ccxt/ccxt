@@ -27,8 +27,8 @@ public class TestFetchLastPrices extends BaseTest {
             response = (exchange.fetchLastPrices(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
             checkedSymbol = symbol;
         }
-        Assert(Helpers.isObject(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return an object. "), exchange.json(response)));
-        Object values = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)response).values());
+        Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), checkedSymbol), " must return an object. "), exchange.json(response)));
+        Object values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Object atLeastOnePassed = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)

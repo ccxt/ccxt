@@ -19,7 +19,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         Object method = "watchOHLCVForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object timeframeKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)exchange.timeframes).keySet());
+        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
@@ -50,13 +50,13 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
                 Object AssertionMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
-                Assert(Helpers.isObject(response), Helpers.add("Response must be a dictionary. ", AssertionMessage));
+                Assert(((true)), Helpers.add("Response must be a dictionary. ", AssertionMessage));
                 Assert(Helpers.inOp(response, symbol), Helpers.add("Response should contain the symbol as key. ", AssertionMessage));
                 Object symbolObj = Helpers.GetValue(response, symbol);
-                Assert(Helpers.isObject(symbolObj), Helpers.add("Response.Symbol should be a dictionary. ", AssertionMessage));
+                Assert((symbolObj instanceof java.util.Map), Helpers.add("Response.Symbol should be a dictionary. ", AssertionMessage));
                 Assert(Helpers.inOp(symbolObj, chosenTimeframeKey), Helpers.add("Response.symbol should contain the timeframe key. ", AssertionMessage));
                 Object ohlcvs = Helpers.GetValue(symbolObj, chosenTimeframeKey);
-                Assert((Helpers.isArrayJs(ohlcvs)), Helpers.add("Response.symbol.timeframe should be an array. ", AssertionMessage));
+                Assert(Helpers.isArray(ohlcvs), Helpers.add("Response.symbol.timeframe should be an array. ", AssertionMessage));
                 now = exchange.milliseconds();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ohlcvs)); i++)
                 {

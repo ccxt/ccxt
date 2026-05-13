@@ -17,8 +17,8 @@ public class TestFetchMarginModes extends BaseTest {
 
         Object method = "fetchMarginModes";
         Object marginModes = (exchange.fetchMarginModes(new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol")))).join();
-        Assert(Helpers.isObject(marginModes), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(marginModes)));
-        Object marginModeKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)marginModes).keySet());
+        Assert((marginModes instanceof java.util.Map), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(marginModes)));
+        Object marginModeKeys = Helpers.objectKeys(marginModes);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marginModeKeys)); i++)
         {

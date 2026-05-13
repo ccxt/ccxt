@@ -21,7 +21,7 @@ public class TestFetchLiquidations extends BaseTest {
             return true;
         }
         Object items = (exchange.fetchLiquidations(code)).join();
-        Assert((Helpers.isArrayJs(items)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
+        Assert(Helpers.isArray(items), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
         {

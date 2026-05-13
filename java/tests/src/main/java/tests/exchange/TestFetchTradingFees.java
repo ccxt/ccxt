@@ -17,7 +17,7 @@ public class TestFetchTradingFees extends BaseTest {
 
         Object method = "fetchTradingFees";
         Object fees = (exchange.fetchTradingFees()).join();
-        Object symbols = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)fees).keySet());
+        Object symbols = Helpers.objectKeys(fees);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {

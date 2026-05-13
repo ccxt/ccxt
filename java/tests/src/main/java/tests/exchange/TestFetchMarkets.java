@@ -17,8 +17,8 @@ public class TestFetchMarkets extends BaseTest {
 
         Object method = "fetchMarkets";
         Object markets = (exchange.fetchMarkets()).join();
-        Assert(Helpers.isObject(markets), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an object. "), exchange.json(markets)));
-        Object marketValues = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)markets).values());
+        Assert((markets instanceof java.util.Map), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an object. "), exchange.json(markets)));
+        Object marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {

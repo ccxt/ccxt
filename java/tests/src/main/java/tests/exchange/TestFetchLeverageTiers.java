@@ -22,8 +22,8 @@ public class TestFetchLeverageTiers extends BaseTest {
         //       {},
         //     ],
         // };
-        Assert(Helpers.isObject(tiers), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(tiers)));
-        Object tierKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)tiers).keySet());
+        Assert((tiers instanceof java.util.Map), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(tiers)));
+        Object tierKeys = Helpers.objectKeys(tiers);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tierKeys)); i++)
         {

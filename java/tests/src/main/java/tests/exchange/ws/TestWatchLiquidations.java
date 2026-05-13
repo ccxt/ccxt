@@ -41,7 +41,7 @@ public class TestWatchLiquidations extends BaseTest {
             {
                 response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, method, new Object[] { symbol })).join();
                 now = System.currentTimeMillis();
-                Object isArray = (Helpers.isArrayJs(response));
+                Object isArray = Helpers.isArray(response);
                 Assert(isArray, "response must be an array");
                 Object m3 = (Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() returned "), Helpers.getArrayLength(response)), " liquidations"));
                 System.out.println(m3);

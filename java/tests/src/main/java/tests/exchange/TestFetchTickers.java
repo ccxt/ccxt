@@ -31,8 +31,8 @@ public class TestFetchTickers extends BaseTest {
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object method = "fetchTickers";
         Object response = (exchange.fetchTickers(argSymbols, argParams)).join();
-        Assert(Helpers.isObject(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
-        Object values = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)response).values());
+        Assert(((true)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return an object. "), exchange.json(response)));
+        Object values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
         {
@@ -51,7 +51,7 @@ public class TestFetchTickers extends BaseTest {
     }
     public static void fetchTickersAmountsTest(Exchange exchange, Object skippedProperties, Object tickers)
     {
-        Object tickersValues = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)tickers).values());
+        Object tickersValues = Helpers.objectValues(tickers);
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "checkActiveSymbols"))))
         {
             //
@@ -66,7 +66,7 @@ public class TestFetchTickers extends BaseTest {
             // ensure tickers length is less than markets length
             //
             Object allMarkets = exchange.markets;
-            Object allMarketsLength = Helpers.getArrayLength(new java.util.ArrayList<Object>(((java.util.Map<String, Object>)allMarkets).keySet()));
+            Object allMarketsLength = Helpers.getArrayLength(Helpers.objectKeys(allMarkets));
             Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), String.valueOf(obtainedTickersLength)), " tickers, "), String.valueOf(allMarketsLength)), " markets"));
         }
     }

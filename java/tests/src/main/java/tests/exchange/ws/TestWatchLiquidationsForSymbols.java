@@ -40,7 +40,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
             {
                 response = (exchange.watchLiquidationsForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
                 now = System.currentTimeMillis();
-                Object isArray = (Helpers.isArrayJs(response));
+                Object isArray = Helpers.isArray(response);
                 Assert(isArray, "response must be an array");
                 Object m3 = (Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() returned "), Helpers.getArrayLength(response)), " liquidations"));
                 System.out.println(m3);

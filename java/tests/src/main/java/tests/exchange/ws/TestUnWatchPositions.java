@@ -49,7 +49,7 @@ public class TestUnWatchPositions extends BaseTest {
             return false;
         }
         // Verify that we have a subscription
-        Assert((Helpers.isArrayJs(positionsSubscription)), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
+        Assert(Helpers.isArray(positionsSubscription), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
         // Assert unWatchPositions for one symbol is not supported
         Object errorResponse = null;
         try
@@ -91,7 +91,7 @@ public class TestUnWatchPositions extends BaseTest {
             throw new Error((String)Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")) ;
         }
         // Verify resubscription works
-        Assert((Helpers.isArrayJs(resubscribeResponse)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
+        Assert(Helpers.isArray(resubscribeResponse), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
         return true;
         });
 

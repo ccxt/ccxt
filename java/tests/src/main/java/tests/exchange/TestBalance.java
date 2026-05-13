@@ -22,9 +22,9 @@ public class TestBalance extends BaseTest {
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
         Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         //
-        Object codesTotal = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(entry, "total")).keySet());
-        Object codesFree = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(entry, "free")).keySet());
-        Object codesUsed = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(entry, "used")).keySet());
+        Object codesTotal = Helpers.objectKeys(Helpers.GetValue(entry, "total"));
+        Object codesFree = Helpers.objectKeys(Helpers.GetValue(entry, "free"));
+        Object codesUsed = Helpers.objectKeys(Helpers.GetValue(entry, "used"));
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");

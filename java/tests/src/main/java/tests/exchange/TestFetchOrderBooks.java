@@ -18,8 +18,8 @@ public class TestFetchOrderBooks extends BaseTest {
         Object method = "fetchOrderBooks";
         Object symbol = Helpers.GetValue(exchange.symbols, 0);
         Object orderBooks = (exchange.fetchOrderBooks(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)))).join();
-        Assert(Helpers.isObject(orderBooks), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an object. "), exchange.json(orderBooks)));
-        Object orderBookKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)orderBooks).keySet());
+        Assert((orderBooks instanceof java.util.Map), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an object. "), exchange.json(orderBooks)));
+        Object orderBookKeys = Helpers.objectKeys(orderBooks);
         Assert(Helpers.getArrayLength(orderBookKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " returned 0 length data"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookKeys)); i++)
         {

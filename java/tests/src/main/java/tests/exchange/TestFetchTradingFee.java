@@ -17,7 +17,7 @@ public class TestFetchTradingFee extends BaseTest {
 
         Object method = "fetchTradingFee";
         Object fee = (exchange.fetchTradingFee(symbol)).join();
-        Assert(Helpers.isObject(fee), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(fee)));
+        Assert((fee instanceof java.util.Map), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(fee)));
         TestTradingFee.testTradingFee(exchange, skippedProperties, method, symbol, fee);
         return true;
         });

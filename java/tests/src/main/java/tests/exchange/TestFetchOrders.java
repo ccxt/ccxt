@@ -17,7 +17,7 @@ public class TestFetchOrders extends BaseTest {
 
         Object method = "fetchOrders";
         Object orders = (exchange.fetchOrders(symbol)).join();
-        Assert((Helpers.isArrayJs(orders)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
+        Assert(Helpers.isArray(orders), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         Object now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)

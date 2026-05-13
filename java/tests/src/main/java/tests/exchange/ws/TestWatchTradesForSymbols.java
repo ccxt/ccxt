@@ -37,7 +37,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert((Helpers.isArrayJs(response)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
+                Assert(Helpers.isArray(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 Object symbol = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)

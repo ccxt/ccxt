@@ -19,7 +19,7 @@ public class TestWatchOHLCV extends BaseTest {
         Object method = "watchOHLCV";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object timeframeKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)exchange.timeframes).keySet());
+        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(Helpers.getArrayLength(timeframeKeys), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";

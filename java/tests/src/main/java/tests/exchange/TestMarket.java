@@ -230,7 +230,7 @@ public class TestMarket extends BaseTest {
             Assert(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiry"), null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null))), Helpers.add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
         }
         // check precisions
-        Object precisionKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(market, "precision")).keySet());
+        Object precisionKeys = Helpers.objectKeys(Helpers.GetValue(market, "precision"));
         Object precisionKeysLen = Helpers.getArrayLength(precisionKeys);
         Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), Helpers.add("precision should have \"amount\" and \"price\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(precisionKeys)); i++)
@@ -252,7 +252,7 @@ public class TestMarket extends BaseTest {
         }
         Object isInactiveMarket = Helpers.isEqual(Helpers.GetValue(market, "active"), false);
         // check limits
-        Object limitsKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)Helpers.GetValue(market, "limits")).keySet());
+        Object limitsKeys = Helpers.objectKeys(Helpers.GetValue(market, "limits"));
         Object limitsKeysLength = Helpers.getArrayLength(limitsKeys);
         Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), Helpers.add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limitsKeys)); i++)

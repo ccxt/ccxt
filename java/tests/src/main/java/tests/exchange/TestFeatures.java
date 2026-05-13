@@ -18,7 +18,7 @@ public class TestFeatures extends BaseTest {
         Object marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         Object subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
-        Object keys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)features).keySet());
+        Object keys = Helpers.objectKeys(features);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
@@ -34,7 +34,7 @@ public class TestFeatures extends BaseTest {
                 testFeaturesInner(exchange, skippedProperties, value);
             } else
             {
-                Object subKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)value).keySet());
+                Object subKeys = Helpers.objectKeys(value);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subKeys)); j++)
                 {
                     Object subKey = Helpers.GetValue(subKeys, j);
@@ -130,8 +130,8 @@ public class TestFeatures extends BaseTest {
                 put( "limit", 0 );
             }} );
         }};
-        Object featureKeys = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)featureObj).keySet());
-        Object allMethods = new java.util.ArrayList<Object>(((java.util.Map<String, Object>)exchange.has).keySet());
+        Object featureKeys = Helpers.objectKeys(featureObj);
+        Object allMethods = Helpers.objectKeys(exchange.has);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(featureKeys)); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);
