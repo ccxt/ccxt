@@ -52,7 +52,12 @@ const exchangeSpecificFlags = {
 let exchanges = []
 let symbol = 'all'
 let method = undefined
-let maxConcurrency = 5 // Number.MAX_VALUE // no limit
+// Java JVMs are ~700 MB each at peak; 5 concurrent × 2 simul streams (REST + WS)
+// = 10 JVMs OOMs CI's 7 GB / 4-core runner before tests complete (the runner
+// receives a shutdown signal at ~7 min with 6+ orphan java procs). Lower the
+// Java cap so peak memory stays in budget; ~110/80 exchanges still finish in
+// ~30 min wall-clock locally with cap=3.
+let maxConcurrency = process.argv.includes('--java') ? 3 : 5
 
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
