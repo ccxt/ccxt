@@ -815,9 +815,20 @@ public partial class backpack : ccxt.backpack
         object id = this.safeString(trade, "t");
         object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        object isMaker = this.safeBool(trade, "m");
-        object side = ((bool) isTrue(isMaker)) ? "sell" : "buy";
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        object isBuyerMaker = this.safeBool(trade, "m");
+        object side = null;
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            if (isTrue(isBuyerMaker))
+            {
+                side = "sell";
+            } else
+            {
+                side = "buy";
+            }
+        }
         object price = this.safeString(trade, "p");
         object amount = this.safeString(trade, "q");
         object orderId = null;

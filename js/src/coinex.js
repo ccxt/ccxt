@@ -1431,7 +1431,7 @@ export default class coinex extends Exchange {
             // 'last_id': 0,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
         if (market['swap']) {

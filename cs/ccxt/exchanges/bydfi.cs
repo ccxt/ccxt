@@ -644,7 +644,7 @@ public partial class bydfi : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = await this.publicGetV1FapiMarketTrades(this.extend(request, parameters));
         //

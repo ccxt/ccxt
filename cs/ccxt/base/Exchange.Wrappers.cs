@@ -1481,4 +1481,3 @@ public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
-public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

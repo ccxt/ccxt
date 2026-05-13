@@ -550,9 +550,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "zebpay":
 		itf := NewZebpay(options)
 		return itf
-	case "zonda":
-		itf := NewZonda(options)
-		return itf
 	default:
 		return nil
 	}

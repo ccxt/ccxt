@@ -1459,7 +1459,7 @@ class coinex extends Exchange {
                 // 'last_id' => 0,
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = null;
             if ($market['swap']) {

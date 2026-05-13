@@ -4969,6 +4969,35 @@ class Exchange(object):
             ]
         return ohlcv
 
+    def safe_network(self, network):
+        withdrawEnabled = self.safe_bool(network, 'withdraw')
+        depositEnabled = self.safe_bool(network, 'deposit')
+        limits = self.safe_dict(network, 'limits')
+        withdraw = self.safe_dict(limits, 'withdraw')
+        deposit = self.safe_dict(limits, 'deposit')
+        isEnabled = (withdrawEnabled and depositEnabled)
+        return {
+            'info': network['info'],
+            'id': self.safe_string(network, 'id'),
+            'name': self.safe_string(network, 'name'),
+            'network': self.safe_string(network, 'network'),
+            'active': self.safe_bool(network, 'active', isEnabled),
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': self.safe_number(network, 'fee'),
+            'precision': self.safe_number(network, 'precision'),
+            'limits': {
+                'withdraw': {
+                    'min': self.safe_number(withdraw, 'min'),
+                    'max': self.safe_number(withdraw, 'max'),
+                },
+                'deposit': {
+                    'min': self.safe_number(deposit, 'min'),
+                    'max': self.safe_number(deposit, 'max'),
+                },
+            },
+        }
+
     def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
         """
  @ignore

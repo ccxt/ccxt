@@ -2805,44 +2805,6 @@ func (this *CoinbaseinternationalCore) Withdraw(code any, amount any, address an
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) SafeNetwork(network any) any {
-	var withdrawEnabled any = this.SafeBool(network, "withdraw")
-	var depositEnabled any = this.SafeBool(network, "deposit")
-	var limits any = this.SafeDict(network, "limits")
-	var withdraw any = this.SafeDict(limits, "withdraw")
-	var withdrawMax any = this.SafeNumber(withdraw, "max")
-	var deposit any = this.SafeDict(limits, "deposit")
-	var depositMax any = this.SafeNumber(deposit, "max")
-	if IsTrue(IsTrue(IsEqual(withdrawEnabled, nil)) && IsTrue(!IsEqual(withdrawMax, nil))) {
-		withdrawEnabled = (IsGreaterThan(withdrawMax, 0))
-	}
-	if IsTrue(IsTrue(IsEqual(depositEnabled, nil)) && IsTrue(!IsEqual(depositMax, nil))) {
-		depositEnabled = (IsGreaterThan(depositMax, 0))
-	}
-	var networkId any = this.SafeString(network, "id")
-	var isEnabled any = (IsTrue(withdrawEnabled) && IsTrue(depositEnabled))
-	return map[string]any{
-		"info":      GetValue(network, "info"),
-		"id":        networkId,
-		"name":      this.SafeString(network, "name"),
-		"network":   this.SafeString(network, "network"),
-		"active":    this.SafeBool(network, "active", isEnabled),
-		"deposit":   depositEnabled,
-		"withdraw":  withdrawEnabled,
-		"fee":       this.SafeNumber(network, "fee"),
-		"precision": this.SafeNumber(network, "precision"),
-		"limits": map[string]any{
-			"withdraw": map[string]any{
-				"min": this.SafeNumber(withdraw, "min"),
-				"max": withdrawMax,
-			},
-			"deposit": map[string]any{
-				"min": this.SafeNumber(deposit, "min"),
-				"max": depositMax,
-			},
-		},
-	}
-}
 func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
