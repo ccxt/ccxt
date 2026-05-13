@@ -140,6 +140,16 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         if (quoteVolume !== undefined) {
             assert (baseVolume !== undefined, 'quoteVolume & vwap is defined, but baseVolume is not' + logText);
         }
+        // check baseVolume / quoteVolume ratio with vwap
+        if (baseVolume !== undefined && quoteVolume !== undefined) {
+            const tolerance = '1.0001';
+            const quoteVolumeDivBaseVolume = Precise.stringDiv (quoteVolume, baseVolume);
+            // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated vwap
+            const vwapLow = Precise.stringDiv (vwap, tolerance);
+            const vwapHigh = Precise.stringMul (vwap, tolerance);
+            assert (Precise.stringGe (quoteVolumeDivBaseVolume, vwapLow), 'quoteVolume / baseVolume should be >= vwap' + logText);
+            assert (Precise.stringLe (quoteVolumeDivBaseVolume, vwapHigh), 'quoteVolume / baseVolume should be <= vwap' + logText);
+        }
     }
     const askString = exchange.safeString (entry, 'ask');
     const bidString = exchange.safeString (entry, 'bid');
