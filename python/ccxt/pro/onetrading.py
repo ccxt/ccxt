@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(ccxt.async_support.onetrading):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(onetrading, self).describe(), {
             'has': {
                 'ws': True,
@@ -23,6 +23,7 @@ class onetrading(ccxt.async_support.onetrading):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': False,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -82,10 +83,12 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -139,11 +142,13 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -163,11 +168,13 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches price tickers, a statistical calculation with the information for all markets or those specified.
         :param str symbols: unified symbols of the markets to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an array of `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: an array of `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -255,13 +262,15 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         get the list of trades associated with the user
         :param str symbol: unified symbol of the market to fetch trades for. Use 'any' to watch all trades
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -294,12 +303,14 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
+
+        https://developers.bitpanda.com/exchange/#market-ticker-channel
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -400,14 +411,16 @@ class onetrading(ccxt.async_support.onetrading):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://developers.bitpanda.com/exchange/#account-history-channel
+
+        https://developers.bitpanda.com/exchange/#account-history-channel
+
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: can listen to orders using ACCOUNT_HISTORY or TRADING
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'
@@ -964,7 +977,8 @@ class onetrading(ccxt.async_support.onetrading):
         if updateType == 'TRADE_SETTLED':
             parsed = self.parse_trade(update)
             symbol = self.safe_string(parsed, 'symbol', '')
-            self.myTrades.append(parsed)
+            myTrades = self.myTrades
+            myTrades.append(parsed)
             client.resolve(self.myTrades, 'myTrades:' + symbol)
             client.resolve(self.myTrades, 'myTrades')
 
@@ -993,9 +1007,11 @@ class onetrading(ccxt.async_support.onetrading):
         self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://developers.bitpanda.com/exchange/#candlesticks-channel
+
+        https://developers.bitpanda.com/exchange/#candlesticks-channel
+
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1150,7 +1166,7 @@ class onetrading(ccxt.async_support.onetrading):
         #
         return message
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "error": "MALFORMED_JSON",
@@ -1264,7 +1280,7 @@ class onetrading(ccxt.async_support.onetrading):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()

@@ -10,6 +10,7 @@ interface Exchange {
     publicGetGethealth(params?: {}): Promise<implicitReturnType>;
     publicGetGetboardstate(params?: {}): Promise<implicitReturnType>;
     publicGetGetchats(params?: {}): Promise<implicitReturnType>;
+    publicGetGetfundingrate(params?: {}): Promise<implicitReturnType>;
     privateGetGetpermissions(params?: {}): Promise<implicitReturnType>;
     privateGetGetbalance(params?: {}): Promise<implicitReturnType>;
     privateGetGetbalancehistory(params?: {}): Promise<implicitReturnType>;

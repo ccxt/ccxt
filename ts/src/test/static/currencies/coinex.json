@@ -5,7 +5,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "BTC": {
                 "id": "BTC",
@@ -17,8 +21,12 @@
                 "precision": 1e-8,
                 "limits": {
                     "amount": {},
-                    "deposit": { "min": 0.001 },
-                    "withdraw": { "min": 0.001 }
+                    "deposit": {
+                        "min": 0.001
+                    },
+                    "withdraw": {
+                        "min": 0.001
+                    }
                 },
                 "info": {
                     "chain": "BTC",
@@ -72,7 +80,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "TRC20": {
                 "id": "TRC20",
@@ -82,7 +94,15 @@
                 "withdraw": true,
                 "fee": 2.3,
                 "precision": 0.000001,
-                "limits": { "amount": {}, "deposit": { "min": 2.3 }, "withdraw": { "min": 2.3 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 2.3
+                    },
+                    "withdraw": {
+                        "min": 2.3
+                    }
+                },
                 "info": {
                     "chain": "TRC20",
                     "min_deposit_amount": "2.3",
@@ -108,7 +128,15 @@
                 "withdraw": true,
                 "fee": 0.076,
                 "precision": 1e-8,
-                "limits": { "amount": {}, "deposit": { "min": 0.076 }, "withdraw": { "min": 0.5 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.076
+                    },
+                    "withdraw": {
+                        "min": 0.5
+                    }
+                },
                 "info": {
                     "chain": "BSC",
                     "min_deposit_amount": "0.076",
@@ -134,7 +162,15 @@
                 "withdraw": true,
                 "fee": 4.4,
                 "precision": 0.000001,
-                "limits": { "amount": {}, "deposit": { "min": 4.4 }, "withdraw": { "min": 4.4 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 4.4
+                    },
+                    "withdraw": {
+                        "min": 4.4
+                    }
+                },
                 "info": {
                     "chain": "ERC20",
                     "min_deposit_amount": "4.4",
@@ -219,7 +255,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "LTC": {
                 "id": "LTC",
@@ -229,7 +269,15 @@
                 "withdraw": true,
                 "fee": 0.001,
                 "precision": 1e-8,
-                "limits": { "amount": {}, "deposit": { "min": 0.01 }, "withdraw": { "min": 0.01 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.01
+                    },
+                    "withdraw": {
+                        "min": 0.01
+                    }
+                },
                 "info": {
                     "chain": "LTC",
                     "min_deposit_amount": "0.01",
@@ -282,7 +330,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "ERC20": {
                 "id": "ERC20",
@@ -294,8 +346,12 @@
                 "precision": 1e-8,
                 "limits": {
                     "amount": {},
-                    "deposit": { "min": 0.005 },
-                    "withdraw": { "min": 0.005 }
+                    "deposit": {
+                        "min": 0.005
+                    },
+                    "withdraw": {
+                        "min": 0.005
+                    }
                 },
                 "info": {
                     "chain": "ERC20",
@@ -349,7 +405,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "ADA": {
                 "id": "ADA",
@@ -359,7 +419,15 @@
                 "withdraw": true,
                 "fee": 1,
                 "precision": 0.000001,
-                "limits": { "amount": {}, "deposit": { "min": 1 }, "withdraw": { "min": 100 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 1
+                    },
+                    "withdraw": {
+                        "min": 100
+                    }
+                },
                 "info": {
                     "chain": "ADA",
                     "min_deposit_amount": "1",
@@ -412,7 +480,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "XRP": {
                 "id": "XRP",
@@ -422,7 +494,15 @@
                 "withdraw": true,
                 "fee": 0.006,
                 "precision": 0.000001,
-                "limits": { "amount": {}, "deposit": { "min": 0.1 }, "withdraw": { "min": 20 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.1
+                    },
+                    "withdraw": {
+                        "min": 20
+                    }
+                },
                 "info": {
                     "chain": "XRP",
                     "min_deposit_amount": "0.1",
@@ -475,7 +555,11 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "limits": { "amount": {}, "deposit": {}, "withdraw": {} },
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
         "networks": {
             "ERC20": {
                 "id": "ERC20",
@@ -485,7 +569,15 @@
                 "withdraw": true,
                 "fee": 4.3,
                 "precision": 0.000001,
-                "limits": { "amount": {}, "deposit": { "min": 4.3 }, "withdraw": { "min": 4.3 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 4.3
+                    },
+                    "withdraw": {
+                        "min": 4.3
+                    }
+                },
                 "info": {
                     "chain": "ERC20",
                     "min_deposit_amount": "4.3",
@@ -511,7 +603,15 @@
                 "withdraw": false,
                 "fee": 2.5,
                 "precision": 1e-8,
-                "limits": { "amount": {}, "deposit": { "min": 2.4 }, "withdraw": { "min": 2.5 } },
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 2.4
+                    },
+                    "withdraw": {
+                        "min": 2.5
+                    }
+                },
                 "info": {
                     "chain": "TRC20",
                     "min_deposit_amount": "2.4",
@@ -570,6 +670,99 @@
                     "memo": "",
                     "is_memo_required_for_deposit": false,
                     "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+                }
+            ]
+        }
+    },
+    "TRUMP": {
+        "id": "TRUMP",
+        "code": "TRUMP",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        },
+        "networks": {
+            "SOL": {
+                "id": "SOL",
+                "network": "SOL",
+                "name": null,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.083,
+                "precision": 0.000001,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.083,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.6,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "chain": "SOL",
+                    "min_deposit_amount": "0.083",
+                    "min_withdraw_amount": "0.6",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 50,
+                    "irreversible_confirmations": 100,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.083",
+                    "withdrawal_precision": 6,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://solscan.io/token/6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+                }
+            }
+        },
+        "info": {
+            "asset": {
+                "ccy": "TRUMP",
+                "deposit_enabled": true,
+                "withdraw_enabled": true,
+                "inter_transfer_enabled": true,
+                "is_st": false
+            },
+            "chains": [
+                {
+                    "chain": "SOL",
+                    "min_deposit_amount": "0.083",
+                    "min_withdraw_amount": "0.6",
+                    "deposit_enabled": true,
+                    "withdraw_enabled": true,
+                    "deposit_delay_minutes": 0,
+                    "safe_confirmations": 50,
+                    "irreversible_confirmations": 100,
+                    "deflation_rate": "0",
+                    "withdrawal_fee": "0.083",
+                    "withdrawal_precision": 6,
+                    "memo": "",
+                    "is_memo_required_for_deposit": false,
+                    "explorer_asset_url": "https://solscan.io/token/6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
                 }
             ]
         }

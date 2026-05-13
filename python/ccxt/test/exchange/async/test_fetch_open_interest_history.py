@@ -21,3 +21,4 @@ async def test_fetch_open_interest_history(exchange, skipped_properties, symbol)
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, open_interest_history, symbol)
     for i in range(0, len(open_interest_history)):
         test_open_interest(exchange, skipped_properties, method, open_interest_history[i])
+    return True

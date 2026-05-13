@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "target": "ES2020",                  // Modern JS features
+      "module": "ESNext",                  // Native ESM support
+      "moduleResolution": "node",
+      "outDir": "js",                      // Output compiled files here
+      "rootDir": "ts",                    // Input TS source files
+      "esModuleInterop": true,            // Interop for CommonJS modules
+      "forceConsistentCasingInFileNames": true,
+      "strict": false,                     // Enable all strict type checks
+      "skipLibCheck": true,
+      "declaration": true,               // If you're publishing a lib
+      "sourceMap": true,                 // Useful for debugging
+      "resolveJsonModule": true,         // Allow importing `.json`
+      "allowSyntheticDefaultImports": true,
+    },
+    "include": ["ts/*.ts"],
+    "exclude": ["node_modules", "js", "../ts"]
+  }

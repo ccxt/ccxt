@@ -8,6 +8,13 @@
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.coinone.co.kr/public/v2/currencies",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coinone.co.kr/public/v2/currencies",
                 "input": []
             }
         ],

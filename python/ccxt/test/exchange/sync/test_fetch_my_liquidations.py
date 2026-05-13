@@ -18,10 +18,11 @@ from ccxt.test.exchange.base import test_liquidation  # noqa E402
 def test_fetch_my_liquidations(exchange, skipped_properties, code):
     method = 'fetchMyLiquidations'
     if not exchange.has['fetchMyLiquidations']:
-        return
+        return True
     items = exchange.fetch_my_liquidations(code)
     assert isinstance(items, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(items)
-    now = exchange.milliseconds()
+    # const now = exchange.milliseconds ();
     for i in range(0, len(items)):
         test_liquidation(exchange, skipped_properties, method, items[i], code)
     test_shared_methods.assert_timestamp_order(exchange, method, code, items)
+    return True

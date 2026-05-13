@@ -4,117 +4,142 @@
     "options": {},
     "methods": {
         "fetchMyTrades": [
-            {
-                "description": "spot trade",
-                "method": "fetchMyTrades",
-                "input": [
-                    "BTC/USDT",
-                    null,
-                    1
-                ],
-                "httpResponse": {
-                    "code": 0,
-                    "data": [
-                        {
-                            "amount": "0.00010087",
-                            "created_at": 1714618087585,
-                            "deal_id": 4161200602,
-                            "margin_market": "",
-                            "market": "BTCUSDT",
-                            "order_id": 117654919342,
-                            "price": "57464.04",
-                            "side": "sell"
-                        }
-                    ],
-                    "message": "OK",
-                    "pagination": {
-                        "has_next": true
-                    }
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "amount": "0.00010087",
-                            "created_at": 1714618087585,
-                            "deal_id": 4161200602,
-                            "margin_market": "",
-                            "market": "BTCUSDT",
-                            "order_id": 117654919342,
-                            "price": "57464.04",
-                            "side": "sell"
-                        },
-                        "timestamp": 1714618087585,
-                        "datetime": "2024-05-02T02:48:07.585Z",
-                        "symbol": "BTC/USDT",
-                        "id": "4161200602",
-                        "order": "117654919342",
-                        "type": null,
-                        "side": "sell",
-                        "takerOrMaker": null,
-                        "price": 57464.04,
-                        "amount": 0.00010087,
-                        "cost": 5.7963977148,
-                        "fee": {"cost": null, "currency": null },
-                        "fees": []
-                    }
-                ]
+          {
+            "description": "spot trade with fees",
+            "method": "fetchMyTrades",
+            "input": [
+              "LTC/USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "code": "0",
+              "data": [
+                {
+                  "amount": "0.09663391",
+                  "created_at": "1724912067673",
+                  "deal_id": "4497671060",
+                  "fee": "0.0119999989438",
+                  "fee_ccy": "USDT",
+                  "margin_market": "",
+                  "market": "LTCUSDT",
+                  "order_id": "126701416621",
+                  "price": "62.09",
+                  "role": "taker",
+                  "side": "buy"
+                }
+              ],
+              "message": "OK",
+              "pagination": {
+                "has_next": true
+              }
             },
-            {
-                "description": "swap trade",
-                "method": "fetchMyTrades",
-                "input": [
-                    "BTC/USDT:USDT",
-                    null,
-                    1,
-                    {
-                        "side": "buy"
-                    }
-                ],
-                "httpResponse": {
-                    "code": 0,
-                    "data": [
-                        {
-                            "deal_id": 1180222387,
-                            "created_at": 1714119054558,
-                            "market": "BTCUSDT",
-                            "side": "buy",
-                            "order_id": 136915589622,
-                            "price": "64376",
-                            "amount": "0.0001"
-                        }
-                    ],
-                    "message": "OK",
-                    "pagination": {
-                        "has_next": true
-                    }
+            "parsedResponse": [
+              {
+                "info": {
+                  "amount": "0.09663391",
+                  "created_at": "1724912067673",
+                  "deal_id": "4497671060",
+                  "fee": "0.0119999989438",
+                  "fee_ccy": "USDT",
+                  "margin_market": "",
+                  "market": "LTCUSDT",
+                  "order_id": "126701416621",
+                  "price": "62.09",
+                  "role": "taker",
+                  "side": "buy"
                 },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "deal_id": 1180222387,
-                            "created_at": 1714119054558,
-                            "market": "BTCUSDT",
-                            "side": "buy",
-                            "order_id": 136915589622,
-                            "price": "64376",
-                            "amount": "0.0001"
-                        },
-                        "timestamp": 1714119054558,
-                        "datetime": "2024-04-26T08:10:54.558Z",
-                        "symbol": "BTC/USDT:USDT",
-                        "id": "1180222387",
-                        "order": "136915589622",
-                        "type": null,
-                        "side": "buy",
-                        "takerOrMaker": null,
-                        "price": 64376,
-                        "amount": 0.0001,
-                        "cost": 6.4376,
-                        "fee": {"cost": null, "currency": null },
-                        "fees": []
-                    }
+                "timestamp": 1724912067673,
+                "datetime": "2024-08-29T06:14:27.673Z",
+                "symbol": "LTC/USDT",
+                "id": "4497671060",
+                "order": "126701416621",
+                "type": null,
+                "side": "buy",
+                "takerOrMaker": "taker",
+                "price": 62.09,
+                "amount": 0.09663391,
+                "cost": 5.9999994719,
+                "fee": {
+                  "currency": "USDT",
+                  "cost": 0.0119999989438
+                },
+                "fees": [
+                  {
+                    "currency": "USDT",
+                    "cost": 0.0119999989438
+                  }
                 ]
-            }
+              }
+            ]
+          },
+            {
+              "description": "swap trade with fees",
+              "method": "fetchMyTrades",
+              "input": [
+                "LTC/USDT:USDT",
+                null,
+                1
+              ],
+              "httpResponse": {
+                "code": "0",
+                "data": [
+                  {
+                    "deal_id": "1343725676",
+                    "created_at": "1724912014089",
+                    "market": "LTCUSDT",
+                    "side": "sell",
+                    "order_id": "150808898267",
+                    "price": "62.06",
+                    "amount": "0.08",
+                    "role": "taker",
+                    "fee": "0.0024824",
+                    "fee_ccy": "USDT"
+                  }
+                ],
+                "message": "OK",
+                "pagination": {
+                  "has_next": true
+                }
+              },
+              "parsedResponse": [
+                {
+                  "info": {
+                    "deal_id": "1343725676",
+                    "created_at": "1724912014089",
+                    "market": "LTCUSDT",
+                    "side": "sell",
+                    "order_id": "150808898267",
+                    "price": "62.06",
+                    "amount": "0.08",
+                    "role": "taker",
+                    "fee": "0.0024824",
+                    "fee_ccy": "USDT"
+                  },
+                  "timestamp": 1724912014089,
+                  "datetime": "2024-08-29T06:13:34.089Z",
+                  "symbol": "LTC/USDT:USDT",
+                  "id": "1343725676",
+                  "order": "150808898267",
+                  "type": null,
+                  "side": "sell",
+                  "takerOrMaker": "taker",
+                  "price": 62.06,
+                  "amount": 0.08,
+                  "cost": 4.9648,
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": 0.0024824
+                  },
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0.0024824
+                    }
+                  ]
+                }
+              ]
+          }
         ],
         "fetchClosedOrders": [
             {
@@ -610,6 +635,8 @@
                     "average": 62783.91,
                     "baseVolume": 558.59137629,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "close": "64291.34",
                         "high": "65183.04",
@@ -923,6 +950,132 @@
                   }
                 }
               }
+        ],
+        "fetchBorrowInterest": [
+          {
+            "description": "fetch borrow interest",
+            "method": "fetchBorrowInterest",
+            "input": [
+              "USDT",
+              "BTC/USDT",
+              null,
+              3
+            ],
+            "httpResponse": {
+              "data": [
+                {
+                  "borrow_id": 13784021,
+                  "created_at": 1716435948000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1717299948000,
+                  "borrow_amount": "60",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                {
+                  "borrow_id": 2642934,
+                  "created_at": 1654761016000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655625016000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                {
+                  "borrow_id": 2642914,
+                  "created_at": 1654760611000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655624611000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                }
+              ],
+              "pagination": {
+                "total": 5,
+                "has_next": true
+              },
+              "code": 0,
+              "message": "OK"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "borrow_id": 13784021,
+                  "created_at": 1716435948000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1717299948000,
+                  "borrow_amount": "60",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 60,
+                "marginMode": "isolated",
+                "timestamp": 1717299948000,
+                "datetime": "2024-06-02T03:45:48.000Z"
+              },
+              {
+                "info": {
+                  "borrow_id": 2642934,
+                  "created_at": 1654761016000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655625016000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 100,
+                "marginMode": "isolated",
+                "timestamp": 1655625016000,
+                "datetime": "2022-06-19T07:50:16.000Z"
+              },
+              {
+                "info": {
+                  "borrow_id": 2642914,
+                  "created_at": 1654760611000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655624611000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 100,
+                "marginMode": "isolated",
+                "timestamp": 1655624611000,
+                "datetime": "2022-06-19T07:43:31.000Z"
+              }
+            ]
+          }
         ]
     }
 }

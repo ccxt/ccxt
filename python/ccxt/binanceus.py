@@ -5,11 +5,12 @@
 
 from ccxt.binance import binance
 from ccxt.abstract.binanceus import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class binanceus(binance, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binanceus, self).describe(), {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -19,7 +20,7 @@ class binanceus(binance, ImplicitAPI):
             'certified': False,
             'pro': True,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
+                'logo': 'https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c',
                 'api': {
                     'web': 'https://www.binance.us',
                     'public': 'https://api.binance.us/api/v3',
@@ -42,8 +43,11 @@ class binanceus(binance, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
                 'defaultType': 'spot',
+                'fetchMargins': False,
                 'quoteOrderQty': False,
             },
             'has': {
@@ -51,34 +55,64 @@ class binanceus(binance, ImplicitAPI):
                 'spot': True,
                 'margin': False,
                 'swap': False,
-                'future': None,
+                'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createReduceOnlyOrder': False,
+                'createStopLossOrder': False,
+                'createTakeProfitOrder': False,
+                'fetchAllGreeks': False,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': False,
+                'fetchMarkPrices': False,
+                'fetchMySettlementHistory': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchPosition': False,
+                'fetchPositionHistory': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
+                'fetchPositionsForSymbol': False,
+                'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -206,6 +240,16 @@ class binanceus(binance, ImplicitAPI):
                     'post': {
                         'sub-account/transfer': 1,
                     },
+                },
+            },
+            'features': {
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
         })

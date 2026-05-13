@@ -9,12 +9,13 @@ use Exception; // a common import
 use ccxt\async\abstract\independentreserve as Exchange;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class independentreserve extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
@@ -29,6 +30,9 @@ class independentreserve extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
@@ -37,46 +41,79 @@ class independentreserve extends Exchange {
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionForSymbolWs' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsForSymbolWs' => false,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'withdraw' => true,
@@ -106,7 +143,10 @@ class independentreserve extends Exchange {
                         'GetRecentTrades',
                         'GetFxRates',
                         'GetOrderMinimumVolumes',
-                        'GetCryptoWithdrawalFees',
+                        'GetCryptoWithdrawalFees', // deprecated - replaced by GetCryptoWithdrawalFees2 (docs removed)
+                        'GetCryptoWithdrawalFees2',
+                        'GetNetworks',
+                        'GetPrimaryCurrencyConfig2',
                     ),
                 ),
                 'private' => array(
@@ -118,8 +158,10 @@ class independentreserve extends Exchange {
                         'GetAccounts',
                         'GetTransactions',
                         'GetFiatBankAccounts',
-                        'GetDigitalCurrencyDepositAddress',
-                        'GetDigitalCurrencyDepositAddresses',
+                        'GetDigitalCurrencyDepositAddress', // deprecated - replaced by GetDigitalCurrencyDepositAddress2 (docs removed)
+                        'GetDigitalCurrencyDepositAddress2',
+                        'GetDigitalCurrencyDepositAddresses', // deprecated - replaced by GetDigitalCurrencyDepositAddresses2 (docs removed)
+                        'GetDigitalCurrencyDepositAddresses2',
                         'GetTrades',
                         'GetBrokerageFees',
                         'GetDigitalCurrencyWithdrawal',
@@ -129,7 +171,8 @@ class independentreserve extends Exchange {
                         'SynchDigitalCurrencyDepositAddressWithBlockchain',
                         'RequestFiatWithdrawal',
                         'WithdrawFiatCurrency',
-                        'WithdrawDigitalCurrency',
+                        'WithdrawDigitalCurrency', // deprecated - replaced by WithdrawCrypto (docs removed)
+                        'WithdrawCrypto',
                     ),
                 ),
             ),
@@ -141,10 +184,133 @@ class independentreserve extends Exchange {
                     'tierBased' => false,
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'commonCurrencies' => array(
                 'PLA' => 'PlayChip',
             ),
             'precisionMode' => TICK_SIZE,
+            'options' => array(
+                'defaultNetworks' => array(
+                    'USDT' => 'Ethereum',
+                    'USDC' => 'Ethereum',
+                    'BTC' => 'Bitcoin',
+                    'BCH' => 'BitcoinCash',
+                    'ETH' => 'Ethereum',
+                    'LTC' => 'Litecoin',
+                    'XRP' => 'XrpLedger',
+                    'ZRX' => 'Ethereum',
+                    'EOS' => 'EosIo',
+                    'XLM' => 'Stellar',
+                    'BAT' => 'Ethereum',
+                    'ETC' => 'EthereumClassic',
+                    'LINK' => 'Ethereum',
+                    'MKR' => 'Ethereum',
+                    'DAI' => 'Ethereum',
+                    'COMP' => 'Ethereum',
+                    'SNX' => 'Ethereum',
+                    'YFI' => 'Ethereum',
+                    'AAVE' => 'Ethereum',
+                    'GRT' => 'Ethereum',
+                    'DOT' => 'Polkadot',
+                    'UNI' => 'Ethereum',
+                    'ADA' => 'Cardano',
+                    'MATIC' => 'Ethereum',
+                    'DOGE' => 'Dogecoin',
+                    'SOL' => 'Solana',
+                    'MANA' => 'Ethereum',
+                    'SAND' => 'Ethereum',
+                    'SHIB' => 'Ethereum',
+                    'TRX' => 'Tron',
+                    'RENDER' => 'Solana',
+                    'WIF' => 'Solana',
+                    'RLUSD' => 'Ethereum',
+                    'PEPE' => 'Ethereum',
+                ),
+                'networks' => array(
+                    'BTC' => 'Bitcoin',
+                    'ETH' => 'Ethereum',
+                    'BCH' => 'BitcoinCash',
+                    'LTC' => 'Litecoin',
+                    'XRP' => 'XrpLedger',
+                    'EOS' => 'EosIo',
+                    'XLM' => 'Stellar',
+                    'ETC' => 'EthereumClassic',
+                    'BSV' => 'BitcoinSV',
+                    'DOGE' => 'Dogecoin',
+                    'DOT' => 'Polkadot',
+                    'ADA' => 'Cardano',
+                    'SOL' => 'Solana',
+                    'TRX' => 'Tron',
+                ),
+            ),
         ));
     }
 
@@ -155,11 +321,12 @@ class independentreserve extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $baseCurrencies = Async\await($this->publicGetGetValidPrimaryCurrencyCodes ($params));
+            $baseCurrenciesPromise = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
             //     ['Xbt', 'Eth', 'Usdt', ...]
-            $quoteCurrencies = Async\await($this->publicGetGetValidSecondaryCurrencyCodes ($params));
+            $quoteCurrenciesPromise = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-            $limits = Async\await($this->publicGetGetOrderMinimumVolumes ($params));
+            $limitsPromise = $this->publicGetGetOrderMinimumVolumes ($params);
+            list($baseCurrencies, $quoteCurrencies, $limits) = Async\await(Promise\all(array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise )));
             //
             //     {
             //         "Xbt" => 0.0001,
@@ -251,7 +418,7 @@ class independentreserve extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetAccounts ($params));
@@ -266,7 +433,7 @@ class independentreserve extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -334,7 +501,7 @@ class independentreserve extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -454,11 +621,10 @@ class independentreserve extends Exchange {
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
-            'timeInForce' => null,
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'TimeInForce')),
             'postOnly' => null,
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
-            'stopPrice' => null,
             'triggerPrice' => null,
             'cost' => $this->safe_string($order, 'Value'),
             'average' => $this->safe_string($order, 'AvgPrice'),
@@ -484,17 +650,29 @@ class independentreserve extends Exchange {
             'Cancelled' => 'canceled',
             'PartiallyFilledAndExpired' => 'canceled',
             'Expired' => 'canceled',
+            'Failed' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_time_in_force(?string $timeInForce) {
+        $timeInForces = array(
+            'Gtc' => 'GTC',
+            'Moc' => 'PO',
+            'Fok' => 'FOK',
+            'Ioc' => 'IOC',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetOrderDetails ($this->extend(array(
@@ -516,10 +694,10 @@ class independentreserve extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $request = $this->ordered(array());
+            $request = array();
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -545,10 +723,10 @@ class independentreserve extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $request = $this->ordered(array());
+            $request = array();
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -574,17 +752,17 @@ class independentreserve extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
             if ($limit === null) {
                 $limit = 50;
             }
-            $request = $this->ordered(array(
+            $request = array(
                 'pageIndex' => $pageIndex,
                 'pageSize' => $limit,
-            ));
+            );
             $response = Async\await($this->privatePostGetTrades ($this->extend($request, $params)));
             $market = null;
             if ($symbol !== null) {
@@ -643,7 +821,7 @@ class independentreserve extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -662,7 +840,7 @@ class independentreserve extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privatePostGetBrokerageFees ($params));
@@ -714,17 +892,17 @@ class independentreserve extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $orderType = $this->capitalize($type);
             $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
-            $request = $this->ordered(array(
+            $request = array(
                 'primaryCurrencyCode' => $market['baseId'],
                 'secondaryCurrencyCode' => $market['quoteId'],
                 'orderType' => $orderType,
-            ));
+            );
             $response = null;
             $request['volume'] = $amount;
             if ($type === 'limit') {
@@ -744,11 +922,13 @@ class independentreserve extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://www.independentreserve.com/features/api#CancelOrder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -774,14 +954,16 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -801,7 +983,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag => '3307446684',
@@ -815,17 +997,19 @@ class independentreserve extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'Tag'),
-            'network' => null,
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -834,7 +1018,7 @@ class independentreserve extends Exchange {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
@@ -949,7 +1133,7 @@ class independentreserve extends Exchange {
             }
             $message = implode(',', $auth);
             $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
-            $query = $this->ordered(array());
+            $query = array();
             $query['apiKey'] = $this->apiKey;
             $query['nonce'] = $nonce;
             $query['signature'] = strtoupper($signature);

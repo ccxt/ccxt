@@ -87,6 +87,8 @@
                     "average": null,
                     "baseVolume": 3.5434218,
                     "quoteVolume": 259620.278863632,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "bid": "73367.96",
                         "ask": "73385.27",
@@ -135,6 +137,8 @@
                   "average": null,
                   "baseVolume": 2444794.70237,
                   "quoteVolume": 2445430.3489926164,
+                  "markPrice":  null,
+                  "indexPrice": null,
                   "info": {
                     "bid": "1.00001",
                     "ask": "1.00026",
@@ -183,6 +187,8 @@
                   "average": null,
                   "baseVolume": 41.7433,
                   "quoteVolume": 2915143.3555,
+                  "markPrice":  null,
+                  "indexPrice": null,
                   "info": {
                     "bid": "69755.00",
                     "ask": "69785.00",

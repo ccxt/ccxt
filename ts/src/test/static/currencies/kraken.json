@@ -1,199 +1,362 @@
 {
     "BTC": {
-        "id": "XXBT",
-        "code": "BTC",
         "info": {
             "aclass": "currency",
             "altname": "XBT",
             "decimals": "10",
             "display_decimals": "5",
-            "collateral_value": "1.0",
-            "status": "enabled"
+            "collateral_value": "0.99",
+            "status": "enabled",
+            "margin_rate": "0.01"
         },
-        "name": "BTC",
-        "active": true,
+        "id": "XXBT",
+        "numericId": null,
+        "code": "BTC",
         "precision": 1e-10,
+        "type": "crypto",
+        "name": "XBT",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-10
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USDT": {
-        "id": "USDT",
-        "code": "USDT",
         "info": {
             "aclass": "currency",
             "altname": "USDT",
             "decimals": "8",
             "display_decimals": "4",
-            "collateral_value": "0.9",
-            "status": "enabled"
+            "collateral_value": "0.995",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "USDT",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "EUR": {
-        "id": "ZEUR",
-        "code": "EUR",
         "info": {
             "aclass": "currency",
             "altname": "EUR",
             "decimals": "4",
             "display_decimals": "2",
             "collateral_value": "1.0",
-            "status": "enabled"
+            "status": "enabled",
+            "margin_rate": "0.025"
         },
+        "id": "ZEUR",
+        "numericId": null,
+        "code": "EUR",
+        "precision": 0.0001,
+        "type": "crypto",
         "name": "EUR",
         "active": true,
-        "precision": 0.0001,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.0001
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USD": {
-        "id": "ZUSD",
-        "code": "USD",
         "info": {
             "aclass": "currency",
             "altname": "USD",
             "decimals": "4",
             "display_decimals": "2",
             "collateral_value": "1.0",
-            "status": "enabled"
+            "status": "enabled",
+            "margin_rate": "0.034"
         },
-        "name": "USD",
-        "active": false,
+        "id": "ZUSD",
+        "numericId": null,
+        "code": "USD",
         "precision": 0.0001,
+        "type": "crypto",
+        "name": "USD",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.0001
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "LTC": {
-        "id": "XLTC",
-        "code": "LTC",
         "info": {
             "aclass": "currency",
             "altname": "LTC",
             "decimals": "10",
             "display_decimals": "5",
-            "collateral_value": "0.7",
-            "status": "enabled"
+            "collateral_value": "0.925",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
+        "id": "XLTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-10,
+        "type": "crypto",
         "name": "LTC",
         "active": true,
-        "precision": 1e-10,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-10
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "ETH": {
-        "id": "XETH",
-        "code": "ETH",
         "info": {
             "aclass": "currency",
             "altname": "ETH",
             "decimals": "10",
             "display_decimals": "5",
-            "collateral_value": "1.0",
-            "status": "enabled"
+            "collateral_value": "0.99",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
+        "id": "XETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-10,
+        "type": "crypto",
         "name": "ETH",
         "active": true,
-        "precision": 1e-10,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-10
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "ADA": {
-        "id": "ADA",
-        "code": "ADA",
         "info": {
             "aclass": "currency",
             "altname": "ADA",
             "decimals": "8",
             "display_decimals": "6",
-            "collateral_value": "0.9",
-            "status": "enabled"
+            "collateral_value": "0.925",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
+        "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "ADA",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "XRP": {
-        "id": "XXRP",
-        "code": "XRP",
         "info": {
             "aclass": "currency",
             "altname": "XRP",
             "decimals": "8",
             "display_decimals": "5",
-            "status": "enabled"
+            "collateral_value": "0.95",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
+        "id": "XXRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "XRP",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
-        },
-        "networks": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     },
     "USDC": {
-        "id": "USDC",
-        "code": "USDC",
         "info": {
             "aclass": "currency",
             "altname": "USDC",
             "decimals": "8",
             "display_decimals": "4",
-            "collateral_value": "1.0",
-            "status": "enabled"
+            "collateral_value": "0.995",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "USDC",
         "active": true,
-        "precision": 1e-8,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": null,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "MATIC": {
+        "info": {
+            "aclass": "currency",
+            "altname": "MATIC",
+            "decimals": "10",
+            "display_decimals": "5",
+            "status": "enabled",
+            "margin_rate": "0.02"
         },
-        "networks": {}
+        "id": "MATIC",
+        "numericId": null,
+        "code": "MATIC",
+        "precision": 1e-10,
+        "type": "crypto",
+        "name": "MATIC",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "ALPHA": {
+        "info": {
+            "aclass": "currency",
+            "altname": "ALPHA",
+            "decimals": "5",
+            "display_decimals": "3",
+            "status": "enabled"
+        },
+        "id": "ALPHA",
+        "numericId": null,
+        "code": "ALPHA",
+        "precision": 0.00001,
+        "type": "crypto",
+        "name": "ALPHA",
+        "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
     }
 }

@@ -9,13 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testStatus(Exchange exchange, object skippedProperties, object method, object entry, object now)
     {
-        object format = new Dictionary<string, object>() {
-            { "info", new Dictionary<string, object>() {} },
-            { "status", "ok" },
-            { "updated", 1650000000000 },
-            { "eta", 1660000000000 },
-            { "url", "https://example.com" },
-        };
+        assert(true, "testStatus");
     }
 
 }

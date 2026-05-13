@@ -1,16 +1,18 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class binancecoinm extends binance {
+class binancecoinm extends binance["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c',
                 'doc': [
                     'https://binance-docs.github.io/apidocs/delivery/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',
@@ -27,7 +29,11 @@ class binancecoinm extends binance {
                 'createStopMarketOrder': true,
             },
             'options': {
-                'fetchMarkets': ['inverse'],
+                'fetchMarkets': {
+                    'types': [
+                        'inverse',
+                    ],
+                },
                 'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },
@@ -43,4 +49,4 @@ class binancecoinm extends binance {
     }
 }
 
-module.exports = binancecoinm;
+exports["default"] = binancecoinm;

@@ -1,52 +1,27 @@
-import kucoinfuturesRest from '../kucoinfutures.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Position, Strings, Tickers, OHLCV } from '../base/types.js';
-import Client from '../base/ws/Client.js';
-export default class kucoinfutures extends kucoinfuturesRest {
+import kucoin from './kucoin.js';
+import type { Strings, TransferEntry } from '../base/types.js';
+export default class kucoinfutures extends kucoin {
     describe(): any;
-    negotiate(privateChannel: any, params?: {}): Promise<any>;
-    negotiateHelper(privateChannel: any, params?: {}): Promise<string>;
-    requestId(): any;
-    subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
-    subscribeMultiple(url: any, messageHashes: any, topic: any, subscriptionHashes: any, subscriptionArgs: any, params?: {}): Promise<any>;
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): void;
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchMultiRequest(methodName: any, channelName: string, symbols?: Strings, params?: {}): Promise<any>;
-    handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
-    watchPosition(symbol?: Str, params?: {}): Promise<Position>;
-    getCurrentPosition(symbol: any): any;
-    setPositionCache(client: Client, symbol: string): void;
-    loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
-    handlePosition(client: Client, message: any): void;
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleTrade(client: Client, message: any): any;
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    handleOHLCV(client: Client, message: any): void;
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
-    handleDelta(orderbook: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBook(client: Client, message: any): void;
-    getCacheIndex(orderbook: any, cache: any): any;
-    handleSystemStatus(client: Client, message: any): any;
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseWsOrderStatus(status: any): string;
-    parseWsOrder(order: any, market?: any): Order;
-    handleOrder(client: Client, message: any): void;
-    watchBalance(params?: {}): Promise<Balances>;
-    handleBalance(client: Client, message: any): void;
-    handleBalanceSubscription(client: Client, message: any, subscription: any): void;
-    fetchBalanceSnapshot(client: any, message: any): Promise<void>;
-    handleSubject(client: Client, message: any): void;
-    getMessageHash(elementName: string, symbol?: Str): string;
-    ping(client: Client): {
-        id: any;
-        type: string;
-    };
-    handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): void;
-    handleMessage(client: Client, message: any): void;
+    /**
+     * @method
+     * @name kucoinfutures#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchBidsAsks(symbols?: Strings, params?: {}): Promise<import("../base/types.js").Tickers>;
+    /**
+     * @method
+     * @name kucoinfutures#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransferType(transferType: any): string;
 }

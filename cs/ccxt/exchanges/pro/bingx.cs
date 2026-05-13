@@ -13,21 +13,33 @@ public partial class bingx : ccxt.bingx
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOrderBook", true },
-                { "watchOrderBookForSymbols", true },
+                { "watchOrderBookForSymbols", false },
                 { "watchOHLCV", true },
-                { "watchOHLCVForSymbols", true },
+                { "watchOHLCVForSymbols", false },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
                 { "watchTicker", true },
-                { "watchTickers", true },
+                { "watchTickers", false },
                 { "watchBalance", true },
+                { "watchPositions", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOrderBook", true },
+                { "unWatchTicker", true },
+                { "unWatchTrades", true },
             } },
             { "urls", new Dictionary<string, object>() {
+                { "test", new Dictionary<string, object>() {
+                    { "ws", new Dictionary<string, object>() {
+                        { "linear", "wss://vst-open-api-ws.bingx.com/swap-market" },
+                    } },
+                } },
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://open-api-ws.bingx.com/market" },
-                        { "swap", "wss://open-api-swap.bingx.com/swap-market" },
+                        { "linear", "wss://open-api-swap.bingx.com/swap-market" },
+                        { "inverse", "wss://open-api-cswap-ws.bingx.com/market" },
                     } },
                 } },
             } },
@@ -66,15 +78,17 @@ public partial class bingx : ccxt.bingx
                 } },
                 { "watchBalance", new Dictionary<string, object>() {
                     { "fetchBalanceSnapshot", true },
-                    { "awaitBalanceSnapshot", false },
+                    { "awaitBalanceSnapshot", true },
+                } },
+                { "watchPositions", new Dictionary<string, object>() {
+                    { "fetchPositionsSnapshot", true },
+                    { "awaitPositionsSnapshot", false },
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "depth", 100 },
-                    { "interval", 500 },
                 } },
-                { "watchOrderBookForSymbols", new Dictionary<string, object>() {
-                    { "depth", 100 },
-                    { "interval", 500 },
+                { "watchTrades", new Dictionary<string, object>() {
+                    { "ignoreDuplicates", true },
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
@@ -83,40 +97,125 @@ public partial class bingx : ccxt.bingx
         });
     }
 
+    public async virtual Task<object> unWatch(object messageHash, object subMessageHash, object subscribeHash, object dataType, object topic, object market, object methodName, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object marketType = null;
+        object subType = null;
+        object url = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
+        }
+        object id = this.uuid();
+        object request = new Dictionary<string, object>() {
+            { "id", id },
+            { "dataType", dataType },
+            { "reqType", "unsub" },
+        };
+        object symbols = new List<object>() {};
+        if (isTrue(!isEqual(market, null)))
+        {
+            ((IList<object>)symbols).Add(getValue(market, "symbol"));
+        }
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", id },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+            { "messageHashes", new List<object>() {messageHash} },
+            { "symbols", symbols },
+            { "topic", topic },
+        };
+        object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+        if (isTrue(!isEqual(symbolsAndTimeframes, null)))
+        {
+            ((IDictionary<string,object>)subscription)["symbolsAndTimeframes"] = symbolsAndTimeframes;
+            parameters = this.omit(parameters, "symbolsAndTimeframes");
+        }
+        return await this.watch(url, messageHash, this.extend(request, parameters), subscribeHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name bingx#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20Price%20Change
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20price%20changes
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%2024-Hour%20Price%20Change
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("watchTicker", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
-        object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
-        if (isTrue(isEqual(url, null)))
+        object marketType = null;
+        object subType = null;
+        object url = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTicker", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchTicker", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "swap")))
         {
-            throw new BadRequest ((string)add(add(add(this.id, " watchTicker is not supported for "), marketType), " markets.")) ;
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object subscriptionHash = add(getValue(market, "id"), "@ticker");
+        object dataType = add(getValue(market, "id"), "@ticker");
         object messageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
         object uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
-            { "dataType", subscriptionHash },
+            { "dataType", dataType },
         };
         if (isTrue(isEqual(marketType, "swap")))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        return await this.watch(url, messageHash, this.extend(request, query), subscriptionHash);
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20Price%20Change
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20price%20changes
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%2024-Hour%20Price%20Change
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object dataType = add(getValue(market, "id"), "@ticker");
+        object subMessageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
+        object messageHash = add("unsubscribe::", subMessageHash);
+        object topic = "ticker";
+        object methodName = "unWatchTicker";
+        return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -243,217 +342,6 @@ public partial class bingx : ccxt.bingx
         }, market);
     }
 
-    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bingx#watchTickers
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs
-        * @param {string[]} symbols unified symbol of the market to watch the tickers for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, true, true, false);
-        object firstMarket = null;
-        object marketType = null;
-        object symbolsDefined = (!isEqual(symbols, null));
-        if (isTrue(symbolsDefined))
-        {
-            firstMarket = this.market(getValue(symbols, 0));
-        }
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
-        parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isTrue(isEqual(marketType, "spot")))
-        {
-            throw new NotSupported ((string)add(this.id, " watchTickers is not supported for spot markets yet")) ;
-        }
-        object messageHashes = new List<object>() {};
-        object subscriptionHashes = new List<object>() {"all@ticker"};
-        if (isTrue(symbolsDefined))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                object market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(this.getMessageHash("ticker", getValue(market, "symbol")));
-            }
-        } else
-        {
-            ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
-        }
-        object url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
-        object uuid = this.uuid();
-        object request = new Dictionary<string, object>() {
-            { "id", uuid },
-            { "dataType", "all@ticker" },
-        };
-        if (isTrue(isEqual(marketType, "swap")))
-        {
-            ((IDictionary<string,object>)request)["reqType"] = "sub";
-        }
-        object result = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes);
-        if (isTrue(this.newUpdates))
-        {
-            object newDict = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)newDict)[(string)getValue(result, "symbol")] = result;
-            return newDict;
-        }
-        return this.tickers;
-    }
-
-    public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bingx#watchOrderBookForSymbols
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
-        * @param {string[]} symbols unified array of symbols
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
-        parameters ??= new Dictionary<string, object>();
-        symbols = this.marketSymbols(symbols, null, true, true, false);
-        object firstMarket = null;
-        object marketType = null;
-        object symbolsDefined = (!isEqual(symbols, null));
-        if (isTrue(symbolsDefined))
-        {
-            firstMarket = this.market(getValue(symbols, 0));
-        }
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrderBookForSymbols", firstMarket, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
-        parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isTrue(isEqual(marketType, "spot")))
-        {
-            throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols is not supported for spot markets yet")) ;
-        }
-        limit = this.getOrderBookLimitByMarketType(marketType, limit);
-        object interval = null;
-        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", 500);
-        interval = ((IList<object>)intervalparametersVariable)[0];
-        parameters = ((IList<object>)intervalparametersVariable)[1];
-        this.checkRequiredArgument("watchOrderBookForSymbols", interval, "interval", new List<object>() {100, 200, 500, 1000});
-        object channelName = add(add(add(add("depth", ((object)limit).ToString()), "@"), ((object)interval).ToString()), "ms");
-        object subscriptionHash = add("all@", channelName);
-        object messageHashes = new List<object>() {};
-        if (isTrue(symbolsDefined))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                object market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(this.getMessageHash("orderbook", getValue(market, "symbol")));
-            }
-        } else
-        {
-            ((IList<object>)messageHashes).Add(this.getMessageHash("orderbook"));
-        }
-        object url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
-        object uuid = this.uuid();
-        object request = new Dictionary<string, object>() {
-            { "id", uuid },
-            { "dataType", subscriptionHash },
-        };
-        if (isTrue(isEqual(marketType, "swap")))
-        {
-            ((IDictionary<string,object>)request)["reqType"] = "sub";
-        }
-        object subscriptionArgs = new Dictionary<string, object>() {
-            { "symbols", symbols },
-            { "limit", limit },
-            { "interval", interval },
-            { "params", parameters },
-        };
-        object orderbook = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), new List<object>() {subscriptionHash}, subscriptionArgs);
-        return (orderbook as IOrderBook).limit();
-    }
-
-    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bingx#watchOHLCVForSymbols
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
-        parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
-        if (isTrue(isTrue(!isEqual(symbolsLength, 0)) && !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array like  [[\'BTC/USDT:USDT\', \'1m\'], [\'LTC/USDT:USDT\', \'5m\']]")) ;
-        }
-        await this.loadMarkets();
-        object messageHashes = new List<object>() {};
-        object marketType = null;
-        object chosenTimeframe = null;
-        if (isTrue(!isEqual(symbolsLength, 0)))
-        {
-            object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
-            symbols = this.marketSymbols(symbols, null, true, true, false);
-            object firstMarket = this.market(getValue(symbols, 0));
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrderBookForSymbols", firstMarket, parameters);
-            marketType = ((IList<object>)marketTypeparametersVariable)[0];
-            parameters = ((IList<object>)marketTypeparametersVariable)[1];
-            if (isTrue(isEqual(marketType, "spot")))
-            {
-                throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols is not supported for spot markets yet")) ;
-            }
-        }
-        object marketOptions = this.safeDict(this.options, marketType);
-        object timeframes = this.safeDict(marketOptions, "timeframes", new Dictionary<string, object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
-        {
-            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
-            object sym = getValue(symbolAndTimeframe, 0);
-            object tf = getValue(symbolAndTimeframe, 1);
-            object market = this.market(sym);
-            object rawTimeframe = this.safeString(timeframes, tf, tf);
-            if (isTrue(isEqual(chosenTimeframe, null)))
-            {
-                chosenTimeframe = rawTimeframe;
-            } else if (isTrue(!isEqual(chosenTimeframe, rawTimeframe)))
-            {
-                throw new BadRequest ((string)add(this.id, " watchOHLCVForSymbols requires all timeframes to be the same")) ;
-            }
-            ((IList<object>)messageHashes).Add(this.getMessageHash("ohlcv", getValue(market, "symbol"), chosenTimeframe));
-        }
-        object subscriptionHash = add("all@kline_", chosenTimeframe);
-        object url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
-        object uuid = this.uuid();
-        object request = new Dictionary<string, object>() {
-            { "id", uuid },
-            { "dataType", subscriptionHash },
-        };
-        if (isTrue(isEqual(marketType, "swap")))
-        {
-            ((IDictionary<string,object>)request)["reqType"] = "sub";
-        }
-        object subscriptionArgs = new Dictionary<string, object>() {
-            { "limit", limit },
-            { "params", parameters },
-        };
-        var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, request, new List<object>() {subscriptionHash}, subscriptionArgs);
-        var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
-        var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
-        var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
-        {
-            limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
-        }
-        object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
-        return this.createOHLCVObject(symbol, timeframe, filtered);
-    }
-
     public virtual object getOrderBookLimitByMarketType(object marketType, object limit = null)
     {
         if (isTrue(isEqual(limit, null)))
@@ -480,7 +368,7 @@ public partial class bingx : ccxt.bingx
             hash = add(hash, add("::", symbol));
         } else
         {
-            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs ...
+            hash = add(hash, "s"); // tickers, orderbooks, ohlcvs, etc ...
         }
         if (isTrue(!isEqual(extra, null)))
         {
@@ -489,31 +377,40 @@ public partial class bingx : ccxt.bingx
         return hash;
     }
 
+    /**
+     * @method
+     * @name bingx#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20the%20Latest%20Trade%20Detail
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchTrades
-        * @description watches information on multiple trades made in a market
-        * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
-        * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
         object marketType = null;
+        object subType = null;
+        object url = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
-        if (isTrue(isEqual(url, null)))
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchTrades", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "swap")))
         {
-            throw new BadRequest ((string)add(add(add(this.id, " watchTrades is not supported for "), marketType), " markets.")) ;
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
         object rawHash = add(getValue(market, "id"), "@trade");
         object messageHash = add("trade::", symbol);
@@ -526,19 +423,54 @@ public partial class bingx : ccxt.bingx
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        if (isTrue(this.handleOption("watchTrades", "ignoreDuplicates", true)))
+        {
+            object filtered = this.removeRepeatedTradesFromArray(result);
+            filtered = this.sortBy(filtered, "timestamp");
+            return filtered;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20the%20Latest%20Trade%20Detail
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object dataType = add(getValue(market, "id"), "@trade");
+        object subMessageHash = this.getMessageHash("trade", getValue(market, "symbol"));
+        object messageHash = add("unsubscribe::", subMessageHash);
+        object topic = "trades";
+        object methodName = "unWatchTrades";
+        return await this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
     {
         //
-        // spot
-        // first snapshot
+        // spot: first snapshot
         //
         //    {
         //      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
@@ -547,7 +479,7 @@ public partial class bingx : ccxt.bingx
         //      "timestamp": 1690214699854
         //    }
         //
-        // subsequent updates
+        // spot: subsequent updates
         //
         //     {
         //         "code": 0,
@@ -565,9 +497,7 @@ public partial class bingx : ccxt.bingx
         //         "success": true
         //     }
         //
-        //
-        // swap
-        // first snapshot
+        // linear swap: first snapshot
         //
         //    {
         //        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
@@ -577,8 +507,7 @@ public partial class bingx : ccxt.bingx
         //        "data": null
         //    }
         //
-        // subsequent updates
-        //
+        // linear swap: subsequent updates
         //
         //    {
         //        "code": 0,
@@ -594,6 +523,32 @@ public partial class bingx : ccxt.bingx
         //            ...
         //        ]
         //    }
+        //
+        // inverse swap: first snapshot
+        //
+        //     {
+        //         "code": 0,
+        //         "id": "a2e482ca-f71b-42f8-a83a-8ff85a713e64",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1722920589426
+        //     }
+        //
+        // inverse swap: subsequent updates
+        //
+        //     {
+        //         "code": 0,
+        //         "dataType": "BTC-USD@trade",
+        //         "data": {
+        //             "e": "trade",
+        //             "E": 1722920589665,
+        //             "s": "BTC-USD",
+        //             "t": "39125001",
+        //             "p": "55360.0",
+        //             "q": "1",
+        //             "T": 1722920589582,
+        //             "m": false
+        //         }
+        //     }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
         object rawHash = this.safeString(message, "dataType");
@@ -625,42 +580,42 @@ public partial class bingx : ccxt.bingx
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
+    /**
+     * @method
+     * @name bingx#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20Market%20Depth%20Data
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Partial%20Order%20Book%20Depth
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-        * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("watchOrderBook", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
-        limit = this.getOrderBookLimitByMarketType(marketType, limit);
-        object channelName = add("depth", ((object)limit).ToString());
-        object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
-        if (isTrue(isEqual(url, null)))
+        object marketType = null;
+        object subType = null;
+        object url = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrderBook", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrderBook", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "swap")))
         {
-            throw new BadRequest ((string)add(add(add(this.id, " watchOrderBook is not supported for "), marketType), " markets.")) ;
-        }
-        object interval = null;
-        if (isTrue(!isEqual(marketType, "spot")))
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
         {
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", 500);
-            interval = ((IList<object>)intervalparametersVariable)[0];
-            parameters = ((IList<object>)intervalparametersVariable)[1];
-            this.checkRequiredArgument("watchOrderBook", interval, "interval", new List<object>() {100, 200, 500, 1000});
-            channelName = add(add(add(channelName, "@"), ((object)interval).ToString()), "ms");
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object subscriptionHash = add(add(getValue(market, "id"), "@"), channelName);
+        object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        object depth = this.safeInteger(options, "depth", 100);
+        object subscriptionHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
         object messageHash = this.getMessageHash("orderbook", getValue(market, "symbol"));
         object uuid = this.uuid();
         object request = new Dictionary<string, object>() {
@@ -671,19 +626,57 @@ public partial class bingx : ccxt.bingx
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        object subscriptionArgs = new Dictionary<string, object>() {
-            { "limit", limit },
-            { "interval", interval },
-            { "params", parameters },
-        };
-        object orderbook = await this.watch(url, messageHash, this.deepExtend(request, query), subscriptionHash, subscriptionArgs);
+        object subscriptionArgs = new Dictionary<string, object>() {};
+        if (isTrue(getValue(market, "inverse")))
+        {
+            subscriptionArgs = new Dictionary<string, object>() {
+                { "id", uuid },
+                { "unsubscribe", false },
+                { "count", limit },
+                { "params", parameters },
+            };
+        } else
+        {
+            subscriptionArgs = new Dictionary<string, object>() {
+                { "id", uuid },
+                { "unsubscribe", false },
+                { "level", limit },
+                { "params", parameters },
+            };
+        }
+        object orderbook = await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscriptionArgs);
         return (orderbook as IOrderBook).limit();
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20Market%20Depth%20Data
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Partial%20Order%20Book%20Depth
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        object depth = this.safeInteger(options, "depth", 100);
+        object subMessageHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
+        object messageHash = add("unsubscribe::", subMessageHash);
+        object topic = "orderbook";
+        object methodName = "unWatchOrderBook";
+        return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
     }
 
     public override void handleDelta(object bookside, object delta)
     {
-        object price = this.safeFloat(delta, 0);
-        object amount = this.safeFloat(delta, 1);
+        object price = this.safeFloat2(delta, 0, "p");
+        object amount = this.safeFloat2(delta, 1, "a");
         (bookside as IOrderBookSide).store(price, amount);
     }
 
@@ -692,42 +685,69 @@ public partial class bingx : ccxt.bingx
         //
         // spot
         //
+        //     {
+        //         "code":0,
+        //         "data":
+        //         {
+        //             "asks":[
+        //                 ["84119.73","0.000011"],
+        //                 ["84116.52","0.000014"],
+        //                 ["84116.40","0.000039"]
+        //             ],
+        //             "bids":[
+        //                 ["83656.98","2.570805"],
+        //                 ["83655.51","0.000347"],
+        //                 ["83654.59","0.000082"]
+        //             ],
+        //             "lastUpdateId":13565694850
+        //         },
+        //         "dataType":"BTC-USDT@depth100",
+        //         "success":true,
+        //         "timestamp":1743241379958
+        //     }
         //
-        //    {
-        //        "code": 0,
-        //        "dataType": "BTC-USDT@depth20",
-        //        "data": {
-        //          "bids": [
-        //            [ '28852.9', "34.2621" ],
-        //            ...
-        //          ],
-        //          "asks": [
-        //            [ '28864.9', "23.4079" ],
-        //            ...
-        //          ]
-        //        },
-        //        "dataType": "BTC-USDT@depth20",
-        //        "success": true
-        //    }
+        // linear swap
         //
-        // swap
+        //     {
+        //         "code":0,
+        //         "dataType":"BTC-USDT@depth100@500ms",
+        //         "ts":1743241563651,
+        //         "data":
+        //         {
+        //             "bids":[
+        //                 ["83363.2","0.1908"],
+        //                 ["83360.0","0.0003"],
+        //                 ["83356.5","0.0245"],
+        //             ],
+        //             "asks":[
+        //                 ["83495.0","0.0024"],
+        //                 ["83490.0","0.0001"],
+        //                 ["83488.0","0.0004"],
+        //             ]
+        //         }
+        //     }
         //
+        // inverse swap
         //
-        //    {
-        //        "code": 0,
-        //        "dataType": "BTC-USDT@depth20@100ms", //or "all@depth20@100ms"
-        //        "data": {
-        //          "bids": [
-        //            [ '28852.9', "34.2621" ],
-        //            ...
-        //          ],
-        //          "asks": [
-        //            [ '28864.9', "23.4079" ],
-        //            ...
-        //          ],
-        //          "symbol": "BTC-USDT", // this key exists only in "all" subscription
-        //        }
-        //    }
+        //     {
+        //         "code":0,
+        //         "dataType":"BTC-USD@depth100",
+        //         "data":{
+        //             "symbol":"BTC-USD",
+        //             "bids":[
+        //                 {"p":"83411.2","a":"2.979216","v":"2485.0"},
+        //                 {"p":"83411.1","a":"1.592114","v":"1328.0"},
+        //                 {"p":"83410.8","a":"2.656730","v":"2216.0"},
+        //             ],
+        //             "asks":[
+        //                 {"p":"88200.0","a":"0.344671","v":"304.0"},
+        //                 {"p":"88023.8","a":"0.045442","v":"40.0"},
+        //                 {"p":"88001.0","a":"0.003409","v":"3.0"},
+        //             ],
+        //             "aggPrecision":"0.1",
+        //             "timestamp":1743242290710
+        //         }
+        //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object dataType = this.safeString(message, "dataType");
@@ -739,7 +759,8 @@ public partial class bingx : ccxt.bingx
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        if (isTrue(isEqual(this.safeValue(this.orderbooks, symbol), null)))
+        object orderbook = this.safeValue(this.orderbooks, symbol);
+        if (isTrue(isEqual(orderbook, null)))
         {
             // const limit = [ 5, 10, 20, 50, 100 ]
             object subscriptionHash = dataType;
@@ -747,10 +768,20 @@ public partial class bingx : ccxt.bingx
             object limit = this.safeInteger(subscription, "limit");
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        object orderbook = getValue(this.orderbooks, symbol);
-        object snapshot = this.parseOrderBook(data, symbol, null, "bids", "asks", 0, 1);
+        orderbook = getValue(this.orderbooks, symbol);
+        object snapshot = null;
+        object timestamp = this.safeInteger2(message, "timestamp", "ts");
+        timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
+        if (isTrue(getValue(market, "inverse")))
+        {
+            snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a");
+        } else
+        {
+            snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1);
+        }
+        object nonce = this.safeInteger(data, "lastUpdateId");
+        ((IDictionary<string,object>)snapshot)["nonce"] = nonce;
         (orderbook as IOrderBook).reset(snapshot);
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         object messageHash = this.getMessageHash("orderbook", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         // resolve for "all"
@@ -775,15 +806,19 @@ public partial class bingx : ccxt.bingx
         //    }
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
-        // for swap, (T) is the opening time
+        // for linear swap, (T) is the opening time
         object timestamp = ((bool) isTrue((getValue(market, "spot")))) ? "t" : "T";
+        if (isTrue(getValue(market, "swap")))
+        {
+            timestamp = ((bool) isTrue((getValue(market, "inverse")))) ? "t" : "T";
+        }
         return new List<object> {this.safeInteger(ohlcv, timestamp), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
-        // spot
+        // spot:
         //
         //   {
         //       "code": 0,
@@ -809,7 +844,8 @@ public partial class bingx : ccxt.bingx
         //       "success": true
         //   }
         //
-        // swap
+        // linear swap:
+        //
         //    {
         //        "code": 0,
         //        "dataType": "BTC-USDT@kline_1m",
@@ -826,16 +862,26 @@ public partial class bingx : ccxt.bingx
         //        ]
         //    }
         //
+        // inverse swap:
+        //
+        //     {
+        //         "code": 0,
+        //         "timestamp": 1723769354547,
+        //         "dataType": "BTC-USD@kline_1m",
+        //         "data": {
+        //             "t": 1723769340000,
+        //             "o": 57485.1,
+        //             "c": 57468,
+        //             "l": 57464.9,
+        //             "h": 57485.1,
+        //             "a": 0.189663,
+        //             "v": 109,
+        //             "u": 92,
+        //             "s": "BTC-USD"
+        //         }
+        //     }
+        //
         object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
-        object candles = null;
-        if (isTrue(isSwap))
-        {
-            candles = this.safeList(message, "data", new List<object>() {});
-        } else
-        {
-            object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-            candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
-        }
         object dataType = this.safeString(message, "dataType");
         object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object firstPart = getValue(parts, 0);
@@ -843,6 +889,21 @@ public partial class bingx : ccxt.bingx
         object marketId = this.safeString(message, "s", firstPart);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
+        object candles = null;
+        if (isTrue(isSwap))
+        {
+            if (isTrue(getValue(market, "inverse")))
+            {
+                candles = new List<object> {this.safeDict(message, "data", new Dictionary<string, object>() {})};
+            } else
+            {
+                candles = this.safeList(message, "data", new List<object>() {});
+            }
+        } else
+        {
+            object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
+        }
         object symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object rawTimeframe = getValue(((string)dataType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 1);
@@ -874,29 +935,42 @@ public partial class bingx : ccxt.bingx
         }
     }
 
+    /**
+     * @method
+     * @name bingx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/K-line%20Streamst
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20K-Line%20Data
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
-        * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20K-Line%20Data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("watchOHLCV", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
-        object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
+        object marketType = null;
+        object subType = null;
+        object url = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOHLCV", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOHLCV", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "swap")))
+        {
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
+        }
         if (isTrue(isEqual(url, null)))
         {
             throw new BadRequest ((string)add(add(add(this.id, " watchOHLCV is not supported for "), marketType), " markets.")) ;
@@ -916,10 +990,12 @@ public partial class bingx : ccxt.bingx
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
         object subscriptionArgs = new Dictionary<string, object>() {
-            { "limit", limit },
+            { "id", uuid },
+            { "unsubscribe", false },
+            { "interval", rawTimeframe },
             { "params", parameters },
         };
-        object result = await this.watch(url, messageHash, this.extend(request, query), subscriptionHash, subscriptionArgs);
+        object result = await this.watch(url, messageHash, this.extend(request, parameters), subscriptionHash, subscriptionArgs);
         object ohlcv = getValue(result, 2);
         if (isTrue(this.newUpdates))
         {
@@ -928,24 +1004,56 @@ public partial class bingx : ccxt.bingx
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name bingx#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/K-line%20Streamst
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20K-Line%20Data
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object options = this.safeValue(this.options, getValue(market, "type"), new Dictionary<string, object>() {});
+        object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
+        object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        object subMessageHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
+        object messageHash = add("unsubscribe::", subMessageHash);
+        object topic = "ohlcv";
+        object methodName = "unWatchOHLCV";
+        object symbolsAndTimeframes = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}};
+        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = symbolsAndTimeframes;
+        return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
+    }
+
+    /**
+     * @method
+     * @name bingx#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/order%20update%20event
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Order%20update%20push
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Order%20update%20push
+     * @param {string} [symbol] unified market symbol of the market orders are made in
+     * @param {int} [since] the earliest time in ms to watch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchOrders
-        * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-        * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
         object type = null;
+        object subType = null;
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -955,6 +1063,9 @@ public partial class bingx : ccxt.bingx
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
         object spotHash = "spot:private";
         object swapHash = "swap:private";
@@ -966,17 +1077,31 @@ public partial class bingx : ccxt.bingx
         {
             messageHash = add(messageHash, add(":", symbol));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "?listenKey="), getValue(this.options, "listenKey"));
-        object request = null;
         object uuid = this.uuid();
-        if (isTrue(isSpot))
+        object baseUrl = null;
+        object request = null;
+        if (isTrue(isEqual(type, "swap")))
         {
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                throw new NotSupported ((string)add(this.id, " watchOrders is not supported for inverse swap markets yet")) ;
+            }
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
             request = new Dictionary<string, object>() {
                 { "id", uuid },
+                { "reqType", "sub" },
                 { "dataType", "spot.executionReport" },
             };
         }
-        object orders = await this.watch(url, messageHash, request, subscriptionHash);
+        object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        object orders = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
@@ -984,37 +1109,42 @@ public partial class bingx : ccxt.bingx
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name bingx#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/order%20update%20event
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Order%20update%20push
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Order%20update%20push
+     * @param {string} [symbol] unified market symbol of the market the trades are made in
+     * @param {int} [since] the earliest time in ms to watch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchMyTrades
-        * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-        * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
-        * @description watches information on multiple trades made by the user
-        * @param {string} symbol unified market symbol of the market trades were made in
-        * @param {int} [since] the earliest time in ms to trades orders for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
         object type = null;
+        object subType = null;
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
         }
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
-        object spotSubHash = "spot:private";
-        object swapSubHash = "swap:private";
-        object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
+        object spotHash = "spot:private";
+        object swapHash = "swap:private";
+        object subscriptionHash = ((bool) isTrue(isSpot)) ? spotHash : swapHash;
         object spotMessageHash = "spot:mytrades";
         object swapMessageHash = "swap:mytrades";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
@@ -1022,17 +1152,31 @@ public partial class bingx : ccxt.bingx
         {
             messageHash = add(messageHash, add(":", symbol));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "?listenKey="), getValue(this.options, "listenKey"));
-        object request = null;
         object uuid = this.uuid();
-        if (isTrue(isSpot))
+        object baseUrl = null;
+        object request = null;
+        if (isTrue(isEqual(type, "swap")))
         {
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                throw new NotSupported ((string)add(this.id, " watchMyTrades is not supported for inverse swap markets yet")) ;
+            }
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
             request = new Dictionary<string, object>() {
                 { "id", uuid },
+                { "reqType", "sub" },
                 { "dataType", "spot.executionReport" },
             };
         }
-        object trades = await this.watch(url, messageHash, request, subscriptionHash);
+        object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -1040,24 +1184,29 @@ public partial class bingx : ccxt.bingx
         return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name bingx#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/Subscription%20account%20balance%20push
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Account%20balance%20and%20position%20update%20push
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Account%20balance%20and%20position%20update%20push
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bingx#watchBalance
-        * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-        * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
         object type = null;
+        object subType = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isSpot = (isEqual(type, "spot"));
         object spotSubHash = "spot:balance";
         object swapSubHash = "swap:private";
@@ -1065,18 +1214,27 @@ public partial class bingx : ccxt.bingx
         object swapMessageHash = "swap:balance";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "?listenKey="), getValue(this.options, "listenKey"));
         object request = null;
+        object baseUrl = null;
         object uuid = this.uuid();
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isEqual(type, "swap")))
         {
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                throw new NotSupported ((string)add(this.id, " watchBalance is not supported for inverse swap markets yet")) ;
+            }
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        } else
+        {
+            baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
             request = new Dictionary<string, object>() {
                 { "id", uuid },
                 { "dataType", "ACCOUNT_UPDATE" },
             };
         }
+        object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
         var client = this.client(url);
-        this.setBalanceCache(client as WebSocketClient, type, subscriptionHash, parameters);
+        this.setBalanceCache(client as WebSocketClient, type, subType, subscriptionHash, parameters);
         object fetchBalanceSnapshot = null;
         object awaitBalanceSnapshot = null;
         var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
@@ -1089,10 +1247,14 @@ public partial class bingx : ccxt.bingx
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
         }
-        return await this.watch(url, messageHash, request, subscriptionHash);
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        return await this.watch(url, messageHash, request, subscriptionHash, subscription);
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object subscriptionHash, object parameters)
+    public virtual void setBalanceCache(WebSocketClient client, object type, object subType, object subscriptionHash, object parameters)
     {
         if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
         {
@@ -1105,7 +1267,7 @@ public partial class bingx : ccxt.bingx
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
-                this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
+                this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, subType});
             }
         } else
         {
@@ -1113,16 +1275,262 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subType)
     {
         object response = await this.fetchBalance(new Dictionary<string, object>() {
             { "type", type },
+            { "subType", subType },
         });
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve();
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve();
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
+        }
+    }
+
+    /**
+     * @method
+     * @name bingx#watchPositions
+     * @description watch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+     * @param {string[]|undefined} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.authenticate();
+        object market = null;
+        object messageHash = "";
+        symbols = this.marketSymbols(symbols);
+        if (!isTrue(this.isEmpty(symbols)))
+        {
+            market = this.getMarketFromSymbols(symbols);
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+        }
+        object type = null;
+        object subType = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchPositions", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchPositions is not supported for spot markets")) ;
+        }
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchPositions is not supported for inverse swap markets yet")) ;
+        }
+        object subscriptionHash = "swap:private";
+        messageHash = add("swap:positions", messageHash);
+        object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
+        var client = this.client(url);
+        this.setPositionsCache(client as WebSocketClient, type, symbols);
+        object fetchPositionsSnapshot = null;
+        object awaitPositionsSnapshot = null;
+        var fetchPositionsSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
+        fetchPositionsSnapshot = ((IList<object>)fetchPositionsSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)fetchPositionsSnapshotparametersVariable)[1];
+        var awaitPositionsSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "awaitPositionsSnapshot", false);
+        awaitPositionsSnapshot = ((IList<object>)awaitPositionsSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)awaitPositionsSnapshotparametersVariable)[1];
+        object uuid = this.uuid();
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
+        {
+            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
+        if (isTrue(this.newUpdates))
+        {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+
+    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
+    {
+        if (isTrue(!isEqual(this.positions, null)))
+        {
+            return;
+        }
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        if (isTrue(fetchPositionsSnapshot))
+        {
+            object messageHash = add(type, ":fetchPositionsSnapshot");
+            if (!isTrue((inOp(client.futures, messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
+            }
+        } else
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+    }
+
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
+    {
+        object positions = await this.fetchPositions(null, new Dictionary<string, object>() {
+            { "type", type },
+            { "subType", "linear" },
+        });
+        this.positions = new ArrayCacheBySymbolBySide();
+        object cache = this.positions;
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object position = getValue(positions, i);
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
+        }
+        // don't remove the future from the .futures cache
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "swap:positions"});
+        }
+    }
+
+    public virtual object parseWsPosition(object position, object market = null)
+    {
+        //
+        //     {
+        //         "s": "LINK-USDT",     // Symbol
+        //         "pa": "5.000",        // Position Amount
+        //         "ep": "11.2345",      // Entry Price
+        //         "up": "0.5000",       // Unrealized PnL
+        //         "mt": "isolated",     // Margin Type
+        //         "iw": "50.00000000",  // Isolated Wallet
+        //         "ps": "LONG"          // Position Side
+        //     }
+        //
+        object marketId = this.safeString(position, "s");
+        object contracts = this.safeString(position, "pa");
+        object contractsAbs = Precise.stringAbs(contracts);
+        object positionSide = this.safeStringLower(position, "ps");
+        object hedged = true;
+        if (isTrue(isEqual(positionSide, "both")))
+        {
+            hedged = false;
+            if (!isTrue(Precise.stringEq(contracts, "0")))
+            {
+                if (isTrue(Precise.stringLt(contracts, "0")))
+                {
+                    positionSide = "short";
+                } else
+                {
+                    positionSide = "long";
+                }
+            }
+        }
+        object marginMode = this.safeString(position, "mt");
+        object collateral = ((bool) isTrue((isEqual(marginMode, "isolated")))) ? this.safeNumber(position, "iw") : null;
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", null },
+            { "symbol", this.safeSymbol(marketId, null, null, "swap") },
+            { "notional", null },
+            { "marginMode", marginMode },
+            { "liquidationPrice", null },
+            { "entryPrice", this.safeNumber(position, "ep") },
+            { "unrealizedPnl", this.safeNumber(position, "up") },
+            { "percentage", null },
+            { "contracts", this.parseNumber(contractsAbs) },
+            { "contractSize", null },
+            { "markPrice", null },
+            { "side", positionSide },
+            { "hedged", hedged },
+            { "timestamp", null },
+            { "datetime", null },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", collateral },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", null },
+            { "marginRatio", null },
+        });
+    }
+
+    public virtual void handlePositions(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "E": 1696244249320,
+        //         "a": {
+        //             "m": "ORDER",
+        //             "B": [...],
+        //             "P": [
+        //                 {
+        //                     "s": "LINK-USDT",
+        //                     "pa": "5.000",
+        //                     "ep": "11.2345",
+        //                     "up": "0.5000",
+        //                     "mt": "isolated",
+        //                     "iw": "50.00000000",
+        //                     "ps": "LONG"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        if (isTrue(isEqual(this.positions, null)))
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        object cache = this.positions;
+        object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        object rawPositions = this.safeList(data, "P", new List<object>() {});
+        object newPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        {
+            object rawPosition = getValue(rawPositions, i);
+            object position = this.parseWsPosition(rawPosition);
+            object symbol = this.safeString(position, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                continue;
+            }
+            object timestamp = this.safeInteger(message, "E");
+            ((IDictionary<string,object>)position)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
+            ((IList<object>)newPositions).Add(position);
+            callDynamically(cache, "append", new object[] {position});
+        }
+        object messageHashes = this.findMessageHashes(client as WebSocketClient, "swap:positions::");
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object messageHash = getValue(messageHashes, i);
+            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            object symbolsString = getValue(parts, 1);
+            object filteredSymbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
+            if (!isTrue(this.isEmpty(positions)))
+            {
+                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
+            }
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "swap:positions"});
     }
 
     public virtual object handleErrorMessage(WebSocketClient client, object message)
@@ -1167,11 +1575,16 @@ public partial class bingx : ccxt.bingx
             }); // extend the expiry
         } catch(Exception error)
         {
-            object types = new List<object>() {"spot", "swap"};
+            object types = new List<object>() {"spot", "linear", "inverse"};
             for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
             {
                 object type = getValue(types, i);
-                object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "?listenKey="), listenKey);
+                object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
+                if (isTrue(isEqual(baseUrl, null)))
+                {
+                    continue;
+                }
+                object url = add(add(baseUrl, "?listenKey="), listenKey);
                 var client = this.client(url);
                 object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
@@ -1222,7 +1635,7 @@ public partial class bingx : ccxt.bingx
             }
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " pong failed with error "), this.json(e)));
+            var error = new NetworkError(add(add(this.id, " pong failed with error "), this.exceptionMessage(e)));
             ((WebSocketClient)client).reset(error);
         }
     }
@@ -1464,13 +1877,10 @@ public partial class bingx : ccxt.bingx
             object balance = getValue(data, i);
             object currencyId = this.safeString(balance, "a");
             object code = this.safeCurrencyCode(currencyId);
-            object account = ((bool) isTrue((inOp(getValue(this.balance, type), code)))) ? getValue(getValue(this.balance, type), code) : this.account();
+            object account = this.account();
+            ((IDictionary<string,object>)account)["info"] = balance;
+            ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "lk");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "wb");
-            object balanceChange = this.safeString(balance, "bc");
-            if (isTrue(!isEqual(getValue(account, "used"), null)))
-            {
-                ((IDictionary<string,object>)account)["used"] = Precise.stringSub(this.safeString(account, "used"), balanceChange);
-            }
             ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         }
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
@@ -1525,6 +1935,7 @@ public partial class bingx : ccxt.bingx
         if (isTrue(isEqual(e, "ACCOUNT_UPDATE")))
         {
             this.handleBalance(client as WebSocketClient, message);
+            this.handlePositions(client as WebSocketClient, message);
         }
         if (isTrue(isEqual(e, "ORDER_TRADE_UPDATE")))
         {
@@ -1543,5 +1954,43 @@ public partial class bingx : ccxt.bingx
         {
             this.handleTicker(client as WebSocketClient, message);
         }
+        if (isTrue(isTrue(isTrue(isEqual(dataType, "")) && isTrue(isEqual(msgEvent, null))) && isTrue(isEqual(e, null))))
+        {
+            this.handleSubscriptionStatus(client as WebSocketClient, message);
+        }
+    }
+
+    public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "code": 0,
+        //         "id": "b6ed9cb4-f3d0-4641-ac3f-f59eb47a3abd",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1759225965363
+        //     }
+        //
+        object id = this.safeString(message, "id");
+        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+        object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        if (isTrue(isUnSubMessage))
+        {
+            this.handleUnSubscription(client as WebSocketClient, subscription);
+        }
+        return message;
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    {
+        object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object unsubHash = getValue(messageHashes, i);
+            object subHash = getValue(subMessageHashes, i);
+            this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
+        }
+        this.cleanCache(subscription);
     }
 }

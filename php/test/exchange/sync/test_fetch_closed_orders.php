@@ -20,4 +20,5 @@ function test_fetch_closed_orders($exchange, $skipped_properties, $symbol) {
         assert_in_array($exchange, $skipped_properties, $method, $order, 'status', ['closed', 'canceled']);
     }
     assert_timestamp_order($exchange, $method, $symbol, $orders);
+    return true;
 }

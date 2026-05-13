@@ -24,3 +24,4 @@ async def test_fetch_order_books(exchange, skipped_properties):
     for i in range(0, len(order_book_keys)):
         symbol_inner = order_book_keys[i]
         test_order_book(exchange, skipped_properties, method, order_books[symbol_inner], symbol_inner)
+    return True
