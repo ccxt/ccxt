@@ -1738,12 +1738,10 @@ func  (this *WeexCore) HandleOrders(client any, message any)  {
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
     var orders any = this.Orders
-    var newOrders any = []any{}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var rawOrder any = this.SafeDict(data, i, map[string]any {})
         var parsed any = this.ParseWsOrder(rawOrder)
         orders.(ccxt.Appender).Append(parsed)
-        ccxt.AppendToArray(&newOrders, parsed)
         var symbol any = ccxt.GetValue(parsed, "symbol")
         ccxt.AddElementToObject(symbols, symbol, true)
     }
@@ -1756,9 +1754,9 @@ func  (this *WeexCore) HandleOrders(client any, message any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolKeys)); i++ {
         var symbol any = ccxt.GetValue(symbolKeys, i)
         var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-        client.(ccxt.ClientInterface).Resolve(newOrders, symbolMessageHash)
+        client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
     }
-    client.(ccxt.ClientInterface).Resolve(newOrders, messageHash)
+    client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
 func  (this *WeexCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //
@@ -1930,8 +1928,8 @@ func  (this *WeexCore) WatchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes15338 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15338)
+            retRes15318 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15318)
             var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
@@ -1947,14 +1945,14 @@ func  (this *WeexCore) WatchBalance(optionalArgs ...any) <- chan any {
             var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes154612 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-                ccxt.PanicOnError(retRes154612)
+                retRes154412 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+                ccxt.PanicOnError(retRes154412)
             }
             var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "balance")
         
-                retRes154915 :=  (<-this.SubscribePrivate(messageHash, typeVar, "account", isContract, params))
-                ccxt.PanicOnError(retRes154915)
-                ch <- retRes154915
+                retRes154715 :=  (<-this.SubscribePrivate(messageHash, typeVar, "account", isContract, params))
+                ccxt.PanicOnError(retRes154715)
+                ch <- retRes154715
                 return nil
         
             }()
@@ -2109,8 +2107,8 @@ func  (this *WeexCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes16828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16828)
+            retRes16808 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16808)
             var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/private")
             this.Authenticate(url)
             var client any = this.Client(url)
@@ -2215,9 +2213,9 @@ func  (this *WeexCore) UnWatchPositions(optionalArgs ...any) <- chan any {
                 "subHashIsPrefix": true,
             }
         
-                retRes175715 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, true, params, subscription))
-                ccxt.PanicOnError(retRes175715)
-                ch <- retRes175715
+                retRes175515 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, true, params, subscription))
+                ccxt.PanicOnError(retRes175515)
+                ch <- retRes175515
                 return nil
         
             }()
@@ -2312,8 +2310,8 @@ func  (this *WeexCore) Pong(client any, message any) <- chan any {
                 "method": "PONG",
             }
         
-            retRes18468 := (<-client.(ccxt.ClientInterface).Send(response))
-            ccxt.PanicOnError(retRes18468)
+            retRes18448 := (<-client.(ccxt.ClientInterface).Send(response))
+            ccxt.PanicOnError(retRes18448)
                 return nil
             }()
             return ch

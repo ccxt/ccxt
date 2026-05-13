@@ -897,7 +897,7 @@ class paradex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if limit is not None:
-            request['page_size'] = limit
+            request['page_size'] = min(limit, 1000)
         if since is not None:
             request['start_at'] = since
         request, params = self.handle_until_option('end_at', request, params)

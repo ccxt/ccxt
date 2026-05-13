@@ -650,7 +650,7 @@ class bydfi extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = Async\await($this->publicGetV1FapiMarketTrades ($this->extend($request, $params)));
             //

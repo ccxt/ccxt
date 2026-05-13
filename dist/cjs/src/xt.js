@@ -1934,13 +1934,13 @@ class xt extends xt$1["default"] {
         let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min(limit, 1000);
             }
             response = await this.publicSpotGetTradeRecent(this.extend(request, params));
         }
         else {
             if (limit !== undefined) {
-                request['num'] = limit;
+                request['num'] = Math.min(limit, 1000);
             }
             if (market['linear']) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal(this.extend(request, params));

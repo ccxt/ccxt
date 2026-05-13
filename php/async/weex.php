@@ -1514,7 +1514,7 @@ class weex extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = null;
             if ($market['spot']) {

@@ -936,12 +936,10 @@ export default class hollaex extends Exchange {
         const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds ();
-        if (until === undefined && start === undefined) {
-            until = now;
-            start = until - timeDelta;
-        } else if (until === undefined) {
+        if (until === undefined) {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        } else if (start === undefined) {
+        }
+        if (start === undefined) {
             start = until - timeDelta;
         }
         request['from'] = this.parseToInt (start / 1000); // convert to seconds

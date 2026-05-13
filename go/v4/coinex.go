@@ -1500,7 +1500,7 @@ func (this *CoinexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 			"market": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {

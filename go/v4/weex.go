@@ -1625,7 +1625,7 @@ func (this *WeexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {

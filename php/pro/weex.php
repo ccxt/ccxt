@@ -1397,12 +1397,10 @@ class weex extends \ccxt\async\weex {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $orders = $this->orders;
-        $newOrders = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawOrder = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_order($rawOrder);
             $orders->append ($parsed);
-            $newOrders[] = $parsed;
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
         }
@@ -1415,9 +1413,9 @@ class weex extends \ccxt\async\weex {
         for ($i = 0; $i < count($symbolKeys); $i++) {
             $symbol = $symbolKeys[$i];
             $symbolMessageHash = $messageHash . '::' . $symbol;
-            $client->resolve ($newOrders, $symbolMessageHash);
+            $client->resolve ($orders, $symbolMessageHash);
         }
-        $client->resolve ($newOrders, $messageHash);
+        $client->resolve ($this->orders, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
