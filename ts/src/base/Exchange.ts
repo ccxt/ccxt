@@ -3366,8 +3366,7 @@ export default class Exchange {
             if (contractSize !== undefined) {
                 const inverse = this.safeBool (market, 'inverse', false);
                 if (inverse) {
-                    const precision = this.getPrecisionInteger (market);
-                    multiplyPrice = Precise.stringDiv ('1', price, precision);
+                    multiplyPrice = Precise.stringDiv ('1', price);
                 }
                 multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
             }
