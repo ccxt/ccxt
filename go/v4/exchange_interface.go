@@ -239,7 +239,7 @@ type ICoreExchange interface {
 	WarmUpCache()
 	GetItf() any
 	ConvertToSafeDictionary(data any) any
-	CreateSafeDictionary() *sync.Map
+	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
 	CreateOrders(orders any, optionalArgs ...any) <-chan any
 	Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any

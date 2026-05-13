@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.52';
+$version = '4.5.53';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.52';
+    const VERSION = '4.5.53';
 
     public $browser;
     public $marketsLoading = null;
@@ -3871,13 +3871,13 @@ class Exchange extends \ccxt\Exchange {
             list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
             $retryDelay = null;
             list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
-            $this->lastRestRequestTimestamp = $this->milliseconds();
-            $request = $this->sign($path, $api, $method, $params, $headers, $body);
-            $this->last_request_headers = $request['headers'];
-            $this->last_request_body = $request['body'];
-            $this->last_request_url = $request['url'];
             for ($i = 0; $i < $retries + 1; $i++) {
                 try {
+                    $this->lastRestRequestTimestamp = $this->milliseconds();
+                    $request = $this->sign($path, $api, $method, $params, $headers, $body);
+                    $this->last_request_headers = $request['headers'];
+                    $this->last_request_body = $request['body'];
+                    $this->last_request_url = $request['url'];
                     return Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
                 } catch (Exception $e) {
                     if ($e instanceof OperationFailed) {

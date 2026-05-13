@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.52'
+__version__ = '4.5.53'
 
 # -----------------------------------------------------------------------------
 
@@ -2068,7 +2068,7 @@ class Exchange(object):
     def extend_exchange_options(self, newOptions):
         self.options = self.extend(self.options, newOptions)
 
-    def create_safe_dictionary(self):
+    def create_safe_dictionary(self, isWs=False):
         return {}
 
     def convert_to_safe_dictionary(self, dictionary):
@@ -5410,13 +5410,13 @@ class Exchange(object):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
         retryDelay = None
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
-        self.lastRestRequestTimestamp = self.milliseconds()
-        request = self.sign(path, api, method, params, headers, body)
-        self.last_request_headers = request['headers']
-        self.last_request_body = request['body']
-        self.last_request_url = request['url']
         for i in range(0, retries + 1):
             try:
+                self.lastRestRequestTimestamp = self.milliseconds()
+                request = self.sign(path, api, method, params, headers, body)
+                self.last_request_headers = request['headers']
+                self.last_request_body = request['body']
+                self.last_request_url = request['url']
                 return self.fetch(request['url'], request['method'], request['headers'], request['body'])
             except Exception as e:
                 if isinstance(e, OperationFailed):

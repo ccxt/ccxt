@@ -1418,6 +1418,11 @@ class xt extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
+            if ($market['spot']) {
+                $limit = min ($limit, 1000); // spot max $limit
+            } else {
+                $limit = min ($limit, 1500); // derivatives max $limit
+            }
             $request['limit'] = $limit;
         } else {
             $request['limit'] = 1000;

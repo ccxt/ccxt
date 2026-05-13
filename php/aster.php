@@ -718,7 +718,7 @@ class aster extends Exchange {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/market-data/#exchange-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market data
+         * @return {array[]} an array of objects representing $market data
          */
         $promises = array(
             $this->sapiPublicGetV3ExchangeInfo ($params),
@@ -824,7 +824,15 @@ class aster extends Exchange {
         //     )
         //
         //
-        $rows = $this->array_concat($sapiRows, $fapiRows);
+        $fapiRowsFiltered = array();
+        for ($i = 0; $i < count($fapiRows); $i++) {
+            $market = $fapiRows[$i];
+            // tmp skip some markets with base = null
+            if ($this->safe_string($market, 'baseAsset')) {
+                $fapiRowsFiltered[] = $market;
+            }
+        }
+        $rows = $this->array_concat($sapiRows, $fapiRowsFiltered);
         return $this->parse_markets($rows);
     }
 

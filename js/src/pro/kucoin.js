@@ -719,7 +719,7 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             channelName = '/contractMarket/tickerV2:';
         }
-        const ticker = await this.watchMultiHelper('watchBidsAsks', channelName, symbols, params);
+        const ticker = await this.watchMultiHelper('watchBidsAsks', channelName, isFuturesMethod, symbols, params);
         if (this.newUpdates) {
             const tickers = {};
             tickers[ticker['symbol']] = ticker;
@@ -727,7 +727,7 @@ export default class kucoin extends kucoinRest {
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
-    async watchMultiHelper(methodName, channelName, symbols = undefined, params = {}) {
+    async watchMultiHelper(methodName, channelName, isFuturesChannel, symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const length = symbols.length;
@@ -740,7 +740,7 @@ export default class kucoin extends kucoinRest {
             const market = this.market(symbol);
             messageHashes.push('bidask@' + market['symbol']);
         }
-        const url = await this.negotiate(false);
+        const url = await this.negotiate(false, isFuturesChannel);
         const marketIds = this.marketIds(symbols);
         const joined = marketIds.join(',');
         const requestId = this.requestId().toString();

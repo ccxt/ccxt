@@ -1409,6 +1409,10 @@ class xt(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
+            if market['spot']:
+                limit = min(limit, 1000)  # spot max limit
+            else:
+                limit = min(limit, 1500)  # derivatives max limit
             request['limit'] = limit
         else:
             request['limit'] = 1000

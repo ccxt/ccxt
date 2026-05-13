@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.52';
+$version = '4.5.53';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.52';
+    const VERSION = '4.5.53';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2657,7 +2657,7 @@ class Exchange {
         $this->options = array_merge($this->options, $newOptions);
     }
 
-    public function create_safe_dictionary() {
+    public function create_safe_dictionary($isWs = false) {
         return array();
     }
 
@@ -6212,13 +6212,13 @@ class Exchange {
         list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
         $retryDelay = null;
         list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
-        $this->lastRestRequestTimestamp = $this->milliseconds();
-        $request = $this->sign($path, $api, $method, $params, $headers, $body);
-        $this->last_request_headers = $request['headers'];
-        $this->last_request_body = $request['body'];
-        $this->last_request_url = $request['url'];
         for ($i = 0; $i < $retries + 1; $i++) {
             try {
+                $this->lastRestRequestTimestamp = $this->milliseconds();
+                $request = $this->sign($path, $api, $method, $params, $headers, $body);
+                $this->last_request_headers = $request['headers'];
+                $this->last_request_body = $request['body'];
+                $this->last_request_url = $request['url'];
                 return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
             } catch (Exception $e) {
                 if ($e instanceof OperationFailed) {

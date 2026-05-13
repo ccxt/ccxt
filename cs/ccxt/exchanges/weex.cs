@@ -1407,6 +1407,10 @@ public partial class weex : Exchange
         object priceType = this.safeStringUpper(parameters, "price");
         parameters = this.omit(parameters, new List<object>() {"historical", "until", "price"});
         object response = null;
+        if (isTrue(!isEqual(limit, null)))
+        {
+            limit = mathMin(limit, 1000); // hardcap threshold
+        }
         if (isTrue(historical))
         {
             if (isTrue(!isEqual(priceType, null)))

@@ -1011,7 +1011,7 @@ func  (this *KucoinCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
                 channelName = "/contractMarket/tickerV2:"
             }
         
-            ticker:= (<-this.WatchMultiHelper("watchBidsAsks", channelName, symbols, params))
+            ticker:= (<-this.WatchMultiHelper("watchBidsAsks", channelName, isFuturesMethod, symbols, params))
             ccxt.PanicOnError(ticker)
             if ccxt.IsTrue(this.NewUpdates) {
                 var tickers any = map[string]any {}
@@ -1027,7 +1027,7 @@ func  (this *KucoinCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             }()
             return ch
         }
-func  (this *KucoinCore) WatchMultiHelper(methodName any, channelName any, optionalArgs ...any) <- chan any {
+func  (this *KucoinCore) WatchMultiHelper(methodName any, channelName any, isFuturesChannel any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
                 defer close(ch)
@@ -1051,7 +1051,7 @@ func  (this *KucoinCore) WatchMultiHelper(methodName any, channelName any, optio
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask@", ccxt.GetValue(market, "symbol")))
             }
         
-            url:= (<-this.Negotiate(false))
+            url:= (<-this.Negotiate(false, isFuturesChannel))
             ccxt.PanicOnError(url)
             var marketIds any = this.MarketIds(symbols)
             var joined any = ccxt.Join(marketIds, ",")

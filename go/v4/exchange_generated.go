@@ -4590,13 +4590,6 @@ func (this *Exchange) Fetch2(path any, optionalArgs ...any) <-chan any {
 		retryDelayparamsVariable := this.HandleOptionAndParams(params, path, "maxRetriesOnFailureDelay", 0)
 		retryDelay = GetValue(retryDelayparamsVariable, 0)
 		params = GetValue(retryDelayparamsVariable, 1)
-		this.LastRestRequestTimestamp = this.Milliseconds()
-
-		var request any = this.DerivedExchange.Sign(path, api, method, params, headers, body)
-		PanicOnError(request)
-		this.Last_request_headers = GetValue(request, "headers")
-		this.Last_request_body = GetValue(request, "body")
-		this.Last_request_url = GetValue(request, "url")
 		for i := 0; IsLessThan(i, Add(retries, 1)); i++ {
 
 			{
@@ -4630,6 +4623,13 @@ func (this *Exchange) Fetch2(path any, optionalArgs ...any) <-chan any {
 						}
 					}()
 					// try block:
+					this.LastRestRequestTimestamp = this.Milliseconds()
+
+					var request any = this.DerivedExchange.Sign(path, api, method, params, headers, body)
+					PanicOnError(request)
+					this.Last_request_headers = GetValue(request, "headers")
+					this.Last_request_body = GetValue(request, "body")
+					this.Last_request_url = GetValue(request, "url")
 
 					retRes573523 := (<-this.Fetch(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
 					PanicOnError(retRes573523)

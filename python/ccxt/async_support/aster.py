@@ -847,7 +847,13 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        rows = self.array_concat(sapiRows, fapiRows)
+        fapiRowsFiltered = []
+        for i in range(0, len(fapiRows)):
+            market = fapiRows[i]
+            # tmp skip some markets with base = None
+            if self.safe_string(market, 'baseAsset'):
+                fapiRowsFiltered.append(market)
+        rows = self.array_concat(sapiRows, fapiRowsFiltered)
         return self.parse_markets(rows)
 
     def parse_market(self, market: dict) -> Market:

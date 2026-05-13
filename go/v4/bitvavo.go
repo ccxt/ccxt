@@ -176,8 +176,8 @@ func (this *BitvavoCore) Describe() any {
 					"order":   1,
 					"orders":  5,
 					"ordersOpen": map[string]any{
-						"cost":     1,
-						"noMarket": 25,
+						"cost":     5,
+						"noMarket": 100,
 					},
 					"trades":                             5,
 					"balance":                            5,
@@ -204,10 +204,16 @@ func (this *BitvavoCore) Describe() any {
 					"order": 1,
 				},
 				"delete": map[string]any{
-					"order":                            1,
-					"orders":                           1,
-					"institutional/subaccounts/order":  1,
-					"institutional/subaccounts/orders": 1,
+					"order": 1,
+					"orders": map[string]any{
+						"cost":     25,
+						"noMarket": 100,
+					},
+					"institutional/subaccounts/order": 1,
+					"institutional/subaccounts/orders": map[string]any{
+						"cost":     25,
+						"noMarket": 100,
+					},
 				},
 			},
 		},

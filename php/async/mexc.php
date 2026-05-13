@@ -2616,7 +2616,7 @@ class mexc extends Exchange {
                 $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
                 $response = Async\await($this->contractPrivatePostPlanorderPlace ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivatePostOrderSubmit ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivatePostOrderCreate ($this->extend($request, $params)));
             }
             //
             // Swap

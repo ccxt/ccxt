@@ -1397,6 +1397,8 @@ class weex(Exchange, ImplicitAPI):
         priceType = self.safe_string_upper(params, 'price')
         params = self.omit(params, ['historical', 'until', 'price'])
         response = None
+        if limit is not None:
+            limit = min(limit, 1000)  # hardcap threshold
         if historical:
             if priceType is not None:
                 request['priceType'] = priceType

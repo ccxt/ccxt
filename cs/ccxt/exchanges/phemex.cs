@@ -4205,7 +4205,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetApiDataGFuturesClosedPosition", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters));
         //
         //    {
         //        "code": "0",

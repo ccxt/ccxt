@@ -1393,6 +1393,13 @@ public partial class xt : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
+            if (isTrue(getValue(market, "spot")))
+            {
+                limit = mathMin(limit, 1000); // spot max limit
+            } else
+            {
+                limit = mathMin(limit, 1500); // derivatives max limit
+            }
             ((IDictionary<string,object>)request)["limit"] = limit;
         } else
         {

@@ -2610,7 +2610,7 @@ func (this *MexcCore) CreateSwapOrder(market any, typeVar any, side any, amount 
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.ContractPrivatePostOrderSubmit(this.Extend(request, params)))
+			response = (<-this.ContractPrivatePostOrderCreate(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		//

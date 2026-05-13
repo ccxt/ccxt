@@ -805,7 +805,7 @@ public partial class kucoin : ccxt.kucoin
         {
             channelName = "/contractMarket/tickerV2:";
         }
-        object ticker = await this.watchMultiHelper("watchBidsAsks", channelName, symbols, parameters);
+        object ticker = await this.watchMultiHelper("watchBidsAsks", channelName, isFuturesMethod, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object tickers = new Dictionary<string, object>() {};
@@ -815,7 +815,7 @@ public partial class kucoin : ccxt.kucoin
         return this.filterByArray(this.bidsasks, "symbol", symbols);
     }
 
-    public async virtual Task<object> watchMultiHelper(object methodName, object channelName, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(object methodName, object channelName, object isFuturesChannel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -832,7 +832,7 @@ public partial class kucoin : ccxt.kucoin
             object market = this.market(symbol);
             ((IList<object>)messageHashes).Add(add("bidask@", getValue(market, "symbol")));
         }
-        object url = await this.negotiate(false);
+        object url = await this.negotiate(false, isFuturesChannel);
         object marketIds = this.marketIds(symbols);
         object joined = String.Join(",", ((IList<object>)marketIds).ToArray());
         object requestId = ((object)this.requestId()).ToString();

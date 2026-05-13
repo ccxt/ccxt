@@ -1419,6 +1419,12 @@ export default class xt extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
+            if (market['spot']) {
+                limit = Math.min(limit, 1000); // spot max limit
+            }
+            else {
+                limit = Math.min(limit, 1500); // derivatives max limit
+            }
             request['limit'] = limit;
         }
         else {

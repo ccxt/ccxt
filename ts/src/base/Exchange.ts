@@ -1920,7 +1920,7 @@ export default class Exchange {
         this.options = this.extend (this.options, newOptions);
     }
 
-    createSafeDictionary () {
+    createSafeDictionary (isWs: boolean = false) { // eslint-disable-line no-unused-vars
         return {};
     }
 
@@ -5726,13 +5726,13 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
-        this.lastRestRequestTimestamp = this.milliseconds ();
-        const request = this.sign (path, api, method, params, headers, body);
-        this.last_request_headers = request['headers'];
-        this.last_request_body = request['body'];
-        this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
+                this.lastRestRequestTimestamp = this.milliseconds ();
+                const request = this.sign (path, api, method, params, headers, body);
+                this.last_request_headers = request['headers'];
+                this.last_request_body = request['body'];
+                this.last_request_url = request['url'];
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
                 if (e instanceof OperationFailed) {

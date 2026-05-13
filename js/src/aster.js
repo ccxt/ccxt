@@ -829,7 +829,15 @@ export default class aster extends Exchange {
         //     ]
         //
         //
-        const rows = this.arrayConcat(sapiRows, fapiRows);
+        const fapiRowsFiltered = [];
+        for (let i = 0; i < fapiRows.length; i++) {
+            const market = fapiRows[i];
+            // tmp skip some markets with base = undefined
+            if (this.safeString(market, 'baseAsset')) {
+                fapiRowsFiltered.push(market);
+            }
+        }
+        const rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
         return this.parseMarkets(rows);
     }
     parseMarket(market) {

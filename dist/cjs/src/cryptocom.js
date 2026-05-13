@@ -480,6 +480,7 @@ class cryptocom extends cryptocom$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': errors.InvalidOrder,
                     '219': errors.InvalidOrder,
                     '306': errors.InsufficientFunds,
                     '314': errors.InvalidOrder,

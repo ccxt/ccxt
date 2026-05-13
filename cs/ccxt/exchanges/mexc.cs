@@ -2440,7 +2440,7 @@ public partial class mexc : Exchange
             response = await this.contractPrivatePostPlanorderPlace(this.extend(request, parameters));
         } else
         {
-            response = await this.contractPrivatePostOrderSubmit(this.extend(request, parameters));
+            response = await this.contractPrivatePostOrderCreate(this.extend(request, parameters));
         }
         //
         // Swap

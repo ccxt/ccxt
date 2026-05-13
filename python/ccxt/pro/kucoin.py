@@ -673,14 +673,14 @@ class kucoin(ccxt.async_support.kucoin):
         channelName = '/spotMarket/level1:'
         if isFuturesMethod:
             channelName = '/contractMarket/tickerV2:'
-        ticker = await self.watch_multi_helper('watchBidsAsks', channelName, symbols, params)
+        ticker = await self.watch_multi_helper('watchBidsAsks', channelName, isFuturesMethod, symbols, params)
         if self.newUpdates:
             tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    async def watch_multi_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
+    async def watch_multi_helper(self, methodName, channelName: str, isFuturesChannel: bool, symbols: Strings = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, False)
         length = len(symbols)
@@ -691,7 +691,7 @@ class kucoin(ccxt.async_support.kucoin):
             symbol = symbols[i]
             market = self.market(symbol)
             messageHashes.append('bidask@' + market['symbol'])
-        url = await self.negotiate(False)
+        url = await self.negotiate(False, isFuturesChannel)
         marketIds = self.market_ids(symbols)
         joined = ','.join(marketIds)
         requestId = str(self.request_id())

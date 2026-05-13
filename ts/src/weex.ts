@@ -1418,6 +1418,9 @@ export default class weex extends Exchange {
         const priceType = this.safeStringUpper (params, 'price');
         params = this.omit (params, [ 'historical', 'until', 'price' ]);
         let response = undefined;
+        if (limit !== undefined) {
+            limit = Math.min (limit, 1000); // hardcap threshold
+        }
         if (historical) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;

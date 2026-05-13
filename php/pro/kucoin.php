@@ -761,7 +761,7 @@ class kucoin extends \ccxt\async\kucoin {
             if ($isFuturesMethod) {
                 $channelName = '/contractMarket/tickerV2:';
             }
-            $ticker = Async\await($this->watch_multi_helper('watchBidsAsks', $channelName, $symbols, $params));
+            $ticker = Async\await($this->watch_multi_helper('watchBidsAsks', $channelName, $isFuturesMethod, $symbols, $params));
             if ($this->newUpdates) {
                 $tickers = array();
                 $tickers[$ticker['symbol']] = $ticker;
@@ -771,8 +771,8 @@ class kucoin extends \ccxt\async\kucoin {
         }) ();
     }
 
-    public function watch_multi_helper($methodName, string $channelName, ?array $symbols = null, $params = array ()) {
-        return Async\async(function () use ($methodName, $channelName, $symbols, $params) {
+    public function watch_multi_helper($methodName, string $channelName, bool $isFuturesChannel, ?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($methodName, $channelName, $isFuturesChannel, $symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true, false);
             $length = count($symbols);
@@ -785,7 +785,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $market = $this->market($symbol);
                 $messageHashes[] = 'bidask@' . $market['symbol'];
             }
-            $url = Async\await($this->negotiate(false));
+            $url = Async\await($this->negotiate(false, $isFuturesChannel));
             $marketIds = $this->market_ids($symbols);
             $joined = implode(',', $marketIds);
             $requestId = (string) $this->request_id();

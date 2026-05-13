@@ -1441,6 +1441,9 @@ class weex extends Exchange {
             $priceType = $this->safe_string_upper($params, 'price');
             $params = $this->omit($params, array( 'historical', 'until', 'price' ));
             $response = null;
+            if ($limit !== null) {
+                $limit = min ($limit, 1000); // hardcap threshold
+            }
             if ($historical) {
                 if ($priceType !== null) {
                     $request['priceType'] = $priceType;

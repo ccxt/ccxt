@@ -817,7 +817,17 @@ public partial class aster : Exchange
         //     ]
         //
         //
-        object rows = this.arrayConcat(sapiRows, fapiRows);
+        object fapiRowsFiltered = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fapiRows)); postFixIncrement(ref i))
+        {
+            object market = getValue(fapiRows, i);
+            // tmp skip some markets with base = undefined
+            if (isTrue(this.safeString(market, "baseAsset")))
+            {
+                ((IList<object>)fapiRowsFiltered).Add(market);
+            }
+        }
+        object rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
         return this.parseMarkets(rows);
     }
 
