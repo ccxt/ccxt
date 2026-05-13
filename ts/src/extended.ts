@@ -2346,6 +2346,10 @@ export default class extended extends Exchange {
             'expiration': this.numberToString (settlementExpiration),
             'salt': nonce,
         };
+        const msgHash = this.getExtendedOrderMsgHash (settlement);
+        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        const r = '0x' + this.intToBase16 (this.convertToBigInt (sig[0]));
+        const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id', this.uuid ());
         const request: Dict = {
             'id': clientOrderId,
@@ -2358,7 +2362,11 @@ export default class extended extends Exchange {
             'expiryEpochMillis': expiryEpochMillis,
             'fee': fee,
             'nonce': nonce,
-            'settlement': settlement,
+            'settlement': {
+                'signature':  { 'r': r, 's': s },
+                'starkKey': this.safeString (settlement, 'starkKey'),
+                'collateralPosition': this.safeString (settlement, 'collateralPosition'),
+            },
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'selfTradeProtectionLevel': 'ACCOUNT',
@@ -2374,11 +2382,10 @@ export default class extended extends Exchange {
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitOrder = takeProfitTriggerPrice !== undefined;
-        // const stopLoss = this.safeValue (params, 'stopLoss');
-        // const takeProfit = this.safeValue (params, 'takeProfit');
-        // const hasStopLoss = (stopLoss !== undefined);
-        // const hasTakeProfit = (takeProfit !== undefined);
-        // const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit;
+        const stopLoss = this.safeValue (params, 'stopLoss');
+        const takeProfit = this.safeValue (params, 'takeProfit');
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         if (triggerPriceStr !== undefined) {
             const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
             const trigger = {
@@ -2401,6 +2408,58 @@ export default class extended extends Exchange {
             }
             request['type'] = 'CONDITIONAL';
             request['trigger'] = trigger;
+        } else if (hasStopLoss || hasTakeProfit) {
+            if (!reduceOnly) {
+                throw new InvalidOrder (this.id + ' createOrder() required TPSL order must be reduce-only');
+            }
+            if (postOnly) {
+                throw new InvalidOrder (this.id + ' createOrder() required TPSL order must not be post-only');
+            }
+            request['type'] = 'TPSL';
+            if (hasStopLoss) {
+                const stopLossTriggerPrice = this.safeString (stopLoss, 'triggerPrice');
+                const stopLossExecutionPrice = this.safeString (stopLoss, 'price')
+                const stopLossType = this.safeString (stopLoss, 'type')
+                request['stopLoss'] = {
+                    'triggerPrice': this.priceToPrecision (symbol, stopLossTriggerPrice),
+                    'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
+                    'priceType': stopLossType,
+                    'settlement': {
+                        'starkKey': starkKey,
+                        'collateralPosition': collateralPosition,
+                        'baseAssetId': syntheticId,
+                        'baseAmount': baseAmount,
+                        'quoteAssetId': collateralId,
+                        'quoteAmount': collateralAmount,
+                        'feeAssetId': collateralId,
+                        'feeAmount': feeAmount,
+                        'expiration': this.numberToString (settlementExpiration),
+                        'salt': nonce,
+                    },
+                };
+            }
+            if (hasTakeProfit) {
+                const takeProfitTriggerPrice = this.safeString (takeProfit, 'triggerPrice');
+                const takeProfitExecutionPrice = this.safeString (takeProfit, 'price')
+                const takeProfitType = this.safeString (takeProfit, 'type')
+                request['stopLoss'] = {
+                    'triggerPrice': this.priceToPrecision (symbol, takeProfitTriggerPrice),
+                    'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
+                    'priceType': takeProfitType,
+                    'settlement': {
+                        'starkKey': starkKey,
+                        'collateralPosition': collateralPosition,
+                        'baseAssetId': syntheticId,
+                        'baseAmount': baseAmount,
+                        'quoteAssetId': collateralId,
+                        'quoteAmount': collateralAmount,
+                        'feeAssetId': collateralId,
+                        'feeAmount': feeAmount,
+                        'expiration': this.numberToString (settlementExpiration),
+                        'salt': nonce,
+                    },
+                };
+            }
         }
         params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stpoLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         return {
@@ -2431,6 +2490,17 @@ export default class extended extends Exchange {
      * @param {boolean} [params.reduceOnly] true if the order should only reduce a position
      * @param {string} [params.fee] max fee rate for the order, default is 0.0005
      * @param {int} [params.expiryEpochMillis] order expiration timestamp in milliseconds, default is now + 1 hour
+     * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+     * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
+     * * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+     * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
+     * @param {string} [params.stopLoss.type] *swap only* the type for a stop loss attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -2992,21 +3062,6 @@ export default class extended extends Exchange {
                 'X-Api-Key': this.apiKey,
             };
             if ((method === 'POST') || (method === 'PATCH')) {
-                const settlement = this.safeDict (query, 'settlement');
-                if (settlement !== undefined && this.safeDict (settlement, 'signature') === undefined) {
-                    if ((this.privateKey === undefined) || (this.privateKey === '')) {
-                        throw new ArgumentsRequired (this.id + ' sign() requires a privateKey credential to sign the settlement');
-                    }
-                    const msgHash = this.getExtendedOrderMsgHash (settlement);
-                    const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
-                    const r = '0x' + this.intToBase16 (this.convertToBigInt (sig[0]));
-                    const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
-                    query['settlement'] = {
-                        'signature': { 'r': r, 's': s },
-                        'starkKey': this.safeString (settlement, 'starkKey'),
-                        'collateralPosition': this.safeString (settlement, 'collateralPosition'),
-                    };
-                }
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
