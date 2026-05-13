@@ -116,7 +116,11 @@ jobs:
   live-tests:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Local sweep on 48 GB / many cores finishes REST + WS in parallel in ~26 min.
+    # CI's 7 GB / 4-core runner is slower per JVM and contention from 10
+    # concurrent gradle JVMs (5 REST + 5 WS) extends wall-clock — 30 min wasn't
+    # enough. 60 min gives margin without burning runner time on a runaway hang.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Download shared_env
