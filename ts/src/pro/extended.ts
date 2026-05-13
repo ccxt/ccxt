@@ -2,7 +2,7 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Bool, Int, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
+import type { Bool, FundingRate, Int, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -13,6 +13,7 @@ export default class extended extends extendedRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchFundingRate': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchIndexPrice': true,
@@ -110,7 +111,8 @@ export default class extended extends extendedRest {
         if ((previousNonce !== undefined) && (nonce !== previousNonce + 1)) {
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject (new InvalidNonce (this.id + ' watchOrderBook received invalid nonce'), messageHash);
+            const error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+            client.reject (error, messageHash);
             return;
         }
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'b', []));
@@ -131,6 +133,78 @@ export default class extended extends extendedRest {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
+    }
+
+    /**
+     * @method
+     * @name extended#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://api.docs.extended.exchange/#funding-rates-stream
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'fundingRate:' + symbol;
+        const query = this.urlencode (params);
+        let url = this.urls['api']['ws'] + '/funding/' + market['id'];
+        if (query.length > 0) {
+            url += '?' + query;
+        }
+        return await this.watch (url, messageHash, undefined, messageHash, {
+            'symbol': symbol,
+            'messageHash': messageHash,
+        });
+    }
+
+    handleFundingRate (client: Client, message) {
+        //
+        //     {
+        //         "ts": 1701563440000,
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "T": 1701563440000,
+        //             "f": "0.001"
+        //         },
+        //         "seq": 2
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const fundingRate = this.parseWsFundingRate (data, undefined, message);
+        const symbol = this.safeString (fundingRate, 'symbol');
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve (fundingRate, messageHash);
+    }
+
+    parseWsFundingRate (fundingRate, market = undefined, message = undefined): FundingRate {
+        const marketId = this.safeString (fundingRate, 'm');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (message, 'ts');
+        const fundingTimestamp = this.safeInteger (fundingRate, 'T');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (fundingRate, 'f'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
     }
 
     /**
@@ -474,6 +548,8 @@ export default class extended extends extendedRest {
                 this.handleMarkPrice (client, message);
             } else if (type === 'IP') {
                 this.handleIndexPrice (client, message);
+            } else if ('f' in data) {
+                this.handleFundingRate (client, message);
             } else {
                 this.handleOrderBook (client, message);
             }
