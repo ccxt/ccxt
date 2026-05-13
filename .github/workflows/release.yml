@@ -146,9 +146,16 @@ jobs:
           NUGGET_TOKEN: ${{ secrets.NUGET_PROD }}
         run: ./cs/deploy.sh;
       - name: Deploy Python
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
-        run: cd python && ./deploy.sh && cd ..;
+        # env:
+        #   PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
+        # run: cd python && ./deploy.sh && cd ..;
+        run: cd python && python setup.py sdist bdist_wheel;
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+            print_hash: true
+      - name: go back
+        run: cd ..;
       # - uses: JS-DevTools/npm-publish@v3
       #   with:
       #     token: ${{ secrets.NPM_PROD }}
