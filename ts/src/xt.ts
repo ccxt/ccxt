@@ -1935,12 +1935,12 @@ export default class xt extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
-                request['limit'] = Math.min (limit, 1000);
+                request['limit'] = limit;
             }
             response = await this.publicSpotGetTradeRecent (this.extend (request, params));
         } else {
             if (limit !== undefined) {
-                request['num'] = Math.min (limit, 1000);
+                request['num'] = limit;
             }
             if (market['linear']) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal (this.extend (request, params));
