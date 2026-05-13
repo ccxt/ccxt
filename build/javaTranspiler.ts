@@ -1629,37 +1629,12 @@ class NewTranspiler {
         content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
         content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
 
-        // ── Object.keys(x) / Object.values(x) → thread-safe snapshots.
-        // ast-transpiler emits `new ArrayList<>(((Map<String,Object>)x).keySet())`
-        // or `.values()`, which race when x is a plain HashMap and the WS
-        // thread is mutating it. Helpers.objectKeys / Helpers.objectValues take
-        // the map's monitor while copying; Helpers.addElementToObject takes the
-        // same monitor on Map puts.
-        // Patterns covered (in order, since the second only triggers on what's
-        // left over from the first):
-        //   1. Dotted-identifier / `this.x.y` target — most common
-        //   2. Function-call target like `Helpers.GetValue(...)` — Map nested in another structure
-        //   3. Non-parameterized `(Map)` cast — already half-converted by another regex
-        const objectKeysPatterns: Array<[RegExp, string]> = [
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)((?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)\)\.keySet\(\)\)/gm,
-                'Helpers.objectKeys($1)'],
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)((?:this\.)?[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*)\)\.values\(\)\)/gm,
-                'Helpers.objectValues($1)'],
-            // Helpers.GetValue(...) — function call target; pattern handles up to
-            // two levels of nesting (e.g. GetValue(a, GetValue(b, c))), which is
-            // the deepest we see in practice.
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)(Helpers\.GetValue\((?:[^()]|\([^()]*\))+\))\)\.keySet\(\)\)/gm,
-                'Helpers.objectKeys($1)'],
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)(Helpers\.GetValue\((?:[^()]|\([^()]*\))+\))\)\.values\(\)\)/gm,
-                'Helpers.objectValues($1)'],
-            // Already cast-wrapped: `((java.util.Map)client.subscriptions)` (from the
-            // earlier WS-specific post-process above) — re-wrap into the helper.
-            [/new java\.util\.ArrayList<Object>\(\(\(java\.util\.Map<String, Object>\)\(\(java\.util\.Map\)([a-zA-Z_]\w*\.[a-zA-Z_]\w*)\)\)\.keySet\(\)\)/gm,
-                'Helpers.objectKeys($1)'],
-        ];
-        for (const [re, repl] of objectKeysPatterns) {
-            content = content.replace(re, repl);
-        }
+        // Object.keys / Object.values / Array.isArray are now emitted as
+        // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
+        // by ast-transpiler (PR #48). The earlier regex post-process here
+        // routed the older `new ArrayList<>(((Map<String,Object>)x).keySet())`
+        // shape; it's been removed since #48 covers every argument shape
+        // (this.x, Helpers.GetValue(...), nested casts) that the regex missed.
 
         // ── Pattern 6: Method reference for ping ──
         content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),

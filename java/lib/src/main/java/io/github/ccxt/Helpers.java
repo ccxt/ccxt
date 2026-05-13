@@ -168,6 +168,15 @@ public class Helpers {
     }
 
     /**
+     * Direct emit target for ast-transpiler PR #48: `Array.isArray(x)` now
+     * emits `Helpers.isArray(x)`. Same behaviour as {@link #isArrayJs} —
+     * exposed under the contract name the transpiler emits.
+     */
+    public static boolean isArray(Object a) {
+        return isArrayJs(a);
+    }
+
+    /**
      * JS-style truthy `typeof o === 'object'` check. The TS source uses this
      * to assert "I got back something object-shaped" without caring whether
      * it's a Map, an array, or a typed wrapper. The ast-transpiler maps it
