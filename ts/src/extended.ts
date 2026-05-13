@@ -2278,6 +2278,48 @@ export default class extended extends Exchange {
         return account;
     }
 
+    createOrderSettlementData (isBuy: boolean, amountString: string, priceString: string, params = {}) {
+        const totalFee = this.safeString (params, 'totalFee');
+        const settlementExpiration = this.safeInteger (params, 'settlementExpiration');
+        const nonce = this.safeInteger (params, 'nonce');
+        const starkKey = this.safeString (params, 'starkKey');
+        const collateralPosition = this.safeString (params, 'collateralPosition');
+        const syntheticId = this.safeString (params, 'syntheticId');
+        const collateralId = this.safeString (params, 'collateralId');
+        const syntheticResolution = this.safeValue (params, 'syntheticResolution');
+        const collateralResolution = this.safeValue (params, 'collateralResolution');
+        const quoteAmount = Precise.stringMul (amountString, priceString);
+        const baseRoundUp = isBuy;
+        const quoteRoundUp = isBuy;
+        let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
+        let collateralAmount = this.getExtendedStarkAmount (quoteAmount, collateralResolution, quoteRoundUp);
+        if (isBuy) {
+            collateralAmount = Precise.stringNeg (collateralAmount);
+        } else {
+            baseAmount = Precise.stringNeg (baseAmount);
+        }
+        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount), collateralResolution, true);
+        const settlement = {
+            'starkKey': starkKey,
+            'collateralPosition': collateralPosition,
+            'baseAssetId': syntheticId,
+            'baseAmount': baseAmount,
+            'quoteAssetId': collateralId,
+            'quoteAmount': collateralAmount,
+            'feeAssetId': collateralId,
+            'feeAmount': feeAmount,
+            'expiration': this.numberToString (settlementExpiration),
+            'salt': nonce,
+        };
+        const msgHash = this.getExtendedOrderMsgHash (settlement);
+        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        const r = '0x' + this.intToBase16 (this.convertToBigInt (sig[0]));
+        const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
+        settlement['r'] = r;
+        settlement['s'] = s;
+        return settlement;
+    }
+
     async createExtendedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2322,34 +2364,18 @@ export default class extended extends Exchange {
         if ((syntheticId === undefined) || (collateralId === undefined) || (syntheticResolution === undefined) || (collateralResolution === undefined)) {
             throw new BadRequest (this.id + ' createOrder() requires l2Config in market info');
         }
-        const isBuy = (uppercaseSide === 'BUY');
-        const quoteAmount = Precise.stringMul (amountString, priceString);
-        const baseRoundUp = isBuy;
-        const quoteRoundUp = isBuy;
-        let baseAmount = this.getExtendedStarkAmount (amountString, syntheticResolution, baseRoundUp);
-        let collateralAmount = this.getExtendedStarkAmount (quoteAmount, collateralResolution, quoteRoundUp);
-        if (isBuy) {
-            collateralAmount = Precise.stringNeg (collateralAmount);
-        } else {
-            baseAmount = Precise.stringNeg (baseAmount);
-        }
-        const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount), collateralResolution, true);
-        const settlement = {
+        const settlementParams = {
+            'totalFee': totalFee,
             'starkKey': starkKey,
+            'syntheticId': syntheticId,
+            'syntheticResolution': syntheticResolution,
+            'collateralId': collateralId,
+            'collateralResolution': collateralResolution,
+            'settlementExpiration': settlementExpiration,
+            'nonce': nonce,
             'collateralPosition': collateralPosition,
-            'baseAssetId': syntheticId,
-            'baseAmount': baseAmount,
-            'quoteAssetId': collateralId,
-            'quoteAmount': collateralAmount,
-            'feeAssetId': collateralId,
-            'feeAmount': feeAmount,
-            'expiration': this.numberToString (settlementExpiration),
-            'salt': nonce,
         };
-        const msgHash = this.getExtendedOrderMsgHash (settlement);
-        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
-        const r = '0x' + this.intToBase16 (this.convertToBigInt (sig[0]));
-        const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
+        const isBuy = (uppercaseSide === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id', this.uuid ());
         const request: Dict = {
             'id': clientOrderId,
@@ -2362,11 +2388,6 @@ export default class extended extends Exchange {
             'expiryEpochMillis': expiryEpochMillis,
             'fee': fee,
             'nonce': nonce,
-            'settlement': {
-                'signature':  { 'r': r, 's': s },
-                'starkKey': this.safeString (settlement, 'starkKey'),
-                'collateralPosition': this.safeString (settlement, 'collateralPosition'),
-            },
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'selfTradeProtectionLevel': 'ACCOUNT',
@@ -2386,29 +2407,7 @@ export default class extended extends Exchange {
         const takeProfit = this.safeValue (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
-        if (triggerPriceStr !== undefined) {
-            const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
-            const trigger = {
-                'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
-            };
-            if (triggerDirection !== undefined) {
-                trigger['direction'] = triggerDirection;
-            }
-            request['type'] = 'CONDITIONAL';
-            request['trigger'] = trigger;
-        } else if (isStopLossOrder || isTakeProfitOrder) {
-            triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-            const trigger = {
-                'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
-            };
-            if (isBuy) {
-                trigger['direction'] = isStopLossOrder ? 'UP' : 'DOWN';
-            } else {
-                trigger['direction'] = isStopLossOrder ? 'DOWN' : 'UP';
-            }
-            request['type'] = 'CONDITIONAL';
-            request['trigger'] = trigger;
-        } else if (hasStopLoss || hasTakeProfit) {
+        if (hasStopLoss || hasTakeProfit) {
             if (!reduceOnly) {
                 throw new InvalidOrder (this.id + ' createOrder() required TPSL order must be reduce-only');
             }
@@ -2426,15 +2425,6 @@ export default class extended extends Exchange {
                     'priceType': stopLossType,
                     'settlement': {
                         'starkKey': starkKey,
-                        'collateralPosition': collateralPosition,
-                        'baseAssetId': syntheticId,
-                        'baseAmount': baseAmount,
-                        'quoteAssetId': collateralId,
-                        'quoteAmount': collateralAmount,
-                        'feeAssetId': collateralId,
-                        'feeAmount': feeAmount,
-                        'expiration': this.numberToString (settlementExpiration),
-                        'salt': nonce,
                     },
                 };
             }
@@ -2448,17 +2438,38 @@ export default class extended extends Exchange {
                     'priceType': takeProfitType,
                     'settlement': {
                         'starkKey': starkKey,
-                        'collateralPosition': collateralPosition,
-                        'baseAssetId': syntheticId,
-                        'baseAmount': baseAmount,
-                        'quoteAssetId': collateralId,
-                        'quoteAmount': collateralAmount,
-                        'feeAssetId': collateralId,
-                        'feeAmount': feeAmount,
-                        'expiration': this.numberToString (settlementExpiration),
-                        'salt': nonce,
                     },
                 };
+            }
+        } else {
+            const settlement = this.createOrderSettlementData (isBuy, amountString, priceString, settlementParams);
+            request['settlement'] = {
+                'signature': { 'r': settlement['r'], 's': settlement['s'] },
+                'starkKey': starkKey,
+                'collateralPosition': collateralPosition,
+            };
+            if (triggerPriceStr !== undefined) {
+                const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
+                const trigger = {
+                    'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
+                };
+                if (triggerDirection !== undefined) {
+                    trigger['direction'] = triggerDirection;
+                }
+                request['type'] = 'CONDITIONAL';
+                request['trigger'] = trigger;
+            } else if (isStopLossOrder || isTakeProfitOrder) {
+                triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                const trigger = {
+                    'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
+                };
+                if (isBuy) {
+                    trigger['direction'] = isStopLossOrder ? 'UP' : 'DOWN';
+                } else {
+                    trigger['direction'] = isStopLossOrder ? 'DOWN' : 'UP';
+                }
+                request['type'] = 'CONDITIONAL';
+                request['trigger'] = trigger;
             }
         }
         params = this.omit (params, [ 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stpoLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
