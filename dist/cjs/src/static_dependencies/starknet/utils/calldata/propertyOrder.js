@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var uint256 = require('../cairoDataTypes/uint256.js');
 var uint512 = require('../cairoDataTypes/uint512.js');
 var cairo = require('./cairo.js');
@@ -9,6 +11,7 @@ var CairoResult = require('./enum/CairoResult.js');
 var tuple = require('./tuple.js');
 var shortString = require('../shortString.js');
 
+// ----------------------------------------------------------------------------
 function errorU256(key) {
     return Error(`Your object includes the property : ${key}, containing an Uint256 object without the 'low' and 'high' keys.`);
 }
@@ -91,7 +94,7 @@ function orderPropsByAbi(unorderedObject, abiOfObject, structs, enums) {
         return myArray.map((myElem) => orderInput(myElem, typeInArray));
     }
     function orderTuple(unorderedObject2, abiParam) {
-        const typeList = tuple(abiParam);
+        const typeList = tuple["default"](abiParam);
         const orderedObject2 = typeList.reduce((orderedObject, abiTypeCairoX, index) => {
             const myObjKeys = Object.keys(unorderedObject2);
             const setProperty = (value) => Object.defineProperty(orderedObject, index.toString(), {
@@ -153,4 +156,4 @@ function orderPropsByAbi(unorderedObject, abiOfObject, structs, enums) {
     return finalOrderedObject;
 }
 
-module.exports = orderPropsByAbi;
+exports["default"] = orderPropsByAbi;

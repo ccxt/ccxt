@@ -366,6 +366,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateSpotDeleteOrderOrderId",parameters);
     }
 
+    public async Task<object> privateSpotPutOrderOrderId (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotPutOrderOrderId",parameters);
+    }
+
     public async Task<object> privateLinearGetFutureTradeV1EntrustPlanDetail (object parameters = null)
     {
         return await this.callAsync ("privateLinearGetFutureTradeV1EntrustPlanDetail",parameters);
@@ -511,6 +516,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateLinearPostFutureTradeV1OrderCreateBatch",parameters);
     }
 
+    public async Task<object> privateLinearPostFutureTradeV1OrderUpdate (object parameters = null)
+    {
+        return await this.callAsync ("privateLinearPostFutureTradeV1OrderUpdate",parameters);
+    }
+
     public async Task<object> privateLinearPostFutureUserV1AccountOpen (object parameters = null)
     {
         return await this.callAsync ("privateLinearPostFutureUserV1AccountOpen",parameters);
@@ -544,6 +554,11 @@ public partial class xt : Exchange
     public async Task<object> privateLinearPostFutureUserV1UserCollectionCancel (object parameters = null)
     {
         return await this.callAsync ("privateLinearPostFutureUserV1UserCollectionCancel",parameters);
+    }
+
+    public async Task<object> privateLinearPostFutureUserV1PositionChangeType (object parameters = null)
+    {
+        return await this.callAsync ("privateLinearPostFutureUserV1PositionChangeType",parameters);
     }
 
     public async Task<object> privateInverseGetFutureTradeV1EntrustPlanDetail (object parameters = null)
@@ -691,6 +706,11 @@ public partial class xt : Exchange
         return await this.callAsync ("privateInversePostFutureTradeV1OrderCreateBatch",parameters);
     }
 
+    public async Task<object> privateInversePostFutureTradeV1OrderUpdate (object parameters = null)
+    {
+        return await this.callAsync ("privateInversePostFutureTradeV1OrderUpdate",parameters);
+    }
+
     public async Task<object> privateInversePostFutureUserV1AccountOpen (object parameters = null)
     {
         return await this.callAsync ("privateInversePostFutureUserV1AccountOpen",parameters);
@@ -751,9 +771,9 @@ public partial class xt : Exchange
         return await this.callAsync ("privateUserPutUserAccountApiKey",parameters);
     }
 
-    public async Task<object> privateUserDeleteUserAccountApikeyId (object parameters = null)
+    public async Task<object> privateUserDeleteUserAccountApiKeyId (object parameters = null)
     {
-        return await this.callAsync ("privateUserDeleteUserAccountApikeyId",parameters);
+        return await this.callAsync ("privateUserDeleteUserAccountApiKeyId",parameters);
     }
 
 }

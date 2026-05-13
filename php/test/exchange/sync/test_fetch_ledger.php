@@ -18,4 +18,5 @@ function test_fetch_ledger($exchange, $skipped_properties, $code) {
         test_ledger_entry($exchange, $skipped_properties, $method, $items[$i], $code, $now);
     }
     assert_timestamp_order($exchange, $method, $code, $items);
+    return true;
 }

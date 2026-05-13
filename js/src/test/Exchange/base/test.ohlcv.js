@@ -26,6 +26,9 @@ function testOHLCV(exchange, skippedProperties, method, entry, symbol, now) {
     }
     const high = exchange.safeString(entry, 2);
     const low = exchange.safeString(entry, 3);
+    if ('compareOHLCV' in skippedProperties) {
+        return;
+    }
     testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, '1', high);
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, '1', low);
     testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, '4', high);

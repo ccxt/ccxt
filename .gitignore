@@ -40,5 +40,6 @@ __pycache__
 *.pyc
 bin/
 obj/
-
+__debug*
+*.o
 .custom_gitignore

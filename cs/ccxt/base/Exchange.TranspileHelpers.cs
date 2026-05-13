@@ -363,7 +363,10 @@ public partial class Exchange
         b = normalizeIntIfNeeded(b);
 
         if (a.GetType() == typeof(string) || a.GetType() == typeof(Int64) || a.GetType() == typeof(int) || a.GetType() == typeof(double))
-            return (Convert.ToDouble(a)) % (Convert.ToDouble(b));
+        {
+            var res = (Convert.ToDouble(a)) % (Convert.ToDouble(b));
+            return Convert.ToInt64(res);
+        }
 
         return null;
 
@@ -446,7 +449,7 @@ public partial class Exchange
         }
         else if (a.GetType() == typeof(double))
         {
-            return (double)a - (double)b;
+            return (double)a - Convert.ToDouble(b);
         }
         else
         {
@@ -459,10 +462,15 @@ public partial class Exchange
         return a - b;
     }
 
-    public float subtract(float a, float b)
+    public static Int64 subtract(Int64 a, Int64 b)
     {
         return a - b;
     }
+
+    // public static float subtract(float a, float b)
+    // {
+    //     return a - b;
+    // }
 
     public static object divide(object a, object b)
     {
@@ -523,7 +531,11 @@ public partial class Exchange
             return 0;
         }
 
-        if (value is (IList<object>))
+        if (value is byte[] byteArray)
+        {
+            return byteArray.Length;
+        }
+        else if (value is (IList<object>))
         {
             return ((IList<object>)value).Count;
         }
@@ -534,6 +546,18 @@ public partial class Exchange
         else if (value is (List<dict>))
         {
             return ((List<dict>)value).Count;
+        }
+        else if (value is IList<IList<object>>)
+        {
+            return ((IList<IList<object>>)value).Count;
+        }
+        else if (value is List<List<object>>)
+        {
+            return ((List<List<object>>)value).Count;
+        }
+        else if (value is List<List<string>>)
+        {
+            return ((List<List<string>>)value).Count;
         }
         else if (value is (string))
         {
@@ -658,7 +682,8 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = (Convert.ToInt64(a));
+            var floored = Math.Floor(Convert.ToDouble(a));
+            parsedValue = (Convert.ToInt64(floored));
         }
         catch (Exception e)
         {
@@ -717,22 +742,11 @@ public partial class Exchange
         }
         else if (value2 is System.Collections.IDictionary)
         {
-
             IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(value2);
-            var keys = dict.Keys;
-            foreach (var key2 in keys)
+            var strKey = key.ToString();
+            if (dict.ContainsKey(strKey))
             {
-                if (key2 == null)
-                    continue;
-                var dictKey = key2.ToString();
-                if (dict.ContainsKey(dictKey))
-                {
-                    var returnValue = dict[dictKey];
-                    if (returnValue == null || returnValue.ToString().Length == 0)
-                        continue;
-
-                    return returnValue;
-                }
+                return dict[strKey];
             }
             return null;
         }
@@ -746,6 +760,36 @@ public partial class Exchange
                 return null;
             }
             return ((IList<object>)value)[parsed];
+        }
+        else if (value is IList<IList<object>>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((IList<IList<object>>)value)[parsed];
+        }
+        else if (value is List<List<object>>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((List<List<object>>)value)[parsed];
+        }
+        else if (value is List<List<string>>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((List<List<string>>)value)[parsed];
         }
         else if (value is List<dict>)
         {
@@ -937,6 +981,46 @@ public partial class Exchange
                 end = str.Length;
             }
             return str[start..end];
+        }
+    }
+
+    //clashing with the current method, need to rename it to concat instead of arrayConcat
+    public static object concat(object a, object b)
+    {
+        if (a == null && b == null)
+        {
+            return null;
+        }
+        else if (a == null)
+        {
+            return b;
+        }
+        else if (b == null)
+        {
+            return a;
+        }
+
+        if (a is IList<object> && b is IList<object>)
+        {
+            List<object> result = new List<object>((IList<object>)a);
+            result.AddRange((IList<object>)b);
+            return result;
+        }
+        else if (a is IList<string> && b is IList<string>)
+        {
+            List<string> result = new List<string>((IList<string>)a);
+            result.AddRange((IList<string>)b);
+            return result;
+        }
+        else if (a is IList<Dictionary<string, object>> && b is IList<Dictionary<string, object>>)
+        {
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>((IList<Dictionary<string, object>>)a);
+            result.AddRange((IList<Dictionary<string, object>>)b);
+            return result;
+        }
+        else
+        {
+            throw new InvalidOperationException("Unsupported types for concatenation.");
         }
     }
 }

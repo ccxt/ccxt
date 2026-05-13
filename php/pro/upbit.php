@@ -6,18 +6,22 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use React\Async;
-use React\Promise\PromiseInterface;
+use ccxt\NotSupported;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class upbit extends \ccxt\async\upbit {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
+                'watchOHLCV' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
@@ -33,32 +37,47 @@ class upbit extends \ccxt\async\upbit {
         ));
     }
 
-    public function watch_public(string $symbol, $channel, $params = array ()) {
-        return Async\async(function () use ($symbol, $channel, $params) {
+    public function watch_public_multiple(?array $symbols, $channel, $params = array ()) {
+        return Async\async(function () use ($symbols, $channel, $params) {
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $marketId = $market['id'];
+            if ($symbols === null) {
+                $symbols = $this->symbols;
+            }
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
             $url = $this->implode_params($this->urls['api']['ws'], array(
                 'hostname' => $this->hostname,
             ));
-            $this->options[$channel] = $this->safe_value($this->options, $channel, array());
-            $this->options[$channel][$symbol] = true;
-            $symbols = is_array($this->options[$channel]) ? array_keys($this->options[$channel]) : array();
-            $marketIds = $this->market_ids($symbols);
-            $request = array(
+            $client = $this->client($url);
+            $subscriptionsKey = 'upbitPublicSubscriptions';
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionsKey] = array();
+            }
+            $subscriptions = $client->subscriptions[$subscriptionsKey];
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $marketId = $marketIds[$i];
+                $symbol = $symbols[$i];
+                $messageHash = $channel . ':' . $symbol;
+                $messageHashes[] = $messageHash;
+                if (!(is_array($subscriptions) && array_key_exists($messageHash, $subscriptions))) {
+                    $subscriptions[$messageHash] = array(
+                        'type' => $channel,
+                        'codes' => array( $marketId ),
+                    );
+                }
+            }
+            $finalMessage = array(
                 array(
                     'ticket' => $this->uuid(),
                 ),
-                array(
-                    'type' => $channel,
-                    'codes' => $marketIds,
-                    // 'isOnlySnapshot' => false,
-                    // 'isOnlyRealtime' => false,
-                ),
             );
-            $messageHash = $channel . ':' . $marketId;
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            for ($i = 0; $i < count($channelKeys); $i++) {
+                $key = $channelKeys[$i];
+                $finalMessage[] = $subscriptions[$key];
+            }
+            return Async\await($this->watch_multiple($url, $messageHashes, $finalMessage, $messageHashes));
         }) ();
     }
 
@@ -66,31 +85,73 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://global-docs.upbit.com/reference/websocket-ticker
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            return Async\await($this->watch_public($symbol, 'ticker'));
+            return Async\await($this->watch_public_multiple(array( $symbol ), 'ticker'));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://global-docs.upbit.com/reference/websocket-ticker
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+             */
+            $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
+             * get the list of most recent trades for a particular $symbol
+             *
              * @see https://global-docs.upbit.com/reference/websocket-trade
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             *
+             * @see https://global-docs.upbit.com/reference/websocket-trade
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
-            $trades = Async\await($this->watch_public($symbol, 'trade'));
+            $trades = Async\await($this->watch_public_multiple($symbols, 'trade'));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -100,14 +161,39 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://global-docs.upbit.com/reference/websocket-$orderbook
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
-            $orderbook = Async\await($this->watch_public($symbol, 'orderbook'));
+            $orderbook = Async\await($this->watch_public_multiple(array( $symbol ), 'orderbook'));
             return $orderbook->limit ();
+        }) ();
+    }
+
+    public function watch_ohlcv(string $symbol, string $timeframe = '1s', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+             *
+             * @see https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+             * @see https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+             *
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {string} $timeframe specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {OHLCV[]} a list of ~@link https://docs.ccxt.com/?id=ohlcv-structure OHLCV structures~
+             */
+            if ($timeframe !== '1s') {
+                throw new NotSupported($this->id . ' watchOHLCV does not support' . $timeframe . ' candle.');
+            }
+            $timeFrameOHLCV = 'candle.' . $timeframe;
+            return Async\await($this->watch_public_multiple(array( $symbol ), $timeFrameOHLCV));
         }) ();
     }
 
@@ -148,11 +234,10 @@ class upbit extends \ccxt\async\upbit {
         //   "acc_trade_price_24h" => 2.5955306323568927,
         //   "acc_trade_volume_24h" => 118.38798416,
         //   "stream_type" => "SNAPSHOT" }
-        $marketId = $this->safe_string($message, 'code');
-        $messageHash = 'ticker:' . $marketId;
         $ticker = $this->parse_ticker($message);
         $symbol = $ticker['symbol'];
         $this->tickers[$symbol] = $ticker;
+        $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
     }
 
@@ -207,7 +292,7 @@ class upbit extends \ccxt\async\upbit {
         $datetime = $this->iso8601($timestamp);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $datetime;
-        $messageHash = 'orderbook:' . $marketId;
+        $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);
     }
 
@@ -235,9 +320,30 @@ class upbit extends \ccxt\async\upbit {
             $this->trades[$symbol] = $stored;
         }
         $stored->append ($trade);
-        $marketId = $this->safe_string($message, 'code');
-        $messageHash = 'trade:' . $marketId;
+        $messageHash = 'trade:' . $symbol;
         $client->resolve ($stored, $messageHash);
+    }
+
+    public function handle_ohlcv(Client $client, $message) {
+        // {
+        //     type => 'candle.1s',
+        //     code => 'KRW-USDT',
+        //     candle_date_time_utc => '2025-04-22T09:50:34',
+        //     candle_date_time_kst => '2025-04-22T18:50:34',
+        //     opening_price => 1438,
+        //     high_price => 1438,
+        //     low_price => 1438,
+        //     trade_price => 1438,
+        //     candle_acc_trade_volume => 1145.8935,
+        //     candle_acc_trade_price => 1647794.853,
+        //     timestamp => 1745315434125,
+        //     stream_type => 'REALTIME'
+        //   }
+        $marketId = $this->safe_string($message, 'code');
+        $symbol = $this->safe_symbol($marketId, null);
+        $messageHash = 'candle.1s:' . $symbol;
+        $ohlcv = $this->parse_ohlcv($message);
+        $client->resolve ($ohlcv, $messageHash);
     }
 
     public function authenticate($params = array ()) {
@@ -282,12 +388,36 @@ class upbit extends \ccxt\async\upbit {
                 'hostname' => $this->hostname,
             ));
             $url .= '/private';
+            $client = $this->client($url);
+            // Track private $channel $subscriptions to support multiple concurrent watches
+            $subscriptionsKey = 'upbitPrivateSubscriptions';
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+                $client->subscriptions[$subscriptionsKey] = array();
+            }
+            $channelKey = $channel;
+            if ($symbol !== null) {
+                $channelKey = $channel . ':' . $symbol;
+            }
+            $subscriptions = $client->subscriptions[$subscriptionsKey];
+            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey, $subscriptions));
+            if ($isNewChannel) {
+                $subscriptions[$channelKey] = $request;
+            }
+            // Build subscription $message with all requested private channels
+            // Format => [array('ticket' => uuid), array('type' => 'myOrder'), array('type' => 'myAsset'), ...]
+            $requests = array();
+            $channelKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
+            for ($i = 0; $i < count($channelKeys); $i++) {
+                $requests[] = $subscriptions[$channelKeys[$i]];
+            }
             $message = array(
                 array(
                     'ticket' => $this->uuid(),
                 ),
-                $request,
             );
+            for ($i = 0; $i < count($requests); $i++) {
+                $message[] = $requests[$i];
+            }
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -296,12 +426,14 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://global-docs.upbit.com/reference/websocket-myorder
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $channel = 'myOrder';
@@ -318,12 +450,14 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://global-docs.upbit.com/reference/websocket-myorder
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $channel = 'myOrder';
@@ -511,10 +645,12 @@ class upbit extends \ccxt\async\upbit {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://global-docs.upbit.com/reference/websocket-myasset
+             *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $channel = 'myAsset';
@@ -567,10 +703,11 @@ class upbit extends \ccxt\async\upbit {
             'trade' => array($this, 'handle_trades'),
             'myOrder' => array($this, 'handle_my_order'),
             'myAsset' => array($this, 'handle_balance'),
+            'candle.1s' => array($this, 'handle_ohlcv'),
         );
         $methodName = $this->safe_string($message, 'type');
         $method = $this->safe_value($methods, $methodName);
-        if ($method) {
+        if ($method !== null) {
             $method($client, $message);
         }
     }

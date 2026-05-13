@@ -49,6 +49,7 @@ spl_autoload_register(function ($class) {
     }
     $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class);
     $class_name = str_replace('Web3\\', 'web3.php/src/', $class_name);
+    $class_name = str_replace('Lighter\\', 'lighter/', $class_name);
     $class_name = str_replace('StarkNet\\', 'starknet.php/src/', $class_name);
     $class_name = str_replace('phpseclib\\Math\\BigInteger', 'phpseclib/Math/BigInteger', $class_name);
     $class_name = str_replace('Sop\\', 'Sop/', $class_name);
@@ -75,6 +76,8 @@ require_once PATH_TO_CCXT . 'OperationRejected.php';
 require_once PATH_TO_CCXT . 'NoChange.php';
 require_once PATH_TO_CCXT . 'MarginModeAlreadySet.php';
 require_once PATH_TO_CCXT . 'MarketClosed.php';
+require_once PATH_TO_CCXT . 'ManualInteractionNeeded.php';
+require_once PATH_TO_CCXT . 'RestrictedLocation.php';
 require_once PATH_TO_CCXT . 'InsufficientFunds.php';
 require_once PATH_TO_CCXT . 'InvalidAddress.php';
 require_once PATH_TO_CCXT . 'AddressPending.php';
@@ -100,6 +103,7 @@ require_once PATH_TO_CCXT . 'RequestTimeout.php';
 require_once PATH_TO_CCXT . 'BadResponse.php';
 require_once PATH_TO_CCXT . 'NullResponse.php';
 require_once PATH_TO_CCXT . 'CancelPending.php';
+require_once PATH_TO_CCXT . 'UnsubscribeError.php';
 
 
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';

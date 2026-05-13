@@ -19,6 +19,7 @@ interface Exchange {
     privatePostTradeList (params?: {}): Promise<implicitReturnType>;
     privatePostTradeView (params?: {}): Promise<implicitReturnType>;
     privatePostWallet (params?: {}): Promise<implicitReturnType>;
+    webApiGetAjaxCoinCoinInfo (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

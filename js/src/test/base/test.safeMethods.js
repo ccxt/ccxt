@@ -4,10 +4,9 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// @ts-nocheck
-// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../../base/ws/Cache.js';
 function equals(a, b) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
@@ -28,8 +27,17 @@ function testSafeMethods() {
         'bool': true,
         'list': [1, 2, 3],
         'dict': { 'a': 1 },
+        'listOfDicts': [{ 'a': 1 }],
         'str': 'heLlo',
         'strNumber': '3',
+        //
+        'zeroNumeric': 0,
+        'zeroString': '0',
+        'undefined': undefined,
+        'emptyString': '',
+        'floatNumeric': 0.123,
+        'floatString': '0.123',
+        'longInt': 123456789012345,
     };
     const inputList = ['Hi', 2];
     const compareDict = {
@@ -78,6 +86,7 @@ function testSafeMethods() {
     assert(equals(dictObject, compareDict));
     listObject = exchange.safeDict2(inputDict, 'a', 'list');
     assert(listObject === undefined);
+    // @ts-expect-error
     assert(exchange.safeDict2(inputList, 2, 1) === undefined);
     // safeDictN
     dictObject = exchange.safeDictN(inputDict, ['a', 'b', 'dict']);
@@ -90,10 +99,13 @@ function testSafeMethods() {
     assert(equals(dictObject, compareDict));
     assert(exchange.safeList(inputDict, 'dict') === undefined);
     assert(exchange.safeList(inputList, 1) === undefined);
+    const arrayOfDicts = exchange.safeList(inputDict, 'listOfDicts');
+    assert(equals(arrayOfDicts[0], { 'a': 1 }));
     // safeList2
     listObject = exchange.safeList2(inputDict, 'a', 'list');
     assert(equals(dictObject, compareDict));
     assert(exchange.safeList2(inputDict, 'a', 'dict') === undefined);
+    // @ts-expect-error
     assert(exchange.safeList2(inputList, 2, 1) === undefined);
     // safeListN
     listObject = exchange.safeListN(inputDict, ['a', 'b', 'list']);
@@ -180,6 +192,8 @@ function testSafeMethods() {
     assert(exchange.safeIntegerProduct(inputDict, 'f', factor) === 1); // NB the result is 1
     assert(exchange.safeIntegerProduct(inputDict, 'strNumber', factor) === 30);
     assert(exchange.safeIntegerProduct(inputList, 1, factor) === 20);
+    assert(exchange.safeIntegerProduct(inputDict, 'longInt', 0.000001) === 123456789);
+    assert(exchange.safeIntegerProduct(inputDict, 'inexistent', 0.000001, 123456789) === 123456789);
     // safeIntegerProduct2
     assert(exchange.safeIntegerProduct2(inputDict, 'a', 'i', factor) === 10);
     assert(exchange.safeIntegerProduct2(inputDict, 'a', 'f', factor) === 1); // NB the result is 1
@@ -206,25 +220,38 @@ function testSafeMethods() {
     assert(exchange.safeTimestampN(inputDict, ['a', 'b', 'strNumber']) === 3000);
     assert(exchange.safeTimestampN(inputList, [3, 2, 1]) === 2000);
     // safeFloat
+    // @ts-expect-error
     assert(exchange.safeFloat(inputDict, 'i') === parseFloat(1));
     assert(exchange.safeFloat(inputDict, 'f') === 0.123);
+    // @ts-expect-error
     assert(exchange.safeFloat(inputDict, 'strNumber') === parseFloat(3));
+    // @ts-expect-error
     assert(exchange.safeFloat(inputList, 1) === parseFloat(2));
     // safeFloat2
+    // @ts-expect-error
     assert(exchange.safeFloat2(inputDict, 'a', 'i') === parseFloat(1));
     assert(exchange.safeFloat2(inputDict, 'a', 'f') === 0.123);
+    // @ts-expect-error
     assert(exchange.safeFloat2(inputDict, 'a', 'strNumber') === parseFloat(3));
+    // @ts-expect-error
     assert(exchange.safeFloat2(inputList, 2, 1) === parseFloat(2));
     // safeFloatN
+    // @ts-expect-error
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'i']) === parseFloat(1));
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'f']) === 0.123);
+    // @ts-expect-error
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'strNumber']) === parseFloat(3));
+    // @ts-expect-error
     assert(exchange.safeFloatN(inputList, [3, 2, 1]) === parseFloat(2));
     // safeNumber
     assert(exchange.safeNumber(inputDict, 'i') === exchange.parseNumber(1));
     assert(exchange.safeNumber(inputDict, 'f') === exchange.parseNumber(0.123));
     assert(exchange.safeNumber(inputDict, 'strNumber') === exchange.parseNumber(3));
     assert(exchange.safeNumber(inputList, 1) === exchange.parseNumber(2));
+    assert(exchange.safeNumber(inputList, 'bool') === undefined);
+    assert(exchange.safeNumber(inputList, 'list') === undefined);
+    assert(exchange.safeNumber(inputList, 'dict') === undefined);
+    assert(exchange.safeNumber(inputList, 'str') === undefined);
     // safeNumber2
     assert(exchange.safeNumber2(inputDict, 'a', 'i') === exchange.parseNumber(1));
     assert(exchange.safeNumber2(inputDict, 'a', 'f') === exchange.parseNumber(0.123));
@@ -244,5 +271,85 @@ function testSafeMethods() {
     // safeBoolN
     assert(exchange.safeBoolN(inputDict, ['a', 'b', 'bool']) === true);
     assert(exchange.safeBoolN(inputList, [3, 2, 1]) === undefined);
+    // safeNumberOmitZero
+    assert(exchange.safeNumberOmitZero(inputDict, 'zeroNumeric') === undefined);
+    assert(exchange.safeNumberOmitZero(inputDict, 'zeroString') === undefined);
+    assert(exchange.safeNumberOmitZero(inputDict, 'undefined') === undefined);
+    assert(exchange.safeNumberOmitZero(inputDict, 'emptyString') === undefined);
+    assert(exchange.safeNumberOmitZero(inputDict, 'floatNumeric') !== undefined);
+    assert(exchange.safeNumberOmitZero(inputDict, 'floatString') !== undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+    // Test cache types - ArrayCache
+    const arrayCache = new ArrayCache(100);
+    arrayCache.append({ 'symbol': 'BTC/USDT', 'id': 'order1', 'price': 50000 });
+    assert(arrayCache.length > 0);
+    // Test cache types - ArrayCacheByTimestamp
+    const arrayCacheByTimestamp = new ArrayCacheByTimestamp(100);
+    arrayCacheByTimestamp.append([1000, 50000, 1, 2, 3]);
+    const arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, 'Data');
+    const cacheByTimestampData = arrayCacheByTimestampData !== undefined ? arrayCacheByTimestampData : arrayCacheByTimestamp;
+    assert(cacheByTimestampData.length > 0);
+    // Test cache types - ArrayCacheBySymbolById
+    const arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
+    arrayCacheBySymbolById.append({ 'symbol': 'ETH/USDT', 'id': 'order2', 'price': 3000 });
+    // Use direct property access for object attributes
+    const arrayCacheBySymbolByIdHashmap = arrayCacheBySymbolById.hashmap;
+    assert(arrayCacheBySymbolByIdHashmap['ETH/USDT'] !== undefined);
+    assert(arrayCacheBySymbolByIdHashmap['ETH/USDT']['order2'] !== undefined);
+    const arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, 'Data');
+    const cacheBySymbolByIdData = arrayCacheBySymbolByIdData !== undefined ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
+    assert(cacheBySymbolByIdData.length > 0);
+    // Test cache types - ArrayCacheBySymbolBySide
+    const arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
+    arrayCacheBySymbolBySide.append({ 'symbol': 'BNB/USDT', 'side': 'buy', 'price': 400 });
+    // Use direct property access for object attributes
+    const arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
+    assert(arrayCacheBySymbolBySideHashmap['BNB/USDT'] !== undefined);
+    const arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, 'Data');
+    const cacheBySymbolBySideData = arrayCacheBySymbolBySideData !== undefined ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
+    assert(cacheBySymbolBySideData.length > 0);
+    // Test map[string]map[string]interface{} (ArrayCache.hashmap)
+    // Use direct property access for object attributes
+    const arrayCacheHashmapDirect = arrayCache.hashmap;
+    const nestedMap = arrayCacheHashmapDirect;
+    assert(exchange.safeValue(nestedMap, 'NONEXISTENT') === undefined);
+    // Test map[string]*ArrayCache (Trades structure)
+    const tradesMap = {
+        'BTC/USDT': arrayCache,
+        'ETH/USDT': arrayCacheBySymbolById,
+    };
+    const stored = exchange.safeValue(tradesMap, 'BTC/USDT');
+    assert(stored !== undefined);
+    // Use direct property access for hashmap (object attribute)
+    const retrievedArrayCacheHashmap = stored.hashmap;
+    assert(retrievedArrayCacheHashmap !== undefined);
+    const retrievedArrayCacheBySymbolById = exchange.safeValue(tradesMap, 'ETH/USDT');
+    assert(retrievedArrayCacheBySymbolById !== undefined);
+    // Use direct property access for hashmap (object attribute)
+    const retrievedArrayCacheBySymbolByIdHashmap = retrievedArrayCacheBySymbolById.hashmap;
+    assert(retrievedArrayCacheBySymbolByIdHashmap !== undefined);
+    assert(exchange.safeValue(tradesMap, 'NONEXISTENT') === undefined);
+    // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
+    const ohlcvInnerMap = {
+        '1m': arrayCacheByTimestamp,
+        '5m': new ArrayCacheByTimestamp(100),
+    };
+    const retrievedArrayCacheByTimestamp = exchange.safeValue(ohlcvInnerMap, '1m');
+    assert(retrievedArrayCacheByTimestamp !== undefined);
+    // Use direct property access for object attributes
+    const retrievedArrayCacheByTimestampHashmap = retrievedArrayCacheByTimestamp.hashmap;
+    assert(retrievedArrayCacheByTimestampHashmap !== undefined);
+    assert(exchange.safeValue(ohlcvInnerMap, '5m') !== undefined);
+    assert(exchange.safeValue(ohlcvInnerMap, 'NONEXISTENT') === undefined);
+    // Test map[string]*ArrayCacheBySymbolBySide
+    const cacheBySideMap = {
+        'BTC/USDT': arrayCacheBySymbolBySide,
+    };
+    const retrievedArrayCacheBySymbolBySide = exchange.safeValue(cacheBySideMap, 'BTC/USDT');
+    assert(retrievedArrayCacheBySymbolBySide !== undefined);
+    const retrievedArrayCacheBySymbolBySideHashmap = retrievedArrayCacheBySymbolBySide.hashmap;
+    assert(retrievedArrayCacheBySymbolBySideHashmap !== undefined);
+    assert(exchange.safeValue(cacheBySideMap, 'NONEXISTENT') === undefined);
 }
 export default testSafeMethods;

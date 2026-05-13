@@ -7,7 +7,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 include_once __DIR__ . '/test_trade.php';
 
 function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
@@ -53,9 +52,14 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', $exchange->safe_string($entry, 'remaining'));
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', $exchange->safe_string($entry, 'filled'));
     if (!(is_array($skipped_properties) && array_key_exists('trades', $skipped_properties))) {
+        $skipped_new = $exchange->deep_extend($skipped_properties, array(
+            'timestamp' => true,
+            'datetime' => true,
+            'side' => true,
+        ));
         if ($entry['trades'] !== null) {
             for ($i = 0; $i < count($entry['trades']); $i++) {
-                test_trade($exchange, $skipped_properties, $method, $entry['trades'][$i], $symbol, $now);
+                test_trade($exchange, $skipped_new, $method, $entry['trades'][$i], $symbol, $now);
             }
         }
     }

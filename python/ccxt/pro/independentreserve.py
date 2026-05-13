@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, Trade
+from ccxt.base.types import Any, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -14,7 +14,7 @@ from ccxt.base.errors import ChecksumError
 
 class independentreserve(ccxt.async_support.independentreserve):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'has': {
                 'ws': True,
@@ -22,6 +22,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': False,
                 'watchOrderBook': True,
@@ -50,7 +51,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -130,7 +131,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -218,6 +219,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 del client.subscriptions[messageHash]
                 del self.orderbooks[symbol]
                 client.reject(error, messageHash)
+                return
         if receivedSnapshot:
             client.resolve(orderbook, messageHash)
 

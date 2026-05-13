@@ -56,6 +56,11 @@ public partial class bitflyer : Exchange
         return await this.callAsync ("publicGetGetchats",parameters);
     }
 
+    public async Task<object> publicGetGetfundingrate (object parameters = null)
+    {
+        return await this.callAsync ("publicGetGetfundingrate",parameters);
+    }
+
     public async Task<object> privateGetGetpermissions (object parameters = null)
     {
         return await this.callAsync ("privateGetGetpermissions",parameters);

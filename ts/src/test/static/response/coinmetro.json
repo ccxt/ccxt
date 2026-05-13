@@ -2,6 +2,81 @@
     "exchange": "coinmetro",
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "USDT",
+                        "name": "Tether USDt",
+                        "type": "erc20",
+                        "canDeposit": true,
+                        "canWithdraw": true,
+                        "canTrade": true,
+                        "notabeneDecimals": "6",
+                        "canMarket": true,
+                        "maxSwap": "500",
+                        "digits": "2",
+                        "multiplier": "100",
+                        "bookDigits": "3",
+                        "bookMultiplier": "1000",
+                        "sentimentData": {
+                            "sentiment": "49.41777777777777",
+                            "interest": "1.0259279424741377"
+                        },
+                        "minQty": "5"
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "symbol": "USDT",
+                            "name": "Tether USDt",
+                            "type": "erc20",
+                            "canDeposit": true,
+                            "canWithdraw": true,
+                            "canTrade": true,
+                            "notabeneDecimals": "6",
+                            "canMarket": true,
+                            "maxSwap": "500",
+                            "digits": "2",
+                            "multiplier": "100",
+                            "bookDigits": "3",
+                            "bookMultiplier": "1000",
+                            "sentimentData": {
+                                "sentiment": "49.41777777777777",
+                                "interest": "1.0259279424741377"
+                            },
+                            "minQty": "5"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.01,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": 5,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "spot private trade",

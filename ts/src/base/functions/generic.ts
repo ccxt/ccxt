@@ -27,10 +27,16 @@ const inArray = (needle: any, haystack: any[]) => haystack.includes (needle);
 const toArray = (object: Dictionary<any>|any[]) => Object.values (object);
 
 const isEmpty = (object: any[] | Dictionary<any>) => {
-    if (!object) {
+    if (object === null || object === undefined) {
         return true;
     }
-    return (Array.isArray (object) ? object : Object.keys (object)).length < 1;
+    if (Array.isArray (object)) {
+        return object.length < 1;
+    }
+    if (isDictionary (object)) {
+        return Object.keys (object).length < 1;
+    }
+    return false;
 };
 
 const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
@@ -39,6 +45,13 @@ const keysort = (x: Dictionary<any>, out: Dictionary<any> = {}) => {
     }
     return out;
 };
+
+const sort = (array: string[]| any) => {
+    const newArray = array.slice();
+    newArray.sort();
+    return newArray;
+}
+
 
 /*
     Accepts a map/array of objects and a key name to be used as an index:
@@ -158,23 +171,45 @@ const sum = (...xs: any[]) => {
     return (ns.length > 0) ? ns.reduce ((a, b) => a + b, 0) : undefined;
 };
 
-const deepExtend = function deepExtend (...xs: any) {
-    let out = undefined;
-    for (const x of xs) {
-        if (isDictionary (x)) {
-            if (!isDictionary (out)) {
-                out = {};
+const deepExtend = function (...args: any) {
+    let result: any = null;
+    let resultIsObject = false;
+
+    for (const arg of args) {
+        if (arg !== null && typeof arg === 'object' && arg.constructor === Object) {
+            // This is a plain object (even if empty) so set the return type.
+            if (result === null || !resultIsObject) {
+                result = {};
+                resultIsObject = true;
             }
-            for (const k in x) {
-                out[k] = deepExtend (out[k], x[k]);
+
+            // Skip actual merging if object is empty.
+            if (Object.keys(arg).length === 0) {
+                continue;
+            }
+
+            for (const key in arg) {
+                const value = arg[key];
+                const current = result[key];
+                
+                if (current !== null && typeof current === 'object' && current.constructor === Object &&
+                    value !== null && typeof value === 'object' && value.constructor === Object) {
+                    result[key] = deepExtend(current, value);
+                } else {
+                    result[key] = value;
+                }
             }
         } else {
-            out = x;
+            // arg is null or other non-object.
+            result = arg;
+            resultIsObject = false;
         }
     }
-    return out;
-};
 
+    return result;
+}
+
+// better "merge" func resides in static_dependencies/qs/utils.js
 const merge = (target: Dictionary<any>, ...args: any) => {
     // doesn't overwrite defined keys with undefined
     const overwrite: Dictionary<any> = {};
@@ -207,7 +242,7 @@ export {
     , isEmpty
 
     // ------------------------------------------------------------------------
-
+    , sort
     , keysort
 
     // ------------------------------------------------------------------------

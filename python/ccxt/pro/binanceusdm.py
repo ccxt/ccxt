@@ -4,13 +4,20 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.binance import binance
+from ccxt.base.types import Any
 from ccxt.base.errors import InvalidOrder
+
+import ccxt.async_support.binanceusdm as binanceusdmRest
 
 
 class binanceusdm(binance):
 
-    def describe(self):
-        return self.deep_extend(super(binanceusdm, self).describe(), {
+    def describe(self) -> Any:
+        # eslint-disable-next-line new-cap
+        restInstance = binanceusdmRest()
+        restDescribe = restInstance.describe()
+        extended = self.deep_extend(super(binanceusdm, self).describe(), restDescribe)
+        return self.deep_extend(extended, {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
             'urls': {
@@ -18,7 +25,9 @@ class binanceusdm(binance):
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': ['linear'],
+                'fetchMarkets': {
+                    'types': ['linear'],
+                },
                 'defaultSubType': 'linear',
             },
             # https://binance-docs.github.io/apidocs/futures/en/#error-codes

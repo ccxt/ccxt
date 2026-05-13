@@ -7,7 +7,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
+
 
 function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $now) {
     $format = array(
@@ -27,7 +27,7 @@ function test_trade($exchange, $skipped_properties, $method, $entry, $symbol, $n
     );
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
     // removed side because some public endpoints return trades without side
-    $empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime'];
+    $empty_allowed_for = ['fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);

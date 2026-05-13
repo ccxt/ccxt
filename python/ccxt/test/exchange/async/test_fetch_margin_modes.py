@@ -25,3 +25,4 @@ async def test_fetch_margin_modes(exchange, skipped_properties, symbol):
         margin_mode = margin_modes[margin_mode_keys[i]]
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, margin_mode, symbol)
         test_margin_mode(exchange, skipped_properties, method, margin_mode)
+    return True

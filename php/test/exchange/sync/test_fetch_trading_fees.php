@@ -18,4 +18,5 @@ function test_fetch_trading_fees($exchange, $skipped_properties) {
         $symbol = $symbols[$i];
         test_trading_fee($exchange, $skipped_properties, $method, $symbol, $fees[$symbol]);
     }
+    return true;
 }

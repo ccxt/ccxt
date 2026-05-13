@@ -4,11 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.gate import gate
+from ccxt.base.types import Any
 
 
 class gateio(gate):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gateio, self).describe(), {
             'alias': True,
             'id': 'gateio',

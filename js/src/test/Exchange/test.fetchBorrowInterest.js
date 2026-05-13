@@ -13,5 +13,6 @@ async function testFetchBorrowInterest(exchange, skippedProperties, code, symbol
     for (let i = 0; i < borrowInterest.length; i++) {
         testBorrowInterest(exchange, skippedProperties, method, borrowInterest[i], code, symbol);
     }
+    return true;
 }
 export default testFetchBorrowInterest;

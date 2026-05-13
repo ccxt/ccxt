@@ -13,7 +13,6 @@ import { CallData } from '../calldata/index.js';
 import { felt } from '../calldata/cairo.js';
 import { pedersen, poseidonHash, keccak } from '../../../scure-starknet/index.js';
 import { addHexPrefix, utf8ToArray } from '../encode.js';
-import { parse, stringify } from '../json.js';
 import { toHex } from '../num.js';
 import { encodeShortString, isString } from '../shortString.js';
 export function computePedersenHash(a, b) {
@@ -91,7 +90,7 @@ export function formatSpaces(json) {
 export default function computeHintedClassHash(compiledContract) {
     const { abi, program } = compiledContract;
     const contractClass = { abi, program };
-    const serializedJson = formatSpaces(stringify(contractClass, nullSkipReplacer));
+    const serializedJson = formatSpaces(JSON.stringify(contractClass, nullSkipReplacer));
     return addHexPrefix(keccak(utf8ToArray(serializedJson)).toString(16));
 }
 /**
@@ -100,7 +99,7 @@ export default function computeHintedClassHash(compiledContract) {
  */
 export function computeLegacyContractClassHash(contract) {
     const compiledContract = isString(contract)
-        ? parse(contract)
+        ? JSON.parse(contract)
         : contract;
     const apiVersion = toHex(API_VERSION);
     const externalEntryPointsHash = computeHashOnElements(compiledContract.entry_points_by_type.EXTERNAL.flatMap((e) => [e.selector, e.offset]));
@@ -181,7 +180,7 @@ function hashEntryPointSierra(data) {
     return poseidonHashMany(base);
 }
 function hashAbi(sierra) {
-    const indentString = formatSpaces(stringify(sierra.abi, null));
+    const indentString = formatSpaces(JSON.stringify(sierra.abi, null));
     return BigInt(addHexPrefix(keccak(utf8ToArray(indentString)).toString(16)));
 }
 /**
@@ -216,7 +215,7 @@ export function computeSierraContractClassHash(sierra) {
  * @returns format: hex-string
  */
 export function computeContractClassHash(contract) {
-    const compiledContract = isString(contract) ? parse(contract) : contract;
+    const compiledContract = isString(contract) ? JSON.parse(contract) : contract;
     if ('sierra_program' in compiledContract) {
         return computeSierraContractClassHash(compiledContract);
     }

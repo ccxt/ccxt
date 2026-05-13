@@ -9,6 +9,43 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=BTCUSD-PERP&valuation_type=estimated_funding_rate&count=1",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit spot order",
+                "method": "editOrder",
+                "url": "https://api.crypto.com/exchange/v1/private/amend-order",
+                "input": [
+                    "6142909930410561608",
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1100
+                ],
+                "output": "{\"id\":\"1749674362537\",\"method\":\"private/amend-order\",\"params\":{\"order_id\":\"6142909930410561608\",\"new_quantity\":\"0.001\",\"new_price\":\"1100\"},\"api_key\":\"s189CRCSm9RcUgdsBx62mD\",\"sig\":\"8d898136711ab8ea37d41caecbb0af871ba017c25ec5a014d30629f4263d563f\",\"nonce\":\"1749674362537\"}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "disabled": true,
+                "method": "fetchCurrencies",
+                "url": "https://api.crypto.com/exchange/v1/private/get-currency-networks",
+                "input": [],
+                "output": "{\"id\":\"1747503230183\",\"method\":\"private/get-currency-networks\",\"params\":{},\"api_key\":\"XK2S3Zuir2AU3AY1rxc2Nh\",\"sig\":\"a942b33e8387376574c8de4739eaac92730088b0f9451e17f23eb14bfa97a150\",\"nonce\":\"1747503230183\"}"
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order with postOnly flag",
@@ -250,6 +287,26 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "above 50",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT&depth=50",
+                "input": [
+                    "BTC/USDT",
+                    150
+                ],
+                "output": null
+            },
+            {
+                "description": "below 50",
+                "method": "fetchOrderBook",
+                "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT&depth=40",
+                "input": [
+                    "BTC/USDT",
+                    40
+                ],
+                "output": null
+            },
+            {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
                 "url": "https://api.crypto.com/exchange/v1/public/get-book?instrument_name=BTC_USDT",
@@ -276,6 +333,26 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.crypto.com/exchange/v1/private/get-fee-rate",
+                "input": [],
+                "output": "{\"id\":\"1723991090189\",\"method\":\"private/get-fee-rate\",\"params\":{},\"api_key\":\"huWxoQvX5hxkocvHkZDJuw\",\"sig\":\"30be68d9479ac8996be698cb0a4a4eb1862aa67baff9996eec4eaa31bcd20bd4\",\"nonce\":\"1723991090189\"}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.crypto.com/exchange/v1/private/get-instrument-fee-rate",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"id\":\"1723991123913\",\"method\":\"private/get-instrument-fee-rate\",\"params\":{\"instrument_name\":\"BTC_USDT\"},\"api_key\":\"huWxoQvX5hxkocvHkZDJuw\",\"sig\":\"6498fafd8927c632bff4ec835a6c0e15f7f4e61ffc15f1be343379c183c7f224\",\"nonce\":\"1723991123913\"}"
             }
         ]
     }

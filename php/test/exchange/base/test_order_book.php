@@ -8,7 +8,6 @@ namespace ccxt;
 
 // -----------------------------------------------------------------------------
 use \ccxt\Precise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_order_book($exchange, $skipped_properties, $method, $orderbook, $symbol) {
     $format = array(
@@ -26,10 +25,6 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $orderbook);
     assert_symbol($exchange, $skipped_properties, $method, $orderbook, 'symbol', $symbol);
     $log_text = log_template($exchange, $method, $orderbook);
-    //
-    if ((is_array($skipped_properties) && array_key_exists('bid', $skipped_properties)) || (is_array($skipped_properties) && array_key_exists('ask', $skipped_properties))) {
-        return;
-    }
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     $bids = $orderbook['bids'];
     $bids_length = count($bids);

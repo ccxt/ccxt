@@ -18,3 +18,4 @@ def test_fetch_balance(exchange, skipped_properties):
     method = 'fetchBalance'
     response = exchange.fetch_balance()
     test_balance(exchange, skipped_properties, method, response)
+    return True

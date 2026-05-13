@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 
+// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */
