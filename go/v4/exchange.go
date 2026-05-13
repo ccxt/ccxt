@@ -2099,3 +2099,7 @@ func (this *Exchange) UnlockId() bool {
 	this.idMutex.Unlock()
 	return true
 }
+
+func (this *Exchange) OrderBookToDict(orderbook any) any {
+	return orderbook
+}
