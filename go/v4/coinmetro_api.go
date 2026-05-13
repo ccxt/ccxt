@@ -7,482 +7,122 @@
 
 package ccxt
 
-func (this *coinmetro) PublicGetDemoTemp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDemoTemp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetDemoTemp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDemoTemp", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeCandlesPairTimeframeFromTo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExchangeCandlesPairTimeframeFromTo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetExchangeCandlesPairTimeframeFromTo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeCandlesPairTimeframeFromTo", args...)
 }
 
-func (this *coinmetro) PublicGetExchangePrices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExchangePrices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetExchangePrices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangePrices", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeTicksPairFrom (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExchangeTicksPairFrom", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetExchangeTicksPairFrom(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeTicksPairFrom", args...)
 }
 
-func (this *coinmetro) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *coinmetro) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeBookPair (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExchangeBookPair", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetExchangeBookPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeBookPair", args...)
 }
 
-func (this *coinmetro) PublicGetExchangeBookUpdatesPairFrom (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetExchangeBookUpdatesPairFrom", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PublicGetExchangeBookUpdatesPairFrom(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeBookUpdatesPairFrom", args...)
 }
 
-func (this *coinmetro) PrivateGetUsersBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetUsersBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersBalances", args...)
 }
 
-func (this *coinmetro) PrivateGetUsersWallets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersWallets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetUsersWallets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersWallets", args...)
 }
 
-func (this *coinmetro) PrivateGetUsersWalletsHistorySince (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersWalletsHistorySince", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetUsersWalletsHistorySince(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersWalletsHistorySince", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeOrdersStatusOrderID (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrdersStatusOrderID", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetExchangeOrdersStatusOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersStatusOrderID", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeOrdersActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrdersActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetExchangeOrdersActive(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersActive", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeOrdersHistorySince (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeOrdersHistorySince", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetExchangeOrdersHistorySince(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersHistorySince", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeFillsSince (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeFillsSince", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetExchangeFillsSince(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeFillsSince", args...)
 }
 
-func (this *coinmetro) PrivateGetExchangeMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExchangeMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivateGetExchangeMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeMargin", args...)
 }
 
-func (this *coinmetro) PrivatePostJwt (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostJwt", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostJwt(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostJwt", args...)
 }
 
-func (this *coinmetro) PrivatePostJwtDevice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostJwtDevice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostJwtDevice(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostJwtDevice", args...)
 }
 
-func (this *coinmetro) PrivatePostDevices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDevices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostDevices(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDevices", args...)
 }
 
-func (this *coinmetro) PrivatePostJwtReadOnly (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostJwtReadOnly", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostJwtReadOnly(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostJwtReadOnly", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeOrdersCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostExchangeOrdersCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersCreate", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersModifyOrderID (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeOrdersModifyOrderID", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostExchangeOrdersModifyOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersModifyOrderID", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeSwap (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeSwap", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostExchangeSwap(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeSwap", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeSwapConfirmSwapId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeSwapConfirmSwapId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostExchangeSwapConfirmSwapId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeSwapConfirmSwapId", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersCloseOrderID (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeOrdersCloseOrderID", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostExchangeOrdersCloseOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersCloseOrderID", args...)
 }
 
-func (this *coinmetro) PrivatePostExchangeOrdersHedge (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExchangeOrdersHedge", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePostExchangeOrdersHedge(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrdersHedge", args...)
 }
 
-func (this *coinmetro) PrivatePutJwt (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutJwt", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePutJwt(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutJwt", args...)
 }
 
-func (this *coinmetro) PrivatePutExchangeOrdersCancelOrderID (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutExchangeOrdersCancelOrderID", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePutExchangeOrdersCancelOrderID(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutExchangeOrdersCancelOrderID", args...)
 }
 
-func (this *coinmetro) PrivatePutUsersMarginCollateral (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutUsersMarginCollateral", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePutUsersMarginCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersMarginCollateral", args...)
 }
 
-func (this *coinmetro) PrivatePutUsersMarginPrimaryCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutUsersMarginPrimaryCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinmetroCore) PrivatePutUsersMarginPrimaryCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersMarginPrimaryCurrency", args...)
 }

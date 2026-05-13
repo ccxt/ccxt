@@ -53,6 +53,7 @@ class xt extends Exchange {
                 'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowInterest' => false,
@@ -77,6 +78,7 @@ class xt extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
@@ -91,6 +93,8 @@ class xt extends Exchange {
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -114,6 +118,7 @@ class xt extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
@@ -342,7 +347,7 @@ class xt extends Exchange {
                             'user/account/api-key' => 1,
                         ),
                         'delete' => array(
-                            'user/account/{apikeyId}' => 1,
+                            'user/account/{apiKeyId}' => 1,
                         ),
                     ),
                 ),
@@ -910,50 +915,30 @@ class xt extends Exchange {
                 $entry = $currenciesData[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
-                $minPrecision = $this->parse_number($this->parse_precision($this->safe_string($entry, 'maxPrecision')));
                 $networkEntry = $this->safe_value($chainsDataIndexed, $currencyId, array());
                 $rawNetworks = $this->safe_value($networkEntry, 'supportChains', array());
                 $networks = array();
-                $minWithdrawString = null;
-                $minWithdrawFeeString = null;
-                $active = false;
-                $deposit = false;
-                $withdraw = false;
                 for ($j = 0; $j < count($rawNetworks); $j++) {
                     $rawNetwork = $rawNetworks[$j];
                     $networkId = $this->safe_string($rawNetwork, 'chain');
-                    $network = $this->network_id_to_code($networkId);
-                    $depositEnabled = $this->safe_value($rawNetwork, 'depositEnabled');
-                    $deposit = ($depositEnabled) ? $depositEnabled : $deposit;
-                    $withdrawEnabled = $this->safe_value($rawNetwork, 'withdrawEnabled');
-                    $withdraw = ($withdrawEnabled) ? $withdrawEnabled : $withdraw;
-                    $networkActive = $depositEnabled && $withdrawEnabled;
-                    $active = ($networkActive) ? $networkActive : $active;
-                    $withdrawFeeString = $this->safe_string($rawNetwork, 'withdrawFeeAmount');
-                    if ($withdrawFeeString !== null) {
-                        $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
-                    }
-                    $minNetworkWithdrawString = $this->safe_string($rawNetwork, 'withdrawMinAmount');
-                    if ($minNetworkWithdrawString !== null) {
-                        $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
-                    }
-                    $networks[$network] = array(
+                    $networkCode = $this->network_id_to_code($networkId, $code);
+                    $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $networkId,
-                        'network' => $network,
+                        'network' => $networkCode,
                         'name' => null,
-                        'active' => $networkActive,
-                        'fee' => $this->parse_number($withdrawFeeString),
-                        'precision' => $minPrecision,
-                        'deposit' => $depositEnabled,
-                        'withdraw' => $withdrawEnabled,
+                        'active' => null,
+                        'fee' => $this->safe_number($rawNetwork, 'withdrawFeeAmount'),
+                        'precision' => null,
+                        'deposit' => $this->safe_bool($rawNetwork, 'depositEnabled'),
+                        'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnabled'),
                         'limits' => array(
                             'amount' => array(
                                 'min' => null,
                                 'max' => null,
                             ),
                             'withdraw' => array(
-                                'min' => $this->parse_number($minNetworkWithdrawString),
+                                'min' => $this->safe_number($rawNetwork, 'withdrawMinAmount'),
                                 'max' => null,
                             ),
                             'deposit' => array(
@@ -970,16 +955,16 @@ class xt extends Exchange {
                 } else {
                     $type = 'other';
                 }
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'info' => $entry,
                     'id' => $currencyId,
                     'code' => $code,
                     'name' => $this->safe_string($entry, 'fullName'),
-                    'active' => $active,
-                    'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => $minPrecision,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
+                    'active' => null,
+                    'fee' => null,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'maxPrecision'))),
+                    'deposit' => $this->safe_string($entry, 'depositStatus') === '1',
+                    'withdraw' => $this->safe_string($entry, 'withdrawStatus') === '1',
                     'networks' => $networks,
                     'type' => $type,
                     'limits' => array(
@@ -988,7 +973,7 @@ class xt extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => $this->parse_number($minWithdrawString),
+                            'min' => null,
                             'max' => null,
                         ),
                         'deposit' => array(
@@ -996,7 +981,7 @@ class xt extends Exchange {
                             'max' => null,
                         ),
                     ),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -1422,7 +1407,7 @@ class xt extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1454,6 +1439,11 @@ class xt extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
+                if ($market['spot']) {
+                    $limit = min ($limit, 1000); // spot max $limit
+                } else {
+                    $limit = min ($limit, 1500); // derivatives max $limit
+                }
                 $request['limit'] = $limit;
             } else {
                 $request['limit'] = 1000;
@@ -1943,8 +1933,8 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
+            'baseVolume' => $this->safe_number($ticker, 'a'),
+            'quoteVolume' => $this->safe_number($ticker, 'v'),
             'info' => $ticker,
         ), $market);
     }
@@ -2448,7 +2438,7 @@ class xt extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2994,18 +2984,24 @@ class xt extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
             $type = null;
             $subType = null;
             $response = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOrdersByStatus', $market, $params);
-            $trigger = $this->safe_value($params, 'stop');
+            $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             if ($status === 'open') {
                 if ($trigger || $stopLossTakeProfit) {
                     $request['state'] = 'NOT_TRIGGERED';
-                } elseif ($subType !== null) {
-                    $request['state'] = 'NEW';
+                } elseif ($type === 'swap') {
+                    $request['state'] = 'UNFINISHED'; // NEW & PARTIALLY_FILLED
                 }
             } elseif ($status === 'closed') {
                 if ($trigger || $stopLossTakeProfit) {
@@ -3031,7 +3027,7 @@ class xt extends Exchange {
                 }
             }
             if ($trigger) {
-                $params = $this->omit($params, 'stop');
+                $params = $this->omit($params, array( 'stop', 'trigger' ));
                 if ($subType === 'inverse') {
                     $response = Async\await($this->privateInverseGetFutureTradeV1EntrustPlanList ($this->extend($request, $params)));
                 } else {
@@ -3060,6 +3056,7 @@ class xt extends Exchange {
                         $request['startTime'] = $since;
                     }
                     if ($limit !== null) {
+                        $request = $this->omit($request, 'size');
                         $request['limit'] = $limit;
                     }
                     $response = Async\await($this->privateSpotGetHistoryOrder ($this->extend($request, $params)));
@@ -3245,9 +3242,13 @@ class xt extends Exchange {
             //         }
             //     }
             //
-            $isSpotOpenOrders = (($status === 'open') && ($subType === null));
-            $data = $this->safe_value($response, 'result', array());
-            $orders = $isSpotOpenOrders ? $this->safe_value($response, 'result', array()) : $this->safe_value($data, 'items', array());
+            $orders = array();
+            $resultDict = $this->safe_dict($response, 'result');
+            if ($resultDict !== null) {
+                $orders = $this->safe_list($resultDict, 'items', array());
+            } else {
+                $orders = $this->safe_list($response, 'result');
+            }
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -3759,7 +3760,7 @@ class xt extends Exchange {
             //             "hasNext" => false,
             //             "items" => array(
             //                 array(
-            //                     "id" => "207260567109387524",
+            //                     "id" => "207260567109387525",
             //                     "coin" => "usdt",
             //                     "symbol" => "btc_usdt",
             //                     "type" => "FEE",
@@ -4007,7 +4008,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4143,7 +4144,7 @@ class xt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4205,7 +4206,7 @@ class xt extends Exchange {
              * @param {float} $amount amount of margin to add
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @param {string} $params->positionSide 'LONG' or 'SHORT'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'ADD', $params));
         }) ();
@@ -4222,7 +4223,7 @@ class xt extends Exchange {
              * @param {float} $amount the $amount of margin to remove
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @param {string} $params->positionSide 'LONG' or 'SHORT'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'SUB', $params));
         }) ();
@@ -4284,7 +4285,7 @@ class xt extends Exchange {
              *
              * @param {string} [$symbols] a list of unified market $symbols
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~
              */
             Async\await($this->load_markets());
             $subType = null;
@@ -4369,7 +4370,7 @@ class xt extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4460,12 +4461,18 @@ class xt extends Exchange {
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
              * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {bool} $params->paginate true/false whether to use the pagination helper to aumatically $paginate through the results
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'id', 'id', 1, 200));
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
@@ -4475,6 +4482,8 @@ class xt extends Exchange {
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 200; // max
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRateHistory', $market, $params);
@@ -4534,7 +4543,7 @@ class xt extends Exchange {
              *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             return Async\await($this->fetch_funding_rate($symbol, $params));
         }) ();
@@ -4549,7 +4558,7 @@ class xt extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4634,7 +4643,7 @@ class xt extends Exchange {
              * @param {int} [$since] the starting timestamp in milliseconds
              * @param {int} [$limit] the number of entries to return
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4727,7 +4736,7 @@ class xt extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4790,7 +4799,7 @@ class xt extends Exchange {
              *
              * @param {string} [$symbols] list of unified market $symbols, not supported with xt
              * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $subType = null;
@@ -4902,7 +4911,7 @@ class xt extends Exchange {
              * @param {string} $fromAccount account to transfer from -  spot, swap, leverage, finance
              * @param {string} $toAccount account to transfer to - spot, swap, leverage, finance
              * @param {array} $params extra parameters specific to the whitebit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -5022,7 +5031,7 @@ class xt extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopLoss] $price to set a stop-loss on an open position
              * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($amount === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');

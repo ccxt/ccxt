@@ -39,6 +39,7 @@ class poloniex extends Exchange {
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
@@ -56,6 +57,7 @@ class poloniex extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => null, // has but not implemented
+                'fetchGreeks' => false,
                 'fetchLedger' => null, // has but not implemented
                 'fetchLeverage' => true,
                 'fetchLiquidations' => null, // has but not implemented
@@ -66,6 +68,8 @@ class poloniex extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -82,6 +86,7 @@ class poloniex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'sandbox' => true,
@@ -303,6 +308,11 @@ class poloniex extends Exchange {
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRON',
+                    'TRX' => 'TRON',
+                ),
+                'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'TRON' => 'TRC20',
                 ),
                 'limits' => array(
                     'cost' => array(
@@ -610,7 +620,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1069,7 +1079,7 @@ class poloniex extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $market = null;
@@ -1149,7 +1159,7 @@ class poloniex extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#$currency-information
+         * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -1157,105 +1167,107 @@ class poloniex extends Exchange {
         $response = $this->publicGetCurrencies ($this->extend($params, array( 'includeMultiChainCurrencies' => true )));
         //
         //     array(
-        //         {
-        //             "1CR" => {
-        //                 "id" => 1,
-        //                 "name" => "1CRedit",
-        //                 "description" => "BTC Clone",
-        //                 "type" => "address",
-        //                 "withdrawalFee" => "0.01000000",
-        //                 "minConf" => 10000,
-        //                 "depositAddress" => null,
-        //                 "blockchain" => "1CR",
-        //                 "delisted" => false,
-        //                 "tradingState" => "NORMAL",
-        //                 "walletState" => "DISABLED",
-        //                 "walletDepositState" => "DISABLED",
-        //                 "walletWithdrawalState" => "DISABLED",
-        //                 "parentChain" => null,
-        //                 "isMultiChain" => false,
-        //                 "isChildChain" => false,
-        //                 "childChains" => array()
-        //             }
-        //         }
+        //      {
+        //        "USDT" => array(
+        //           "id" => 214,
+        //           "name" => "Tether USD",
+        //           "description" => "Sweep to Main Account",
+        //           "type" => "address",
+        //           "withdrawalFee" => "0.00000000",
+        //           "minConf" => 2,
+        //           "depositAddress" => null,
+        //           "blockchain" => "OMNI",
+        //           "delisted" => false,
+        //           "tradingState" => "NORMAL",
+        //           "walletState" => "DISABLED",
+        //           "walletDepositState" => "DISABLED",
+        //           "walletWithdrawalState" => "DISABLED",
+        //           "supportCollateral" => true,
+        //           "supportBorrow" => true,
+        //           "parentChain" => null,
+        //           "isMultiChain" => true,
+        //           "isChildChain" => false,
+        //           "childChains" => array(
+        //             "USDTBSC",
+        //             "USDTETH",
+        //             "USDTSOL",
+        //             "USDTTRON"
+        //           )
+        //        }
+        //      ),
+        //      ...
+        //      {
+        //        "USDTBSC" => array(
+        //              "id" => 582,
+        //              "name" => "Binance-Peg BSC-USD",
+        //              "description" => "Sweep to Main Account",
+        //              "type" => "address",
+        //              "withdrawalFee" => "0.00000000",
+        //              "minConf" => 15,
+        //              "depositAddress" => null,
+        //              "blockchain" => "BSC",
+        //              "delisted" => false,
+        //              "tradingState" => "OFFLINE",
+        //              "walletState" => "ENABLED",
+        //              "walletDepositState" => "ENABLED",
+        //              "walletWithdrawalState" => "DISABLED",
+        //              "supportCollateral" => false,
+        //              "supportBorrow" => false,
+        //              "parentChain" => "USDT",
+        //              "isMultiChain" => true,
+        //              "isChildChain" => true,
+        //              "childChains" => array()
+        //        }
+        //      ),
+        //      ...
         //     )
         //
         $result = array();
+        // poloniex has a complicated structure of currencies, so we handle them differently
+        // at first, turn the $response into a normal dictionary
+        $currenciesDict = array();
         for ($i = 0; $i < count($response); $i++) {
-            $item = $this->safe_value($response, $i);
+            $item = $this->safe_dict($response, $i);
             $ids = is_array($item) ? array_keys($item) : array();
-            $id = $this->safe_value($ids, 0);
-            $currency = $this->safe_value($item, $id);
+            $id = $this->safe_string($ids, 0);
+            $currenciesDict[$id] = $item[$id];
+        }
+        $keys = is_array($currenciesDict) ? array_keys($currenciesDict) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $id = $keys[$i];
+            $entry = $currenciesDict[$id];
             $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $networkId = $this->safe_string($currency, 'blockchain');
-            $networkCode = null;
-            if ($networkId !== null) {
-                $networkCode = $this->network_id_to_code($networkId, $code);
+            // skip $childChains, are collected in parentChain loop
+            if ($this->safe_bool($entry, 'isChildChain')) {
+                continue;
             }
-            $delisted = $this->safe_value($currency, 'delisted');
-            $walletEnabled = $this->safe_string($currency, 'walletState') === 'ENABLED';
-            $depositEnabled = $this->safe_string($currency, 'walletDepositState') === 'ENABLED';
-            $withdrawEnabled = $this->safe_string($currency, 'walletWithdrawalState') === 'ENABLED';
-            $active = !$delisted && $walletEnabled && $depositEnabled && $withdrawEnabled;
-            $numericId = $this->safe_integer($currency, 'id');
-            $feeString = $this->safe_string($currency, 'withdrawalFee');
-            $parentChain = $this->safe_value($currency, 'parentChain');
-            $noParentChain = $parentChain === null;
-            if ($this->safe_value($result, $code) === null) {
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => null,
-                    'name' => $name,
-                    'active' => $active,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => $this->parse_number($feeString),
-                    'precision' => null,
-                    'type' => 'crypto',
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
+            $allChainEntries = array();
+            $childChains = $this->safe_list($entry, 'childChains', array());
+            if ($childChains !== null) {
+                for ($j = 0; $j < count($childChains); $j++) {
+                    $childChainId = $childChains[$j];
+                    $childNetworkEntry = $this->safe_dict($currenciesDict, $childChainId);
+                    $allChainEntries[] = $childNetworkEntry;
+                }
             }
-            $minFeeString = $this->safe_string($result[$code], 'fee');
-            if ($feeString !== null) {
-                $minFeeString = ($minFeeString === null) ? $feeString : Precise::string_min($feeString, $minFeeString);
-            }
-            $depositAvailable = $this->safe_value($result[$code], 'deposit');
-            $depositAvailable = ($depositEnabled) ? $depositEnabled : $depositAvailable;
-            $withdrawAvailable = $this->safe_value($result[$code], 'withdraw');
-            $withdrawAvailable = ($withdrawEnabled) ? $withdrawEnabled : $withdrawAvailable;
-            $networks = $this->safe_value($result[$code], 'networks', array());
-            if ($networkCode !== null) {
+            $allChainEntries[] = $entry;
+            $networks = array();
+            for ($j = 0; $j < count($allChainEntries); $j++) {
+                $chainEntry = $allChainEntries[$j];
+                $networkName = $this->safe_string($chainEntry, 'blockchain');
+                $networkCode = $this->network_id_to_code($networkName, $code);
+                $specialNetworkId = $this->safe_string($childChains, $j, $id); // in case it's primary chain, defeault to ID
                 $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
+                    'info' => $chainEntry,
+                    'id' => $specialNetworkId, // we need this for deposit/withdrawal, instead of friendly name
+                    'numericId' => $this->safe_integer($chainEntry, 'id'),
                     'network' => $networkCode,
-                    'currencyId' => $id,
-                    'numericId' => $numericId,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'active' => $active,
-                    'fee' => $this->parse_number($feeString),
+                    'active' => $this->safe_bool($chainEntry, 'walletState'),
+                    'deposit' => $this->safe_string($chainEntry, 'walletDepositState') === 'ENABLED',
+                    'withdraw' => $this->safe_string($chainEntry, 'walletWithdrawalState') === 'ENABLED',
+                    'fee' => $this->safe_number($chainEntry, 'withdrawalFee'),
                     'precision' => null,
                     'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
                         'withdraw' => array(
                             'min' => null,
                             'max' => null,
@@ -1267,20 +1279,34 @@ class poloniex extends Exchange {
                     ),
                 );
             }
-            $result[$code]['networks'] = $networks;
-            $info = $this->safe_value($result[$code], 'info', array());
-            $rawInfo = array();
-            $rawInfo[$id] = $currency;
-            $info[] = $rawInfo;
-            $result[$code]['info'] = $info;
-            if ($noParentChain) {
-                $result[$code]['id'] = $id;
-                $result[$code]['name'] = $name;
-            }
-            $result[$code]['active'] = $depositAvailable && $withdrawAvailable;
-            $result[$code]['deposit'] = $depositAvailable;
-            $result[$code]['withdraw'] = $withdrawAvailable;
-            $result[$code]['fee'] = $this->parse_number($minFeeString);
+            $result[$code] = $this->safe_currency_structure(array(
+                'info' => $entry,
+                'code' => $code,
+                'id' => $id,
+                'numericId' => $this->safe_integer($entry, 'id'),
+                'type' => 'crypto',
+                'name' => $this->safe_string($entry, 'name'),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => null,
+                'precision' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'networks' => $networks,
+            ));
         }
         return $result;
     }
@@ -1294,7 +1320,7 @@ class poloniex extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1476,7 +1502,7 @@ class poloniex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1535,7 +1561,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -1749,7 +1775,7 @@ class poloniex extends Exchange {
         $symbol = $market['symbol'];
         $resultingTrades = $this->safe_value($order, 'resultingTrades');
         if ($resultingTrades !== null) {
-            if (gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades))) {
+            if ((gettype($resultingTrades) !== 'array' || array_keys($resultingTrades) !== array_keys(array_keys($resultingTrades)))) {
                 $resultingTrades = $this->safe_value($resultingTrades, $this->safe_string($market, 'id', $marketId));
             }
         }
@@ -1852,7 +1878,7 @@ class poloniex extends Exchange {
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] set true to fetch trigger orders instead of regular orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1955,7 +1981,7 @@ class poloniex extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -2036,7 +2062,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2162,7 +2188,7 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2205,7 +2231,7 @@ class poloniex extends Exchange {
         // @param {string} $symbol unified $symbol of the $market the order was made in
         // @param {object} [$params] extra parameters specific to the exchange API endpoint
         // @param {boolean} [$params->trigger] true if canceling a trigger order
-        // @returns {object} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+        // @returns {object} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
         //
         $this->load_markets();
         if ($symbol === null) {
@@ -2265,7 +2291,7 @@ class poloniex extends Exchange {
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if canceling trigger orders
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -2339,7 +2365,7 @@ class poloniex extends Exchange {
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if fetching a trigger $order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $this->load_markets();
         $id = (string) $id;
@@ -2409,7 +2435,7 @@ class poloniex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -2447,7 +2473,7 @@ class poloniex extends Exchange {
             'datetime' => null,
         );
         // for swap
-        if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $ts = $this->safe_integer($response, 'uTime');
             $result['timestamp'] = $ts;
             $result['datetime'] = $this->iso8601($ts);
@@ -2488,7 +2514,7 @@ class poloniex extends Exchange {
          * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $marketType = null;
@@ -2565,7 +2591,7 @@ class poloniex extends Exchange {
          * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
         $this->load_markets();
         $response = $this->privateGetFeeinfo ($params);
@@ -2602,7 +2628,7 @@ class poloniex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum $amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2640,7 +2666,7 @@ class poloniex extends Exchange {
         //         "scale" : "-1",
         //         "asks" : array( "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ),
         //         "bids" : array( "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ),
-        //         "ts" : 1659695219513
+        //         "ts" : 1659695219512
         //     }
         //
         $timestamp = $this->safe_integer($response, 'time');
@@ -2674,92 +2700,87 @@ class poloniex extends Exchange {
 
     public function create_deposit_address(string $code, $params = array ()): array {
         /**
-         * create a $currency deposit $address
+         * create a $currency deposit address
          *
          * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
          *
-         * @param {string} $code unified $currency $code of the $currency for the deposit $address
+         * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            $params = $this->omit($params, 'network');
-        } else {
-            if ($currency['id'] === 'USDT') {
-                throw new ArgumentsRequired($this->id . ' createDepositAddress requires a $network parameter for ' . $code . '.');
-            }
-        }
+        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
+        $params = $extraParams;
         $response = $this->privatePostWalletsAddress ($this->extend($request, $params));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        $address = $this->safe_string($response, 'address');
-        $tag = null;
-        $this->check_address($address);
-        if ($currency !== null) {
-            $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
-            if ($depositAddress !== null) {
-                $tag = $address;
-                $address = $depositAddress;
-            }
-        }
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => $network,
-            'info' => $response,
-        );
+        return $this->parse_deposit_address_special($response, $currency, $networkEntry);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
-         * fetch the deposit $address for a $currency associated with this account
+         * fetch the deposit address for a $currency associated with this account
          *
          * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            $params = $this->omit($params, 'network');
-        } else {
-            if ($currency['id'] === 'USDT') {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a $network parameter for ' . $code . '.');
-            }
-        }
+        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
+        $params = $extraParams;
         $response = $this->privateGetWalletsAddresses ($this->extend($request, $params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        $address = $this->safe_string($response, $request['currency']);
+        $keys = is_array($response) ? array_keys($response) : array();
+        $length = count($keys);
+        if ($length < 1) {
+            throw new ExchangeError($this->id . ' fetchDepositAddress() returned an empty $response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
+        }
+        return $this->parse_deposit_address_special($response, $currency, $networkEntry);
+    }
+
+    public function prepare_request_for_deposit_address(string $code, array $params = array ()): mixed {
+        if (!(is_array($this->currencies) && array_key_exists($code, $this->currencies))) {
+            throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' $currency, you might try using unified $currency-$code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
+        }
+        $currency = $this->currency($code);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            // we need to know the network to find out the $currency-junction
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a network parameter for ' . $code . '.');
+        }
+        $exchangeNetworkId = null;
+        $networkCode = $this->network_id_to_code($networkCode, $code);
+        $networkEntry = $this->safe_dict($currency['networks'], $networkCode);
+        if ($networkEntry !== null) {
+            $exchangeNetworkId = $networkEntry['id'];
+        } else {
+            $exchangeNetworkId = $networkCode;
+        }
+        $request = array(
+            'currency' => $exchangeNetworkId,
+        );
+        return array( $request, $params, $currency, $networkEntry );
+    }
+
+    public function parse_deposit_address_special($response, $currency, $networkEntry): array {
+        $address = $this->safe_string($response, 'address');
+        if ($address === null) {
+            $address = $this->safe_string($response, $networkEntry['id']);
+        }
         $tag = null;
         $this->check_address($address);
-        if ($currency !== null) {
-            $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
+        if ($networkEntry !== null) {
+            $depositAddress = $this->safe_string($networkEntry['info'], 'depositAddress');
             if ($depositAddress !== null) {
                 $tag = $address;
                 $address = $depositAddress;
@@ -2767,8 +2788,8 @@ class poloniex extends Exchange {
         }
         return array(
             'info' => $response,
-            'currency' => $code,
-            'network' => $network,
+            'currency' => $currency['code'],
+            'network' => $this->safe_string($networkEntry, 'network'),
             'address' => $address,
             'tag' => $tag,
         );
@@ -2785,7 +2806,7 @@ class poloniex extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2826,7 +2847,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2837,26 +2858,16 @@ class poloniex extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => $amount,
-            'address' => $address,
-        );
+        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
+        $params = $extraParams;
+        $request['amount'] = $this->currency_to_precision($code, $amount);
+        $request['address'] = $address;
         if ($tag !== null) {
             $request['paymentId'] = $tag;
-        }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['currency'] = $request['currency'] . $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            $params = $this->omit($params, 'network');
         }
         $response = $this->privatePostWalletsWithdraw ($this->extend($request, $params));
         //
@@ -2866,7 +2877,11 @@ class poloniex extends Exchange {
         //         "withdrawalNumber" => 13449869
         //     }
         //
-        return $this->parse_transaction($response, $currency);
+        $withdrawResponse = array(
+            'response' => $response,
+            'withdrawNetworkEntry' => $networkEntry,
+        );
+        return $this->parse_transaction($withdrawResponse, $currency);
     }
 
     public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2963,7 +2978,7 @@ class poloniex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $response = $this->fetch_transactions_helper($code, $since, $limit, $params);
@@ -2989,7 +3004,7 @@ class poloniex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
          * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $response = $this->fetch_transactions_helper($code, $since, $limit, $params);
         $currency = null;
@@ -3009,7 +3024,7 @@ class poloniex extends Exchange {
          *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fees structures~
          */
         $this->load_markets();
         $response = $this->publicGetCurrencies ($this->extend($params, array( 'includeMultiChainCurrencies' => true )));
@@ -3139,7 +3154,7 @@ class poloniex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $deposits for
          * @param {int} [$limit] the maximum number of $deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $response = $this->fetch_transactions_helper($code, $since, $limit, $params);
         $currency = null;
@@ -3201,6 +3216,10 @@ class poloniex extends Exchange {
         //         "withdrawalRequestsId" => 33485231
         //     }
         //
+        // if it's being parsed from "withdraw()" method, get the original response
+        if (is_array($transaction) && array_key_exists('withdrawNetworkEntry', $transaction)) {
+            $transaction = $transaction['response'];
+        }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -3244,7 +3263,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -3290,7 +3309,7 @@ class poloniex extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3438,7 +3457,7 @@ class poloniex extends Exchange {
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->standard] whether to fetch standard contract $positions
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -3613,7 +3632,7 @@ class poloniex extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
@@ -3624,7 +3643,7 @@ class poloniex extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
@@ -3637,6 +3656,9 @@ class poloniex extends Exchange {
         $url = $this->urls['api']['spot'];
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
+        }
+        if ($method === 'GET' && (is_array($params) && array_key_exists('symbol', $params))) {
+            $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));
         $implodedPath = $this->implode_params($path, $params);

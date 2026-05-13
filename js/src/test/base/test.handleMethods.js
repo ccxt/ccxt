@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 function helperTestHandleMarketTypeAndParams() {
@@ -67,7 +66,7 @@ function helperTestHandleNetworkRequest() {
             }
         },
     });
-    exchange.currencies = {}; // todo: initialize in C# base files
+    exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
     const currencyCode = 'ETH'; // todo: in future with complex cases
     // no-case
     const [request1, params1] = exchange.handleRequestNetwork({ 'network': 'XYZ' }, {}, 'chain_id', currencyCode, false);

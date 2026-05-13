@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitbank$1 = require('./abstract/bitbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,13 +13,14 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitbank
  * @augments Exchange
  */
-class bitbank extends bitbank$1 {
+class bitbank extends bitbank$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitbank',
             'name': 'bitbank',
             'countries': ['JP'],
             'version': 'v1',
+            'rateLimit': 100,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -46,6 +49,7 @@ class bitbank extends bitbank$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -136,46 +140,46 @@ class bitbank extends bitbank$1 {
             },
             'api': {
                 'public': {
-                    'get': [
-                        '{pair}/ticker',
-                        'tickers',
-                        'tickers_jpy',
-                        '{pair}/depth',
-                        '{pair}/transactions',
-                        '{pair}/transactions/{yyyymmdd}',
-                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
-                        '{pair}/circuit_break_info',
-                    ],
+                    'get': {
+                        '{pair}/ticker': 1,
+                        'tickers': 1,
+                        'tickers_jpy': 1,
+                        '{pair}/depth': 1,
+                        '{pair}/transactions': 1,
+                        '{pair}/transactions/{yyyymmdd}': 1,
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}': 1,
+                        '{pair}/circuit_break_info': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user/assets',
-                        'user/spot/order',
-                        'user/spot/active_orders',
-                        'user/margin/positions',
-                        'user/spot/trade_history',
-                        'user/deposit_history',
-                        'user/unconfirmed_deposits',
-                        'user/deposit_originators',
-                        'user/withdrawal_account',
-                        'user/withdrawal_history',
-                        'spot/status',
-                        'spot/pairs',
-                    ],
-                    'post': [
-                        'user/spot/order',
-                        'user/spot/cancel_order',
-                        'user/spot/cancel_orders',
-                        'user/spot/orders_info',
-                        'user/confirm_deposits',
-                        'user/confirm_deposits_all',
-                        'user/request_withdrawal',
-                    ],
+                    'get': {
+                        'user/assets': 1,
+                        'user/spot/order': 1,
+                        'user/spot/active_orders': 1,
+                        'user/margin/positions': 1,
+                        'user/spot/trade_history': 1,
+                        'user/deposit_history': 1,
+                        'user/unconfirmed_deposits': 1,
+                        'user/deposit_originators': 1,
+                        'user/withdrawal_account': 1,
+                        'user/withdrawal_history': 1,
+                        'spot/status': 1,
+                        'spot/pairs': 1,
+                    },
+                    'post': {
+                        'user/spot/order': 1.66,
+                        'user/spot/cancel_order': 1.66,
+                        'user/spot/cancel_orders': 1.66,
+                        'user/spot/orders_info': 1.66,
+                        'user/confirm_deposits': 1.66,
+                        'user/confirm_deposits_all': 1.66,
+                        'user/request_withdrawal': 1.66,
+                    },
                 },
                 'markets': {
-                    'get': [
-                        'spot/pairs',
-                    ],
+                    'get': {
+                        'spot/pairs': 1,
+                    },
                 },
             },
             'features': {
@@ -394,7 +398,7 @@ class bitbank extends bitbank$1 {
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -414,7 +418,7 @@ class bitbank extends bitbank$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -481,7 +485,7 @@ class bitbank extends bitbank$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -500,7 +504,7 @@ class bitbank extends bitbank$1 {
      * @description fetch the trading fees for multiple markets
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-all-pairs-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
         await this.loadMarkets();
@@ -650,7 +654,7 @@ class bitbank extends bitbank$1 {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -748,7 +752,7 @@ class bitbank extends bitbank$1 {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -774,7 +778,7 @@ class bitbank extends bitbank$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -818,7 +822,7 @@ class bitbank extends bitbank$1 {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -862,7 +866,7 @@ class bitbank extends bitbank$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -890,7 +894,7 @@ class bitbank extends bitbank$1 {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -918,7 +922,7 @@ class bitbank extends bitbank$1 {
      * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#get-withdrawal-accounts
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -934,7 +938,7 @@ class bitbank extends bitbank$1 {
         const address = this.safeString(firstAccount, 'address');
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': undefined,
             'address': address,
             'tag': undefined,
@@ -950,7 +954,7 @@ class bitbank extends bitbank$1 {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -1142,4 +1146,4 @@ class bitbank extends bitbank$1 {
     }
 }
 
-module.exports = bitbank;
+exports["default"] = bitbank;

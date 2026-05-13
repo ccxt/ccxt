@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function test_json() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'regirock',
     ));
     // Test: object
@@ -23,16 +23,4 @@ function test_json() {
     $list = [1, 2];
     $list_json = $exchange->json($list);
     assert($list_json === '[1,2]');
-    assert('GO_SKIP_START');
-    try {
-        throw new BadRequest('some error');
-    } catch(\Throwable $e) {
-        $err_string = $exchange->json($e);
-        assert($err_string === '{"name":"BadRequest"}');
-    }
-    assert('GO_SKIP_END');
-    // Test: json a string
-    $str = 'ccxt, rocks!';
-    $serialized_string = $exchange->json($str);
-    assert($serialized_string === '"ccxt, rocks!"');
 }

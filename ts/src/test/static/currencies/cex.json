@@ -22,26 +22,34 @@
             }
         },
         "id": "BTC",
+        "numericId": null,
         "code": "BTC",
         "precision": 1e-8,
         "type": "crypto",
+        "name": null,
+        "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.0005,
         "fees": {},
         "networks": {
             "BTC": {
                 "id": "bitcoin",
                 "network": "BTC",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
+                "active": true,
                 "fee": 0.0005,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 0.0001
+                        "min": 0.0001,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.002
+                        "min": 0.002,
+                        "max": null
                     }
                 },
                 "info": {
@@ -57,8 +65,18 @@
             }
         },
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.002,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.0001,
+                "max": null
+            }
         }
     },
     "USDT": {
@@ -114,26 +132,34 @@
             }
         },
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
         "precision": 1e-8,
         "type": "crypto",
+        "name": null,
+        "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 1,
         "fees": {},
         "networks": {
             "ethereum": {
                 "id": "ethereum",
                 "network": "ethereum",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
+                "active": true,
                 "fee": 10,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 20
+                        "min": 20,
+                        "max": null
                     }
                 },
                 "info": {
@@ -150,16 +176,20 @@
             "TRC20": {
                 "id": "tron",
                 "network": "TRC20",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
+                "active": true,
                 "fee": 5,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 10
+                        "min": 10,
+                        "max": null
                     }
                 },
                 "info": {
@@ -176,16 +206,20 @@
             "SOLANA": {
                 "id": "solana",
                 "network": "SOLANA",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
+                "active": true,
                 "fee": 1,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 10
+                        "min": 10,
+                        "max": null
                     }
                 },
                 "info": {
@@ -202,16 +236,20 @@
             "BSC20": {
                 "id": "binancesmartchain",
                 "network": "BSC20",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
+                "active": true,
                 "fee": 2,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 5
+                        "min": 5,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 10
+                        "min": 10,
+                        "max": null
                     }
                 },
                 "info": {
@@ -227,60 +265,82 @@
             }
         },
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": null
+            },
+            "deposit": {
+                "min": 5,
+                "max": null
+            }
         }
     },
     "EUR": {
+        "info": {
+            "currency": "EUR",
+            "fiat": true,
+            "precision": "8",
+            "walletPrecision": "2",
+            "walletDeposit": true,
+            "walletWithdrawal": true
+        },
         "id": "EUR",
+        "numericId": null,
         "code": "EUR",
-        "name": "EUR",
-        "active": true,
-        "precision": 0.01,
+        "precision": 1e-8,
+        "type": "fiat",
+        "name": null,
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.01
+                "min": null,
+                "max": null
             },
             "withdraw": {
-                "min": -1
+                "min": null,
+                "max": null
             }
-        },
-        "info": {
-            "code": "EUR",
-            "contract": false,
-            "commodity": false,
-            "fiat": true,
-            "description": "",
-            "precision": "2",
-            "scale": "0",
-            "minimumCurrencyAmount": "0.01",
-            "minimalWithdrawalAmount": "-1"
         }
     },
     "USD": {
+        "info": {
+            "currency": "USD",
+            "fiat": true,
+            "precision": "8",
+            "walletPrecision": "2",
+            "walletDeposit": true,
+            "walletWithdrawal": true
+        },
         "id": "USD",
+        "numericId": null,
         "code": "USD",
-        "name": "USD",
-        "active": true,
-        "precision": 0.01,
+        "precision": 1e-8,
+        "type": "fiat",
+        "name": null,
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {},
         "limits": {
             "amount": {
-                "min": 0.01
+                "min": null,
+                "max": null
             },
             "withdraw": {
-                "min": -1
+                "min": null,
+                "max": null
             }
-        },
-        "info": {
-            "code": "USD",
-            "contract": false,
-            "commodity": false,
-            "fiat": true,
-            "description": "",
-            "precision": "2",
-            "scale": "0",
-            "minimumCurrencyAmount": "0.01",
-            "minimalWithdrawalAmount": "-1"
         }
     },
     "LTC": {
@@ -296,53 +356,71 @@
                 "litecoin": {
                     "type": "coin",
                     "deposit": "enabled",
-                    "minDeposit": "0.0001",
+                    "minDeposit": "0.03",
                     "withdrawal": "enabled",
-                    "minWithdrawal": "0.002",
-                    "withdrawalFee": "0.001",
+                    "minWithdrawal": "0.05",
+                    "withdrawalFee": "0.02",
                     "withdrawalFeePercent": "0",
                     "depositConfirmations": "3"
                 }
             }
         },
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
         "precision": 1e-8,
         "type": "crypto",
+        "name": null,
+        "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.02,
         "fees": {},
         "networks": {
             "LTC": {
                 "id": "litecoin",
                 "network": "LTC",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.001,
+                "active": true,
+                "fee": 0.02,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 0.0001
+                        "min": 0.03,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.002
+                        "min": 0.05,
+                        "max": null
                     }
                 },
                 "info": {
                     "type": "coin",
                     "deposit": "enabled",
-                    "minDeposit": "0.0001",
+                    "minDeposit": "0.03",
                     "withdrawal": "enabled",
-                    "minWithdrawal": "0.002",
-                    "withdrawalFee": "0.001",
+                    "minWithdrawal": "0.05",
+                    "withdrawalFee": "0.02",
                     "withdrawalFeePercent": "0",
                     "depositConfirmations": "3"
                 }
             }
         },
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.05,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.03,
+                "max": null
+            }
         }
     },
     "ETH": {
@@ -378,26 +456,34 @@
             }
         },
         "id": "ETH",
+        "numericId": null,
         "code": "ETH",
         "precision": 1e-8,
         "type": "crypto",
+        "name": null,
+        "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.006,
         "fees": {},
         "networks": {
             "ethereum": {
                 "id": "ethereum",
                 "network": "ethereum",
+                "margin": null,
                 "deposit": true,
                 "withdraw": true,
+                "active": true,
                 "fee": 0.006,
                 "precision": 1e-8,
                 "limits": {
                     "deposit": {
-                        "min": 0.001
+                        "min": 0.001,
+                        "max": null
                     },
                     "withdraw": {
-                        "min": 0.02
+                        "min": 0.02,
+                        "max": null
                     }
                 },
                 "info": {
@@ -414,12 +500,21 @@
             "OPT": {
                 "id": "optimism",
                 "network": "OPT",
+                "margin": null,
                 "deposit": false,
                 "withdraw": false,
+                "active": false,
+                "fee": null,
                 "precision": 1e-8,
                 "limits": {
-                    "deposit": {},
-                    "withdraw": {}
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 },
                 "info": {
                     "type": "coin",
@@ -434,86 +529,458 @@
             }
         },
         "limits": {
-            "amount": {},
-            "withdraw": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.02,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.001,
+                "max": null
+            }
         }
     },
     "ADA": {
-        "id": "ADA",
-        "code": "ADA",
-        "name": "ADA",
-        "active": true,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {
-                "min": 0.000001
-            },
-            "withdraw": {
-                "min": 10
+        "info": {
+            "currency": "ADA",
+            "fiat": false,
+            "precision": "8",
+            "walletPrecision": "6",
+            "walletDeposit": true,
+            "walletWithdrawal": true,
+            "name": "Cardano",
+            "blockchains": {
+                "cardano": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "1",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "1",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "15"
+                }
             }
         },
-        "info": {
-            "code": "ADA",
-            "contract": false,
-            "commodity": false,
-            "fiat": false,
-            "description": "",
-            "precision": "6",
-            "scale": "0",
-            "minimumCurrencyAmount": "0.000001",
-            "minimalWithdrawalAmount": "10"
+        "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "fees": {},
+        "networks": {
+            "ADA": {
+                "id": "cardano",
+                "network": "ADA",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "1",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "1",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "15"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 5,
+                "max": null
+            },
+            "deposit": {
+                "min": 1,
+                "max": null
+            }
         }
     },
     "XRP": {
-        "id": "XRP",
-        "code": "XRP",
-        "name": "XRP",
-        "active": true,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {
-                "min": 0.000001
-            },
-            "withdraw": {
-                "min": 0.1
+        "info": {
+            "currency": "XRP",
+            "fiat": false,
+            "precision": "8",
+            "walletPrecision": "6",
+            "walletDeposit": true,
+            "walletWithdrawal": true,
+            "name": "XRP",
+            "blockchains": {
+                "ripple": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "0.001",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "0.3",
+                    "withdrawalFee": "0.25",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                }
             }
         },
-        "info": {
-            "code": "XRP",
-            "contract": false,
-            "commodity": false,
-            "fiat": false,
-            "description": "",
-            "precision": "6",
-            "scale": "0",
-            "minimumCurrencyAmount": "0.000001",
-            "minimalWithdrawalAmount": "0.1"
+        "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.25,
+        "fees": {},
+        "networks": {
+            "XRP": {
+                "id": "ripple",
+                "network": "XRP",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.25,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.3,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "0.001",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "0.3",
+                    "withdrawalFee": "0.25",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.3,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.001,
+                "max": null
+            }
         }
     },
     "USDC": {
-        "id": "USDC",
-        "code": "USDC",
-        "name": "USDC",
-        "active": true,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {
-                "min": 0.000001
-            },
-            "withdraw": {
-                "min": 10
+        "info": {
+            "currency": "USDC",
+            "fiat": false,
+            "precision": "8",
+            "walletPrecision": "6",
+            "walletDeposit": true,
+            "walletWithdrawal": true,
+            "name": "USDC",
+            "blockchains": {
+                "solana": {
+                    "type": "SPL",
+                    "deposit": "enabled",
+                    "minDeposit": "5",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "10",
+                    "withdrawalFee": "1",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                },
+                "tron": {
+                    "type": "TRC20",
+                    "deposit": "disabled",
+                    "minDeposit": "5",
+                    "withdrawal": "disabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "5",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "21"
+                },
+                "stellar": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "5",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "2",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                },
+                "ethereum": {
+                    "type": "ERC20",
+                    "deposit": "enabled",
+                    "minDeposit": "5",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "20",
+                    "withdrawalFee": "10",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "25"
+                },
+                "polygon": {
+                    "type": "ERC20",
+                    "deposit": "enabled",
+                    "minDeposit": "2",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "1",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "128"
+                },
+                "noble": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "0.000001",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "0.2",
+                    "withdrawalFee": "0.05",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                }
             }
         },
-        "info": {
-            "code": "USDC",
-            "contract": false,
-            "commodity": false,
-            "fiat": false,
-            "description": "",
-            "precision": "6",
-            "scale": "0",
-            "minimumCurrencyAmount": "0.000001",
-            "minimalWithdrawalAmount": "10"
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.05,
+        "fees": {},
+        "networks": {
+            "SOLANA": {
+                "id": "solana",
+                "network": "SOLANA",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "SPL",
+                    "deposit": "enabled",
+                    "minDeposit": "5",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "10",
+                    "withdrawalFee": "1",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                }
+            },
+            "TRC20": {
+                "id": "tron",
+                "network": "TRC20",
+                "margin": null,
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 5,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "TRC20",
+                    "deposit": "disabled",
+                    "minDeposit": "5",
+                    "withdrawal": "disabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "5",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "21"
+                }
+            },
+            "XLM": {
+                "id": "stellar",
+                "network": "XLM",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 2,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "5",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "2",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                }
+            },
+            "ethereum": {
+                "id": "ethereum",
+                "network": "ethereum",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 10,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 20,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "ERC20",
+                    "deposit": "enabled",
+                    "minDeposit": "5",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "20",
+                    "withdrawalFee": "10",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "25"
+                }
+            },
+            "MATIC": {
+                "id": "polygon",
+                "network": "MATIC",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 1,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 2,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "ERC20",
+                    "deposit": "enabled",
+                    "minDeposit": "2",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "5",
+                    "withdrawalFee": "1",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "128"
+                }
+            },
+            "noble": {
+                "id": "noble",
+                "network": "noble",
+                "margin": null,
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 0.05,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.2,
+                        "max": null
+                    }
+                },
+                "info": {
+                    "type": "coin",
+                    "deposit": "enabled",
+                    "minDeposit": "0.000001",
+                    "withdrawal": "enabled",
+                    "minWithdrawal": "0.2",
+                    "withdrawalFee": "0.05",
+                    "withdrawalFeePercent": "0",
+                    "depositConfirmations": "1"
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.2,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.000001,
+                "max": null
+            }
         }
     }
 }

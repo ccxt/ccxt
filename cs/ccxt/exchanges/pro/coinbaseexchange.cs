@@ -122,7 +122,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -138,7 +138,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -169,7 +169,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -193,7 +193,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -224,7 +224,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -254,9 +254,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTradesForSymbols(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols, null, false);
@@ -282,9 +282,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrdersForSymbols(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrdersForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -310,7 +310,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -339,7 +339,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -384,7 +384,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -531,11 +531,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             isMaker = true;
             ((IDictionary<string,object>)parsed)["takerOrMaker"] = "maker";
-            feeRate = this.safeNumber(trade, "maker_fee_rate");
+            feeRate = this.safeString(trade, "maker_fee_rate");
         } else
         {
             ((IDictionary<string,object>)parsed)["takerOrMaker"] = "taker";
-            feeRate = this.safeNumber(trade, "taker_fee_rate");
+            feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
             object currentSide = getValue(parsed, "side");
@@ -551,12 +551,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object feeCost = null;
         if (isTrue(isTrue((!isEqual(getValue(parsed, "cost"), null))) && isTrue((!isEqual(feeRate, null)))))
         {
-            object cost = this.safeNumber(parsed, "cost");
-            feeCost = multiply(cost, feeRate);
+            object cost = this.safeString(parsed, "cost");
+            feeCost = Precise.stringMul(cost, feeRate);
         }
         ((IDictionary<string,object>)parsed)["fee"] = new Dictionary<string, object>() {
-            { "rate", feeRate },
-            { "cost", feeCost },
+            { "rate", this.parseNumber(feeRate) },
+            { "cost", this.parseNumber(feeCost) },
             { "currency", feeCurrency },
         };
         return parsed;
@@ -668,7 +668,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             object makerOrderId = this.safeString(message, "maker_order_id");
             object takerOrderId = this.safeString(message, "taker_order_id");
             object orders = this.orders;
-            object previousOrders = this.safeValue((orders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+            object previousOrders = this.safeValue((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object previousOrder = this.safeValue(previousOrders, orderId);
             if (isTrue(isEqual(previousOrder, null)))
             {
@@ -695,26 +695,27 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         }
                         ((IList<object>)getValue(previousOrder, "trades")).Add(trade);
                         ((IDictionary<string,object>)previousOrder)["lastTradeTimestamp"] = getValue(trade, "timestamp");
-                        object totalCost = 0;
-                        object totalAmount = 0;
+                        object totalCost = "0";
+                        object totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
                         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
                         {
                             object tradeEntry = getValue(trades, i);
-                            totalCost = this.sum(totalCost, getValue(tradeEntry, "cost"));
-                            totalAmount = this.sum(totalAmount, getValue(tradeEntry, "amount"));
+                            totalCost = this.safeString(tradeEntry, "cost", "0");
+                            totalAmount = this.safeString(tradeEntry, "amount", "0");
                         }
-                        if (isTrue(isGreaterThan(totalAmount, 0)))
+                        if (!isTrue(Precise.stringEq(totalAmount, "0")))
                         {
-                            ((IDictionary<string,object>)previousOrder)["average"] = divide(totalCost, totalAmount);
+                            ((IDictionary<string,object>)previousOrder)["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                         }
-                        ((IDictionary<string,object>)previousOrder)["cost"] = totalCost;
-                        if (isTrue(!isEqual(getValue(previousOrder, "filled"), null)))
+                        ((IDictionary<string,object>)previousOrder)["cost"] = this.parseNumber(totalCost);
+                        object previousOrderFilled = this.safeString(previousOrder, "filled");
+                        if (isTrue(!isEqual(previousOrderFilled, null)))
                         {
-                            ((IDictionary<string,object>)previousOrder)["filled"] = add(((IDictionary<string,object>)previousOrder)["filled"], getValue(trade, "amount"));
+                            ((IDictionary<string,object>)previousOrder)["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount")));
                             if (isTrue(!isEqual(getValue(previousOrder, "amount"), null)))
                             {
-                                ((IDictionary<string,object>)previousOrder)["remaining"] = subtract(getValue(previousOrder, "amount"), getValue(previousOrder, "filled"));
+                                ((IDictionary<string,object>)previousOrder)["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
                             }
                         }
                         if (isTrue(isEqual(getValue(previousOrder, "fee"), null)))
@@ -727,6 +728,9 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         if (isTrue(isTrue((!isEqual(getValue(getValue(previousOrder, "fee"), "cost"), null))) && isTrue((!isEqual(getValue(getValue(trade, "fee"), "cost"), null)))))
                         {
                             ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.sum(getValue(getValue(previousOrder, "fee"), "cost"), getValue(getValue(trade, "fee"), "cost"));
+                            object previousOrderFee = this.safeDict(previousOrder, "fee");
+                            object tradeFee = this.safeDict(trade, "fee");
+                            ((IDictionary<string,object>)getValue(previousOrder, "fee"))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
                         }
                         // update the newUpdates count
                         callDynamically(orders, "append", new object[] {previousOrder});
@@ -762,24 +766,24 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         object symbol = this.safeSymbol(marketId);
         object side = this.safeString(order, "side");
         object price = this.safeNumber(order, "price");
-        object amount = this.safeNumber2(order, "size", "funds");
+        object amount = this.safeString2(order, "size", "funds");
         object time = this.safeString(order, "time");
         object timestamp = this.parse8601(time);
         object reason = this.safeString(order, "reason");
         object status = this.parseWsOrderStatus(reason);
         object orderType = this.safeString(order, "order_type");
-        object remaining = this.safeNumber(order, "remaining_size");
+        object remaining = this.safeString(order, "remaining_size");
         object type = this.safeString(order, "type");
         object filled = null;
         if (isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(remaining, null)))))
         {
-            filled = subtract(amount, remaining);
+            filled = Precise.stringSub(amount, remaining);
         } else if (isTrue(isEqual(type, "received")))
         {
-            filled = 0;
+            filled = "0";
             if (isTrue(!isEqual(amount, null)))
             {
-                remaining = subtract(amount, filled);
+                remaining = Precise.stringSub(amount, filled);
             }
         }
         return this.safeOrder(new Dictionary<string, object>() {
@@ -797,11 +801,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "price", price },
             { "stopPrice", null },
             { "triggerPrice", null },
-            { "amount", amount },
+            { "amount", this.parseNumber(amount) },
             { "cost", null },
             { "average", null },
-            { "filled", filled },
-            { "remaining", remaining },
+            { "filled", this.parseNumber(filled) },
+            { "remaining", this.parseNumber(remaining) },
             { "status", status },
             { "fee", null },
             { "trades", null },

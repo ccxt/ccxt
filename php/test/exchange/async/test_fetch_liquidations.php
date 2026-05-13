@@ -9,7 +9,6 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 include_once PATH_TO_CCXT . '/test/exchange/base/test_liquidation.php';
 
 function test_fetch_liquidations($exchange, $skipped_properties, $code) {
@@ -18,7 +17,7 @@ function test_fetch_liquidations($exchange, $skipped_properties, $code) {
         if (!$exchange->has['fetchLiquidations']) {
             return true;
         }
-        $items = Async\await($exchange->fetch_liquidations($code));
+        $items = \React\Async\await($exchange->fetch_liquidations($code));
         assert(gettype($items) === 'array' && array_is_list($items), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
         // const now = exchange.milliseconds ();
         for ($i = 0; $i < count($items); $i++) {

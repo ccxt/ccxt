@@ -34,6 +34,7 @@ public partial class poloniex : Exchange
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", true },
@@ -51,6 +52,7 @@ public partial class poloniex : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", null },
+                { "fetchGreeks", false },
                 { "fetchLedger", null },
                 { "fetchLeverage", true },
                 { "fetchLiquidations", null },
@@ -61,6 +63,8 @@ public partial class poloniex : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
@@ -77,6 +81,7 @@ public partial class poloniex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
                 { "sandbox", true },
@@ -287,6 +292,11 @@ public partial class poloniex : Exchange
                     { "BEP20", "BSC" },
                     { "ERC20", "ETH" },
                     { "TRC20", "TRON" },
+                    { "TRX", "TRON" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TRX", "TRC20" },
+                    { "TRON", "TRC20" },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "cost", new Dictionary<string, object>() {
@@ -1067,7 +1077,7 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1168,110 +1178,113 @@ public partial class poloniex : Exchange
         }));
         //
         //     [
-        //         {
-        //             "1CR": {
-        //                 "id": 1,
-        //                 "name": "1CRedit",
-        //                 "description": "BTC Clone",
-        //                 "type": "address",
-        //                 "withdrawalFee": "0.01000000",
-        //                 "minConf": 10000,
-        //                 "depositAddress": null,
-        //                 "blockchain": "1CR",
-        //                 "delisted": false,
-        //                 "tradingState": "NORMAL",
-        //                 "walletState": "DISABLED",
-        //                 "walletDepositState": "DISABLED",
-        //                 "walletWithdrawalState": "DISABLED",
-        //                 "parentChain": null,
-        //                 "isMultiChain": false,
-        //                 "isChildChain": false,
-        //                 "childChains": []
-        //             }
-        //         }
+        //      {
+        //        "USDT": {
+        //           "id": 214,
+        //           "name": "Tether USD",
+        //           "description": "Sweep to Main Account",
+        //           "type": "address",
+        //           "withdrawalFee": "0.00000000",
+        //           "minConf": 2,
+        //           "depositAddress": null,
+        //           "blockchain": "OMNI",
+        //           "delisted": false,
+        //           "tradingState": "NORMAL",
+        //           "walletState": "DISABLED",
+        //           "walletDepositState": "DISABLED",
+        //           "walletWithdrawalState": "DISABLED",
+        //           "supportCollateral": true,
+        //           "supportBorrow": true,
+        //           "parentChain": null,
+        //           "isMultiChain": true,
+        //           "isChildChain": false,
+        //           "childChains": [
+        //             "USDTBSC",
+        //             "USDTETH",
+        //             "USDTSOL",
+        //             "USDTTRON"
+        //           ]
+        //        }
+        //      },
+        //      ...
+        //      {
+        //        "USDTBSC": {
+        //              "id": 582,
+        //              "name": "Binance-Peg BSC-USD",
+        //              "description": "Sweep to Main Account",
+        //              "type": "address",
+        //              "withdrawalFee": "0.00000000",
+        //              "minConf": 15,
+        //              "depositAddress": null,
+        //              "blockchain": "BSC",
+        //              "delisted": false,
+        //              "tradingState": "OFFLINE",
+        //              "walletState": "ENABLED",
+        //              "walletDepositState": "ENABLED",
+        //              "walletWithdrawalState": "DISABLED",
+        //              "supportCollateral": false,
+        //              "supportBorrow": false,
+        //              "parentChain": "USDT",
+        //              "isMultiChain": true,
+        //              "isChildChain": true,
+        //              "childChains": []
+        //        }
+        //      },
+        //      ...
         //     ]
         //
         object result = new Dictionary<string, object>() {};
+        // poloniex has a complicated structure of currencies, so we handle them differently
+        // at first, turn the response into a normal dictionary
+        object currenciesDict = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object item = this.safeValue(response, i);
+            object item = this.safeDict(response, i);
             object ids = new List<object>(((IDictionary<string,object>)item).Keys);
-            object id = this.safeValue(ids, 0);
-            object currency = this.safeValue(item, id);
+            object id = this.safeString(ids, 0);
+            ((IDictionary<string,object>)currenciesDict)[(string)id] = getValue(item, id);
+        }
+        object keys = new List<object>(((IDictionary<string,object>)currenciesDict).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object id = getValue(keys, i);
+            object entry = getValue(currenciesDict, id);
             object code = this.safeCurrencyCode(id);
-            object name = this.safeString(currency, "name");
-            object networkId = this.safeString(currency, "blockchain");
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
+            // skip childChains, as they are collected in parentChain loop
+            if (isTrue(this.safeBool(entry, "isChildChain")))
             {
-                networkCode = this.networkIdToCode(networkId, code);
+                continue;
             }
-            object delisted = this.safeValue(currency, "delisted");
-            object walletEnabled = isEqual(this.safeString(currency, "walletState"), "ENABLED");
-            object depositEnabled = isEqual(this.safeString(currency, "walletDepositState"), "ENABLED");
-            object withdrawEnabled = isEqual(this.safeString(currency, "walletWithdrawalState"), "ENABLED");
-            object active = isTrue(isTrue(!isTrue(delisted) && isTrue(walletEnabled)) && isTrue(depositEnabled)) && isTrue(withdrawEnabled);
-            object numericId = this.safeInteger(currency, "id");
-            object feeString = this.safeString(currency, "withdrawalFee");
-            object parentChain = this.safeValue(currency, "parentChain");
-            object noParentChain = isEqual(parentChain, null);
-            if (isTrue(isEqual(this.safeValue(result, code), null)))
+            object allChainEntries = new List<object>() {};
+            object childChains = this.safeList(entry, "childChains", new List<object>() {});
+            if (isTrue(!isEqual(childChains, null)))
             {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", id },
-                    { "code", code },
-                    { "info", null },
-                    { "name", name },
-                    { "active", active },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "fee", this.parseNumber(feeString) },
-                    { "precision", null },
-                    { "type", "crypto" },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
+                for (object j = 0; isLessThan(j, getArrayLength(childChains)); postFixIncrement(ref j))
+                {
+                    object childChainId = getValue(childChains, j);
+                    object childNetworkEntry = this.safeDict(currenciesDict, childChainId);
+                    ((IList<object>)allChainEntries).Add(childNetworkEntry);
+                }
             }
-            object minFeeString = this.safeString(getValue(result, code), "fee");
-            if (isTrue(!isEqual(feeString, null)))
+            ((IList<object>)allChainEntries).Add(entry);
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(allChainEntries)); postFixIncrement(ref j))
             {
-                minFeeString = ((bool) isTrue((isEqual(minFeeString, null)))) ? feeString : Precise.stringMin(feeString, minFeeString);
-            }
-            object depositAvailable = this.safeValue(getValue(result, code), "deposit");
-            depositAvailable = ((bool) isTrue((depositEnabled))) ? depositEnabled : depositAvailable;
-            object withdrawAvailable = this.safeValue(getValue(result, code), "withdraw");
-            withdrawAvailable = ((bool) isTrue((withdrawEnabled))) ? withdrawEnabled : withdrawAvailable;
-            object networks = this.safeValue(getValue(result, code), "networks", new Dictionary<string, object>() {});
-            if (isTrue(!isEqual(networkCode, null)))
-            {
+                object chainEntry = getValue(allChainEntries, j);
+                object networkName = this.safeString(chainEntry, "blockchain");
+                object networkCode = this.networkIdToCode(networkName, code);
+                object specialNetworkId = this.safeString(childChains, j, id); // in case it's primary chain, defeault to ID
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", currency },
-                    { "id", networkId },
+                    { "info", chainEntry },
+                    { "id", specialNetworkId },
+                    { "numericId", this.safeInteger(chainEntry, "id") },
                     { "network", networkCode },
-                    { "currencyId", id },
-                    { "numericId", numericId },
-                    { "deposit", depositEnabled },
-                    { "withdraw", withdrawEnabled },
-                    { "active", active },
-                    { "fee", this.parseNumber(feeString) },
+                    { "active", this.safeBool(chainEntry, "walletState") },
+                    { "deposit", isEqual(this.safeString(chainEntry, "walletDepositState"), "ENABLED") },
+                    { "withdraw", isEqual(this.safeString(chainEntry, "walletWithdrawalState"), "ENABLED") },
+                    { "fee", this.safeNumber(chainEntry, "withdrawalFee") },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", null },
                             { "max", null },
@@ -1283,21 +1296,34 @@ public partial class poloniex : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
-            object info = this.safeValue(getValue(result, code), "info", new List<object>() {});
-            object rawInfo = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)rawInfo)[(string)id] = currency;
-            ((IList<object>)info).Add(rawInfo);
-            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
-            if (isTrue(noParentChain))
-            {
-                ((IDictionary<string,object>)getValue(result, code))["id"] = id;
-                ((IDictionary<string,object>)getValue(result, code))["name"] = name;
-            }
-            ((IDictionary<string,object>)getValue(result, code))["active"] = isTrue(depositAvailable) && isTrue(withdrawAvailable);
-            ((IDictionary<string,object>)getValue(result, code))["deposit"] = depositAvailable;
-            ((IDictionary<string,object>)getValue(result, code))["withdraw"] = withdrawAvailable;
-            ((IDictionary<string,object>)getValue(result, code))["fee"] = this.parseNumber(minFeeString);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "info", entry },
+                { "code", code },
+                { "id", id },
+                { "numericId", this.safeInteger(entry, "id") },
+                { "type", "crypto" },
+                { "name", this.safeString(entry, "name") },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -1310,7 +1336,7 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -1497,7 +1523,7 @@ public partial class poloniex : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1560,7 +1586,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1899,7 +1925,7 @@ public partial class poloniex : Exchange
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2013,7 +2039,7 @@ public partial class poloniex : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2104,7 +2130,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2260,7 +2286,7 @@ public partial class poloniex : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -2311,7 +2337,7 @@ public partial class poloniex : Exchange
         // @param {string} symbol unified symbol of the market the order was made in
         // @param {object} [params] extra parameters specific to the exchange API endpoint
         // @param {boolean} [params.trigger] true if canceling a trigger order
-        // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         //
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2376,7 +2402,7 @@ public partial class poloniex : Exchange
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if canceling trigger orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -2455,7 +2481,7 @@ public partial class poloniex : Exchange
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if fetching a trigger order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2535,7 +2561,7 @@ public partial class poloniex : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2621,7 +2647,7 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
      * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -2703,7 +2729,7 @@ public partial class poloniex : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -2743,7 +2769,7 @@ public partial class poloniex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2787,7 +2813,7 @@ public partial class poloniex : Exchange
         //         "scale" : "-1",
         //         "asks" : [ "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ],
         //         "bids" : [ "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ],
-        //         "ts" : 1659695219513
+        //         "ts" : 1659695219512
         //     }
         //
         object timestamp = this.safeInteger(response, "time");
@@ -2830,55 +2856,25 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (isTrue(!isEqual(network, null)))
-        {
-            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            parameters = this.omit(parameters, "network");
-        } else
-        {
-            if (isTrue(isEqual(getValue(currency, "id"), "USDT")))
-            {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " createDepositAddress requires a network parameter for "), code), ".")) ;
-            }
-        }
+        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
+        var request = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[0];
+        var extraParams = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[1];
+        var currency = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[2];
+        var networkEntry = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[3];
+        parameters = extraParams;
         object response = await this.privatePostWalletsAddress(this.extend(request, parameters));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        object address = this.safeString(response, "address");
-        object tag = null;
-        this.checkAddress(address);
-        if (isTrue(!isEqual(currency, null)))
-        {
-            object depositAddress = this.safeString(getValue(currency, "info"), "depositAddress");
-            if (isTrue(!isEqual(depositAddress, null)))
-            {
-                tag = address;
-                address = depositAddress;
-            }
-        }
-        return new Dictionary<string, object>() {
-            { "currency", code },
-            { "address", address },
-            { "tag", tag },
-            { "network", network },
-            { "info", response },
-        };
+        return this.parseDepositAddressSpecial(response, currency, networkEntry);
     }
 
     /**
@@ -2888,42 +2884,77 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        };
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (isTrue(!isEqual(network, null)))
-        {
-            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            parameters = this.omit(parameters, "network");
-        } else
-        {
-            if (isTrue(isEqual(getValue(currency, "id"), "USDT")))
-            {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress requires a network parameter for "), code), ".")) ;
-            }
-        }
+        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
+        var request = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[0];
+        var extraParams = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[1];
+        var currency = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[2];
+        var networkEntry = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[3];
+        parameters = extraParams;
         object response = await this.privateGetWalletsAddresses(this.extend(request, parameters));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        object address = this.safeString(response, getValue(request, "currency"));
+        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object length = getArrayLength(keys);
+        if (isTrue(isLessThan(length, 1)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
+        }
+        return this.parseDepositAddressSpecial(response, currency, networkEntry);
+    }
+
+    public virtual object prepareRequestForDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue((inOp(this.currencies, code))))
+        {
+            throw new BadSymbol ((string)add(add(add(this.id, " fetchDepositAddress(): can not recognize "), code), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
+        }
+        object currency = this.currency(code);
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress requires a network parameter for "), code), ".")) ;
+        }
+        object exchangeNetworkId = null;
+        networkCode = this.networkIdToCode(networkCode, code);
+        object networkEntry = this.safeDict(getValue(currency, "networks"), networkCode);
+        if (isTrue(!isEqual(networkEntry, null)))
+        {
+            exchangeNetworkId = getValue(networkEntry, "id");
+        } else
+        {
+            exchangeNetworkId = networkCode;
+        }
+        object request = new Dictionary<string, object>() {
+            { "currency", exchangeNetworkId },
+        };
+        return new List<object>() {request, parameters, currency, networkEntry};
+    }
+
+    public virtual object parseDepositAddressSpecial(object response, object currency, object networkEntry)
+    {
+        object address = this.safeString(response, "address");
+        if (isTrue(isEqual(address, null)))
+        {
+            address = this.safeString(response, getValue(networkEntry, "id"));
+        }
         object tag = null;
         this.checkAddress(address);
-        if (isTrue(!isEqual(currency, null)))
+        if (isTrue(!isEqual(networkEntry, null)))
         {
-            object depositAddress = this.safeString(getValue(currency, "info"), "depositAddress");
+            object depositAddress = this.safeString(getValue(networkEntry, "info"), "depositAddress");
             if (isTrue(!isEqual(depositAddress, null)))
             {
                 tag = address;
@@ -2932,8 +2963,8 @@ public partial class poloniex : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", response },
-            { "currency", code },
-            { "network", network },
+            { "currency", getValue(currency, "code") },
+            { "network", this.safeString(networkEntry, "network") },
             { "address", address },
             { "tag", tag },
         };
@@ -2949,7 +2980,7 @@ public partial class poloniex : Exchange
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -3004,7 +3035,7 @@ public partial class poloniex : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -3013,24 +3044,17 @@ public partial class poloniex : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-            { "amount", amount },
-            { "address", address },
-        };
+        var requestextraParamscurrencynetworkEntryVariable = this.prepareRequestForDepositAddress(code, parameters);
+        var request = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[0];
+        var extraParams = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[1];
+        var currency = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[2];
+        var networkEntry = ((IList<object>) requestextraParamscurrencynetworkEntryVariable)[3];
+        parameters = extraParams;
+        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount);
+        ((IDictionary<string,object>)request)["address"] = address;
         if (isTrue(!isEqual(tag, null)))
         {
             ((IDictionary<string,object>)request)["paymentId"] = tag;
-        }
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (isTrue(!isEqual(network, null)))
-        {
-            ((IDictionary<string,object>)request)["currency"] = add(getValue(request, "currency"), network); // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            parameters = this.omit(parameters, "network");
         }
         object response = await this.privatePostWalletsWithdraw(this.extend(request, parameters));
         //
@@ -3040,7 +3064,11 @@ public partial class poloniex : Exchange
         //         "withdrawalNumber": 13449869
         //     }
         //
-        return this.parseTransaction(response, currency);
+        object withdrawResponse = new Dictionary<string, object>() {
+            { "response", response },
+            { "withdrawNetworkEntry", networkEntry },
+        };
+        return this.parseTransaction(withdrawResponse, currency);
     }
 
     public async virtual Task<object> fetchTransactionsHelper(object code = null, object since = null, object limit = null, object parameters = null)
@@ -3138,7 +3166,7 @@ public partial class poloniex : Exchange
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3167,7 +3195,7 @@ public partial class poloniex : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3190,7 +3218,7 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -3331,7 +3359,7 @@ public partial class poloniex : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3399,6 +3427,11 @@ public partial class poloniex : Exchange
         //         "withdrawalRequestsId": 33485231
         //     }
         //
+        // if it's being parsed from "withdraw()" method, get the original response
+        if (isTrue(inOp(transaction, "withdrawNetworkEntry")))
+        {
+            transaction = getValue(transaction, "response");
+        }
         object timestamp = this.safeTimestamp(transaction, "timestamp");
         object currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId);
@@ -3498,7 +3531,7 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
@@ -3660,7 +3693,7 @@ public partial class poloniex : Exchange
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract positions
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -3845,7 +3878,7 @@ public partial class poloniex : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -3860,7 +3893,7 @@ public partial class poloniex : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -3882,6 +3915,10 @@ public partial class poloniex : Exchange
         if (isTrue(this.inArray(api, new List<object>() {"swapPublic", "swapPrivate"})))
         {
             url = getValue(getValue(this.urls, "api"), "swap");
+        }
+        if (isTrue(isTrue(isEqual(method, "GET")) && isTrue((inOp(parameters, "symbol")))))
+        {
+            ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(getValue(parameters, "symbol")); // handle symbols like 索拉拉/USDT'
         }
         object query = this.omit(parameters, this.extractParams(path));
         object implodedPath = this.implodeParams(path, parameters);

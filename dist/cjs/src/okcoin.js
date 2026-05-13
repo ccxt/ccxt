@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okcoin$1 = require('./abstract/okcoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class okcoin
  * @augments Exchange
  */
-class okcoin extends okcoin$1 {
+class okcoin extends okcoin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okcoin',
@@ -208,6 +210,9 @@ class okcoin extends okcoin$1 {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -822,53 +827,34 @@ class okcoin extends okcoin$1 {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new errors.ExchangeError(this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
-            return undefined;
+            return {};
         }
         else {
             const response = await this.privateGetAssetCurrencies(params);
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             const result = {};
             const dataByCurrencyId = this.groupBy(data, 'ccy');
             const currencyIds = Object.keys(dataByCurrencyId);
             for (let i = 0; i < currencyIds.length; i++) {
                 const currencyId = currencyIds[i];
-                const currency = this.safeCurrency(currencyId);
-                const code = currency['code'];
+                const code = this.safeCurrencyCode(currencyId);
                 const chains = dataByCurrencyId[currencyId];
                 const networks = {};
-                let currencyActive = false;
-                let depositEnabled = false;
-                let withdrawEnabled = false;
-                let maxPrecision = undefined;
                 for (let j = 0; j < chains.length; j++) {
                     const chain = chains[j];
-                    const canDeposit = this.safeValue(chain, 'canDep');
-                    depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                    const canWithdraw = this.safeValue(chain, 'canWd');
-                    withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                    const canInternal = this.safeValue(chain, 'canInternal');
-                    const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                    currencyActive = (active) ? active : currencyActive;
                     const networkId = this.safeString(chain, 'chain');
                     if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                         const parts = networkId.split('-');
                         const chainPart = this.safeString(parts, 1, networkId);
                         const networkCode = this.networkIdToCode(chainPart);
-                        const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
-                        if (maxPrecision === undefined) {
-                            maxPrecision = precision;
-                        }
-                        else {
-                            maxPrecision = Precise["default"].stringMin(maxPrecision, precision);
-                        }
                         networks[networkCode] = {
                             'id': networkId,
                             'network': networkCode,
-                            'active': active,
-                            'deposit': canDeposit,
-                            'withdraw': canWithdraw,
+                            'active': undefined,
+                            'deposit': this.safeBool(chain, 'canDep'),
+                            'withdraw': this.safeBool(chain, 'canWd'),
                             'fee': this.safeNumber(chain, 'minFee'),
-                            'precision': this.parseNumber(precision),
+                            'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
                             'limits': {
                                 'withdraw': {
                                     'min': this.safeNumber(chain, 'minWd'),
@@ -880,16 +866,16 @@ class okcoin extends okcoin$1 {
                     }
                 }
                 const firstChain = this.safeValue(chains, 0);
-                result[code] = {
+                result[code] = this.safeCurrencyStructure({
                     'info': chains,
                     'code': code,
                     'id': currencyId,
                     'name': this.safeString(firstChain, 'name'),
-                    'active': currencyActive,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
                     'fee': undefined,
-                    'precision': this.parseNumber(maxPrecision),
+                    'precision': undefined,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -897,7 +883,7 @@ class okcoin extends okcoin$1 {
                         },
                     },
                     'networks': networks,
-                };
+                });
             }
             return result;
         }
@@ -1741,7 +1727,7 @@ class okcoin extends okcoin$1 {
         const advanced = this.safeValue(params, 'advanced');
         if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         const market = this.market(symbol);
         const request = {
@@ -3226,4 +3212,4 @@ class okcoin extends okcoin$1 {
     }
 }
 
-module.exports = okcoin;
+exports["default"] = okcoin;

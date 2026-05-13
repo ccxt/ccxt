@@ -1,0 +1,949 @@
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools >= 40.8.0
+* Getting build dependencies for sdist...
+running egg_info
+writing ccxt.egg-info/PKG-INFO
+writing dependency_links to ccxt.egg-info/dependency_links.txt
+writing requirements to ccxt.egg-info/requires.txt
+writing top-level names to ccxt.egg-info/top_level.txt
+reading manifest file 'ccxt.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+adding license file 'LICENSE.txt'
+writing manifest file 'ccxt.egg-info/SOURCES.txt'
+* Building sdist...
+running sdist
+running egg_info
+writing ccxt.egg-info/PKG-INFO
+writing dependency_links to ccxt.egg-info/dependency_links.txt
+writing requirements to ccxt.egg-info/requires.txt
+writing top-level names to ccxt.egg-info/top_level.txt
+reading manifest file 'ccxt.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+adding license file 'LICENSE.txt'
+writing manifest file 'ccxt.egg-info/SOURCES.txt'
+running check
+creating ccxt-4.5.26
+creating ccxt-4.5.26/ccxt
+creating ccxt-4.5.26/ccxt.egg-info
+creating ccxt-4.5.26/ccxt/abstract
+creating ccxt-4.5.26/ccxt/async_support
+creating ccxt-4.5.26/ccxt/async_support/base
+creating ccxt-4.5.26/ccxt/async_support/base/ws
+creating ccxt-4.5.26/ccxt/base
+creating ccxt-4.5.26/ccxt/pro
+creating ccxt-4.5.26/ccxt/protobuf
+creating ccxt-4.5.26/ccxt/protobuf/mexc
+creating ccxt-4.5.26/ccxt/static_dependencies
+creating ccxt-4.5.26/ccxt/static_dependencies/bip
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/base58
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/base
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/kholaw
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/slip10
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bip44
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/bip44_base
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/coin_conf
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/conf
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip44
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip49
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip84
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip86
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/ecc
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/common
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/curve
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/ecdsa
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/secp256k1
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/slip
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip173
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip32
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip44
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/utils
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/utils/conf
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/utils/typing
+creating ccxt-4.5.26/ccxt/static_dependencies/bip/wif
+creating ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/tools
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/utils
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/account
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/account/encode_typed_data
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/hexbytes
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils/curried
+creating ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils/typing
+creating ccxt-4.5.26/ccxt/static_dependencies/keccak
+creating ccxt-4.5.26/ccxt/static_dependencies/lark
+creating ccxt-4.5.26/ccxt/static_dependencies/lark/__pyinstaller
+creating ccxt-4.5.26/ccxt/static_dependencies/lark/grammars
+creating ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+creating ccxt-4.5.26/ccxt/static_dependencies/lark/tools
+creating ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+creating ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+creating ccxt-4.5.26/ccxt/static_dependencies/marshmallow_oneofschema
+creating ccxt-4.5.26/ccxt/static_dependencies/mnemonic
+creating ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+creating ccxt-4.5.26/ccxt/static_dependencies/msgpack
+creating ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/deprecated_parse
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/v1
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/v2
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/models
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+creating ccxt-4.5.26/ccxt/static_dependencies/starknet/utils
+creating ccxt-4.5.26/ccxt/static_dependencies/starkware
+creating ccxt-4.5.26/ccxt/static_dependencies/starkware/crypto
+creating ccxt-4.5.26/ccxt/static_dependencies/sympy
+creating ccxt-4.5.26/ccxt/static_dependencies/sympy/core
+creating ccxt-4.5.26/ccxt/static_dependencies/sympy/external
+creating ccxt-4.5.26/ccxt/static_dependencies/toolz
+creating ccxt-4.5.26/ccxt/static_dependencies/toolz/curried
+creating ccxt-4.5.26/ccxt/static_dependencies/typing_inspect
+creating ccxt-4.5.26/ccxt/test
+copying files to ccxt-4.5.26...
+copying LICENSE.txt -> ccxt-4.5.26
+copying MANIFEST.in -> ccxt-4.5.26
+copying README.rst -> ccxt-4.5.26
+copying package.json -> ccxt-4.5.26
+copying setup.cfg -> ccxt-4.5.26
+copying setup.py -> ccxt-4.5.26
+copying ccxt/__init__.py -> ccxt-4.5.26/ccxt
+copying ccxt/alpaca.py -> ccxt-4.5.26/ccxt
+copying ccxt/apex.py -> ccxt-4.5.26/ccxt
+copying ccxt/arkham.py -> ccxt-4.5.26/ccxt
+copying ccxt/ascendex.py -> ccxt-4.5.26/ccxt
+copying ccxt/backpack.py -> ccxt-4.5.26/ccxt
+copying ccxt/bequant.py -> ccxt-4.5.26/ccxt
+copying ccxt/bigone.py -> ccxt-4.5.26/ccxt
+copying ccxt/binance.py -> ccxt-4.5.26/ccxt
+copying ccxt/binancecoinm.py -> ccxt-4.5.26/ccxt
+copying ccxt/binanceus.py -> ccxt-4.5.26/ccxt
+copying ccxt/binanceusdm.py -> ccxt-4.5.26/ccxt
+copying ccxt/bingx.py -> ccxt-4.5.26/ccxt
+copying ccxt/bit2c.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitbank.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitbns.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitfinex.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitflyer.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitget.py -> ccxt-4.5.26/ccxt
+copying ccxt/bithumb.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitmart.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitmex.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitopro.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitrue.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitso.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitstamp.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitteam.py -> ccxt-4.5.26/ccxt
+copying ccxt/bittrade.py -> ccxt-4.5.26/ccxt
+copying ccxt/bitvavo.py -> ccxt-4.5.26/ccxt
+copying ccxt/blockchaincom.py -> ccxt-4.5.26/ccxt
+copying ccxt/blofin.py -> ccxt-4.5.26/ccxt
+copying ccxt/btcalpha.py -> ccxt-4.5.26/ccxt
+copying ccxt/btcbox.py -> ccxt-4.5.26/ccxt
+copying ccxt/btcmarkets.py -> ccxt-4.5.26/ccxt
+copying ccxt/btcturk.py -> ccxt-4.5.26/ccxt
+copying ccxt/bullish.py -> ccxt-4.5.26/ccxt
+copying ccxt/bybit.py -> ccxt-4.5.26/ccxt
+copying ccxt/cex.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinbase.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinbaseadvanced.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinbaseexchange.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinbaseinternational.py -> ccxt-4.5.26/ccxt
+copying ccxt/coincatch.py -> ccxt-4.5.26/ccxt
+copying ccxt/coincheck.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinex.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinmate.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinmetro.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinone.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinsph.py -> ccxt-4.5.26/ccxt
+copying ccxt/coinspot.py -> ccxt-4.5.26/ccxt
+copying ccxt/cryptocom.py -> ccxt-4.5.26/ccxt
+copying ccxt/cryptomus.py -> ccxt-4.5.26/ccxt
+copying ccxt/deepcoin.py -> ccxt-4.5.26/ccxt
+copying ccxt/defx.py -> ccxt-4.5.26/ccxt
+copying ccxt/delta.py -> ccxt-4.5.26/ccxt
+copying ccxt/deribit.py -> ccxt-4.5.26/ccxt
+copying ccxt/derive.py -> ccxt-4.5.26/ccxt
+copying ccxt/digifinex.py -> ccxt-4.5.26/ccxt
+copying ccxt/dydx.py -> ccxt-4.5.26/ccxt
+copying ccxt/exmo.py -> ccxt-4.5.26/ccxt
+copying ccxt/fmfwio.py -> ccxt-4.5.26/ccxt
+copying ccxt/foxbit.py -> ccxt-4.5.26/ccxt
+copying ccxt/gate.py -> ccxt-4.5.26/ccxt
+copying ccxt/gateio.py -> ccxt-4.5.26/ccxt
+copying ccxt/gemini.py -> ccxt-4.5.26/ccxt
+copying ccxt/hashkey.py -> ccxt-4.5.26/ccxt
+copying ccxt/hibachi.py -> ccxt-4.5.26/ccxt
+copying ccxt/hitbtc.py -> ccxt-4.5.26/ccxt
+copying ccxt/hollaex.py -> ccxt-4.5.26/ccxt
+copying ccxt/htx.py -> ccxt-4.5.26/ccxt
+copying ccxt/huobi.py -> ccxt-4.5.26/ccxt
+copying ccxt/hyperliquid.py -> ccxt-4.5.26/ccxt
+copying ccxt/independentreserve.py -> ccxt-4.5.26/ccxt
+copying ccxt/indodax.py -> ccxt-4.5.26/ccxt
+copying ccxt/kraken.py -> ccxt-4.5.26/ccxt
+copying ccxt/krakenfutures.py -> ccxt-4.5.26/ccxt
+copying ccxt/kucoin.py -> ccxt-4.5.26/ccxt
+copying ccxt/kucoinfutures.py -> ccxt-4.5.26/ccxt
+copying ccxt/latoken.py -> ccxt-4.5.26/ccxt
+copying ccxt/lbank.py -> ccxt-4.5.26/ccxt
+copying ccxt/luno.py -> ccxt-4.5.26/ccxt
+copying ccxt/mercado.py -> ccxt-4.5.26/ccxt
+copying ccxt/mexc.py -> ccxt-4.5.26/ccxt
+copying ccxt/modetrade.py -> ccxt-4.5.26/ccxt
+copying ccxt/myokx.py -> ccxt-4.5.26/ccxt
+copying ccxt/ndax.py -> ccxt-4.5.26/ccxt
+copying ccxt/novadax.py -> ccxt-4.5.26/ccxt
+copying ccxt/oceanex.py -> ccxt-4.5.26/ccxt
+copying ccxt/okx.py -> ccxt-4.5.26/ccxt
+copying ccxt/okxus.py -> ccxt-4.5.26/ccxt
+copying ccxt/onetrading.py -> ccxt-4.5.26/ccxt
+copying ccxt/oxfun.py -> ccxt-4.5.26/ccxt
+copying ccxt/p2b.py -> ccxt-4.5.26/ccxt
+copying ccxt/paradex.py -> ccxt-4.5.26/ccxt
+copying ccxt/paymium.py -> ccxt-4.5.26/ccxt
+copying ccxt/phemex.py -> ccxt-4.5.26/ccxt
+copying ccxt/poloniex.py -> ccxt-4.5.26/ccxt
+copying ccxt/probit.py -> ccxt-4.5.26/ccxt
+copying ccxt/timex.py -> ccxt-4.5.26/ccxt
+copying ccxt/tokocrypto.py -> ccxt-4.5.26/ccxt
+copying ccxt/toobit.py -> ccxt-4.5.26/ccxt
+copying ccxt/upbit.py -> ccxt-4.5.26/ccxt
+copying ccxt/wavesexchange.py -> ccxt-4.5.26/ccxt
+copying ccxt/whitebit.py -> ccxt-4.5.26/ccxt
+copying ccxt/woo.py -> ccxt-4.5.26/ccxt
+copying ccxt/woofipro.py -> ccxt-4.5.26/ccxt
+copying ccxt/xt.py -> ccxt-4.5.26/ccxt
+copying ccxt/yobit.py -> ccxt-4.5.26/ccxt
+copying ccxt/zaif.py -> ccxt-4.5.26/ccxt
+copying ccxt/zebpay.py -> ccxt-4.5.26/ccxt
+copying ccxt/zonda.py -> ccxt-4.5.26/ccxt
+copying ccxt.egg-info/PKG-INFO -> ccxt-4.5.26/ccxt.egg-info
+copying ccxt.egg-info/SOURCES.txt -> ccxt-4.5.26/ccxt.egg-info
+copying ccxt.egg-info/dependency_links.txt -> ccxt-4.5.26/ccxt.egg-info
+copying ccxt.egg-info/requires.txt -> ccxt-4.5.26/ccxt.egg-info
+copying ccxt.egg-info/top_level.txt -> ccxt-4.5.26/ccxt.egg-info
+copying ccxt/abstract/__init__.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/alpaca.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/apex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/arkham.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/ascendex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/backpack.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bequant.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bigone.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/binance.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/binancecoinm.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/binanceus.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/binanceusdm.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bingx.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bit2c.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitbank.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitbns.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitfinex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitflyer.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitget.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bithumb.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitmart.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitmex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitopro.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitrue.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitso.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitstamp.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitteam.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bittrade.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bitvavo.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/blockchaincom.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/blofin.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/btcalpha.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/btcbox.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/btcmarkets.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/btcturk.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bullish.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/bybit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/cex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinbase.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinbaseadvanced.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinbaseexchange.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinbaseinternational.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coincatch.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coincheck.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinmate.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinmetro.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinone.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinsph.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/coinspot.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/cryptocom.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/cryptomus.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/deepcoin.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/defx.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/delta.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/deribit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/derive.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/digifinex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/dydx.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/exmo.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/fmfwio.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/foxbit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/gate.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/gateio.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/gemini.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/hashkey.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/hibachi.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/hitbtc.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/hollaex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/htx.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/huobi.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/hyperliquid.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/independentreserve.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/indodax.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/kraken.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/krakenfutures.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/kucoin.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/kucoinfutures.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/latoken.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/lbank.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/luno.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/mercado.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/mexc.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/modetrade.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/myokx.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/ndax.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/novadax.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/oceanex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/okx.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/okxus.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/onetrading.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/oxfun.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/p2b.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/paradex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/paymium.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/phemex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/poloniex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/probit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/timex.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/tokocrypto.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/toobit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/upbit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/wavesexchange.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/whitebit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/woo.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/woofipro.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/xt.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/yobit.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/zaif.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/zebpay.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/abstract/zonda.py -> ccxt-4.5.26/ccxt/abstract
+copying ccxt/async_support/__init__.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/alpaca.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/apex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/arkham.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/ascendex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/backpack.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bequant.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bigone.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/binance.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/binancecoinm.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/binanceus.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/binanceusdm.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bingx.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bit2c.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitbank.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitbns.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitfinex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitflyer.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitget.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bithumb.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitmart.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitmex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitopro.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitrue.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitso.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitstamp.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitteam.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bittrade.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bitvavo.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/blockchaincom.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/blofin.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/btcalpha.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/btcbox.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/btcmarkets.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/btcturk.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bullish.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/bybit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/cex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinbase.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinbaseadvanced.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinbaseexchange.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinbaseinternational.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coincatch.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coincheck.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinmate.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinmetro.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinone.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinsph.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/coinspot.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/cryptocom.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/cryptomus.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/deepcoin.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/defx.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/delta.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/deribit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/derive.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/digifinex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/dydx.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/exmo.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/fmfwio.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/foxbit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/gate.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/gateio.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/gemini.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/hashkey.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/hibachi.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/hitbtc.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/hollaex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/htx.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/huobi.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/hyperliquid.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/independentreserve.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/indodax.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/kraken.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/krakenfutures.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/kucoin.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/kucoinfutures.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/latoken.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/lbank.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/luno.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/mercado.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/mexc.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/modetrade.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/myokx.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/ndax.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/novadax.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/oceanex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/okx.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/okxus.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/onetrading.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/oxfun.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/p2b.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/paradex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/paymium.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/phemex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/poloniex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/probit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/timex.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/tokocrypto.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/toobit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/upbit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/wavesexchange.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/whitebit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/woo.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/woofipro.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/xt.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/yobit.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/zaif.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/zebpay.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/zonda.py -> ccxt-4.5.26/ccxt/async_support
+copying ccxt/async_support/base/__init__.py -> ccxt-4.5.26/ccxt/async_support/base
+copying ccxt/async_support/base/exchange.py -> ccxt-4.5.26/ccxt/async_support/base
+copying ccxt/async_support/base/throttler.py -> ccxt-4.5.26/ccxt/async_support/base
+copying ccxt/async_support/base/ws/__init__.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/async_support/base/ws/cache.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/async_support/base/ws/client.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/async_support/base/ws/functions.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/async_support/base/ws/future.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/async_support/base/ws/order_book.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/async_support/base/ws/order_book_side.py -> ccxt-4.5.26/ccxt/async_support/base/ws
+copying ccxt/base/__init__.py -> ccxt-4.5.26/ccxt/base
+copying ccxt/base/decimal_to_precision.py -> ccxt-4.5.26/ccxt/base
+copying ccxt/base/errors.py -> ccxt-4.5.26/ccxt/base
+copying ccxt/base/exchange.py -> ccxt-4.5.26/ccxt/base
+copying ccxt/base/precise.py -> ccxt-4.5.26/ccxt/base
+copying ccxt/base/types.py -> ccxt-4.5.26/ccxt/base
+copying ccxt/pro/__init__.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/alpaca.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/apex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/arkham.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/ascendex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/backpack.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bequant.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/binance.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/binancecoinm.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/binanceus.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/binanceusdm.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bingx.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitfinex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitget.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bithumb.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitmart.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitmex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitopro.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitrue.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitstamp.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bittrade.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bitvavo.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/blockchaincom.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/blofin.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bullish.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/bybit.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/cex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coinbase.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coinbaseadvanced.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coinbaseexchange.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coinbaseinternational.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coincatch.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coincheck.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coinex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/coinone.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/cryptocom.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/deepcoin.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/defx.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/deribit.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/derive.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/dydx.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/exmo.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/gate.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/gateio.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/gemini.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/hashkey.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/hitbtc.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/hollaex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/htx.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/huobi.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/hyperliquid.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/independentreserve.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/kraken.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/krakenfutures.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/kucoin.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/kucoinfutures.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/lbank.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/luno.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/mexc.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/modetrade.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/myokx.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/ndax.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/okx.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/okxus.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/onetrading.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/oxfun.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/p2b.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/paradex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/phemex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/poloniex.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/probit.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/toobit.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/upbit.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/whitebit.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/woo.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/woofipro.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/pro/xt.py -> ccxt-4.5.26/ccxt/pro
+copying ccxt/protobuf/__init__.py -> ccxt-4.5.26/ccxt/protobuf
+copying ccxt/protobuf/mexc/PrivateAccountV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PrivateDealsV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PrivateOrdersV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicAggreBookTickerV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicAggreDealsV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicAggreDepthsV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicBookTickerBatchV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicBookTickerV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicDealsV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicIncreaseDepthsBatchV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicIncreaseDepthsV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicLimitDepthsV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicMiniTickerV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicMiniTickersV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PublicSpotKlineV3Api_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/PushDataV3ApiWrapper_pb2.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/protobuf/mexc/__init__.py -> ccxt-4.5.26/ccxt/protobuf/mexc
+copying ccxt/static_dependencies/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies
+copying ccxt/static_dependencies/bip/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip
+copying ccxt/static_dependencies/bip/addr/P2PKH_addr.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+copying ccxt/static_dependencies/bip/addr/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+copying ccxt/static_dependencies/bip/addr/addr_dec_utils.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+copying ccxt/static_dependencies/bip/addr/addr_key_validator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+copying ccxt/static_dependencies/bip/addr/iaddr_decoder.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+copying ccxt/static_dependencies/bip/addr/iaddr_encoder.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/addr
+copying ccxt/static_dependencies/bip/base58/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/base58
+copying ccxt/static_dependencies/bip/base58/base58.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/base58
+copying ccxt/static_dependencies/bip/base58/base58_ex.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/base58
+copying ccxt/static_dependencies/bip/base58/base58_xmr.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/base58
+copying ccxt/static_dependencies/bip/bech32/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+copying ccxt/static_dependencies/bip/bech32/bch_bech32.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+copying ccxt/static_dependencies/bip/bech32/bech32.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+copying ccxt/static_dependencies/bip/bech32/bech32_base.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+copying ccxt/static_dependencies/bip/bech32/bech32_ex.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+copying ccxt/static_dependencies/bip/bech32/segwit_bech32.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bech32
+copying ccxt/static_dependencies/bip/bip32/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_const.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_ex.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_key_data.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_key_net_ver.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_key_ser.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_keys.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_path.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/bip32_utils.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32
+copying ccxt/static_dependencies/bip/bip32/base/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/base
+copying ccxt/static_dependencies/bip/bip32/base/bip32_base.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/base
+copying ccxt/static_dependencies/bip/bip32/base/ibip32_key_derivator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/base
+copying ccxt/static_dependencies/bip/bip32/base/ibip32_mst_key_generator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/base
+copying ccxt/static_dependencies/bip/bip32/kholaw/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/kholaw
+copying ccxt/static_dependencies/bip/bip32/kholaw/bip32_kholaw_ed25519.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/kholaw
+copying ccxt/static_dependencies/bip/bip32/kholaw/bip32_kholaw_ed25519_key_derivator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/kholaw
+copying ccxt/static_dependencies/bip/bip32/kholaw/bip32_kholaw_key_derivator_base.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/kholaw
+copying ccxt/static_dependencies/bip/bip32/kholaw/bip32_kholaw_mst_key_generator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/kholaw
+copying ccxt/static_dependencies/bip/bip32/slip10/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/slip10
+copying ccxt/static_dependencies/bip/bip32/slip10/bip32_slip10_key_derivator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/slip10
+copying ccxt/static_dependencies/bip/bip32/slip10/bip32_slip10_mst_key_generator.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/slip10
+copying ccxt/static_dependencies/bip/bip32/slip10/bip32_slip10_secp256k1.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip32/slip10
+copying ccxt/static_dependencies/bip/bip44/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip44
+copying ccxt/static_dependencies/bip/bip44/bip44.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip44
+copying ccxt/static_dependencies/bip/bip44_base/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip44_base
+copying ccxt/static_dependencies/bip/bip44_base/bip44_base.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip44_base
+copying ccxt/static_dependencies/bip/bip44_base/bip44_base_ex.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip44_base
+copying ccxt/static_dependencies/bip/bip44_base/bip44_keys.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/bip44_base
+copying ccxt/static_dependencies/bip/coin_conf/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/coin_conf
+copying ccxt/static_dependencies/bip/coin_conf/coin_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/coin_conf
+copying ccxt/static_dependencies/bip/coin_conf/coins_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/coin_conf
+copying ccxt/static_dependencies/bip/conf/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf
+copying ccxt/static_dependencies/bip/conf/bip44/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip44
+copying ccxt/static_dependencies/bip/conf/bip44/bip44_coins.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip44
+copying ccxt/static_dependencies/bip/conf/bip44/bip44_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip44
+copying ccxt/static_dependencies/bip/conf/bip44/bip44_conf_getter.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip44
+copying ccxt/static_dependencies/bip/conf/bip49/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip49
+copying ccxt/static_dependencies/bip/conf/bip49/bip49_coins.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip49
+copying ccxt/static_dependencies/bip/conf/bip49/bip49_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip49
+copying ccxt/static_dependencies/bip/conf/bip49/bip49_conf_getter.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip49
+copying ccxt/static_dependencies/bip/conf/bip84/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip84
+copying ccxt/static_dependencies/bip/conf/bip84/bip84_coins.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip84
+copying ccxt/static_dependencies/bip/conf/bip84/bip84_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip84
+copying ccxt/static_dependencies/bip/conf/bip84/bip84_conf_getter.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip84
+copying ccxt/static_dependencies/bip/conf/bip86/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip86
+copying ccxt/static_dependencies/bip/conf/bip86/bip86_coins.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip86
+copying ccxt/static_dependencies/bip/conf/bip86/bip86_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip86
+copying ccxt/static_dependencies/bip/conf/bip86/bip86_conf_getter.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/bip86
+copying ccxt/static_dependencies/bip/conf/common/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/conf/common/atom_addr.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/conf/common/bip_bitcoin_cash_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/conf/common/bip_coin_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/conf/common/bip_coins.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/conf/common/bip_conf_const.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/conf/common/bip_litecoin_conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/conf/common
+copying ccxt/static_dependencies/bip/ecc/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc
+copying ccxt/static_dependencies/bip/ecc/conf.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc
+copying ccxt/static_dependencies/bip/ecc/common/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/common
+copying ccxt/static_dependencies/bip/ecc/common/dummy_point.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/common
+copying ccxt/static_dependencies/bip/ecc/common/ikeys.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/common
+copying ccxt/static_dependencies/bip/ecc/common/ipoint.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/common
+copying ccxt/static_dependencies/bip/ecc/curve/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/curve
+copying ccxt/static_dependencies/bip/ecc/curve/elliptic_curve.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/curve
+copying ccxt/static_dependencies/bip/ecc/curve/elliptic_curve_getter.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/curve
+copying ccxt/static_dependencies/bip/ecc/curve/elliptic_curve_types.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/curve
+copying ccxt/static_dependencies/bip/ecc/ecdsa/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/ecdsa
+copying ccxt/static_dependencies/bip/ecc/ecdsa/ecdsa_keys.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/ecdsa
+copying ccxt/static_dependencies/bip/ecc/secp256k1/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/secp256k1
+copying ccxt/static_dependencies/bip/ecc/secp256k1/secp256k1.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/secp256k1
+copying ccxt/static_dependencies/bip/ecc/secp256k1/secp256k1_const.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/secp256k1
+copying ccxt/static_dependencies/bip/ecc/secp256k1/secp256k1_keys_ecdsa.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/secp256k1
+copying ccxt/static_dependencies/bip/ecc/secp256k1/secp256k1_point_ecdsa.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/ecc/secp256k1
+copying ccxt/static_dependencies/bip/slip/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip
+copying ccxt/static_dependencies/bip/slip/slip173/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip173
+copying ccxt/static_dependencies/bip/slip/slip173/slip173.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip173
+copying ccxt/static_dependencies/bip/slip/slip32/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip32
+copying ccxt/static_dependencies/bip/slip/slip32/slip32.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip32
+copying ccxt/static_dependencies/bip/slip/slip32/slip32_key_net_ver.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip32
+copying ccxt/static_dependencies/bip/slip/slip44/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip44
+copying ccxt/static_dependencies/bip/slip/slip44/slip44.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/slip/slip44
+copying ccxt/static_dependencies/bip/utils/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils
+copying ccxt/static_dependencies/bip/utils/conf/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/conf
+copying ccxt/static_dependencies/bip/utils/conf/coin_names.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/conf
+copying ccxt/static_dependencies/bip/utils/crypto/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/aes_ecb.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/blake2.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/chacha20_poly1305.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/hash160.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/hmac.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/pbkdf2.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/ripemd.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/scrypt.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/sha2.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/crypto/sha3.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/crypto
+copying ccxt/static_dependencies/bip/utils/misc/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/algo.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/base32.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/bit.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/bytes.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/data_bytes.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/integer.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/misc/string.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/misc
+copying ccxt/static_dependencies/bip/utils/typing/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/typing
+copying ccxt/static_dependencies/bip/utils/typing/literal.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/utils/typing
+copying ccxt/static_dependencies/bip/wif/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/wif
+copying ccxt/static_dependencies/bip/wif/wif.py -> ccxt-4.5.26/ccxt/static_dependencies/bip/wif
+copying ccxt/static_dependencies/ecdsa/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/_version.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/curves.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/der.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/ecdsa.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/ellipticcurve.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/keys.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/numbertheory.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/rfc6979.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ecdsa/util.py -> ccxt-4.5.26/ccxt/static_dependencies/ecdsa
+copying ccxt/static_dependencies/ethereum/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum
+copying ccxt/static_dependencies/ethereum/abi/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/abi.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/base.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/codec.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/constants.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/decoding.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/encoding.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/grammar.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/packed.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/registry.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi
+copying ccxt/static_dependencies/ethereum/abi/tools/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/tools
+copying ccxt/static_dependencies/ethereum/abi/tools/_strategies.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/tools
+copying ccxt/static_dependencies/ethereum/abi/utils/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/utils
+copying ccxt/static_dependencies/ethereum/abi/utils/numeric.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/utils
+copying ccxt/static_dependencies/ethereum/abi/utils/padding.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/utils
+copying ccxt/static_dependencies/ethereum/abi/utils/string.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/abi/utils
+copying ccxt/static_dependencies/ethereum/account/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/account
+copying ccxt/static_dependencies/ethereum/account/messages.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/account
+copying ccxt/static_dependencies/ethereum/account/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/account
+copying ccxt/static_dependencies/ethereum/account/encode_typed_data/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/account/encode_typed_data
+copying ccxt/static_dependencies/ethereum/account/encode_typed_data/encoding_and_hashing.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/account/encode_typed_data
+copying ccxt/static_dependencies/ethereum/account/encode_typed_data/helpers.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/account/encode_typed_data
+copying ccxt/static_dependencies/ethereum/hexbytes/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/hexbytes
+copying ccxt/static_dependencies/ethereum/hexbytes/_utils.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/hexbytes
+copying ccxt/static_dependencies/ethereum/hexbytes/main.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/hexbytes
+copying ccxt/static_dependencies/ethereum/hexbytes/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/hexbytes
+copying ccxt/static_dependencies/ethereum/typing/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/abi.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/bls.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/discovery.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/encoding.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/enums.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/ethpm.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/evm.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/networks.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/typing/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/typing
+copying ccxt/static_dependencies/ethereum/utils/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/abi.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/address.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/applicators.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/conversions.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/currency.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/debug.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/decorators.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/encoding.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/functional.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/hexadecimal.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/humanize.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/logging.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/module_loading.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/numeric.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/toolz.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/types.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/units.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils
+copying ccxt/static_dependencies/ethereum/utils/curried/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils/curried
+copying ccxt/static_dependencies/ethereum/utils/typing/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils/typing
+copying ccxt/static_dependencies/ethereum/utils/typing/misc.py -> ccxt-4.5.26/ccxt/static_dependencies/ethereum/utils/typing
+copying ccxt/static_dependencies/keccak/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/keccak
+copying ccxt/static_dependencies/keccak/keccak.py -> ccxt-4.5.26/ccxt/static_dependencies/keccak
+copying ccxt/static_dependencies/lark/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/ast_utils.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/common.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/grammar.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/indenter.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/lark.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/lexer.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/load_grammar.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/parse_tree_builder.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/parser_frontends.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/reconstruct.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/tree.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/tree_matcher.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/tree_templates.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/utils.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/visitors.py -> ccxt-4.5.26/ccxt/static_dependencies/lark
+copying ccxt/static_dependencies/lark/__pyinstaller/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/__pyinstaller
+copying ccxt/static_dependencies/lark/__pyinstaller/hook-lark.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/__pyinstaller
+copying ccxt/static_dependencies/lark/grammars/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/grammars
+copying ccxt/static_dependencies/lark/parsers/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/cyk.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/earley.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/earley_common.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/earley_forest.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/grammar_analysis.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/lalr_analysis.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/lalr_interactive_parser.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/lalr_parser.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/lalr_parser_state.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/parsers/xearley.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/parsers
+copying ccxt/static_dependencies/lark/tools/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/tools
+copying ccxt/static_dependencies/lark/tools/nearley.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/tools
+copying ccxt/static_dependencies/lark/tools/serialize.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/tools
+copying ccxt/static_dependencies/lark/tools/standalone.py -> ccxt-4.5.26/ccxt/static_dependencies/lark/tools
+copying ccxt/static_dependencies/marshmallow/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/base.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/class_registry.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/decorators.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/error_store.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/fields.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/orderedset.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/schema.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/types.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/utils.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/validate.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow/warnings.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow
+copying ccxt/static_dependencies/marshmallow_dataclass/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_dataclass/collection_field.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_dataclass/lazy_class_attribute.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_dataclass/mypy.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_dataclass/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_dataclass/typing.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_dataclass/union_field.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_dataclass
+copying ccxt/static_dependencies/marshmallow_oneofschema/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_oneofschema
+copying ccxt/static_dependencies/marshmallow_oneofschema/one_of_schema.py -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_oneofschema
+copying ccxt/static_dependencies/marshmallow_oneofschema/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/marshmallow_oneofschema
+copying ccxt/static_dependencies/mnemonic/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic
+copying ccxt/static_dependencies/mnemonic/mnemonic.py -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic
+copying ccxt/static_dependencies/mnemonic/py.typed -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic
+copying ccxt/static_dependencies/mnemonic/wordlist/chinese_simplified.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/chinese_traditional.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/czech.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/english.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/french.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/italian.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/japanese.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/korean.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/portuguese.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/russian.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/spanish.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/mnemonic/wordlist/turkish.txt -> ccxt-4.5.26/ccxt/static_dependencies/mnemonic/wordlist
+copying ccxt/static_dependencies/msgpack/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/msgpack
+copying ccxt/static_dependencies/msgpack/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/msgpack
+copying ccxt/static_dependencies/msgpack/ext.py -> ccxt-4.5.26/ccxt/static_dependencies/msgpack
+copying ccxt/static_dependencies/msgpack/fallback.py -> ccxt-4.5.26/ccxt/static_dependencies/msgpack
+copying ccxt/static_dependencies/parsimonious/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+copying ccxt/static_dependencies/parsimonious/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+copying ccxt/static_dependencies/parsimonious/expressions.py -> ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+copying ccxt/static_dependencies/parsimonious/grammar.py -> ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+copying ccxt/static_dependencies/parsimonious/nodes.py -> ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+copying ccxt/static_dependencies/parsimonious/utils.py -> ccxt-4.5.26/ccxt/static_dependencies/parsimonious
+copying ccxt/static_dependencies/starknet/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet
+copying ccxt/static_dependencies/starknet/ccxt_utils.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet
+copying ccxt/static_dependencies/starknet/common.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet
+copying ccxt/static_dependencies/starknet/constants.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet
+copying ccxt/static_dependencies/starknet/cairo/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo
+copying ccxt/static_dependencies/starknet/cairo/data_types.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo
+copying ccxt/static_dependencies/starknet/cairo/felt.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo
+copying ccxt/static_dependencies/starknet/cairo/type_parser.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo
+copying ccxt/static_dependencies/starknet/cairo/deprecated_parse/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/deprecated_parse
+copying ccxt/static_dependencies/starknet/cairo/deprecated_parse/cairo_types.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/deprecated_parse
+copying ccxt/static_dependencies/starknet/cairo/deprecated_parse/parser.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/deprecated_parse
+copying ccxt/static_dependencies/starknet/cairo/deprecated_parse/parser_transformer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/deprecated_parse
+copying ccxt/static_dependencies/starknet/cairo/v1/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/v1
+copying ccxt/static_dependencies/starknet/cairo/v1/type_parser.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/v1
+copying ccxt/static_dependencies/starknet/cairo/v2/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/v2
+copying ccxt/static_dependencies/starknet/cairo/v2/type_parser.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/cairo/v2
+copying ccxt/static_dependencies/starknet/hash/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+copying ccxt/static_dependencies/starknet/hash/address.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+copying ccxt/static_dependencies/starknet/hash/compiled_class_hash_objects.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+copying ccxt/static_dependencies/starknet/hash/selector.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+copying ccxt/static_dependencies/starknet/hash/storage.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+copying ccxt/static_dependencies/starknet/hash/utils.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/hash
+copying ccxt/static_dependencies/starknet/models/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/models
+copying ccxt/static_dependencies/starknet/models/typed_data.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/models
+copying ccxt/static_dependencies/starknet/serialization/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/_calldata_reader.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/_context.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/errors.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/factory.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/function_serialization_adapter.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/tuple_dataclass.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/_common.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/array_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/bool_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/byte_array_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/cairo_data_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/enum_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/felt_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/named_tuple_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/option_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/output_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/payload_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/struct_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/tuple_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/uint256_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/uint_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/serialization/data_serializers/unit_serializer.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/serialization/data_serializers
+copying ccxt/static_dependencies/starknet/utils/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/utils
+copying ccxt/static_dependencies/starknet/utils/constructor_args_translator.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/utils
+copying ccxt/static_dependencies/starknet/utils/iterable.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/utils
+copying ccxt/static_dependencies/starknet/utils/schema.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/utils
+copying ccxt/static_dependencies/starknet/utils/typed_data.py -> ccxt-4.5.26/ccxt/static_dependencies/starknet/utils
+copying ccxt/static_dependencies/starkware/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starkware
+copying ccxt/static_dependencies/starkware/crypto/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/starkware/crypto
+copying ccxt/static_dependencies/starkware/crypto/fast_pedersen_hash.py -> ccxt-4.5.26/ccxt/static_dependencies/starkware/crypto
+copying ccxt/static_dependencies/starkware/crypto/math_utils.py -> ccxt-4.5.26/ccxt/static_dependencies/starkware/crypto
+copying ccxt/static_dependencies/starkware/crypto/signature.py -> ccxt-4.5.26/ccxt/static_dependencies/starkware/crypto
+copying ccxt/static_dependencies/starkware/crypto/utils.py -> ccxt-4.5.26/ccxt/static_dependencies/starkware/crypto
+copying ccxt/static_dependencies/sympy/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy
+copying ccxt/static_dependencies/sympy/core/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/core
+copying ccxt/static_dependencies/sympy/core/intfunc.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/core
+copying ccxt/static_dependencies/sympy/external/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/external
+copying ccxt/static_dependencies/sympy/external/gmpy.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/external
+copying ccxt/static_dependencies/sympy/external/importtools.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/external
+copying ccxt/static_dependencies/sympy/external/ntheory.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/external
+copying ccxt/static_dependencies/sympy/external/pythonmpq.py -> ccxt-4.5.26/ccxt/static_dependencies/sympy/external
+copying ccxt/static_dependencies/toolz/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/_signatures.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/_version.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/compatibility.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/dicttoolz.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/functoolz.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/itertoolz.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/recipes.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/utils.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz
+copying ccxt/static_dependencies/toolz/curried/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz/curried
+copying ccxt/static_dependencies/toolz/curried/exceptions.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz/curried
+copying ccxt/static_dependencies/toolz/curried/operator.py -> ccxt-4.5.26/ccxt/static_dependencies/toolz/curried
+copying ccxt/static_dependencies/typing_inspect/__init__.py -> ccxt-4.5.26/ccxt/static_dependencies/typing_inspect
+copying ccxt/static_dependencies/typing_inspect/typing_inspect.py -> ccxt-4.5.26/ccxt/static_dependencies/typing_inspect
+copying ccxt/test/__init__.py -> ccxt-4.5.26/ccxt/test
+copying ccxt/test/tests_async.py -> ccxt-4.5.26/ccxt/test
+copying ccxt/test/tests_helpers.py -> ccxt-4.5.26/ccxt/test
+copying ccxt/test/tests_init.py -> ccxt-4.5.26/ccxt/test
+copying ccxt/test/tests_sync.py -> ccxt-4.5.26/ccxt/test
+copying ccxt.egg-info/SOURCES.txt -> ccxt-4.5.26/ccxt.egg-info
+Writing ccxt-4.5.26/setup.cfg
+Creating tar archive
+removing 'ccxt-4.5.26' (and everything under it)
+* Building wheel from sdist
+* Creating isolated environment: venv+pip...
+* Installing packages in isolated environment:
+  - setuptools >= 40.8.0
+* Getting build dependencies for wheel...
+
+ERROR Backend subprocess exited when trying to invoke get_requires_for_build_wheel

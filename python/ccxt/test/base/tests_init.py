@@ -12,36 +12,126 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.test.base.test_number import test_number  # noqa E402
+from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa E402
+from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
+from ccxt.base.precise import Precise  # noqa E402
+from ccxt.test.base.test_aggregate import test_aggregate  # noqa E402
+from ccxt.test.base.test_decimal_to_precision import test_decimal_to_precision  # noqa E402
+from ccxt.test.base.test_binary_to_base16 import test_binary_to_base16  # noqa E402
+from ccxt.test.base.test_base16_to_binary import test_base16_to_binary  # noqa E402
+from ccxt.test.base.test_binary_to_base64 import test_binary_to_base64  # noqa E402
+from ccxt.test.base.test_base64_to_binary import test_base64_to_binary  # noqa E402
+from ccxt.test.base.test_number_to_be import test_number_to_be  # noqa E402
+from ccxt.test.base.test_number_to_string import test_number_to_string  # noqa E402
+from ccxt.test.base.test_precise import test_precise  # noqa E402
 from ccxt.test.base.test_datetime import test_datetime  # noqa E402
 from ccxt.test.base.test_cryptography import test_cryptography  # noqa E402
+from ccxt.test.base.test_to_array import test_to_array  # noqa E402
 from ccxt.test.base.test_extend import test_extend  # noqa E402
 from ccxt.test.base.test_deep_extend import test_deep_extend  # noqa E402
 from ccxt.test.base.language_specific.test_language_specific import test_language_specific  # noqa E402
 from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
+from ccxt.test.base.test_safe_ticker import test_safe_ticker  # noqa E402
+from ccxt.test.base.test_json import test_json  # noqa E402
+from ccxt.test.base.test_io import test_io  # noqa E402
+from ccxt.test.base.test_extract_params import test_extract_params  # noqa E402
 from ccxt.test.base.test_sort_by import test_sort_by  # noqa E402
 from ccxt.test.base.test_sum import test_sum  # noqa E402
+from ccxt.test.base.test_unique import test_unique  # noqa E402
 from ccxt.test.base.test_omit import test_omit  # noqa E402
 from ccxt.test.base.test_group_by import test_group_by  # noqa E402
+from ccxt.test.base.test_index_by import test_index_by  # noqa E402
 from ccxt.test.base.test_filter_by import test_filter_by  # noqa E402
+from ccxt.test.base.test_uuid import test_uuid  # noqa E402
+from ccxt.test.base.test_is_empty import test_is_empty  # noqa E402
+from ccxt.test.base.test_in_array import test_in_array  # noqa E402
+from ccxt.test.base.test_precision_from_string import test_precision_from_string  # noqa E402
+from ccxt.test.base.test_urlencode_base64 import test_urlencode_base64  # noqa E402
+from ccxt.test.base.test_string_to_base64 import test_string_to_base64  # noqa E402
+from ccxt.test.base.test_urlencode import test_urlencode  # noqa E402
 from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa E402
+from ccxt.test.base.test_rawencode import test_rawencode  # noqa E402
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
+from ccxt.test.base.test_urlencode_with_array_repeat import test_urlencode_with_array_repeat  # noqa E402
+from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
+from ccxt.test.base.test_binary_to_base58 import test_binary_to_base58  # noqa E402
+from ccxt.test.base.test_strip import test_strip  # noqa E402
+from ccxt.test.base.test_array_concat import test_array_concat  # noqa E402
+from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
+from ccxt.test.base.test_set_markets_from_exchange import test_set_markets_from_exchange  # noqa E402
+from ccxt.test.base.test_sleep import test_sleep  # noqa E402
+from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
+from ccxt.test.base.test_timeframes import test_timeframes  # noqa E402
+from ccxt.test.base.test_keysort import test_keysort  # noqa E402
+from ccxt.test.base.test_implode_params import test_implode_params  # noqa E402
+from ccxt.test.base.test_urlencode_nested import test_urlencode_nested  # noqa E402
+from ccxt.test.base.test_clone import test_clone  # noqa E402
+from ccxt.test.base.test_string_to_base16 import test_string_to_base16  # noqa E402
+from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
+from ccxt.test.base.test_binary_concat import test_binary_concat  # noqa E402
+from ccxt.test.base.test_constants import test_constants  # noqa E402
+from ccxt.test.base.test_base58_to_binary import test_base58_to_binary  # noqa E402
+from ccxt.test.base.test_is_json_encoded_object import test_is_json_encoded_object  # noqa E402
+from ccxt.test.base.test_encode_decode import test_encode_decode  # noqa E402
 
-def base_tests_init():
-    test_language_specific()
+async def base_tests_init():
+    await test_language_specific()
+    test_constants()
     test_after_constructor()
+    test_aggregate()
     test_extend()
     test_deep_extend()
     test_cryptography()
+    test_binary_to_base16()
+    test_base16_to_binary()
+    test_binary_to_base64()
+    test_base64_to_binary()
     test_datetime()
-    test_number()
+    test_number_to_be()
+    test_decimal_to_precision()
+    test_capitalize()
+    test_number_to_string()
+    test_precise()
     test_safe_methods()
-    # testJson ();
+    test_safe_ticker()
+    test_base58_to_binary()
+    test_to_array()
+    test_binary_to_base58()
+    test_json()
     test_sort_by()
     test_sum()
+    test_urlencode_base64()
+    test_string_to_base64()
+    test_urlencode()
     test_omit()
     test_group_by()
+    test_clone()
+    test_index_by()
+    test_in_array()
     test_filter_by()
     test_handle_methods()
     test_remove_repeated_elements_from_array()
+    test_is_empty()
+    test_binary_concat()
+    test_urlencode_with_array_repeat()
+    test_parse_precision()
+    test_precision_from_string()
+    test_timeframes()
+    test_strip()
+    test_rawencode()
+    test_string_to_base16()
+    test_extract_params()
+    test_array_concat()
+    test_arrays_concat()
+    test_uuid()
+    await test_set_markets_from_exchange()
+    test_eth_methods()
+    test_keysort()
+    test_implode_params()
+    test_unique()
+    test_urlencode_nested()
+    await test_sleep()
+    test_io()
+    test_is_json_encoded_object()
+    test_encode_decode()

@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
+import asyncio
 from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -41,6 +42,9 @@ class woofipro(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -65,12 +69,21 @@ class woofipro(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
                 'fetchAccounts': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
                 'fetchConvertCurrencies': False,
                 'fetchConvertQuote': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
@@ -81,7 +94,10 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchMarginAdjustmentHistory': False,
@@ -93,6 +109,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -110,8 +128,11 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
                 'setPositionMode': False,
@@ -143,7 +164,7 @@ class woofipro(Exchange, ImplicitAPI):
                 },
                 'www': 'https://dex.woo.org',
                 'doc': [
-                    'https://orderly.network/docs/build-on-evm/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
                 ],
                 'fees': [
                     'https://dex.woo.org/en/orderly',
@@ -438,10 +459,10 @@ class woofipro(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = await self.v1PublicGetPublicSystemInfo(params)
         #
@@ -474,7 +495,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -584,7 +605,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for woofipro
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -633,13 +654,14 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         result: dict = {}
-        response = await self.v1PublicGetPublicToken(params)
+        tokenPromise = self.v1PublicGetPublicToken(params)
         #
         # {
         #     "success": True,
@@ -662,25 +684,28 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'data', {})
-        tokenRows = self.safe_list(data, 'rows', [])
+        chainPromise = self.v1PublicGetPublicChainInfo(params)
+        tokenResponse, chainResponse = await asyncio.gather(*[tokenPromise, chainPromise])
+        tokenData = self.safe_dict(tokenResponse, 'data', {})
+        tokenRows = self.safe_list(tokenData, 'rows', [])
+        chainData = self.safe_dict(chainResponse, 'data', {})
+        chainRows = self.safe_list(chainData, 'rows', [])
+        indexedChains = self.index_by(chainRows, 'chain_id')
         for i in range(0, len(tokenRows)):
             token = tokenRows[i]
             currencyId = self.safe_string(token, 'token')
             networks = self.safe_list(token, 'chain_details')
             code = self.safe_currency_code(currencyId)
-            minPrecision = None
             resultingNetworks: dict = {}
             for j in range(0, len(networks)):
-                network = networks[j]
-                # TODO: transform chain id to human readable name
-                networkId = self.safe_string(network, 'chain_id')
-                precision = self.parse_precision(self.safe_string(network, 'decimals'))
-                if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
-                resultingNetworks[networkId] = {
+                networkEntry = networks[j]
+                networkId = self.safe_string(networkEntry, 'chain_id')
+                networkRow = self.safe_dict(indexedChains, networkId)
+                networkName = self.safe_string(networkRow, 'name')
+                networkCode = self.network_id_to_code(networkName, code)
+                resultingNetworks[networkCode] = {
                     'id': networkId,
-                    'network': networkId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': None,
@@ -694,15 +719,15 @@ class woofipro(Exchange, ImplicitAPI):
                     'active': None,
                     'deposit': None,
                     'withdraw': None,
-                    'fee': self.safe_number(network, 'withdrawal_fee'),
-                    'precision': self.parse_number(precision),
-                    'info': network,
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
+                    'info': [networkEntry, networkRow],
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'id': currencyId,
-                'name': currencyId,
+                'name': None,
                 'code': code,
-                'precision': self.parse_number(minPrecision),
+                'precision': None,
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
@@ -719,7 +744,7 @@ class woofipro(Exchange, ImplicitAPI):
                     },
                 },
                 'info': token,
-            }
+            })
         return result
 
     def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
@@ -801,13 +826,13 @@ class woofipro(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -891,11 +916,11 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate interval
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         return await self.fetch_funding_rate(symbol, params)
 
@@ -903,11 +928,11 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -937,11 +962,11 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the current funding rate for multiple markets
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -971,15 +996,15 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1031,14 +1056,105 @@ class woofipro(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def parse_income(self, income, market: Market = None):
+        #
+        # {
+        #         "symbol": "PERP_ETH_USDC",
+        #         "funding_rate": 0.00046875,
+        #         "mark_price": 2100,
+        #         "funding_fee": 0.000016,
+        #         "payment_type": "Pay",
+        #         "status": "Accrued",
+        #         "created_time": 1682235722003,
+        #         "updated_time": 1682235722003
+        # }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        amount = self.safe_string(income, 'funding_fee')
+        code = self.safe_currency_code('USDC')
+        timestamp = self.safe_integer(income, 'updated_time')
+        rate = self.safe_number(income, 'funding_rate')
+        paymentType = self.safe_string(income, 'payment_type')
+        amount = Precise.string_neg(amount) if (paymentType == 'Pay') else amount
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.parse_number(amount),
+            'rate': rate,
+        }
+
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500)
+        request: dict = {}
+        market: Market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['start_t'] = since
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        params = self.omit(params, ['until'])
+        if until is not None:
+            request['end_t'] = until
+        if limit is not None:
+            request['size'] = min(limit, 500)
+        response = await self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989,
+        #     "data": {
+        #         "meta": {
+        #             "total": 9,
+        #             "records_per_page": 25,
+        #             "current_page": 1
+        #         },
+        #         "rows": [{
+        #                 "symbol": "PERP_ETH_USDC",
+        #                 "funding_rate": 0.00046875,
+        #                 "mark_price": 2100,
+        #                 "funding_fee": 0.000016,
+        #                 "payment_type": "Pay",
+        #                 "status": "Accrued",
+        #                 "created_time": 1682235722003,
+        #                 "updated_time": 1682235722003
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        return self.parse_incomes(rows, market, since, limit)
+
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.v1PrivateGetClientInfo(params)
@@ -1089,12 +1205,12 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1136,10 +1252,10 @@ class woofipro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1349,8 +1465,10 @@ class woofipro(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
         algoType = self.safe_string(params, 'algoType')
-        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1379,7 +1497,7 @@ class woofipro(Exchange, ImplicitAPI):
         if triggerPrice is not None:
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['algo_type'] = 'STOP'
-        elif (stopLoss is not None) or (takeProfit is not None):
+        elif hasStopLoss or hasTakeProfit:
             request['algo_type'] = 'TP_SL'
             outterOrder: dict = {
                 'symbol': market['id'],
@@ -1389,7 +1507,7 @@ class woofipro(Exchange, ImplicitAPI):
             }
             childOrders = outterOrder['child_orders']
             closeSide = 'SELL' if (orderSide == 'BUY') else 'BUY'
-            if stopLoss is not None:
+            if hasStopLoss:
                 stopLossPrice = self.safe_number_2(stopLoss, 'triggerPrice', 'price', stopLoss)
                 stopLossOrder: dict = {
                     'side': closeSide,
@@ -1399,7 +1517,7 @@ class woofipro(Exchange, ImplicitAPI):
                     'reduce_only': True,
                 }
                 childOrders.append(stopLossOrder)
-            if takeProfit is not None:
+            if hasTakeProfit:
                 takeProfitPrice = self.safe_number_2(takeProfit, 'triggerPrice', 'price', takeProfit)
                 takeProfitOrder: dict = {
                     'side': closeSide,
@@ -1417,8 +1535,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1434,7 +1552,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param float [params.algoType]: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1485,11 +1603,11 @@ class woofipro(Exchange, ImplicitAPI):
         """
         *contract only* create a list of trade orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -1538,8 +1656,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1551,7 +1669,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1610,10 +1728,10 @@ class woofipro(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
 
         cancels an open order
         :param str id: order id
@@ -1621,7 +1739,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
@@ -1683,14 +1801,14 @@ class woofipro(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.client_order_ids]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
@@ -1719,14 +1837,14 @@ class woofipro(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
 
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
@@ -1756,18 +1874,18 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         return [
-            {
+            self.safe_order({
                 'info': response,
-            },
+            }),
         ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
 
         fetches information on an order made by the user
         :param str id: the order id
@@ -1775,7 +1893,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1834,8 +1952,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1846,7 +1964,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str [params.side]: 'buy' or 'sell'
         :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
         :param int params['until']: timestamp in ms of the latest order to fetch
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1917,8 +2035,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1929,7 +2047,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str [params.side]: 'buy' or 'sell'
         :param int params['until']: timestamp in ms of the latest order to fetch
         :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
@@ -1939,8 +2057,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1951,7 +2069,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str [params.side]: 'buy' or 'sell'
         :param int params['until']: timestamp in ms of the latest order to fetch
         :param boolean [params.paginate]: set to True if you want to fetch orders with pagination
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         extendedParams = self.extend(params, {'status': 'COMPLETED'})
@@ -1961,14 +2079,14 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
 
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         market: Market = None
@@ -2006,7 +2124,7 @@ class woofipro(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
 
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2015,7 +2133,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: set to True if you want to fetch trades with pagination
         :param int params['until']: timestamp in ms of the latest trade to fetch
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2083,10 +2201,10 @@ class woofipro(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.v1PrivateGetClientHolding(params)
@@ -2190,13 +2308,13 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         currencyRows = await self.get_asset_history_rows(code, since, limit, params)
         currency = self.safe_value(currencyRows, 0)
@@ -2250,13 +2368,13 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         request: dict = {
             'side': 'DEPOSIT',
@@ -2267,13 +2385,13 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         request: dict = {
             'side': 'WITHDRAW',
@@ -2284,13 +2402,13 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch history of deposits and withdrawals
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         request: dict = {}
         currencyRows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
@@ -2336,18 +2454,18 @@ class woofipro(Exchange, ImplicitAPI):
     def sign_message(self, message, privateKey):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         self.check_address(address)
@@ -2427,11 +2545,11 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2466,11 +2584,11 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
 
         :param int [leverage]: the rate of leverage
         :param str [symbol]: unified market symbol
@@ -2557,12 +2675,12 @@ class woofipro(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: Str, params={}):
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
 
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2603,11 +2721,11 @@ class woofipro(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+        https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         response = await self.v1PrivateGetPositions(params)

@@ -180,16 +180,16 @@ def test_market(exchange, skipped_properties, method, market):
         test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'expiry', '0')
         if option:
             # strike should be defined
-            assert market['strike'] is not None, '"strike" must be defined when "option" is true' + log_text
+            assert (('strike' in skipped_properties) or market['strike'] is not None), '"strike" must be defined when "option" is true' + log_text
             test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'strike', '0')
             # optionType should be defined
-            assert market['optionType'] is not None, '"optionType" must be defined when "option" is true' + log_text
+            assert (('optionType' in skipped_properties) or market['optionType'] is not None), '"optionType" must be defined when "option" is true' + log_text
             test_shared_methods.assert_in_array(exchange, skipped_properties, method, market, 'optionType', ['put', 'call'])
         else:
             # if not option, then strike and optionType should be undefined
             assert market['strike'] is None, '"strike" must be undefined when "option" is false' + log_text
             assert market['optionType'] is None, '"optionType" must be undefined when "option" is false' + log_text
-    else:
+    elif spot:
         # otherwise, expiry needs to be undefined
         assert (market['expiry'] is None) and (market['expiryDatetime'] is None), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + log_text
     # check precisions

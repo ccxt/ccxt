@@ -10,6 +10,7 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOrderBook (symbol);
         } catch (e) {
@@ -17,16 +18,20 @@ async function testWatchOrderBook (exchange: Exchange, skippedProperties: object
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        // below, `typeof .. = 'object'` turns as `is_array()` in PHP after transpilation, so to handle that
-        // we need to transform the special PHP cacheTypes to normal arrays
-        // todo: in future, we might edit cache classes itself
-        response = exchange.orderbookToDict (response);
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
-        now = exchange.milliseconds ();
-        testOrderBook (exchange, skippedProperties, method, response, symbol);
+        if (success === true) {
+            // below, `typeof .. = 'object'` turns as `is_array()` in PHP after transpilation, so to handle that
+            // we need to transform the special PHP cacheTypes to normal arrays
+            // todo: in future, we might edit cache classes itself
+            response = exchange.orderbookToDict (response); // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            testOrderBook (exchange, skippedProperties, method, response, symbol);
+        }
     }
+    return true;
 }
 
 export default testWatchOrderBook;

@@ -2,6 +2,263 @@
     "exchange": "coinbasepro",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "DAI",
+                        "name": "Dai",
+                        "min_size": "0.00001",
+                        "status": "online",
+                        "message": "",
+                        "max_precision": "0.00001",
+                        "convertible_to": [],
+                        "details": {
+                            "type": "crypto",
+                            "symbol": null,
+                            "network_confirmations": "14",
+                            "sort_order": "100",
+                            "crypto_address_link": "https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f?a={{address}}",
+                            "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                            "push_payment_methods": [
+                                "crypto"
+                            ],
+                            "group_types": [],
+                            "display_name": null,
+                            "processing_time_seconds": null,
+                            "min_withdrawal_amount": "0.01",
+                            "max_withdrawal_amount": "3000000"
+                        },
+                        "default_network": "ethereum",
+                        "supported_networks": [
+                            {
+                                "id": "arbitrum",
+                                "name": "Arbitrum",
+                                "status": "online",
+                                "contract_address": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+                                "crypto_address_link": "https://arbiscan.io/token/0xda10009cbd5d07dd0cecc66161fc93d7c9000da1?a={{address}}",
+                                "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+                                "min_withdrawal_amount": "0.01",
+                                "max_withdrawal_amount": "150000",
+                                "network_confirmations": null,
+                                "processing_time_seconds": null
+                            },
+                            {
+                                "id": "ethereum",
+                                "name": "Ethereum",
+                                "status": "online",
+                                "contract_address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                "crypto_address_link": "https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f?a={{address}}",
+                                "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                                "min_withdrawal_amount": "0.01",
+                                "max_withdrawal_amount": "3000000",
+                                "network_confirmations": "14",
+                                "processing_time_seconds": null
+                            },
+                            {
+                                "id": "optimism",
+                                "name": "Optimism",
+                                "status": "online",
+                                "contract_address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+                                "crypto_address_link": "https://optimistic.etherscan.io/token/0xda10009cbd5d07dd0cecc66161fc93d7c9000da1?a={{address}}",
+                                "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
+                                "min_withdrawal_amount": "0.01",
+                                "max_withdrawal_amount": "60000",
+                                "network_confirmations": null,
+                                "processing_time_seconds": null
+                            }
+                        ],
+                        "display_name": "DAI"
+                    }
+                ],
+                "parsedResponse": {
+                    "DAI": {
+                        "info": {
+                            "id": "DAI",
+                            "name": "Dai",
+                            "min_size": "0.00001",
+                            "status": "online",
+                            "message": "",
+                            "max_precision": "0.00001",
+                            "convertible_to": [],
+                            "details": {
+                                "type": "crypto",
+                                "symbol": null,
+                                "network_confirmations": "14",
+                                "sort_order": "100",
+                                "crypto_address_link": "https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f?a={{address}}",
+                                "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                                "push_payment_methods": [
+                                    "crypto"
+                                ],
+                                "group_types": [],
+                                "display_name": null,
+                                "processing_time_seconds": null,
+                                "min_withdrawal_amount": "0.01",
+                                "max_withdrawal_amount": "3000000"
+                            },
+                            "default_network": "ethereum",
+                            "supported_networks": [
+                                {
+                                    "id": "arbitrum",
+                                    "name": "Arbitrum",
+                                    "status": "online",
+                                    "contract_address": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+                                    "crypto_address_link": "https://arbiscan.io/token/0xda10009cbd5d07dd0cecc66161fc93d7c9000da1?a={{address}}",
+                                    "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+                                    "min_withdrawal_amount": "0.01",
+                                    "max_withdrawal_amount": "150000",
+                                    "network_confirmations": null,
+                                    "processing_time_seconds": null
+                                },
+                                {
+                                    "id": "ethereum",
+                                    "name": "Ethereum",
+                                    "status": "online",
+                                    "contract_address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                    "crypto_address_link": "https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f?a={{address}}",
+                                    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                                    "min_withdrawal_amount": "0.01",
+                                    "max_withdrawal_amount": "3000000",
+                                    "network_confirmations": "14",
+                                    "processing_time_seconds": null
+                                },
+                                {
+                                    "id": "optimism",
+                                    "name": "Optimism",
+                                    "status": "online",
+                                    "contract_address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+                                    "crypto_address_link": "https://optimistic.etherscan.io/token/0xda10009cbd5d07dd0cecc66161fc93d7c9000da1?a={{address}}",
+                                    "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
+                                    "min_withdrawal_amount": "0.01",
+                                    "max_withdrawal_amount": "60000",
+                                    "network_confirmations": null,
+                                    "processing_time_seconds": null
+                                }
+                            ],
+                            "display_name": "DAI"
+                        },
+                        "id": "DAI",
+                        "numericId": null,
+                        "code": "DAI",
+                        "precision": 0.00001,
+                        "type": "crypto",
+                        "name": "Dai",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {
+                            "ARBONE": {
+                                "id": "arbitrum",
+                                "name": "Arbitrum",
+                                "network": "ARBONE",
+                                "active": true,
+                                "withdraw": null,
+                                "deposit": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.01,
+                                        "max": 150000
+                                    }
+                                },
+                                "contract": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+                                "info": {
+                                    "id": "arbitrum",
+                                    "name": "Arbitrum",
+                                    "status": "online",
+                                    "contract_address": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+                                    "crypto_address_link": "https://arbiscan.io/token/0xda10009cbd5d07dd0cecc66161fc93d7c9000da1?a={{address}}",
+                                    "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+                                    "min_withdrawal_amount": "0.01",
+                                    "max_withdrawal_amount": "150000",
+                                    "network_confirmations": null,
+                                    "processing_time_seconds": null
+                                }
+                            },
+                            "ETH": {
+                                "id": "ethereum",
+                                "name": "Ethereum",
+                                "network": "ETH",
+                                "active": true,
+                                "withdraw": null,
+                                "deposit": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.01,
+                                        "max": 3000000
+                                    }
+                                },
+                                "contract": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                "info": {
+                                    "id": "ethereum",
+                                    "name": "Ethereum",
+                                    "status": "online",
+                                    "contract_address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+                                    "crypto_address_link": "https://etherscan.io/token/0x6b175474e89094c44da98b954eedeac495271d0f?a={{address}}",
+                                    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                                    "min_withdrawal_amount": "0.01",
+                                    "max_withdrawal_amount": "3000000",
+                                    "network_confirmations": "14",
+                                    "processing_time_seconds": null
+                                }
+                            },
+                            "OP": {
+                                "id": "optimism",
+                                "name": "Optimism",
+                                "network": "OP",
+                                "active": true,
+                                "withdraw": null,
+                                "deposit": null,
+                                "fee": null,
+                                "precision": null,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.01,
+                                        "max": 60000
+                                    }
+                                },
+                                "contract": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+                                "info": {
+                                    "id": "optimism",
+                                    "name": "Optimism",
+                                    "status": "online",
+                                    "contract_address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+                                    "crypto_address_link": "https://optimistic.etherscan.io/token/0xda10009cbd5d07dd0cecc66161fc93d7c9000da1?a={{address}}",
+                                    "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
+                                    "min_withdrawal_amount": "0.01",
+                                    "max_withdrawal_amount": "60000",
+                                    "network_confirmations": null,
+                                    "processing_time_seconds": null
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.01,
+                                "max": 3000000
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",

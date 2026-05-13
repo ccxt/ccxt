@@ -23,12 +23,18 @@ public partial class bitteam : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
                 { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", false },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createDepositAddress", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
                 { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
@@ -40,8 +46,11 @@ public partial class bitteam : Exchange
                 { "fetchBalance", true },
                 { "fetchBidsAsks", false },
                 { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrder", false },
                 { "fetchClosedOrders", true },
@@ -57,24 +66,42 @@ public partial class bitteam : Exchange
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchL3OrderBook", false },
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
+                { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
@@ -88,6 +115,7 @@ public partial class bitteam : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchStatus", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -100,10 +128,13 @@ public partial class bitteam : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", true },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "fetchWithdrawalWhitelist", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "repayMargin", false },
                 { "setLeverage", false },
                 { "setMargin", false },
@@ -646,6 +677,7 @@ public partial class bitteam : Exchange
             object networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
             object networks = new Dictionary<string, object>() {};
             object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
+            object typeRaw = this.safeString(currency, "type");
             for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
             {
                 object networkId = getValue(networkIds, j);
@@ -701,6 +733,7 @@ public partial class bitteam : Exchange
                         { "max", null },
                     } },
                 } },
+                { "type", typeRaw },
                 { "networks", networks },
             };
         }
@@ -798,7 +831,7 @@ public partial class bitteam : Exchange
         object response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters));
         //
         //     {
-        //         "timestamp": 1701166703285,
+        //         "timestamp": 1701166703284,
         //         "bids": [
         //             [
         //                 2019.334988,
@@ -1063,7 +1096,7 @@ public partial class bitteam : Exchange
      * @param {object} [params] extra parameters specific to the bitteam api endpoint
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

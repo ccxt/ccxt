@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var poloniex$1 = require('../poloniex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -8,7 +10,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class poloniex extends poloniex$1 {
+class poloniex extends poloniex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -249,7 +251,9 @@ class poloniex extends poloniex$1 {
                 request['price'] = this.priceToPrecision(symbol, price);
             }
         }
-        return await this.tradeRequest('createOrder', this.extend(request, params));
+        const orders = await this.tradeRequest('createOrder', this.extend(request, params));
+        const order = this.safeDict(orders, 0);
+        return order;
     }
     /**
      * @method
@@ -268,7 +272,9 @@ class poloniex extends poloniex$1 {
             const clientOrderIds = this.safeValue(params, 'clientOrderId', []);
             params['clientOrderIds'] = this.arrayConcat(clientOrderIds, [clientOrderId]);
         }
-        return await this.cancelOrdersWs([id], symbol, params);
+        const orders = await this.cancelOrdersWs([id], symbol, params);
+        const order = this.safeDict(orders, 0);
+        return order;
     }
     /**
      * @method
@@ -357,7 +363,7 @@ class poloniex extends poloniex$1 {
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -372,7 +378,7 @@ class poloniex extends poloniex$1 {
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -393,7 +399,7 @@ class poloniex extends poloniex$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
@@ -407,7 +413,7 @@ class poloniex extends poloniex$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -445,7 +451,7 @@ class poloniex extends poloniex$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -464,7 +470,7 @@ class poloniex extends poloniex$1 {
      * @param {int} [since] not used by poloniex watchOrders
      * @param {int} [limit] not used by poloniex watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -489,7 +495,7 @@ class poloniex extends poloniex$1 {
      * @param {int} [since] not used by poloniex watchMyTrades
      * @param {int} [limit] not used by poloniex watchMyTrades
      * @param {object} [params] extra parameters specific to the poloniex strean
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -512,7 +518,7 @@ class poloniex extends poloniex$1 {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.poloniex.com/spot/websocket/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -1310,4 +1316,4 @@ class poloniex extends poloniex$1 {
     }
 }
 
-module.exports = poloniex;
+exports["default"] = poloniex;

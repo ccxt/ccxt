@@ -45,7 +45,7 @@ export default class luno extends lunoRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of    trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
@@ -145,7 +145,7 @@ export default class luno extends lunoRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         this.checkRequiredCredentials ();
@@ -204,16 +204,17 @@ export default class luno extends lunoRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
-        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            orderbook.reset (snapshot);
+            this.orderbooks[symbol] = this.indexedOrderBook (snapshot);
         } else {
-            this.handleDelta (orderbook, message);
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
+            const ob = this.orderbooks[symbol];
+            this.handleDelta (ob, message);
+            ob['timestamp'] = timestamp;
+            ob['datetime'] = this.iso8601 (timestamp);
         }
+        const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (message, 'sequence');
         orderbook['nonce'] = nonce;
         client.resolve (orderbook, messageHash);

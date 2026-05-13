@@ -306,6 +306,11 @@ public partial class bitmart : Exchange
         return await this.callAsync ("privateGetContractPrivatePosition",parameters);
     }
 
+    public async Task<object> privateGetContractPrivatePositionV2 (object parameters = null)
+    {
+        return await this.callAsync ("privateGetContractPrivatePositionV2",parameters);
+    }
+
     public async Task<object> privateGetContractPrivateGetOpenOrders (object parameters = null)
     {
         return await this.callAsync ("privateGetContractPrivateGetOpenOrders",parameters);
@@ -454,6 +459,41 @@ public partial class bitmart : Exchange
     public async Task<object> privatePostSpotV4BatchOrders (object parameters = null)
     {
         return await this.callAsync ("privatePostSpotV4BatchOrders",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4AlgoSubmitOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4AlgoSubmitOrder",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4AlgoCancelOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4AlgoCancelOrder",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4AlgoCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4AlgoCancelAll",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4QueryAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4QueryAlgoOrder",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4QueryAlgoClientOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4QueryAlgoClientOrder",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4QueryAlgoOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4QueryAlgoOpenOrders",parameters);
+    }
+
+    public async Task<object> privatePostSpotV4QueryAlgoHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSpotV4QueryAlgoHistoryOrders",parameters);
     }
 
     public async Task<object> privatePostSpotV3CancelOrder (object parameters = null)

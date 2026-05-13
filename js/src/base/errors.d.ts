@@ -40,6 +40,9 @@ declare class MarketClosed extends OperationRejected {
 declare class ManualInteractionNeeded extends OperationRejected {
     constructor(message: string);
 }
+declare class RestrictedLocation extends OperationRejected {
+    constructor(message: string);
+}
 declare class InsufficientFunds extends ExchangeError {
     constructor(message: string);
 }
@@ -118,7 +121,7 @@ declare class CancelPending extends OperationFailed {
 declare class UnsubscribeError extends BaseError {
     constructor(message: string);
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError };
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError };
 declare const _default: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -134,6 +137,7 @@ declare const _default: {
     MarginModeAlreadySet: typeof MarginModeAlreadySet;
     MarketClosed: typeof MarketClosed;
     ManualInteractionNeeded: typeof ManualInteractionNeeded;
+    RestrictedLocation: typeof RestrictedLocation;
     InsufficientFunds: typeof InsufficientFunds;
     InvalidAddress: typeof InvalidAddress;
     AddressPending: typeof AddressPending;

@@ -28,12 +28,13 @@ In other words, the existing CLI contains three implementations that are in many
 
 The source code of the CLI is available here:
 
+- https://github.com/ccxt/ccxt/blob/master/examples/ts/cli.ts
 - https://github.com/ccxt/ccxt/blob/master/examples/js/cli.js
 - https://github.com/ccxt/ccxt/blob/master/examples/py/cli.py
 - https://github.com/ccxt/ccxt/blob/master/examples/php/cli.php
 
 ## Install globally
-```js
+```shell
 npm -g ccxt
 ```
 - Update using `npm update ccxt -g`
@@ -41,11 +42,11 @@ npm -g ccxt
 ## Install
 
 1. Clone the CCXT repository:
-    ```sh
+    ```shell
     git clone https://github.com/ccxt/ccxt
     ```
 2. Change directory to the cloned repository:
-    ```sh
+    ```shell
     cd ccxt
     ```
 3. Install the dependencies:
@@ -70,13 +71,13 @@ Normally, following the exchange id argument one would specify a method name to 
 
 If the only parameter you specify to CLI is the exchange id, then it will print out the contents of the exchange instance including all properties, methods, markets, currencies, etc. **Warning: exchange contents are HUGE and this will dump A LOT of output to your screen!**
 
-```
+```shell
 node examples/js/cli bybit
 ```
 
 You can specify the name of the property of the exchange to narrow the output down to a reasonable size.
 
-```
+```shell
 node examples/js/cli okx markets  # will print out the list of all the loaded markets
 node examples/js/cli binance currencies  # will print out a table of all the loaded currencies
 node examples/js/cli gate options  # will print out the contents of the exchange-specific options
@@ -84,7 +85,7 @@ node examples/js/cli gate options  # will print out the contents of the exchange
 
 You can easily view which methods are supported on the various exchanges:
 
-```
+```shell
 node examples/js/exchange-capabilities | less -S -R
 ```
 
@@ -92,7 +93,7 @@ node examples/js/exchange-capabilities | less -S -R
 
 Calling unified methods is easy:
 
-```
+```shell
 node examples/js/cli okx fetchOrderBook BTC/USDT  # will fetch the orderbook from exchange instance and will print it out as a table
 node examples/js/cli binance fetchTrades ETH/USDT  # will fetch a list of most recent public trades and will print a table of them
 node examples/js/cli bitget fetchTickers  # will fetch all tickers one by one
@@ -102,7 +103,7 @@ node examples/js/cli bitget fetchTickers '["BTC/USDT","ETH/USDT"]' # will fetch 
 
 Exchange specific parameters can be set in the last argument of every unified method:
 
-```
+```shell
 node examples/js/cli bybit setMarginMode isolated BTC/USDT '{"leverage":"8"}' # set the margin mode while specifying the exchange specific leverage parameter
 ```
 
@@ -110,7 +111,7 @@ node examples/js/cli bybit setMarginMode isolated BTC/USDT '{"leverage":"8"}' # 
 
 Here's an example of fetching the order book on okx in sandbox mode using the implicit API and the exchange specific instId and sz parameters:
 
-```
+```shell
 node examples/js/cli okx publicGetMarketBooks '{"instId":"BTC-USDT","sz":"3"}' --sandbox
 ```
 
@@ -127,27 +128,29 @@ CLI supports all possible methods and properties that exist on the exchange inst
 ### Run with jq
 Install jq 
 
-<!-- tabs:start -->
 #### **Ubuntu**
-```bash
+```shell
 sudo apt-get install jq
 ```
 #### **Brew (Mac)**
-```bash
+```shell
 brew install jq
 ```
 #### **Choco (Windows)**
-```bash
+```shell
 choco install jq -y
 ```
-<!-- tabs:end -->
 
 #### Examples
 - Get ticker price of BTC/USDT: `ccxt binance fetchTicker BTC/USDT | jq '.price'
 - watch price and amount of trades:
+```shell
 `ccxt binance watchTrades BTC/USDT --raw | jq -c '[.[] | {price: .price, amount: .amount}]'`
+```
 
 - fuzzy search between trades (requires fzf):
+```shell
 `ccxt binance fetchTrades --raw | jq -c '.[]' | fzf`
+```
 
 ![render1710459605924](https://github.com/ccxt/ccxt/assets/12142844/39b22383-42d5-4ebd-8b09-617008b7e4f0)
