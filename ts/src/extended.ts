@@ -321,8 +321,7 @@ export default class extended extends Exchange {
                 },
             },
             'options': {
-                'brokerId': 'CCXT-CODE',
-                'brokerReferralCodeApplied': false,
+                'builderId': '257624',
             },
         });
     }
@@ -2268,6 +2267,17 @@ export default class extended extends Exchange {
         return result;
     }
 
+    async fetchExtendedAccount (params = {}): Promise<any> {
+        let account = this.safeDict (this.options, 'account');
+        if (account !== undefined) {
+            return account;
+        }
+        const accountData = await this.fetchAccount (params);
+        account = accountData['info'];
+        this.options['account'] = account;
+        return account;
+    }
+
     async createExtendedOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params = {}): Promise<Dict> {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2300,10 +2310,9 @@ export default class extended extends Exchange {
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
         const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
         const nonce = this.numberToString (this.nonce ());
-        const account = await this.v1PrivateGetUserAccountInfo ();
-        const accountData = this.safeDict (account, 'data', {});
-        const starkKey = this.safeString (accountData, 'l2Key');
-        const collateralPosition = this.safeString (accountData, 'l2Vault');
+        const account = await this.fetchExtendedAccount ();
+        const starkKey = this.safeString (account, 'l2Key');
+        const collateralPosition = this.safeString (account, 'l2Vault');
         const info = this.safeDict (market, 'info', {});
         const l2Config = this.safeDict (info, 'l2Config', {});
         const syntheticId = this.safeString (l2Config, 'syntheticId');

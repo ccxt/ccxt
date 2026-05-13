@@ -2,10 +2,26 @@
     "exchange": "extended",
     "outputType": "json",
     "privateKey": "0x12345",
+    "options": {
+        "account": {
+            "accountId": "234567",
+            "description": "Main account",
+            "accountIndex": "0",
+            "status": "ACTIVE",
+            "l2Key": "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf",
+            "l2Vault": "123456",
+            "bridgeStarknetAddress": "",
+            "apiKeys": [ "" ],
+            "accountIndexForKeyGeneration": "0"
+        }
+    },
     "skipKeys": [
         "nonce",
         "r",
-        "s"
+        "s",
+        "signature",
+        "id",
+        "expiryEpochMillis"
     ],
     "methods": {
         "fetchCurrencies": [
@@ -429,6 +445,54 @@
                         "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
                     }
                 ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"id\":\"50f1e348-e580-4228-bbc7-d7a970036f7c\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894662,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\"}"
+            },
+            {
+                "description": "swap limit buy with trigger price",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "triggerPrice": 45,
+                        "triggerDirection": "up"
+                    }
+                ],
+                "output": "{\"id\":\"cef9d41c-66e7-4d5d-b84a-7e82d70c0e6c\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894758,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"}}"
+            },
+            {
+                "description": "swap limit buy with stop loss price",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "stopLossPrice": 45
+                    }
+                ],
+                "output": "{\"id\":\"cc7dfcdb-4248-4964-a09c-0537176aa031\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894768,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"},\"stopLossPrice\":45}"
             }
         ]
     }
