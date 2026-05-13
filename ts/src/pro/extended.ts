@@ -2,7 +2,7 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Bool, Int, OHLCV, OrderBook, Trade } from '../base/types.js';
+import type { Bool, Int, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -15,6 +15,8 @@ export default class extended extends extendedRest {
                 'ws': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
+                'watchIndexPrice': true,
+                'watchMarkPrice': true,
                 'watchTrades': true,
             },
             'urls': {
@@ -129,6 +131,124 @@ export default class extended extends extendedRest {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
+    }
+
+    /**
+     * @method
+     * @name extended#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://api.docs.extended.exchange/#mark-price-stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'markPrice:' + symbol;
+        const query = this.urlencode (params);
+        let url = this.urls['api']['ws'] + '/prices/mark/' + market['id'];
+        if (query.length > 0) {
+            url += '?' + query;
+        }
+        return await this.watch (url, messageHash, undefined, messageHash, {
+            'name': 'markPrice',
+            'symbol': symbol,
+            'messageHash': messageHash,
+        });
+    }
+
+    handleMarkPrice (client: Client, message) {
+        //
+        //     {
+        //         "type": "MP",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "p": "80988.400408625006",
+        //             "ts": 0
+        //         },
+        //         "ts": 1778641421485,
+        //         "seq": 1
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'm');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let timestamp = this.safeInteger (data, 'ts');
+        if ((timestamp === undefined) || (timestamp === 0)) {
+            timestamp = this.safeInteger (message, 'ts');
+        }
+        const ticker = this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'markPrice': this.safeString (data, 'p'),
+            'info': message,
+        }, market);
+        this.tickers[symbol] = ticker;
+        const messageHash = 'markPrice:' + symbol;
+        client.resolve (ticker, messageHash);
+    }
+
+    /**
+     * @method
+     * @name extended#watchIndexPrice
+     * @description watches an index price for a specific market
+     * @see https://api.docs.extended.exchange/#index-price-stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async watchIndexPrice (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'indexPrice:' + symbol;
+        const query = this.urlencode (params);
+        let url = this.urls['api']['ws'] + '/prices/index/' + market['id'];
+        if (query.length > 0) {
+            url += '?' + query;
+        }
+        return await this.watch (url, messageHash, undefined, messageHash, {
+            'name': 'indexPrice',
+            'symbol': symbol,
+            'messageHash': messageHash,
+        });
+    }
+
+    handleIndexPrice (client: Client, message) {
+        //
+        //     {
+        //         "type": "IP",
+        //         "data": {
+        //             "m": "BTC-USD",
+        //             "p": "81061.372849012506",
+        //             "ts": 1778641858000
+        //         },
+        //         "ts": 1778641858588,
+        //         "seq": 1
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'm');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let timestamp = this.safeInteger (data, 'ts');
+        if ((timestamp === undefined) || (timestamp === 0)) {
+            timestamp = this.safeInteger (message, 'ts');
+        }
+        const ticker = this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'indexPrice': this.safeString (data, 'p'),
+            'info': message,
+        }, market);
+        this.tickers[symbol] = ticker;
+        const messageHash = 'indexPrice:' + symbol;
+        client.resolve (ticker, messageHash);
     }
 
     /**
@@ -275,7 +395,7 @@ export default class extended extends extendedRest {
         //         "seq": 1
         //     }
         //
-        const subscription = this.findOhlcvSubscription (client);
+        const subscription = this.findSubscription (client, 'ohlcv');
         if (subscription === undefined) {
             return;
         }
@@ -306,13 +426,13 @@ export default class extended extends extendedRest {
         client.resolve (stored, messageHash);
     }
 
-    findOhlcvSubscription (client: Client) {
+    findSubscription (client: Client, name: string) {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const subscription = this.safeDict (client.subscriptions, key);
-            const name = this.safeString (subscription, 'name');
-            if (name === 'ohlcv') {
+            const subscriptionName = this.safeString (subscription, 'name');
+            if (subscriptionName === name) {
                 return subscription;
             }
         }
@@ -349,7 +469,14 @@ export default class extended extends extendedRest {
                 this.handleOHLCV (client, message);
             }
         } else if (data !== undefined) {
-            this.handleOrderBook (client, message);
+            const type = this.safeString (message, 'type');
+            if (type === 'MP') {
+                this.handleMarkPrice (client, message);
+            } else if (type === 'IP') {
+                this.handleIndexPrice (client, message);
+            } else {
+                this.handleOrderBook (client, message);
+            }
         }
     }
 }
