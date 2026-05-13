@@ -932,6 +932,15 @@ export default class apex extends apexRest {
                 const ret_msg = this.safeString (message, 'ret_msg');
                 const request = this.safeValue (message, 'request', {});
                 const op = this.safeString (request, 'op');
+                // Benign re-subscribe notice (same shape as bitmart 90008 /
+                // krakenfutures "Already subscribed"): the original subscription
+                // is still active and delivering data on this socket. Without
+                // this short-circuit the catch-clause's `client.reject(error,
+                // messageHash)` rejects every in-flight future on the connection
+                // because apex doesn't echo a `reqId` on these warnings.
+                if (ret_msg !== undefined && ret_msg.indexOf ('already subscribed') >= 0) {
+                    return false;
+                }
                 if (op === 'auth') {
                     throw new AuthenticationError ('Authentication failed: ' + ret_msg);
                 } else {

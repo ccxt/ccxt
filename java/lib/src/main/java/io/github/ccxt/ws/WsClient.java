@@ -437,18 +437,47 @@ public class WsClient {
                 ? th
                 : new RuntimeException(String.valueOf(err));
 
+        // Wrap raw Netty / I/O / SSL exceptions in NetworkError so the test
+        // harness's isTemporaryFailure() check (instanceof OperationFailed)
+        // treats them as transient — matches Python's `NetworkError(str(e))`
+        // behaviour. Without this, a handshake 4xx or socket reset propagates
+        // out of `watch()` as the raw WebSocketHandshakeException and tests
+        // mark it as a fatal failure instead of retrying.
+        Throwable wrapped = wrapAsNetworkError(t);
+
         // Complete-then-replace: surface the error to current awaiters and
         // install a fresh future for the next connect() attempt.
         synchronized (connectedLock) {
             if (!this.connected.isDone()) {
-                this.connected.completeExceptionally(t);
+                this.connected.completeExceptionally(wrapped);
             }
             this.connected = new CompletableFuture<>();
         }
 
         if (this.onErrorCallback != null) {
-            this.onErrorCallback.accept(this, err);
+            this.onErrorCallback.accept(this, wrapped);
         }
+    }
+
+    /** See onError — wraps connection-level exceptions in NetworkError. */
+    private static Throwable wrapAsNetworkError(Throwable t) {
+        if (t instanceof io.github.ccxt.errors.BaseError) {
+            return t;
+        }
+        String pkg = t.getClass().getName();
+        boolean isNetwork =
+            pkg.startsWith("io.netty.")
+            || t instanceof java.net.SocketException
+            || t instanceof java.net.UnknownHostException
+            || t instanceof java.io.IOException
+            || t instanceof java.util.concurrent.TimeoutException
+            || t instanceof javax.net.ssl.SSLException;
+        if (!isNetwork) return t;
+        String msg = t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
+        io.github.ccxt.errors.NetworkError wrapped =
+                new io.github.ccxt.errors.NetworkError(msg);
+        wrapped.initCause(t);
+        return wrapped;
     }
 
     // ─── Ping/Pong keep-alive ───
