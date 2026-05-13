@@ -1500,11 +1500,6 @@ export default class coinbase extends Exchange {
         //    }
         //
         const promises = await Promise.all (spotUnresolvedPromises);
-        // Create the contract-market Promises here (not before the spot await)
-        // so an awaiter is attached on the same microtask. Otherwise, if either
-        // request rejects during the spot-await window, Node fires
-        // unhandledRejection (terminating the process on Node >= 15 default
-        // settings) before the try/catch below can run.
         let unresolvedContractPromises = [];
         try {
             unresolvedContractPromises = [
