@@ -2647,7 +2647,7 @@ export default class htx extends Exchange {
                     if (this.handleOption ('fetchOrderBook', 'adjustLimit', false)) {
                         limit = this.findNearestCeiling ([ 5, 10, 20, 150 ], limit);
                     } else {
-                        throw new BadRequest (this.id + ' fetchOrderBook(): for spot markets limit argument must be undefined or one from: ' + this.json (supported) + ', default is 150');
+                        throw new BadRequest (this.id + ' fetchOrderBook(): for spot markets limit argument must be undefined or one from: ' + this.json (supported)  + ' or set .options["watchOrderBook"]["adjustLimit"] = true to adjust to nearest higher limit automatically');
                     }
                 }
                 // only set the depth if it is not 150
