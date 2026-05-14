@@ -50,7 +50,7 @@ export default class cryptocom extends cryptocomRest {
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'watchOrderBook': {
-                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
                     'checksum': true,
                 },
             },
@@ -83,7 +83,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @param {boolean} [params.adjustLimit] true/false, to automatically ceil the passed limit number to the nearest supported value
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 10, 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -115,6 +115,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 10, 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -125,11 +126,12 @@ export default class cryptocom extends cryptocomRest {
         if (limit === undefined) {
             limit = 50; // max
         }
-        if (!this.inArray (limit, [ 10, 50 ])) {
+        const supported = [ 10, 50 ];
+        if (!this.inArray (limit, supported)) {
             if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
-                limit = this.findNearestCeiling ([ 10, 50 ], limit);
+                limit = this.findNearestCeiling (supported, limit);
             } else {
-                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 10 or 50");
+                throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, or one of: " + this.json (supported));
             }
         }
         const topicParams = this.safeValue (params, 'params');
