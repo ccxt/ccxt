@@ -2268,7 +2268,7 @@ func  (this *WeexCore) HandlePositions(client any, message any)  {
     var data any = this.SafeList(message, "d", []any{})
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var rawPosition any = this.SafeDict(data, i, map[string]any {})
-        var position any = this.ParsePosition(rawPosition)
+        var position any = this.ParseWsPosition(rawPosition)
         cache.(ccxt.Appender).Append(position)
         ccxt.AppendToArray(&newPositions, position)
     }
@@ -2284,6 +2284,12 @@ func  (this *WeexCore) HandlePositions(client any, message any)  {
         }
     }
     client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+}
+func  (this *WeexCore) ParseWsPosition(position any, optionalArgs ...any) any  {
+    // same as REST api
+    market := ccxt.GetArg(optionalArgs, 0, nil)
+    _ = market
+    return this.ParsePosition(position, market)
 }
 func  (this *WeexCore) GetMarketFromClientAndMessage(client any, message any) any  {
     var url any = client.(ccxt.ClientInterface).GetUrl()
@@ -2310,8 +2316,8 @@ func  (this *WeexCore) Pong(client any, message any) <- chan any {
                 "method": "PONG",
             }
         
-            retRes18448 := (<-client.(ccxt.ClientInterface).Send(response))
-            ccxt.PanicOnError(retRes18448)
+            retRes18498 := (<-client.(ccxt.ClientInterface).Send(response))
+            ccxt.PanicOnError(retRes18498)
                 return nil
             }()
             return ch

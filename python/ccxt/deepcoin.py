@@ -803,7 +803,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # default 100, max 500
+            request['limit'] = min(limit, 2000)
         productGroup = self.get_product_group_from_market(market)
         request['productGroup'] = productGroup
         response = self.publicGetDeepcoinMarketTrades(self.extend(request, params))

@@ -1982,7 +1982,7 @@ public partial class weex : ccxt.weex
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawPosition = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object position = this.parsePosition(rawPosition);
+            object position = this.parseWsPosition(rawPosition);
             callDynamically(cache, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }
@@ -2000,6 +2000,12 @@ public partial class weex : ccxt.weex
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
+    }
+
+    public virtual object parseWsPosition(object position, object market = null)
+    {
+        // same as REST api
+        return this.parsePosition(position, market);
     }
 
     public virtual object getMarketFromClientAndMessage(WebSocketClient client, object message)

@@ -1686,7 +1686,7 @@ class weex(ccxt.async_support.weex):
         data = self.safe_list(message, 'd', [])
         for i in range(0, len(data)):
             rawPosition = self.safe_dict(data, i, {})
-            position = self.parse_position(rawPosition)
+            position = self.parse_ws_position(rawPosition)
             cache.append(position)
             newPositions.append(position)
         messageHashes = self.find_message_hashes(client, 'positions::')
@@ -1699,6 +1699,10 @@ class weex(ccxt.async_support.weex):
             if not self.is_empty(positions):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
+
+    def parse_ws_position(self, position, market=None):
+        # same api
+        return self.parse_position(position, market)
 
     def get_market_from_client_and_message(self, client: Client, message):
         url = client.url

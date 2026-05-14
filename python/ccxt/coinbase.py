@@ -1458,6 +1458,7 @@ class coinbase(Exchange, ImplicitAPI):
         #        has_promo_fee: False
         #    }
         #
+        promises = spotUnresolvedPromises
         unresolvedContractPromises = []
         try:
             unresolvedContractPromises = [
@@ -1466,7 +1467,6 @@ class coinbase(Exchange, ImplicitAPI):
             ]
         except Exception as e:
             unresolvedContractPromises = []  # the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
-        promises = spotUnresolvedPromises
         contractPromises = None
         try:
             contractPromises = unresolvedContractPromises  # some users don't have access to contracts
