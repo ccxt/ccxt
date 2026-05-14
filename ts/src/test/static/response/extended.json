@@ -2939,6 +2939,43 @@
                 }
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders by ids without sending market",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "2051479786538188800",
+                        "2051479786538188801"
+                    ],
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {}
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "cancel orders by clientOrderIds without sending market",
+                "method": "cancelOrders",
+                "input": [
+                    [],
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderIds": [
+                            "client-order-1",
+                            "client-order-2"
+                        ]
+                    }
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {}
+                },
+                "parsedResponse": []
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "cancel all orders with symbol",

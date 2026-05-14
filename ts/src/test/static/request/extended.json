@@ -447,6 +447,37 @@
                 ]
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders by ids without sending market",
+                "method": "cancelOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/massCancel",
+                "input": [
+                    [
+                        "2051479786538188800",
+                        "2051479786538188801"
+                    ],
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"orderIds\":[\"2051479786538188800\",\"2051479786538188801\"]}"
+            },
+            {
+                "description": "cancel orders by clientOrderIds without sending market",
+                "method": "cancelOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/massCancel",
+                "input": [
+                    [],
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderIds": [
+                            "client-order-1",
+                            "client-order-2"
+                        ]
+                    }
+                ],
+                "output": "{\"externalOrderIds\":[\"client-order-1\",\"client-order-2\"]}"
+            }
+        ],
         "cancelAllOrders": [
             {
                 "description": "cancel all orders with symbol",

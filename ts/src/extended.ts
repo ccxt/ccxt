@@ -36,7 +36,7 @@ export default class extended extends Exchange {
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': false,
@@ -2673,6 +2673,48 @@ export default class extended extends Exchange {
             'symbol': orderSymbol,
             'status': 'canceled',
         }, market);
+    }
+
+    /**
+     * @method
+     * @name extended#cancelOrders
+     * @description cancel multiple orders by order ids or client order ids
+     * @see https://api.docs.extended.exchange/#mass-cancel
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, only used to populate the returned orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @param {string} [params.clientOrderId] single client order id
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let clientOrderIds = this.safeListN (params, [ 'clientOrderIds', 'client_order_ids', 'externalOrderIds', 'external_order_ids' ]);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        params = this.omit (params, [ 'clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all' ]);
+        const request: Dict = {};
+        const hasOrderIds = (ids !== undefined) && (ids.length > 0);
+        if (hasOrderIds) {
+            request['orderIds'] = ids;
+        }
+        if (clientOrderIds === undefined && clientOrderId !== undefined) {
+            clientOrderIds = [ clientOrderId ];
+        }
+        const hasClientOrderIds = (clientOrderIds !== undefined) && (clientOrderIds.length > 0);
+        if (hasClientOrderIds) {
+            request['externalOrderIds'] = clientOrderIds;
+        }
+        if (!hasOrderIds && !hasClientOrderIds) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires an ids argument or clientOrderIds parameter');
+        }
+        await this.v1PrivatePostUserOrderMassCancel (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {}
+        //     }
+        //
+        return [];
     }
 
     /**
