@@ -142,7 +142,7 @@ export default class extended extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'PT1M',
@@ -1724,6 +1724,74 @@ export default class extended extends Exchange {
 
     /**
      * @method
+     * @name extended#withdraw
+     * @description make a Starknet withdrawal
+     * @see https://api.docs.extended.exchange/#withdrawals
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the Starknet address to withdraw to
+     * @param {string} tag unused
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.chainId] only STRK is supported
+     * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const chainId = this.safeStringUpper2 (params, 'chainId', 'network', 'STRK');
+        if (chainId !== 'STRK') {
+            throw new BadRequest (this.id + ' withdraw() only supports Starknet withdrawals with chainId STRK');
+        }
+        if (address.length <= 42) {
+            throw new BadRequest (this.id + ' withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow');
+        }
+        const account = await this.fetchExtendedAccount ();
+        const amountString = this.currencyToPrecision (code, amount);
+        const accountId = this.safeString (account, 'accountId');
+        const settlement = this.createWithdrawalSettlementData (address, amountString, currency, account, params);
+        const request: Dict = {
+            'accountId': accountId,
+            'amount': amountString,
+            'chainId': chainId,
+            'asset': currency['id'],
+            'settlement': settlement,
+        };
+        params = this.omit (params, [ 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ]);
+        const response = await this.v1PrivatePostUserWithdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": 1820796462590083072
+        //     }
+        //
+        const now = this.milliseconds ();
+        return {
+            'info': response,
+            'id': this.safeString (response, 'data'),
+            'txid': undefined,
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'type': 'withdrawal',
+            'amount': this.parseNumber (amountString),
+            'currency': currency['code'],
+            'status': 'pending',
+            'updated': now,
+            'fee': undefined,
+            'network': chainId,
+            'comment': undefined,
+            'internal': false,
+        };
+    }
+
+    /**
+     * @method
      * @name extended#fetchTransfers
      * @description fetch a history of internal transfers made on an account
      * @see https://api.docs.extended.exchange/#get-deposits-withdrawals-transfers-history
@@ -2317,6 +2385,39 @@ export default class extended extends Exchange {
         const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
         settlement['r'] = r;
         settlement['s'] = s;
+        return settlement;
+    }
+
+    createWithdrawalSettlementData (address: string, amountString: string, currency: Currency, account: Dict, params = {}) {
+        const now = this.milliseconds ();
+        const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((now + 999) / 1000) + 1209600 + 60);
+        const nonce = this.nonce ();
+        const positionId = this.safeString2 (params, 'positionId', 'l2Vault', this.safeString (account, 'l2Vault'));
+        const recipient = this.safeString (params, 'recipient', address);
+        const currencyInfo = this.safeDict (currency, 'info', {});
+        const collateralId = this.safeString (params, 'collateralId', this.safeString (currencyInfo, 'l1Id'));
+        const resolution = this.safeValue (params, 'resolution', this.safeValue (currencyInfo, 'l1Resolution'));
+        const starkKey = this.safeString (account, 'l2Key');
+        if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
+            throw new BadRequest (this.id + ' withdraw() requires currency l1Id, l1Resolution, account l2Vault and account l2Key');
+        }
+        const amount = this.getExtendedStarkAmount (amountString, resolution);
+        const settlement: Dict = {
+            'recipient': recipient,
+            'positionId': positionId,
+            'collateralId': collateralId,
+            'amount': amount,
+            'expiration': {
+                'seconds': settlementExpiration,
+            },
+            'salt': nonce,
+        };
+        const msgHash = this.getExtendedWithdrawalMsgHash (settlement, starkKey);
+        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        settlement['signature'] = {
+            'r': this.intToBase16 (this.convertToBigInt (sig[0])),
+            's': this.intToBase16 (this.convertToBigInt (sig[1])),
+        };
         return settlement;
     }
 
@@ -3062,24 +3163,27 @@ export default class extended extends Exchange {
         return value;
     }
 
-    getExtendedOrderMsgHash (settlement: Dict): string {
-        const orderTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
-            '"Order"("position_id":"felt","base_asset_id":"AssetId","base_amount":"i64","quote_asset_id":"AssetId","quote_amount":"i64","fee_asset_id":"AssetId","fee_amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
-        ));
+    getExtendedDomainHash () {
         const domainTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
-        // Domain: revision is encoded as integer 1, not as shortstring
         const isTestnet = this.urls['api']['rest'].indexOf ('sepolia') >= 0;
         const defaultChainId = isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
         const chainId = this.safeString (this.options, 'chainId', defaultChainId);
-        const domainHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+        return this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
             domainTypeHash,
             this.getExtendedStringToFelt ('Perpetuals'),
             this.getExtendedStringToFelt ('v0'),
             this.getExtendedStringToFelt (chainId),
             this.convertToBigInt ('1'),
         ]));
+    }
+
+    getExtendedOrderMsgHash (settlement: Dict): string {
+        const orderTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+            '"Order"("position_id":"felt","base_asset_id":"AssetId","base_amount":"i64","quote_asset_id":"AssetId","quote_amount":"i64","fee_asset_id":"AssetId","fee_amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
+        ));
+        const domainHash = this.getExtendedDomainHash ();
         // Order fields
         const positionId = this.convertToBigInt (this.safeString (settlement, 'collateralPosition'));
         const baseAssetId = this.safeString (settlement, 'baseAssetId');
@@ -3110,6 +3214,29 @@ export default class extended extends Exchange {
             domainHash,
             starkKey,
             orderHash,
+        ]);
+    }
+
+    getExtendedWithdrawalMsgHash (settlement: Dict, starkKey: string): string {
+        const withdrawalTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+            '"Withdrawal"("recipient":"felt","position_id":"PositionId","collateral_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
+        ));
+        const domainHash = this.getExtendedDomainHash ();
+        const expiration = this.safeDict (settlement, 'expiration', {});
+        const withdrawalHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+            withdrawalTypeHash,
+            this.convertToBigInt (this.safeString (settlement, 'recipient')),
+            this.convertToBigInt (this.safeString (settlement, 'positionId')),
+            this.convertToBigInt (this.safeString (settlement, 'collateralId')),
+            this.convertToBigInt (this.safeString (settlement, 'amount')),
+            this.convertToBigInt (this.safeString (expiration, 'seconds')),
+            this.convertToBigInt (this.safeString (settlement, 'salt')),
+        ]));
+        return this.starknetComputePoseidonHashOnElements ([
+            this.getExtendedStringToFelt ('StarkNet Message'),
+            domainHash,
+            this.convertToBigInt (starkKey),
+            withdrawalHash,
         ]);
     }
 
