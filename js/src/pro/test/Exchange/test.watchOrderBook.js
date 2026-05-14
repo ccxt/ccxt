@@ -13,6 +13,7 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOrderBook(symbol);
         }
@@ -21,13 +22,17 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds();
-            continue;
+            // continue;
+            success = false;
         }
-        // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-        assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
-        now = exchange.milliseconds();
-        testOrderBook(exchange, skippedProperties, method, response, symbol);
+        if (success === true) {
+            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+            now = exchange.milliseconds();
+            testOrderBook(exchange, skippedProperties, method, response, symbol);
+        }
     }
+    return true;
 }
 // function fixPhpObjectArray (exchange, response, skippedProperties) {
 //     // temp fix for php 'Pro\OrderBook' object, to turn it into array

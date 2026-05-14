@@ -7,154 +7,158 @@
 
 package ccxt
 
-func (this *krakenfutures) PublicGetFeeschedules (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFeeschedules", args...)
+func (this *KrakenfuturesCore) PublicGetFeeschedules(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFeeschedules", args...)
 }
 
-func (this *krakenfutures) PublicGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstruments", args...)
+func (this *KrakenfuturesCore) PublicGetInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstruments", args...)
 }
 
-func (this *krakenfutures) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *KrakenfuturesCore) PublicGetOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *krakenfutures) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *KrakenfuturesCore) PublicGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *krakenfutures) PublicGetHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHistory", args...)
+func (this *KrakenfuturesCore) PublicGetHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHistory", args...)
 }
 
-func (this *krakenfutures) PublicGetHistoricalfundingrates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHistoricalfundingrates", args...)
+func (this *KrakenfuturesCore) PublicGetHistoricalfundingrates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHistoricalfundingrates", args...)
 }
 
-func (this *krakenfutures) PrivateGetFeeschedulesVolumes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFeeschedulesVolumes", args...)
+func (this *KrakenfuturesCore) PrivateGetFeeschedulesVolumes(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFeeschedulesVolumes", args...)
 }
 
-func (this *krakenfutures) PrivateGetOpenpositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOpenpositions", args...)
+func (this *KrakenfuturesCore) PrivateGetOpenpositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOpenpositions", args...)
 }
 
-func (this *krakenfutures) PrivateGetNotifications (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetNotifications", args...)
+func (this *KrakenfuturesCore) PrivateGetNotifications(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetNotifications", args...)
 }
 
-func (this *krakenfutures) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *KrakenfuturesCore) PrivateGetAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *krakenfutures) PrivateGetOpenorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOpenorders", args...)
+func (this *KrakenfuturesCore) PrivateGetOpenorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOpenorders", args...)
 }
 
-func (this *krakenfutures) PrivateGetRecentorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRecentorders", args...)
+func (this *KrakenfuturesCore) PrivateGetRecentorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRecentorders", args...)
 }
 
-func (this *krakenfutures) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFills", args...)
+func (this *KrakenfuturesCore) PrivateGetFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *krakenfutures) PrivateGetTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransfers", args...)
+func (this *KrakenfuturesCore) PrivateGetTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *krakenfutures) PrivateGetLeveragepreferences (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLeveragepreferences", args...)
+func (this *KrakenfuturesCore) PrivateGetLeveragepreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLeveragepreferences", args...)
 }
 
-func (this *krakenfutures) PrivateGetPnlpreferences (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPnlpreferences", args...)
+func (this *KrakenfuturesCore) PrivateGetPnlpreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPnlpreferences", args...)
 }
 
-func (this *krakenfutures) PrivateGetAssignmentprogramCurrent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssignmentprogramCurrent", args...)
+func (this *KrakenfuturesCore) PrivateGetAssignmentprogramCurrent(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssignmentprogramCurrent", args...)
 }
 
-func (this *krakenfutures) PrivateGetAssignmentprogramHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssignmentprogramHistory", args...)
+func (this *KrakenfuturesCore) PrivateGetAssignmentprogramHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssignmentprogramHistory", args...)
 }
 
-func (this *krakenfutures) PrivatePostSendorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSendorder", args...)
+func (this *KrakenfuturesCore) PrivateGetOrdersStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersStatus", args...)
 }
 
-func (this *krakenfutures) PrivatePostEditorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEditorder", args...)
+func (this *KrakenfuturesCore) PrivatePostSendorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSendorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostCancelorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelorder", args...)
+func (this *KrakenfuturesCore) PrivatePostEditorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEditorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransfer", args...)
+func (this *KrakenfuturesCore) PrivatePostCancelorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostBatchorder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBatchorder", args...)
+func (this *KrakenfuturesCore) PrivatePostTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *krakenfutures) PrivatePostCancelallorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelallorders", args...)
+func (this *KrakenfuturesCore) PrivatePostBatchorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBatchorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostCancelallordersafter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelallordersafter", args...)
+func (this *KrakenfuturesCore) PrivatePostCancelallorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelallorders", args...)
 }
 
-func (this *krakenfutures) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawal", args...)
+func (this *KrakenfuturesCore) PrivatePostCancelallordersafter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelallordersafter", args...)
 }
 
-func (this *krakenfutures) PrivatePostAssignmentprogramAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssignmentprogramAdd", args...)
+func (this *KrakenfuturesCore) PrivatePostWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *krakenfutures) PrivatePostAssignmentprogramDelete (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAssignmentprogramDelete", args...)
+func (this *KrakenfuturesCore) PrivatePostAssignmentprogramAdd(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssignmentprogramAdd", args...)
 }
 
-func (this *krakenfutures) PrivatePutLeveragepreferences (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutLeveragepreferences", args...)
+func (this *KrakenfuturesCore) PrivatePostAssignmentprogramDelete(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssignmentprogramDelete", args...)
 }
 
-func (this *krakenfutures) PrivatePutPnlpreferences (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutPnlpreferences", args...)
+func (this *KrakenfuturesCore) PrivatePutLeveragepreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutLeveragepreferences", args...)
 }
 
-func (this *krakenfutures) ChartsGetPriceTypeSymbolInterval (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("chartsGetPriceTypeSymbolInterval", args...)
+func (this *KrakenfuturesCore) PrivatePutPnlpreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutPnlpreferences", args...)
 }
 
-func (this *krakenfutures) HistoryGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetOrders", args...)
+func (this *KrakenfuturesCore) ChartsGetPriceTypeSymbolInterval(args ...any) <-chan any {
+	return this.callEndpointAsync("chartsGetPriceTypeSymbolInterval", args...)
 }
 
-func (this *krakenfutures) HistoryGetExecutions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetExecutions", args...)
+func (this *KrakenfuturesCore) HistoryGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetOrders", args...)
 }
 
-func (this *krakenfutures) HistoryGetTriggers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetTriggers", args...)
+func (this *KrakenfuturesCore) HistoryGetExecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetExecutions", args...)
 }
 
-func (this *krakenfutures) HistoryGetAccountlogcsv (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetAccountlogcsv", args...)
+func (this *KrakenfuturesCore) HistoryGetTriggers(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetTriggers", args...)
 }
 
-func (this *krakenfutures) HistoryGetAccountLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetAccountLog", args...)
+func (this *KrakenfuturesCore) HistoryGetAccountlogcsv(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetAccountlogcsv", args...)
 }
 
-func (this *krakenfutures) HistoryGetMarketSymbolOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetMarketSymbolOrders", args...)
+func (this *KrakenfuturesCore) HistoryGetAccountLog(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetAccountLog", args...)
 }
 
-func (this *krakenfutures) HistoryGetMarketSymbolExecutions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("historyGetMarketSymbolExecutions", args...)
+func (this *KrakenfuturesCore) HistoryGetMarketSymbolOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetMarketSymbolOrders", args...)
+}
+
+func (this *KrakenfuturesCore) HistoryGetMarketSymbolExecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetMarketSymbolExecutions", args...)
 }

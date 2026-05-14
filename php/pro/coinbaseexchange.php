@@ -11,6 +11,7 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -128,7 +129,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $name = 'ticker';
             return Async\await($this->subscribe($name, $symbol, $name, $params));
@@ -142,7 +143,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $symbolsLength = count($symbols);
@@ -169,7 +170,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -190,7 +191,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -217,7 +218,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
@@ -235,7 +236,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }) ();
     }
 
-    public function watch_my_trades_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -243,7 +244,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $symbols = $this->market_symbols($symbols, null, false);
             Async\await($this->load_markets());
@@ -260,7 +261,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         }) ();
     }
 
-    public function watch_orders_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -268,7 +269,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
@@ -293,7 +294,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
@@ -318,7 +319,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -361,7 +362,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $name = 'level2';
             Async\await($this->load_markets());
@@ -502,10 +503,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if (is_array($trade) && array_key_exists('maker_fee_rate', $trade)) {
             $isMaker = true;
             $parsed['takerOrMaker'] = 'maker';
-            $feeRate = $this->safe_number($trade, 'maker_fee_rate');
+            $feeRate = $this->safe_string($trade, 'maker_fee_rate');
         } else {
             $parsed['takerOrMaker'] = 'taker';
-            $feeRate = $this->safe_number($trade, 'taker_fee_rate');
+            $feeRate = $this->safe_string($trade, 'taker_fee_rate');
             // side always represents the maker side of the $trade
             // so if we're taker, we invert it
             $currentSide = $parsed['side'];
@@ -520,12 +521,12 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $feeCurrency = $market['quote'];
         $feeCost = null;
         if (($parsed['cost'] !== null) && ($feeRate !== null)) {
-            $cost = $this->safe_number($parsed, 'cost');
-            $feeCost = $cost * $feeRate;
+            $cost = $this->safe_string($parsed, 'cost');
+            $feeCost = Precise::string_mul($cost, $feeRate);
         }
         $parsed['fee'] = array(
-            'rate' => $feeRate,
-            'cost' => $feeCost,
+            'rate' => $this->parse_number($feeRate),
+            'cost' => $this->parse_number($feeCost),
             'currency' => $feeCurrency,
         );
         return $parsed;
@@ -654,22 +655,23 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         }
                         $previousOrder['trades'][] = $trade;
                         $previousOrder['lastTradeTimestamp'] = $trade['timestamp'];
-                        $totalCost = 0;
-                        $totalAmount = 0;
+                        $totalCost = '0';
+                        $totalAmount = '0';
                         $trades = $previousOrder['trades'];
                         for ($i = 0; $i < count($trades); $i++) {
                             $tradeEntry = $trades[$i];
-                            $totalCost = $this->sum($totalCost, $tradeEntry['cost']);
-                            $totalAmount = $this->sum($totalAmount, $tradeEntry['amount']);
+                            $totalCost = $this->safe_string($tradeEntry, 'cost', '0');
+                            $totalAmount = $this->safe_string($tradeEntry, 'amount', '0');
                         }
-                        if ($totalAmount > 0) {
-                            $previousOrder['average'] = $totalCost / $totalAmount;
+                        if (!Precise::string_eq($totalAmount, '0')) {
+                            $previousOrder['average'] = $this->parse_number(Precise::string_div($totalCost, $totalAmount));
                         }
-                        $previousOrder['cost'] = $totalCost;
-                        if ($previousOrder['filled'] !== null) {
-                            $previousOrder['filled'] .= $trade['amount'];
+                        $previousOrder['cost'] = $this->parse_number($totalCost);
+                        $previousOrderFilled = $this->safe_string($previousOrder, 'filled');
+                        if ($previousOrderFilled !== null) {
+                            $previousOrder['filled'] = $this->parse_number(Precise::string_add($previousOrderFilled, $this->safe_string($trade, 'amount')));
                             if ($previousOrder['amount'] !== null) {
-                                $previousOrder['remaining'] = $previousOrder['amount'] - $previousOrder['filled'];
+                                $previousOrder['remaining'] = $this->parse_number(Precise::string_sub($this->safe_string($previousOrder, 'amount'), $this->safe_string($previousOrder, 'filled')));
                             }
                         }
                         if ($previousOrder['fee'] === null) {
@@ -680,6 +682,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         }
                         if (($previousOrder['fee']['cost'] !== null) && ($trade['fee']['cost'] !== null)) {
                             $previousOrder['fee']['cost'] = $this->sum($previousOrder['fee']['cost'], $trade['fee']['cost']);
+                            $previousOrderFee = $this->safe_dict($previousOrder, 'fee');
+                            $tradeFee = $this->safe_dict($trade, 'fee');
+                            $previousOrder['fee']['cost'] = $this->parse_number(Precise::string_add($this->safe_string($previousOrderFee, 'cost'), $this->safe_string($tradeFee, 'cost')));
                         }
                         // update the newUpdates count
                         $orders->append ($previousOrder);
@@ -711,21 +716,21 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $symbol = $this->safe_symbol($marketId);
         $side = $this->safe_string($order, 'side');
         $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number_2($order, 'size', 'funds');
+        $amount = $this->safe_string_2($order, 'size', 'funds');
         $time = $this->safe_string($order, 'time');
         $timestamp = $this->parse8601($time);
         $reason = $this->safe_string($order, 'reason');
         $status = $this->parse_ws_order_status($reason);
         $orderType = $this->safe_string($order, 'order_type');
-        $remaining = $this->safe_number($order, 'remaining_size');
+        $remaining = $this->safe_string($order, 'remaining_size');
         $type = $this->safe_string($order, 'type');
         $filled = null;
         if (($amount !== null) && ($remaining !== null)) {
-            $filled = $amount - $remaining;
+            $filled = Precise::string_sub($amount, $remaining);
         } elseif ($type === 'received') {
-            $filled = 0;
+            $filled = '0';
             if ($amount !== null) {
-                $remaining = $amount - $filled;
+                $remaining = Precise::string_sub($amount, $filled);
             }
         }
         return $this->safe_order(array(
@@ -743,11 +748,11 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             'price' => $price,
             'stopPrice' => null,
             'triggerPrice' => null,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'cost' => null,
             'average' => null,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'filled' => $this->parse_number($filled),
+            'remaining' => $this->parse_number($remaining),
             'status' => $status,
             'fee' => null,
             'trades' => null,
@@ -934,7 +939,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "type" => "error",

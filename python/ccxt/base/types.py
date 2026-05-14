@@ -1,17 +1,17 @@
 import sys
 import types
-from typing import Union, List, Optional, Any as PythonAny
+from typing import Type, Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
-if sys.version_info.minor >= 8:
+if sys.version_info >= (3, 8):
     from typing import TypedDict, Literal, Dict
 else:
     from typing import Dict
     from typing_extensions import Literal
     TypedDict = Dict
 
-if sys.version_info.minor >= 11:
+if sys.version_info >= (3, 11):
     from typing import NotRequired
 else:
     from typing_extensions import NotRequired
@@ -48,6 +48,7 @@ class Entry:
 
 IndexType = Union[str, int]
 Num = Union[None, str, float, int, Decimal]
+NumType = Union[Type[str], Type[float], Type[int], Type[Decimal]]
 Str = Optional[str]
 Strings = Optional[List[str]]
 Int = Optional[int]
@@ -190,6 +191,9 @@ class Liquidation(TypedDict):
     price: Num
     baseValue: Num
     quoteValue: Num
+    side: OrderSide
+    contracts: Num
+    contractSize: Num
 
 
 class FundingHistory(TypedDict):
@@ -499,6 +503,13 @@ class FundingRate(TypedDict):
     info: Dict[str, Any]
     interval: Str
 
+class FundingRateHistory(TypedDict):
+    symbol: Str
+    timestamp: Int
+    fundingRate: Num
+    datetime: Str
+    info: Dict[str, Any]
+
 class OpenInterest(TypedDict):
     symbol: Str
     openInterestAmount: Num
@@ -553,6 +564,16 @@ class LongShortRatio:
     datetime: Optional[Str]
     timeframe: Optional[Str]
     longShortRatio: float
+
+
+class ADL:
+    info: Any
+    symbol: Str
+    rank: Optional[Int]
+    rating: Optional[Str]
+    percentage: Optional[Num]
+    timestamp: Optional[Int]
+    datetime: Optional[Str]
 
 
 class BorrowInterest:

@@ -7,94 +7,134 @@
 
 package ccxt
 
-func (this *bitvavo) PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTime", args...)
+func (this *BitvavoCore) PublicGetTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *bitvavo) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *BitvavoCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *bitvavo) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssets", args...)
+func (this *BitvavoCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *bitvavo) PublicGetMarketBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketBook", args...)
+func (this *BitvavoCore) PublicGetMarketBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketBook", args...)
 }
 
-func (this *bitvavo) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTrades", args...)
+func (this *BitvavoCore) PublicGetMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *bitvavo) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketCandles", args...)
+func (this *BitvavoCore) PublicGetMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *bitvavo) PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerPrice", args...)
+func (this *BitvavoCore) PublicGetTickerPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
-func (this *bitvavo) PublicGetTickerBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerBook", args...)
+func (this *BitvavoCore) PublicGetTickerBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerBook", args...)
 }
 
-func (this *bitvavo) PublicGetTicker24h (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker24h", args...)
+func (this *BitvavoCore) PublicGetTicker24h(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker24h", args...)
 }
 
-func (this *bitvavo) PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccount", args...)
+func (this *BitvavoCore) PrivateGetAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *bitvavo) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *BitvavoCore) PrivateGetOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *bitvavo) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *BitvavoCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *bitvavo) PrivateGetOrdersOpen (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersOpen", args...)
+func (this *BitvavoCore) PrivateGetOrdersOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersOpen", args...)
 }
 
-func (this *bitvavo) PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTrades", args...)
+func (this *BitvavoCore) PrivateGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *bitvavo) PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBalance", args...)
+func (this *BitvavoCore) PrivateGetBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *bitvavo) PrivateGetDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDeposit", args...)
+func (this *BitvavoCore) PrivateGetDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeposit", args...)
 }
 
-func (this *bitvavo) PrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositHistory", args...)
+func (this *BitvavoCore) PrivateGetDepositHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
-func (this *bitvavo) PrivateGetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
+func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
 }
 
-func (this *bitvavo) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *BitvavoCore) PrivateGetSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccounts", args...)
 }
 
-func (this *bitvavo) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawal", args...)
+func (this *BitvavoCore) PrivateGetSubaccountsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsTransfers", args...)
 }
 
-func (this *bitvavo) PrivatePutOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrder", args...)
+func (this *BitvavoCore) PrivateGetSubaccountsTransfersTransferId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountsTransfersTransferId", args...)
 }
 
-func (this *bitvavo) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsBalance", args...)
 }
 
-func (this *bitvavo) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsHistory", args...)
+}
+
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsOrdersOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsOrdersOpen", args...)
+}
+
+func (this *BitvavoCore) PrivatePostOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrder", args...)
+}
+
+func (this *BitvavoCore) PrivatePostWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawal", args...)
+}
+
+func (this *BitvavoCore) PrivatePostSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccounts", args...)
+}
+
+func (this *BitvavoCore) PrivatePostSubaccountsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccountsTransfers", args...)
+}
+
+func (this *BitvavoCore) PrivatePutOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrder", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteInstitutionalSubaccountsOrder", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteInstitutionalSubaccountsOrders", args...)
 }

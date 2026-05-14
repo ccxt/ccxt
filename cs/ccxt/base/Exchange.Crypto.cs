@@ -183,6 +183,10 @@ public partial class Exchange
             var s = ec["s"] as string;
             signature = Exchange.Base64urlEncode(Exchange.ConvertHexStringToByteArray(r + s));
         }
+        else if (algoType == "Ed")
+        {
+            signature = Exchange.Base64ToBase64Url(Exchange.Eddsa(token, secret) as string);
+        }
         else
         {
             signature = Exchange.Base64urlEncode(Exchange.Base64ToBinary(Exchange.Hmac(token, secret, hash, "binary") as object));
@@ -458,7 +462,9 @@ public partial class Exchange
         return (string)str; // stub
     }
 
-    public object eddsa(object request, object secret, object alg = null)
+    public object eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
+
+    public static object Eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
         byte[] msg;

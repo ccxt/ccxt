@@ -93,6 +93,27 @@ function indexBy (x, k, out = {}) {
     return out;
 };
 
+function posToLineCol(str, pos) {
+    let line = 1, col = 1;
+    for (let i = 0; i < pos; i++) {
+        if (str[i] === '\n') { line++; col = 1; }
+        else { col++; }
+    }
+    return { line, col };
+}
+
+function printAround(str, pos, radius = 150) {
+    const start = Math.max(0, pos - radius);
+    const end = Math.min(str.length, pos + radius);
+    const snippet = str.slice(start, end);
+    const caretPad = ' '.repeat(pos - start);
+    console.error('--- JSON snippet around error ---');
+    console.error(snippet);
+    console.error(caretPad + '^ here');
+    const { line, col } = posToLineCol(str, pos);
+    console.error(`At computed line ${line}, column ${col} within the JSON being parsed`);
+}
+
 // ----------------------------------------------------------------------------
 
 function createExchange (id, content) {
@@ -109,6 +130,7 @@ function createExchange (id, content) {
         const definesCertified = content.indexOf("'certified': true") > -1 || content.indexOf("'certified': false") > -1;
         const isCertified = definesCertified ? content.indexOf("'certified': true") > -1 : undefined;
         const isDex = definesCertified ? content.indexOf("'dex': true") > -1 : undefined;
+        const isBuilderCode = content.indexOf("'builderFee': true") > -1;
         const matches = content.match(urlsRegex);
         const chunk = matches[0];
         const leftSpace = chunk.search(/\S|$/)
@@ -122,7 +144,22 @@ function createExchange (id, content) {
         sliced = sliced.replace(/\s*\/\/\s+.*$/gm, ''); // remove comments
         sliced = sliced.replace(/(,)(\n\s*[}|\]])/g, '$2'); //remove trailing comma
         sliced = sliced.replace(/undefined/gm, 'null');
-        const parsedUrls = JSON.parse(sliced);
+
+        let parsedUrls;
+        try {
+            parsedUrls = JSON.parse(sliced);
+        } catch (e) {
+            // only for this exchange to reduce noise
+            console.error(`[${id}] Failed to parse urls JSON: ${e.message}`);
+            const m = /position\\s+(\\d+)/.exec(e.message);
+            if (m) {
+                const pos = Number(m[1]);
+                printAround(sliced, pos);
+            }
+            // persist the full JSON for inspection
+            console.error(`[${id}] chunk starts with:\n\n${chunk.slice(0, 80).replace(/\n/g, '\n')}\n\n`);
+            throw e;
+        }
         const name = content.matchAll(nameRegex).next().value[1];
         const versionMatches = content.matchAll(versionRegex).next().value
         const version = versionMatches ? versionMatches[1] : undefined;
@@ -146,6 +183,7 @@ function createExchange (id, content) {
             'countries': countries,
             'parent': parent,
             'dex': isDex,
+            'builderCode': isBuilderCode,
         }
     }
     return {
@@ -207,7 +245,7 @@ async function createExchanges (ids) {
 // ----------------------------------------------------------------------------
 
 const ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
-    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro)'
+    , ccxtProBadge = '[![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://docs.ccxt.com/ccxt.pro.manual)'
 
 // ----------------------------------------------------------------------------
 
@@ -501,7 +539,28 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
             fs.writeFileSync (exchangePath, result)
         }
     }
+
+    exportBuilderCodeExchanges(allExchangesPaths[0], arrayOfExchanges)
 }
+
+
+function exportBuilderCodeExchanges(exchangePath, exchanges) {
+    const builderCodeExchanges = exchanges.filter (exchange => exchange.builderCode);
+    if (builderCodeExchanges.length === 0) {
+        return;
+    }
+    const table = createMarkdownTable (builderCodeExchanges, createMarkdownListOfExchanges, [ 3 ])
+
+    // const certifiedExchangesReplacement = '$1' + table + "\n"
+    // const certifiedExchangesRegex = new RegExp ("^(### Builder Code Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
+
+    const beginning = "<!--- init builder codes list --->\n";
+    const allExchangesReplacement = beginning + table + "\n<!--- end list -->"
+    const allExchangesRegex = new RegExp (/<!--- init builder codes list --->([\s\S]*?)<!--- end list -->/)
+
+    logExportExchanges (exchangePath, allExchangesRegex, allExchangesReplacement)
+}
+
 
 // ----------------------------------------------------------------------------
 
@@ -755,7 +814,12 @@ async function exportEverything () {
         {
             file: './go/v4/exchange_metadata.go',
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
-            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${capitalize(i)}"`).join(', ')} }`,
+            replacement: `var Exchanges []string = []string{ ${ids.map(i=>`"${i}"`).join(', ')} }`,
+        },
+        {
+            file: './go/v4/pro/exchange_metadata.go',
+            regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
+            replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
         },
     ]
 

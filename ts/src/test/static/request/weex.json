@@ -1,0 +1,895 @@
+{
+    "exchange": "weex",
+    "skipKeys": [
+        "startTime",
+        "endTime",
+        "newClientOrderId",
+        "clientAlgoId"
+    ],
+    "options": {},
+    "methods": {
+        "createOrderWithTakeProfitAndStopLoss": [
+            {
+                "description": "create swap order with take profit and stop loss",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    0.2,
+                    0.02
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"MARKET\",\"positionSide\":\"LONG\",\"newClientOrderId\":\"bcb69d4c-d314-42ed-b63e-b432ab0241f5\",\"slTriggerPrice\":\"0.02\",\"tpTriggerPrice\":\"0.2\"}"
+            }
+        ],
+        "createStopLossOrder": [
+            {
+                "description": "create stop loss market order",
+                "method": "createStopLossOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "sell",
+                    100,
+                    0.01,
+                    0.01
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"quantity\":\"100\",\"type\":\"STOP_MARKET\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"0ea1357e-a4e5-42aa-aaa2-5d083e3d464b\",\"triggerPrice\":\"0.01\"}"
+            }
+        ],
+        "createTakeProfitOrder": [
+            {
+                "description": "create take profit limit order",
+                "method": "createTakeProfitOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "sell",
+                    100,
+                    0.2,
+                    0.18
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"quantity\":\"100\",\"type\":\"TAKE_PROFIT\",\"price\":\"0.2\",\"positionSide\":\"LONG\",\"clientAlgoId\":\"d02d30d1-5e7b-4f12-857b-17d2ed1b283f\",\"triggerPrice\":\"0.18\"}"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin",
+                "method": "reduceMargin",
+                "url": "https://api-contract.weex.com/capi/v3/account/positionMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    3,
+                    {
+                        "positionId": "737255283637617000"
+                    }
+                ],
+                "output": "{\"isolatedPositionId\":\"737255283637617000\",\"amount\":\"3\",\"type\":2}"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin",
+                "method": "addMargin",
+                "url": "https://api-contract.weex.com/capi/v3/account/positionMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    5,
+                    {
+                        "positionId": "737255283637617000"
+                    }
+                ],
+                "output": "{\"isolatedPositionId\":\"737255283637617000\",\"amount\":\"5\",\"type\":1}"
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode",
+                "method": "setPositionMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/marginType",
+                "input": [
+                    true,
+                    "ETH/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"marginType\":\"ISOLATED\",\"separatedType\":\"SEPARATED\"}"
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetch position mode",
+                "method": "fetchPositionMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage for cross margin",
+                "method": "setLeverage",
+                "url": "https://api-contract.weex.com/capi/v3/account/leverage",
+                "input": [
+                    11,
+                    "DOGE/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"marginType\":\"CROSSED\",\"crossLeverage\":11}"
+            },
+            {
+                "description": "set leverage for isolated margin",
+                "method": "setLeverage",
+                "url": "https://api-contract.weex.com/capi/v3/account/leverage",
+                "input": [
+                    8,
+                    "ETH/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"marginType\":\"ISOLATED\",\"isolatedLongLeverage\":8,\"isolatedShortLeverage\":8}"
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://api-contract.weex.com/capi/v3/account/symbolConfig?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api-contract.weex.com/capi/v3/account/commissionRate?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close position",
+                "method": "closePosition",
+                "url": "https://api-contract.weex.com/capi/v3/closePositions",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\"}"
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "close all positions",
+                "method": "closeAllPositions",
+                "url": "https://api-contract.weex.com/capi/v3/closePositions",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "fetch positions for symbol",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api-contract.weex.com/capi/v3/account/position/singlePosition?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://api-contract.weex.com/capi/v3/account/position/allPosition",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetch spot order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-spot.weex.com/api/v3/myTrades?symbol=DOGEUSDT&orderId=736559136619102312",
+                "input": [
+                    "736559136619102312",
+                    "DOGE/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api-contract.weex.com/capi/v3/userTrades?symbol=DOGEUSDT&orderId=737073725236576616",
+                "input": [
+                    "737073725236576616",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled spot orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api-spot.weex.com/api/v3/allOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch canceled swap orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api-contract.weex.com/capi/v3/order/history?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed swap orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-contract.weex.com/capi/v3/order/history?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch closed spot orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-spot.weex.com/api/v3/allOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "fetch canceled and closed swap orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api-contract.weex.com/capi/v3/order/history?symbol=DOGEUSDT&startTime=1775753432380",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775753432380
+                ],
+                "output": null
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger for funding",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch ledger for funding",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch ledger for funding",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/fundingBills",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "funding"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "fetch ledger for spot",
+                "method": "fetchLedger",
+                "url": "https://api-spot.weex.com/api/v3/account/bills",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my swap trades",
+                "method": "fetchMyTrades",
+                "url": "https://api-contract.weex.com/capi/v3/userTrades?symbol=DOGEUSDT&startTime=1775760234825&limit=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775760234825,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch my spot trades",
+                "method": "fetchMyTrades",
+                "url": "https://api-spot.weex.com/api/v3/myTrades?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch spot orders",
+                "method": "fetchOrders",
+                "url": "https://api-spot.weex.com/api/v3/allOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open swap orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-contract.weex.com/capi/v3/openOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open swap trigger orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-contract.weex.com/capi/v3/openAlgoOrders?symbol=DOGEUSDT&startTime=1775753432392&limit=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775753432392,
+                    1,
+                    {
+                        "type": "swap",
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open orders for spot with symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://api-spot.weex.com/api/v3/openOrders?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch open orders for spot",
+                "method": "fetchOpenOrders",
+                "url": "https://api-spot.weex.com/api/v3/openOrders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch swap order",
+                "method": "fetchOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order?orderId=737191855984214376",
+                "input": [
+                    "737191855984214376",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot order",
+                "method": "fetchOrder",
+                "url": "https://api-spot.weex.com/api/v3/order?orderId=736807745679786974",
+                "input": [
+                    "736807745679786974"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel swap orders",
+                "method": "cancelOrders",
+                "url": "https://api-contract.weex.com/capi/v3/batchOrders",
+                "input": [
+                    [
+                        "737191914192765288",
+                        "737191855984215400"
+                    ],
+                    "DOGE/USDT:USDT"
+                ],
+                "output": "{\"orderIdList\":[\"737191914192765288\",\"737191855984215400\"]}"
+            },
+            {
+                "description": "cancel orders in spot market",
+                "method": "cancelOrders",
+                "url": "https://api-spot.weex.com/api/v3/order/batch",
+                "input": [
+                    [
+                        "736792282333709278"
+                    ]
+                ],
+                "output": "{\"orderIds\":[\"736792282333709278\"]}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all swap trigger orders for symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api-contract.weex.com/capi/v3/algoOpenOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel all swap orders for symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api-contract.weex.com/capi/v3/allOpenOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel all spot orders for market",
+                "method": "cancelAllOrders",
+                "url": "https://api-spot.weex.com/api/v3/openOrders?symbol=DOGEUSDT",
+                "input": [
+                    "DOGE/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel swap order",
+                "method": "cancelOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order?orderId=737191252214153576",
+                "input": [
+                    "737191252214153576",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel swap trigger order",
+                "method": "cancelOrder",
+                "url": "https://api-contract.weex.com/capi/v3/algoOrder?orderId=737188743538017640",
+                "input": [
+                    "737188743538017640",
+                    "DOGE/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel spot order",
+                "method": "cancelOrder",
+                "url": "https://api-spot.weex.com/api/v3/order?orderId=736775987680772200",
+                "input": [
+                    "736775987680772200"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create swap limit buy order",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    200,
+                    0.01
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"200\",\"type\":\"LIMIT\",\"price\":\"0.01\",\"positionSide\":\"LONG\",\"timeInForce\":\"GTC\",\"newClientOrderId\":\"b-WEEX111125-a0c63bf17ecb4e5c959a5b\"}"
+            },
+            {
+                "description": "create market swap order",
+                "method": "createOrder",
+                "url": "https://api-contract.weex.com/capi/v3/order",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"quantity\":\"100\",\"type\":\"MARKET\",\"positionSide\":\"LONG\",\"newClientOrderId\":\"80198b10-9027-4504-ad22-3d149e1b7742\"}"
+            },
+            {
+                "description": "create spot limit buy order",
+                "method": "createOrder",
+                "url": "https://api-spot.weex.com/api/v3/order",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    300,
+                    0.08
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"300\",\"price\":\"0.08\",\"newClientOrderId\":\"b-WEEX111125-740eca9d6e3d4aa2ab31fe\"}"
+            },
+            {
+                "description": "create spot market buy order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api-spot.weex.com/api/v3/order",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "buy",
+                    290,
+                    null,
+                    {
+                        "clientOrderId": "test_market_buy"
+                    }
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"290\",\"newClientOrderId\":\"test_market_buy\"}"
+            },
+            {
+                "description": "create spot market sell order",
+                "method": "createOrder",
+                "url": "https://api-spot.weex.com/api/v3/order",
+                "input": [
+                    "DOGE/USDT",
+                    "market",
+                    "sell",
+                    299
+                ],
+                "output": "{\"symbol\":\"DOGEUSDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"299\",\"newClientOrderId\":\"b-WEEX111125-740eca9d6e3d4aa2ab31fe\"}"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api-spot.weex.com/api/v3/account/transferRecords",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch spot balance",
+                "method": "fetchBalance",
+                "url": "https://api-spot.weex.com/api/v3/account/",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch contract balance",
+                "method": "fetchBalance",
+                "url": "https://api-contract.weex.com/capi/v3/account/balance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-contract.weex.com/capi/v3/market/fundingRate?symbol=ETHUSDT&limit=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api-contract.weex.com/capi/v3/market/premiumIndex?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api-contract.weex.com/capi/v3/market/openInterest?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch swap trades",
+                "method": "fetchTrades",
+                "url": "https://api-contract.weex.com/capi/v3/market/trades?symbol=ETHUSDT&limit=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot trades",
+                "method": "fetchTrades",
+                "url": "https://api-spot.weex.com/api/v3/market/trades?symbol=ETHUSDT&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetch mark ohlcv historical",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1m&priceType=MARK&startTime=1775584147487&endTime=1775590147487",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "historical": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/markPriceKlines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetch index ohlcv historical",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1m&priceType=INDEX&startTime=1775584186168&endTime=1775590186168",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "historical": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch index ohlcv",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/indexPriceKlines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch swap ohlcv historical",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/historyKlines?symbol=ETHUSDT&interval=1m&startTime=1775584101844&endTime=1775590101844",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "historical": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-contract.weex.com/capi/v3/market/klines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-spot.weex.com/api/v3/market/klines?symbol=ETHUSDT&interval=1m",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-spot.weex.com/api/v3/market/depth?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-contract.weex.com/capi/v3/market/depth?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch swap bids asks",
+                "method": "fetchBidsAsks",
+                "url": "https://api-contract.weex.com/capi/v3/market/ticker/bookTicker",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot bids asks",
+                "method": "fetchBidsAsks",
+                "url": "https://api-spot.weex.com/api/v3/market/ticker/bookTicker",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch swap tickers",
+                "method": "fetchTickers",
+                "url": "https://api-contract.weex.com/capi/v3/market/ticker/24hr",
+                "input": [
+                    [
+                        "ETH/USDT:USDT",
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api-spot.weex.com/api/v3/market/ticker/24hr",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch swap ticker",
+                "method": "fetchTicker",
+                "url": "https://api-contract.weex.com/capi/v3/market/ticker/24hr?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api-spot.weex.com/api/v3/market/ticker/24hr?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch time from contract endpoint",
+                "method": "fetchTime",
+                "url": "https://api-contract.weex.com/capi/v3/market/time",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch time",
+                "method": "fetchTime",
+                "url": "https://api-spot.weex.com/api/v3/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch status",
+                "method": "fetchStatus",
+                "url": "https://api-spot.weex.com/api/v3/ping",
+                "input": [],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

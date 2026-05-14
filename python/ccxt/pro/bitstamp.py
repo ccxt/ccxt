@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -56,7 +56,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -159,7 +159,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -262,7 +262,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
@@ -464,7 +464,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         # {
         #     "event": "bts:error",
         #     "channel": '',
@@ -476,7 +476,7 @@ class bitstamp(ccxt.async_support.bitstamp):
             data = self.safe_value(message, 'data', {})
             code = self.safe_number(data, 'code')
             self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):

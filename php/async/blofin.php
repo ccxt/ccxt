@@ -105,8 +105,10 @@ class blofin extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -179,35 +181,52 @@ class blofin extends Exchange {
                         'market/tickers' => 1,
                         'market/books' => 1,
                         'market/trades' => 1,
-                        'market/candles' => 1,
                         'market/mark-price' => 1,
                         'market/funding-rate' => 1,
                         'market/funding-rate-history' => 1,
+                        'market/candles' => 1,
+                        'market/index-candles' => 1,
+                        'market/mark-price-candles' => 1,
+                        'market/position-tiers' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
+                        // account
                         'asset/balances' => 1,
-                        'trade/orders-pending' => 1,
-                        'trade/fills-history' => 1,
-                        'asset/deposit-history' => 1,
-                        'asset/withdrawal-history' => 1,
                         'asset/bills' => 1,
+                        'asset/withdrawal-history' => 1,
+                        'asset/deposit-history' => 1,
+                        'account/config' => 1,
+                        'asset/currencies' => 1,
+                        // trading
                         'account/balance' => 1,
                         'account/positions' => 1,
-                        'account/leverage-info' => 1,
+                        'account/positions-history' => 1,
                         'account/margin-mode' => 1,
                         'account/position-mode' => 1,
+                        'account/leverage-info' => 1,
                         'account/batch-leverage-info' => 1,
+                        'trade/orders-pending' => 1,
+                        'trade/order-detail' => 1,
                         'trade/orders-tpsl-pending' => 1,
+                        'trade/order-tpsl-detail' => 1,
                         'trade/orders-algo-pending' => 1,
                         'trade/orders-history' => 1,
                         'trade/orders-tpsl-history' => 1,
                         'trade/orders-algo-history' => 1, // todo new
+                        'trade/fills-history' => 1,
                         'trade/order/price-range' => 1,
-                        'user/query-apikey' => 1,
+                        // affiliate
                         'affiliate/basic' => 1,
+                        'affiliate/referral-code' => 1,
+                        'affiliate/invitees' => 1,
+                        'affiliate/sub-invitees' => 1,
+                        'affiliate/sub-affiliates' => 1,
+                        'affiliate/invitees/daily/info' => 1,
+                        // copy trading
                         'copytrading/instruments' => 1,
+                        'copytrading/config' => 1,
                         'copytrading/account/balance' => 1,
                         'copytrading/account/positions-by-order' => 1,
                         'copytrading/account/positions-details-by-order' => 1,
@@ -219,21 +238,29 @@ class blofin extends Exchange {
                         'copytrading/trade/position-history-by-order' => 1,
                         'copytrading/trade/orders-history' => 1,
                         'copytrading/trade/pending-tpsl-by-order' => 1,
+                        // user
+                        'user/query-apikey' => 1,
+                        // tax
+                        'spot/trade/fills-history' => 1,
                     ),
                     'post' => array(
+                        // account
+                        'asset/transfer' => 1,
+                        'asset/demo-apply-money' => 1,
+                        // trading
                         'account/set-margin-mode' => 1,
                         'account/set-position-mode' => 1,
-                        'trade/order' => 1,
-                        'trade/order-algo' => 1,
-                        'trade/cancel-order' => 1,
-                        'trade/cancel-algo' => 1,
                         'account/set-leverage' => 1,
+                        'trade/order' => 1,
                         'trade/batch-orders' => 1,
                         'trade/order-tpsl' => 1,
+                        'trade/order-algo' => 1,
+                        'trade/cancel-order' => 1,
                         'trade/cancel-batch-orders' => 1,
                         'trade/cancel-tpsl' => 1,
+                        'trade/cancel-algo' => 1,
                         'trade/close-position' => 1,
-                        'asset/transfer' => 1,
+                        // copy trading
                         'copytrading/account/set-position-mode' => 1,
                         'copytrading/account/set-leverage' => 1,
                         'copytrading/trade/place-order' => 1,
@@ -592,7 +619,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -698,7 +725,7 @@ class blofin extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -722,7 +749,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -745,7 +772,7 @@ class blofin extends Exchange {
              *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -783,6 +810,21 @@ class blofin extends Exchange {
         //       "brokerId" => ""
         //   }
         //
+        // fetchMyTrades spot
+        //     {
+        //         "instId" => "DOGE-USDT",
+        //         "tradeId" => "6000001623870",
+        //         "orderId" => "6000011777113",
+        //         "fillPrice" => "0.091480000000000000",
+        //         "fillSize" => "30.000000000000000000",
+        //         "fillPnl" => null,
+        //         "side" => "buy",
+        //         "fee" => "0.030000000000000000",
+        //         "ts" => "1775213753407",
+        //         "brokerId" => null,
+        //         "feeCurrency" => "base_currency"
+        //     }
+        //
         $id = $this->safe_string($trade, 'tradeId');
         $marketId = $this->safe_string($trade, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
@@ -794,27 +836,60 @@ class blofin extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = null;
+        $feeCurrency = $this->safe_string($trade, 'feeCurrency');
+        $isSpot = $feeCurrency !== null;
+        if ($feeCurrency === null) {
+            $feeCurrency = $market['settle'];
+        } elseif ($feeCurrency === 'base_currency') {
+            $feeCurrency = $market['base'];
+        } elseif ($feeCurrency === 'quote_currency') {
+            $feeCurrency = $market['quote'];
+        }
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['settle'],
+                'currency' => $feeCurrency,
             );
         }
-        return $this->safe_trade(array(
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
-            'id' => $id,
-            'order' => $orderId,
-            'type' => null,
-            'takerOrMaker' => null,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => null,
-            'fee' => $fee,
-        ), $market);
+        if ($isSpot) {
+            $spotSymbol = $market['base'] . '/' . $market['quote'];
+            $cost = $this->parse_number(Precise::string_mul($price, $amount));
+            $result = array(
+                'info' => $trade,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'symbol' => $spotSymbol,
+                'id' => $id,
+                'order' => $orderId,
+                'type' => null,
+                'takerOrMaker' => null,
+                'side' => $side,
+                'price' => $this->parse_number($price),
+                'amount' => $this->parse_number($amount),
+                'cost' => $cost,
+                'fee' => array(
+                    'cost' => $this->parse_number($feeCost),
+                    'currency' => $feeCurrency,
+                ),
+            );
+            return $result;
+        } else {
+            return $this->safe_trade(array(
+                'info' => $trade,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'symbol' => $symbol,
+                'id' => $id,
+                'order' => $orderId,
+                'type' => null,
+                'takerOrMaker' => null,
+                'side' => $side,
+                'price' => $price,
+                'amount' => $amount,
+                'cost' => null,
+                'fee' => $fee,
+            ), $market);
+        }
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -829,7 +904,7 @@ class blofin extends Exchange {
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically $paginate by calling this endpoint multiple times
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -879,7 +954,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -931,11 +1006,11 @@ class blofin extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding $rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding $rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rate-history-structure funding $rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -1023,7 +1098,7 @@ class blofin extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1055,7 +1130,7 @@ class blofin extends Exchange {
 
     public function parse_balance_by_type($response) {
         $data = $this->safe_list($response, 'data');
-        if (($data !== null) && gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+        if (($data !== null) && (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
             return $this->parse_funding_balance($response);
         } else {
             return $this->parse_balance($response);
@@ -1173,7 +1248,7 @@ class blofin extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $accountType = null;
@@ -1205,7 +1280,8 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params, 'cross');
         $request['marginMode'] = $marginMode;
-        $triggerPrice = $this->safe_string($params, 'triggerPrice');
+        $triggerPriceAny = $this->safe_string_n($params, array( 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $triggerPriceSlTp = $this->safe_string_2($params, 'stopLossPrice', 'takeProfitPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $isHedged = $this->safe_bool($params, 'hedged', false);
         if ($isHedged) {
@@ -1218,7 +1294,7 @@ class blofin extends Exchange {
         if ($isMarketOrder || $marketIOC) {
             $request['orderType'] = 'market';
         } else {
-            $key = ($triggerPrice !== null) ? 'orderPrice' : 'price';
+            $key = ($triggerPriceAny !== null) ? 'orderPrice' : 'price';
             $request[$key] = $this->price_to_precision($symbol, $price);
         }
         $postOnly = false;
@@ -1229,27 +1305,31 @@ class blofin extends Exchange {
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
         $params = $this->omit($params, array( 'stopLoss', 'takeProfit', 'hedged' ));
-        $isStopLoss = $stopLoss !== null;
-        $isTakeProfit = $takeProfit !== null;
-        if ($isStopLoss || $isTakeProfit) {
-            if ($isStopLoss) {
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
+        if ($hasStopLoss || $hasTakeProfit) {
+            if ($hasStopLoss) {
                 $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['slTriggerPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
                 $slOrderPrice = $this->safe_string($stopLoss, 'price', '-1');
                 $request['slOrderPrice'] = $this->price_to_precision($symbol, $slOrderPrice);
             }
-            if ($isTakeProfit) {
+            if ($hasTakeProfit) {
                 $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                 $tpPrice = $this->safe_string($takeProfit, 'price', '-1');
                 $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpPrice);
             }
-        } elseif ($triggerPrice !== null) {
+        } elseif ($triggerPriceAny !== null) {
             $request['orderType'] = 'trigger';
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPriceAny);
             if ($isMarketOrder) {
                 $request['orderPrice'] = '-1';
             }
+            if ($triggerPriceSlTp !== null) {
+                $request['reduceOnly'] = true;
+            }
+            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
         }
         return $this->extend($request, $params);
     }
@@ -1319,12 +1399,14 @@ class blofin extends Exchange {
         } elseif ($type === 'ioc') {
             $timeInForce = 'IOC';
             $type = 'limit';
+        } elseif ($type === 'conditional') {
+            $type = 'trigger';
         }
         $marketId = $this->safe_string($order, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $filled = $this->safe_string($order, 'filledSize');
-        $price = $this->safe_string_2($order, 'px', 'price');
+        $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
@@ -1394,7 +1476,7 @@ class blofin extends Exchange {
              * create a trade $order
              *
              * @see https://blofin.com/docs#place-$order
-             * @see https://blofin.com/docs#place-$tpsl-$order
+             * @see https://blofin.com/docs#place-tpsl-$order
              *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
@@ -1417,37 +1499,33 @@ class blofin extends Exchange {
              * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @param {float} [$params->stopLoss.price] stop loss $order $price (if not provided the $order will be a $market $order)
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $tpsl = $this->safe_bool($params, 'tpsl', false);
-            $params = $this->omit($params, 'tpsl');
-            $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'createOrder', 'method', 'privatePostTradeOrder');
             $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
             $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
             $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
-            $isType2Order = ($isStopLossPriceDefined || $isTakeProfitPriceDefined);
+            $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined);
+            $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
             $response = null;
             $reduceOnly = $this->safe_bool($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 $params['reduceOnly'] = $reduceOnly ? 'true' : 'false';
             }
-            if ($tpsl || ($method === 'privatePostTradeOrderTpsl') || $isType2Order) {
+            if ($isCombinedSlTp) {
                 $tpslRequest = $this->create_tpsl_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrderTpsl ($tpslRequest));
-            } elseif ($isTriggerOrder || ($method === 'privatePostTradeOrderAlgo')) {
+            } elseif ($isTriggerOrder || $isSlOrTp) {
                 $triggerRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrderAlgo ($triggerRequest));
             } else {
                 $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
                 $response = Async\await($this->privatePostTradeOrder ($request));
             }
-            if ($isTriggerOrder || ($method === 'privatePostTradeOrderAlgo')) {
+            if ($isCombinedSlTp || $isSlOrTp || $isTriggerOrder) {
                 $dataDict = $this->safe_dict($response, 'data', array());
-                $triggerOrder = $this->parse_order($dataDict, $market);
-                return $triggerOrder;
+                return $this->parse_order($dataDict, $market);
             }
             $data = $this->safe_list($response, 'data', array());
             $first = $this->safe_dict($data, 0);
@@ -1460,12 +1538,17 @@ class blofin extends Exchange {
 
     public function create_tpsl_order_request(string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        $positionSide = $this->safe_string($params, 'positionSide', 'net');
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        $positionSide = 'net';
+        if ($hedged) {
+            $positionSide = ($side === 'buy') ? 'short' : 'long';
+        }
         $request = array(
             'instId' => $market['id'],
             'side' => $side,
             'positionSide' => $positionSide,
             'brokerId' => $this->safe_string($this->options, 'brokerId', 'ec6dd3a7dd982d0b'),
+            'reduceOnly' => $this->safe_bool($params, 'reduceOnly', true), // this is TP &  SL protective order, so it should be reduceOnly by default
         );
         if ($amount !== null) {
             $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -1478,21 +1561,14 @@ class blofin extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         if ($stopLossPrice !== null) {
             $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-            if ($type === 'market') {
-                $request['slOrderPrice'] = '-1';
-            } else {
-                $request['slOrderPrice'] = $this->price_to_precision($symbol, $price);
-            }
-        } elseif ($takeProfitPrice !== null) {
+            $request['slOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
+        }
+        if ($takeProfitPrice !== null) {
             $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            if ($type === 'market') {
-                $request['tpOrderPrice'] = '-1';
-            } else {
-                $request['tpOrderPrice'] = $this->price_to_precision($symbol, $price);
-            }
+            $request['tpOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
         }
         $request['marginMode'] = $marginMode;
-        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ));
         return $this->extend($request, $params);
     }
 
@@ -1509,7 +1585,7 @@ class blofin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] True if cancelling a trigger/conditional
              * @param {boolean} [$params->tpsl] True if cancelling a tpsl $order
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1559,7 +1635,7 @@ class blofin extends Exchange {
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $ordersRequests = array();
@@ -1596,7 +1672,7 @@ class blofin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] True if fetching trigger or conditional orders
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1645,8 +1721,10 @@ class blofin extends Exchange {
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] Timestamp in ms of the latest time to retrieve trades for
+             * @param {string} [$params->type] 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+             * @param {string} [$params->instId] *spot markets only* the $market id of the spot $market to fetch the trade history for (e.g. 'BTC-USDT')
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1665,7 +1743,36 @@ class blofin extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 100
             }
-            $response = Async\await($this->privateGetTradeFillsHistory ($this->extend($request, $params)));
+            $type = 'swap';
+            list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params, $type);
+            $response = null;
+            if ($type === 'spot') {
+                $request['instType'] = 'SPOT';
+                //
+                //     {
+                //         "code" => "0",
+                //         "msg" => "success",
+                //         "data" => array(
+                //             {
+                //                 "instId" => "DOGE-USDT",
+                //                 "tradeId" => "6000001623870",
+                //                 "orderId" => "6000011777113",
+                //                 "fillPrice" => "0.091480000000000000",
+                //                 "fillSize" => "30.000000000000000000",
+                //                 "fillPnl" => null,
+                //                 "side" => "buy",
+                //                 "fee" => "0.030000000000000000",
+                //                 "ts" => "1775213753407",
+                //                 "brokerId" => null,
+                //                 "feeCurrency" => "base_currency"
+                //             }
+                //         )
+                //     }
+                //
+                $response = Async\await($this->privateGetSpotTradeFillsHistory ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetTradeFillsHistory ($this->extend($request, $params)));
+            }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
@@ -1684,7 +1791,7 @@ class blofin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1725,7 +1832,7 @@ class blofin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1767,7 +1874,7 @@ class blofin extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -1801,7 +1908,7 @@ class blofin extends Exchange {
         //     {
         //         "currency" => "USDT",
         //         "chain" => "TRC20",
-        //         "address" => "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Bi",
+        //         "address" => "TGfJLtnsh3B9EqekFEBZ1nR14QanBUf5Be",
         //         "txId" => "892f4e0c32268b29b2e541ef30d32a30bbf10f902adcc4b1428319ed7c3758fd",
         //         "type" => "0",
         //         "amount" => "86.975843",
@@ -1831,6 +1938,7 @@ class blofin extends Exchange {
         //
         $type = null;
         $id = null;
+        $status = null;
         $withdrawalId = $this->safe_string($transaction, 'withdrawId');
         $depositId = $this->safe_string($transaction, 'depositId');
         $addressTo = $this->safe_string($transaction, 'address');
@@ -1839,14 +1947,15 @@ class blofin extends Exchange {
         if ($withdrawalId !== null) {
             $type = 'withdrawal';
             $id = $withdrawalId;
+            $status = $this->parse_transaction_withdrawal_status($this->safe_string($transaction, 'state'));
         } else {
             $id = $depositId;
             $type = 'deposit';
+            $status = $this->parse_transaction_deposit_status($this->safe_string($transaction, 'state'));
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_number($transaction, 'amount');
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $txid = $this->safe_string($transaction, 'txId');
         $timestamp = $this->safe_integer($transaction, 'ts');
         $feeCurrencyId = $this->safe_string($transaction, 'feeCurrency');
@@ -1879,7 +1988,19 @@ class blofin extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_withdrawal_status(?string $status) {
+        $statuses = array(
+            '0' => 'pending',
+            '2' => 'failed',
+            '3' => 'ok',
+            '4' => 'failed',
+            '6' => 'pending',
+            '7' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_deposit_status(?string $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -1943,7 +2064,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1954,7 +2075,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] whether the order is a stop/trigger order
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             // TODO : the original endpoint signature differs, according to that you can skip individual $symbol and assign $ids in batch. At this moment, `$params` is not being used too.
             if ($symbol === null) {
@@ -2026,7 +2147,7 @@ class blofin extends Exchange {
              * @param {string} $fromAccount account to transfer from (funding, swap, copy_trading, earn)
              * @param {string} $toAccount account to transfer to (funding, swap, copy_trading, earn)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2070,7 +2191,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->instType] MARGIN, SWAP, FUTURES, OPTION
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2097,7 +2218,7 @@ class blofin extends Exchange {
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->instType] MARGIN, SWAP, FUTURES, OPTION
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2105,6 +2226,73 @@ class blofin extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $result = $this->parse_positions($data);
             return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        }) ();
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * fetches historical $positions
+             *
+             * @see https://docs.blofin.com/index.html#get-$positions-history
+             *
+             * @param {string[]} [$symbols] unified contract $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
+             * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
+             * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+             * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength === 0) {
+                    $market = $this->market($symbols[0]);
+                    $request['instId'] = $market['id'];
+                }
+            }
+            if ($limit !== null) {
+                $request['limit'] = min ($limit, 100);
+            }
+            if ($since !== null) {
+                $request['begin'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
+            $response = Async\await($this->privateGetAccountPositionsHistory ($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "0",
+            //        "msg" => "success",
+            //        "data" => array(
+            //            array(
+            //                "historyId" => "110307402",
+            //                "positionId" => "1000000722711",
+            //                "instId" => "BTC-USDT",
+            //                "instType" => "SWAP",
+            //                "marginMode" => "cross",
+            //                "positionSide" => "net",
+            //                "closePositions" => "0.0006",
+            //                "maxPositions" => "0.0006",
+            //                "liquidationPositions" => "0",
+            //                "openAveragePrice" => "81550.1",
+            //                "closeAveragePrice" => "81550",
+            //                "createTime" => "1777995583329",
+            //                "updateTime" => "1777995588333",
+            //                "leverage" => "50",
+            //                "realizedPnl" => "-0.058776036",
+            //                "realizedPnlRatio" => "-0.060061275216094155",
+            //                "fee" => "-0.058716036"
+            //            ),
+            //        )
+            //    }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $positions = $this->parse_positions($data, $symbols, $params);
+            return $this->filter_by_since_limit($positions, $since, $limit);
         }) ();
     }
 
@@ -2135,6 +2323,29 @@ class blofin extends Exchange {
         //         updateTime => '1707235776528'
         //     }
         //
+        //
+        //    positions-history
+        //
+        //            array(
+        //                "positionId" => "1000000722711",
+        //                "instId" => "BTC-USDT",
+        //                "instType" => "SWAP",
+        //                "marginMode" => "cross",
+        //                "positionSide" => "net",
+        //                "createTime" => "1777995583329",
+        //                "updateTime" => "1777995588333",
+        //                "leverage" => "50",
+        //                "realizedPnl" => "-0.058776036",
+        //                "realizedPnlRatio" => "-0.060061275216094155",
+        //                "fee" => "-0.058716036"
+        //                "historyId" => "110307402",
+        //                "closePositions" => "0.0006",
+        //                "maxPositions" => "0.0006",
+        //                "liquidationPositions" => "0",
+        //                "openAveragePrice" => "81550.1",
+        //                "closeAveragePrice" => "81550",
+        //            ),
+        //
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -2164,7 +2375,7 @@ class blofin extends Exchange {
         $notional = $this->parse_number($notionalString);
         $marginMode = $this->safe_string($position, 'marginMode');
         $initialMarginString = null;
-        $entryPriceString = $this->safe_string($position, 'averagePrice');
+        $entryPriceString = $this->safe_string_2($position, 'averagePrice', 'openAveragePrice');
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $leverageString = $this->safe_string($position, 'leverage');
         $initialMarginPercentage = null;
@@ -2199,7 +2410,9 @@ class blofin extends Exchange {
             'marginMode' => $marginMode,
             'liquidationPrice' => $liquidationPrice,
             'entryPrice' => $this->parse_number($entryPriceString),
+            'exitPrice' => $this->safe_number($position, 'closeAveragePrice'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
+            'realizedPnl' => $this->safe_number($position, 'realizedPnl'),
             'percentage' => $percentage,
             'contracts' => $contracts,
             'contractSize' => $contractSize,
@@ -2232,7 +2445,7 @@ class blofin extends Exchange {
              * @param {string[]} $symbols a list of unified market $symbols, required on blofin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
             Async\await($this->load_markets());
             if ($symbols === null) {
@@ -2290,7 +2503,7 @@ class blofin extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_markets());
             $marginMode = null;
@@ -2335,7 +2548,7 @@ class blofin extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -2391,7 +2604,7 @@ class blofin extends Exchange {
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market order. false or true, the default is false
              * @param {string} [$params->tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+             * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2424,7 +2637,7 @@ class blofin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] True if fetching trigger or conditional orders
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -2469,7 +2682,7 @@ class blofin extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2588,6 +2801,93 @@ class blofin extends Exchange {
             //
             return Async\await($this->privatePostAccountSetPositionMode ($this->extend($request, $params)));
         }) ();
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+             *
+             * @see https://docs.blofin.com/index.html#get-positions
+             *
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $response = Async\await($this->privateGetAccountPositions ($params));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => array(
+            //             {
+            //                 "positionId" => "756786",
+            //                 "instId" => "BTC-USDT",
+            //                 "instType" => "SWAP",
+            //                 "marginMode" => "cross",
+            //                 "positionSide" => "net",
+            //                 "adl" => "1",
+            //                 "positions" => "0.1",
+            //                 "availablePositions" => "0.1",
+            //                 "averagePrice" => "88564.9",
+            //                 "markPrice" => "88546.3696492756",
+            //                 "marginRatio" => "822.305183525552961566",
+            //                 "liquidationPrice" => "",
+            //                 "unrealizedPnl" => "-0.00185303507244",
+            //                 "unrealizedPnlRatio" => "-0.000627687178252332",
+            //                 "initialMargin" => "2.951545654975853333",
+            //                 "maintenanceMargin" => "0.02656391089478268",
+            //                 "createTime" => "1767169876207",
+            //                 "updateTime" => "1767169876207",
+            //                 "leverage" => "3"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_adl_ranks($data, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "positionId" => "756786",
+        //         "instId" => "BTC-USDT",
+        //         "instType" => "SWAP",
+        //         "marginMode" => "cross",
+        //         "positionSide" => "net",
+        //         "adl" => "1",
+        //         "positions" => "0.1",
+        //         "availablePositions" => "0.1",
+        //         "averagePrice" => "88564.9",
+        //         "markPrice" => "88546.3696492756",
+        //         "marginRatio" => "822.305183525552961566",
+        //         "liquidationPrice" => "",
+        //         "unrealizedPnl" => "-0.00185303507244",
+        //         "unrealizedPnlRatio" => "-0.000627687178252332",
+        //         "initialMargin" => "2.951545654975853333",
+        //         "maintenanceMargin" => "0.02656391089478268",
+        //         "createTime" => "1767169876207",
+        //         "updateTime" => "1767169876207",
+        //         "leverage" => "3"
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'instId');
+        $timestamp = $this->safe_integer_omit_zero($info, 'createTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adl'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

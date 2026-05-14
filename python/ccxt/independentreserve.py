@@ -52,6 +52,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -195,9 +196,10 @@ class independentreserve(Exchange, ImplicitAPI):
                         'takeProfitPrice': False,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'IOC': False,
-                            'FOK': False,
-                            'PO': False,
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
@@ -407,7 +409,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privatePostGetAccounts(params)
@@ -419,7 +421,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -482,7 +484,7 @@ class independentreserve(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -595,7 +597,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'TimeInForce')),
             'postOnly': None,
             'side': side,
             'price': self.safe_string(order, 'Price'),
@@ -623,8 +625,18 @@ class independentreserve(Exchange, ImplicitAPI):
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
+            'Failed': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_time_in_force(self, timeInForce: Str):
+        timeInForces: dict = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -632,7 +644,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         response = self.privatePostGetOrderDetails(self.extend({
@@ -650,10 +662,10 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request = self.ordered({})
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -674,10 +686,10 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
-        request = self.ordered({})
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -698,16 +710,16 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         pageIndex = self.safe_integer(params, 'pageIndex', 1)
         if limit is None:
             limit = 50
-        request = self.ordered({
+        request = {
             'pageIndex': pageIndex,
             'pageSize': limit,
-        })
+        }
         response = self.privatePostGetTrades(self.extend(request, params))
         market = None
         if symbol is not None:
@@ -758,7 +770,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -774,7 +786,7 @@ class independentreserve(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.privatePostGetBrokerageFees(params)
@@ -821,17 +833,17 @@ class independentreserve(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
         orderType += 'Offer' if (side == 'sell') else 'Bid'
-        request = self.ordered({
+        request = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
-        })
+        }
         response = None
         request['volume'] = amount
         if type == 'limit':
@@ -853,7 +865,7 @@ class independentreserve(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -885,7 +897,7 @@ class independentreserve(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -922,7 +934,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'Tag'),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -936,7 +948,7 @@ class independentreserve(Exchange, ImplicitAPI):
 
  EXCHANGE SPECIFIC PARAMETERS
         :param dict [params.comment]: withdrawal comment, should not exceed 500 characters
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
@@ -1044,7 +1056,7 @@ class independentreserve(Exchange, ImplicitAPI):
                 auth.append(key + '=' + value)
             message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
-            query = self.ordered({})
+            query = {}
             query['apiKey'] = self.apiKey
             query['nonce'] = nonce
             query['signature'] = signature.upper()

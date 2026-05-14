@@ -1,6 +1,7 @@
 import bithumbRest from '../bithumb.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Bool, Order, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { Balances } from '../base/types.js';
 export default class bithumb extends bithumbRest {
     describe(): any;
     /**
@@ -21,7 +22,7 @@ export default class bithumb extends bithumbRest {
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
@@ -54,6 +55,32 @@ export default class bithumb extends bithumbRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: any, message: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
+    /**
+     * @method
+     * @name bithumb#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
+    authenticate(params?: {}): Promise<import("../base/ws/WsClient.js").default>;
+    /**
+     * @method
+     * @name bithumb#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.codes] market codes to filter orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrders(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): Order;
     handleMessage(client: Client, message: any): void;
 }

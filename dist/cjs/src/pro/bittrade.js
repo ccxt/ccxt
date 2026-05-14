@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bittrade$1 = require('../bittrade.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class bittrade extends bittrade$1 {
+class bittrade extends bittrade$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -40,8 +42,10 @@ class bittrade extends bittrade$1 {
         });
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId.toString();
     }
     /**
@@ -50,7 +54,7 @@ class bittrade extends bittrade$1 {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -114,7 +118,7 @@ class bittrade extends bittrade$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -264,7 +268,7 @@ class bittrade extends bittrade$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if ((limit !== undefined) && (limit !== 150)) {
@@ -300,6 +304,7 @@ class bittrade extends bittrade$1 {
         //     {
         //         "id": 1583473663565,
         //         "rep": "market.btcusdt.mbp.150",
+        //         "ts": 1774979531056,
         //         "status": "ok",
         //         "data": {
         //             "seqNum": 104999417756,
@@ -318,10 +323,13 @@ class bittrade extends bittrade$1 {
         //
         const symbol = this.safeString(subscription, 'symbol');
         const messageHash = this.safeString(subscription, 'messageHash');
+        const timestamp = this.safeInteger(message, 'ts');
         const orderbook = this.orderbooks[symbol];
         const data = this.safeValue(message, 'data');
         const snapshot = this.parseOrderBook(data, symbol);
         snapshot['nonce'] = this.safeInteger(data, 'seqNum');
+        snapshot['timestamp'] = timestamp;
+        snapshot['datetime'] = this.iso8601(timestamp);
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
         const messages = orderbook.cache;
@@ -602,4 +610,4 @@ class bittrade extends bittrade$1 {
     }
 }
 
-module.exports = bittrade;
+exports["default"] = bittrade;

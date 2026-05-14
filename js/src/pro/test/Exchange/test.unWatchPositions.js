@@ -10,7 +10,7 @@ async function createOrderAfterDelay(exchange) {
     await exchange.sleep(3000);
     await exchange.createOrder('BTC/USDT:USDT', 'market', 'buy', 0.001);
 }
-async function testUnwatchPositions(exchange, skippedProperties, symbol) {
+async function testUnWatchPositions(exchange, skippedProperties, symbol) {
     const method = 'unWatchPositions';
     exchange.setSandboxMode(true);
     // First, we need to subscribe to positions to test the unsubscribe functionality
@@ -28,7 +28,7 @@ async function testUnwatchPositions(exchange, skippedProperties, symbol) {
             throw e;
         }
         // If we can't subscribe, we can't test unsubscribe, so skip this test
-        return;
+        return false;
     }
     // Verify that we have a subscription
     assert(Array.isArray(positionsSubscription), exchange.id + ' ' + method + ' requires a valid positions subscription to test unsubscribe');
@@ -70,5 +70,6 @@ async function testUnwatchPositions(exchange, skippedProperties, symbol) {
     }
     // Verify resubscription works
     assert(Array.isArray(resubscribeResponse), exchange.id + ' ' + method + ' must allow resubscription after unwatch, returned ' + exchange.json(resubscribeResponse));
+    return true;
 }
-export default testUnwatchPositions;
+export default testUnWatchPositions;

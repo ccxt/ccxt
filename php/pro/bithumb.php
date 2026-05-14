@@ -16,7 +16,8 @@ class bithumb extends \ccxt\async\bithumb {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false,
+                'watchBalance' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
@@ -25,7 +26,11 @@ class bithumb extends \ccxt\async\bithumb {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://pubwss.bithumb.com/pub/ws',
+                    'ws' => array(
+                        'public' => 'wss://pubwss.bithumb.com/pub/ws', // v1.2.0
+                        'publicV2' => 'wss://ws-api.bithumb.com/websocket/v1', // v2.1.5
+                        'privateV2' => 'wss://ws-api.bithumb.com/websocket/v1/private', // v2.1.5
+                    ),
                 ),
             ),
             'options' => array(),
@@ -46,7 +51,7 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
-            $url = $this->urls['api']['ws'];
+            $url = $this->urls['api']['ws']['public'];
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $messageHash = 'ticker:' . $market['symbol'];
@@ -68,10 +73,10 @@ class bithumb extends \ccxt\async\bithumb {
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
+            $url = $this->urls['api']['ws']['public'];
             $marketIds = array();
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols, null, false, true, true);
@@ -192,7 +197,7 @@ class bithumb extends \ccxt\async\bithumb {
              * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
+            $url = $this->urls['api']['ws']['public'];
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook' . ':' . $symbol;
@@ -286,7 +291,7 @@ class bithumb extends \ccxt\async\bithumb {
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
-            $url = $this->urls['api']['ws'];
+            $url = $this->urls['api']['ws']['public'];
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trade:' . $symbol;
@@ -374,7 +379,7 @@ class bithumb extends \ccxt\async\bithumb {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        "status" : "5100",
@@ -397,6 +402,258 @@ class bithumb extends \ccxt\async\bithumb {
         return true;
     }
 
+    public function watch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * watch $balance and get the amount of funds available for trading or funds locked in orders
+             *
+             * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+             *
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['privateV2'];
+            $messageHash = 'myAsset';
+            $request = array(
+                array( 'ticket' => 'ccxt' ),
+                array( 'type' => $messageHash ),
+            );
+            $balance = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return $balance;
+        }) ();
+    }
+
+    public function handle_balance(Client $client, $message) {
+        //
+        //    {
+        //        "type" => "myAsset",
+        //        "assets" => array(
+        //            {
+        //                "currency" => "KRW",
+        //                "balance" => "2061832.35",
+        //                "locked" => "3824127.3"
+        //            }
+        //        ),
+        //        "asset_timestamp" => 1727052537592,
+        //        "timestamp" => 1727052537687,
+        //        "stream_type" => "REALTIME"
+        //    }
+        //
+        $messageHash = 'myAsset';
+        $assets = $this->safe_list($message, 'assets', array());
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        for ($i = 0; $i < count($assets); $i++) {
+            $asset = $assets[$i];
+            $currencyId = $this->safe_string($asset, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($asset, 'balance');
+            $account['used'] = $this->safe_string($asset, 'locked');
+            $this->balance[$code] = $account;
+        }
+        $this->balance['info'] = $message;
+        $timestamp = $this->safe_integer($message, 'timestamp');
+        $this->balance['timestamp'] = $timestamp;
+        $this->balance['datetime'] = $this->iso8601($timestamp);
+        $this->balance = $this->safe_balance($this->balance);
+        $client->resolve ($this->balance, $messageHash);
+    }
+
+    public function authenticate($params = array ()) {
+        $this->check_required_credentials();
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $authenticated = $this->safe_string($wsOptions, 'token');
+        if ($authenticated === null) {
+            $payload = array(
+                'access_key' => $this->apiKey,
+                'nonce' => $this->uuid(),
+                'timestamp' => $this->milliseconds(),
+            );
+            $jwtToken = $this->jwt($payload, $this->encode($this->secret), 'sha256');
+            $wsOptions['token'] = $jwtToken;
+            $wsOptions['options'] = array(
+                'headers' => array(
+                    'authorization' => 'Bearer ' . $jwtToken,
+                ),
+            );
+            $this->options['ws'] = $wsOptions;
+        }
+        $url = $this->urls['api']['ws']['privateV2'];
+        $client = $this->client($url);
+        return $client;
+    }
+
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $orders made by the user
+             *
+             * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+             *
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->codes] $market $codes to filter $orders
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['privateV2'];
+            $messageHash = 'myOrder';
+            $codes = $this->safe_list($params, 'codes', array());
+            $request = array(
+                array( 'ticket' => 'ccxt' ),
+                array( 'type' => $messageHash, 'codes' => $codes ),
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash = $messageHash . ':' . $symbol;
+            }
+            $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $orders->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_orders(Client $client, $message) {
+        //
+        //    {
+        //        "type" => "myOrder",
+        //        "code" => "KRW-BTC",
+        //        "uuid" => "C0101000000001818113",
+        //        "ask_bid" => "BID",
+        //        "order_type" => "limit",
+        //        "state" => "trade",
+        //        "trade_uuid" => "C0101000000001744207",
+        //        "price" => 1927000,
+        //        "volume" => 0.4697,
+        //        "remaining_volume" => 0.0803,
+        //        "executed_volume" => 0.4697,
+        //        "trades_count" => 1,
+        //        "reserved_fee" => 0,
+        //        "remaining_fee" => 0,
+        //        "paid_fee" => 0,
+        //        "executed_funds" => 905111.9000,
+        //        "trade_timestamp" => 1727052318148,
+        //        "order_timestamp" => 1727052318074,
+        //        "timestamp" => 1727052318369,
+        //        "stream_type" => "REALTIME"
+        //    }
+        //
+        $messageHash = 'myOrder';
+        $parsed = $this->parse_ws_order($message);
+        $symbol = $this->safe_string($parsed, 'symbol');
+        // $orderId = $this->safe_string($parsed, 'id');
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $cachedOrders = $this->orders;
+        $cachedOrders->append ($parsed);
+        $client->resolve ($cachedOrders, $messageHash);
+        $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
+        $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
+    }
+
+    public function parse_ws_order($order, $market = null) {
+        //
+        //    {
+        //        "type" => "myOrder",
+        //        "code" => "KRW-BTC",
+        //        "uuid" => "C0101000000001818113",
+        //        "ask_bid" => "BID",
+        //        "order_type" => "limit",
+        //        "state" => "trade",
+        //        "trade_uuid" => "C0101000000001744207",
+        //        "price" => 1927000,
+        //        "volume" => 0.4697,
+        //        "remaining_volume" => 0.0803,
+        //        "executed_volume" => 0.4697,
+        //        "trades_count" => 1,
+        //        "reserved_fee" => 0,
+        //        "remaining_fee" => 0,
+        //        "paid_fee" => 0,
+        //        "executed_funds" => 905111.9000,
+        //        "trade_timestamp" => 1727052318148,
+        //        "order_timestamp" => 1727052318074,
+        //        "timestamp" => 1727052318369,
+        //        "stream_type" => "REALTIME"
+        //    }
+        //
+        $marketId = $this->safe_string($order, 'code');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $timestamp = $this->safe_integer($order, 'order_timestamp');
+        $sideId = $this->safe_string($order, 'ask_bid');
+        $side = ($sideId === 'BID') ? ('buy') : ('sell');
+        $typeId = $this->safe_string($order, 'order_type');
+        $type = null;
+        if ($typeId === 'limit') {
+            $type = 'limit';
+        } elseif ($typeId === 'price') {
+            $type = 'market';
+        } elseif ($typeId === 'market') {
+            $type = 'market';
+        }
+        $stateId = $this->safe_string($order, 'state');
+        $status = null;
+        if ($stateId === 'wait') {
+            $status = 'open';
+        } elseif ($stateId === 'trade') {
+            $status = 'open';
+        } elseif ($stateId === 'done') {
+            $status = 'closed';
+        } elseif ($stateId === 'cancel') {
+            $status = 'canceled';
+        }
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'volume');
+        $remaining = $this->safe_string($order, 'remaining_volume');
+        $filled = $this->safe_string($order, 'executed_volume');
+        $cost = $this->safe_string($order, 'executed_funds');
+        $feeCost = $this->safe_string($order, 'paid_fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $marketForFee = $this->safe_market($marketId, $market);
+            $feeCurrency = $this->safe_string($marketForFee, 'quote');
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
+        return $this->safe_order(array(
+            'info' => $order,
+            'id' => $this->safe_string($order, 'uuid'),
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => $this->safe_integer($order, 'trade_timestamp'),
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => null,
+            'triggerPrice' => null,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => null,
+        ), $market);
+    }
+
     public function handle_message(Client $client, $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
@@ -407,6 +664,8 @@ class bithumb extends \ccxt\async\bithumb {
                 'ticker' => array($this, 'handle_ticker'),
                 'orderbookdepth' => array($this, 'handle_order_book'),
                 'transaction' => array($this, 'handle_trades'),
+                'myAsset' => array($this, 'handle_balance'),
+                'myOrder' => array($this, 'handle_orders'),
             );
             $method = $this->safe_value($methods, $topic);
             if ($method !== null) {
