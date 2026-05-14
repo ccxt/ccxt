@@ -106,7 +106,7 @@ export default class htx extends htxRest {
                 'watchOrderBook': {
                     'maxRetries': 3,
                     'checksum': true,
-                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
                     'depth': 150, // 150 or 20
                 },
                 'ws': {
@@ -428,7 +428,7 @@ export default class htx extends htxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 5, 10, 20, 150
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -450,7 +450,9 @@ export default class htx extends htxRest {
         const marketKey = market['type'] + this.safeString (market, 'subType', '');
         const selectedLimits = this.safeList2 (supportedLimits, marketKey, 'default');
         if (!this.inArray (limit, selectedLimits)) {
-            if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
+            let adjustLimit = undefined;
+            [ adjustLimit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'adjustLimit');
+            if (adjustLimit) {
                 limit = this.findNearestCeiling (selectedLimits, limit);
             } else {
                 throw new BadRequest (this.id + ' watchOrderBook(): the limit argument must be one of ' + this.json (selectedLimits) + ' or set .options["watchOrderBook"]["adjustLimit"] = true to adjust to nearest higher limit automatically');
