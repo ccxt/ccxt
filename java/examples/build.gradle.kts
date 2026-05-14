@@ -9,6 +9,10 @@ repositories {
 
 dependencies {
     implementation(project(":lib"))
+    // Silence Netty's "No SLF4J providers were found" stderr noise. As a runnable
+    // application, examples pick their own (silent) binding; the lib stays neutral
+    // so downstream consumers can wire their own logback/log4j/etc.
+    runtimeOnly("org.slf4j:slf4j-nop:2.0.13")
 }
 
 java {
