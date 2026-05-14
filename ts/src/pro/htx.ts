@@ -447,7 +447,7 @@ export default class htx extends htxRest {
         if (limit === undefined) {
             limit = market['spot'] ? 150 : 20;
         }
-        const marketKey = market['type'] + this.safeString (market, 'subType');
+        const marketKey = market['type'] + this.safeString (market, 'subType', '');
         const selectedLimits = this.safeList2 (supportedLimits, marketKey, 'default');
         if (!this.inArray (limit, selectedLimits)) {
             if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
