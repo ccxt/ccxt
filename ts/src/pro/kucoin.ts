@@ -1472,7 +1472,7 @@ export default class kucoin extends kucoinRest {
             const supported = [ 5, 50 ];
             if (!this.inArray (limit, supported)) {
                 let adjustLimit = undefined;
-                [ adjustLimit, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'adjustLimit');
+                [ adjustLimit, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'adjustLimit');
                 if (adjustLimit) {
                     supported.push (limit); // count limit itself if it's above 50, so it will be skipped from channel down below
                     limit = this.findNearestCeiling (supported, limit);
