@@ -992,7 +992,7 @@ export default class htx extends Exchange {
                     'useHistoricalEndpointForSpot': true,
                 },
                 'fetchOrderBook': {
-                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -2610,7 +2610,7 @@ export default class htx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 5, 10, 20, 150
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -2644,10 +2644,12 @@ export default class htx extends Exchange {
                 const supported = [ 5, 10, 20, 150 ];
                 // Valid depths are 5, 10, 20 or empty (for 150)
                 if (!this.inArray (limit, supported)) {
-                    if (this.handleOption ('fetchOrderBook', 'adjustLimit', false)) {
+                    let adjustLimit = undefined;
+                    [ adjustLimit, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'adjustLimit');
+                    if (adjustLimit) {
                         limit = this.findNearestCeiling (supported, limit);
                     } else {
-                        throw new BadRequest (this.id + ' fetchOrderBook(): for spot markets limit argument must be undefined or one from: ' + this.json (supported)  + ' or set .options["watchOrderBook"]["adjustLimit"] = true to adjust to nearest higher limit automatically');
+                        throw new BadRequest (this.id + ' fetchOrderBook(): for spot markets limit argument must be undefined or one from: ' + this.json (supported) + ' or set .options["watchOrderBook"]["adjustLimit"] = true to adjust to nearest higher limit automatically');
                     }
                 }
                 // only set the depth if it is not 150
