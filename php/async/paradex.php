@@ -927,7 +927,7 @@ class paradex extends Exchange {
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['page_size'] = $limit;
+                $request['page_size'] = min ($limit, 1000);
             }
             if ($since !== null) {
                 $request['start_at'] = $since;

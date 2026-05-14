@@ -1946,14 +1946,14 @@ public partial class xt : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
             }
             response = await this.publicSpotGetTradeRecent(this.extend(request, parameters));
         } else
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["num"] = limit;
+                ((IDictionary<string,object>)request)["num"] = mathMin(limit, 1000);
             }
             if (isTrue(getValue(market, "linear")))
             {

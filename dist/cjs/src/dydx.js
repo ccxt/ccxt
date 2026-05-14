@@ -672,7 +672,7 @@ class dydx extends dydx$1["default"] {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.indexerGetTradesPerpetualMarketMarket(this.extend(request, params));
         //

@@ -701,7 +701,7 @@ func (this *DydxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			"market": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 
 		response := (<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params)))

@@ -931,7 +931,7 @@ public partial class paradex : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["page_size"] = limit;
+            ((IDictionary<string,object>)request)["page_size"] = mathMin(limit, 1000);
         }
         if (isTrue(!isEqual(since, null)))
         {

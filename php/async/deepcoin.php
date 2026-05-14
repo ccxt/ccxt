@@ -838,7 +838,7 @@ class deepcoin extends Exchange {
                 'instId' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 100, max 500
+                $request['limit'] = min ($limit, 2000);
             }
             $productGroup = $this->get_product_group_from_market($market);
             $request['productGroup'] = $productGroup;
