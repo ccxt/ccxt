@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -294,7 +294,7 @@ export default class poloniex extends poloniexRest {
         const request: Dict = {
             'orderIds': ids,
         };
-        return await this.tradeRequest ('cancelOrders', this.extend (request, params));
+        return await this.tradeRequest ('cancelOrders', this.extend (request, params)) as Order[];
     }
 
     /**
@@ -306,7 +306,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.authenticate ();
         return await this.tradeRequest ('cancelAllOrders', params);
@@ -347,7 +347,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const channel = this.safeString (timeframes, timeframe, timeframe);
@@ -368,7 +368,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -384,7 +384,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
@@ -406,7 +406,7 @@ export default class poloniex extends poloniexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
@@ -421,7 +421,7 @@ export default class poloniex extends poloniexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -460,7 +460,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by poloniex watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -480,7 +480,7 @@ export default class poloniex extends poloniexRest {
      * @param {int} [since] not used by poloniex watchOrders
      * @param {int} [limit] not used by poloniex watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -506,7 +506,7 @@ export default class poloniex extends poloniexRest {
      * @param {int} [since] not used by poloniex watchMyTrades
      * @param {int} [limit] not used by poloniex watchMyTrades
      * @param {object} [params] extra parameters specific to the poloniex strean
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -530,7 +530,7 @@ export default class poloniex extends poloniexRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.poloniex.com/spot/websocket/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
@@ -1250,7 +1250,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',

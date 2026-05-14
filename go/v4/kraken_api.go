@@ -7,218 +7,246 @@
 
 package ccxt
 
-func (this *kraken) ZendeskGet360000292886 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("zendeskGet360000292886", args...)
+func (this *KrakenCore) ZendeskGet360000292886(args ...any) <-chan any {
+	return this.callEndpointAsync("zendeskGet360000292886", args...)
 }
 
-func (this *kraken) ZendeskGet201893608 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("zendeskGet201893608", args...)
+func (this *KrakenCore) ZendeskGet201893608(args ...any) <-chan any {
+	return this.callEndpointAsync("zendeskGet201893608", args...)
 }
 
-func (this *kraken) PublicGetAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssets", args...)
+func (this *KrakenCore) PublicGetTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *kraken) PublicGetAssetPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairs", args...)
+func (this *KrakenCore) PublicGetSystemStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemStatus", args...)
 }
 
-func (this *kraken) PublicGetDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDepth", args...)
+func (this *KrakenCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *kraken) PublicGetOHLC (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOHLC", args...)
+func (this *KrakenCore) PublicGetAssetPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssetPairs", args...)
 }
 
-func (this *kraken) PublicGetSpread (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSpread", args...)
+func (this *KrakenCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *kraken) PublicGetSystemStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSystemStatus", args...)
+func (this *KrakenCore) PublicGetOHLC(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOHLC", args...)
 }
 
-func (this *kraken) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *KrakenCore) PublicGetDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDepth", args...)
 }
 
-func (this *kraken) PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTime", args...)
+func (this *KrakenCore) PublicGetLevel3(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLevel3", args...)
 }
 
-func (this *kraken) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *KrakenCore) PublicGetGroupedBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGroupedBook", args...)
 }
 
-func (this *kraken) PrivatePostAddOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAddOrder", args...)
+func (this *KrakenCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *kraken) PrivatePostAddOrderBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAddOrderBatch", args...)
+func (this *KrakenCore) PublicGetSpread(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpread", args...)
 }
 
-func (this *kraken) PrivatePostAddExport (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAddExport", args...)
+func (this *KrakenCore) PublicGetPreTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPreTrade", args...)
 }
 
-func (this *kraken) PrivatePostAmendOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAmendOrder", args...)
+func (this *KrakenCore) PublicGetPostTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPostTrade", args...)
 }
 
-func (this *kraken) PrivatePostBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBalance", args...)
+func (this *KrakenCore) PrivatePostBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBalance", args...)
 }
 
-func (this *kraken) PrivatePostCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelAll", args...)
+func (this *KrakenCore) PrivatePostBalanceEx(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBalanceEx", args...)
 }
 
-func (this *kraken) PrivatePostCancelAllOrdersAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelAllOrdersAfter", args...)
+func (this *KrakenCore) PrivatePostCreditLines(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCreditLines", args...)
 }
 
-func (this *kraken) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *KrakenCore) PrivatePostTradeBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeBalance", args...)
 }
 
-func (this *kraken) PrivatePostCancelOrderBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelOrderBatch", args...)
+func (this *KrakenCore) PrivatePostOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenOrders", args...)
 }
 
-func (this *kraken) PrivatePostClosedOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostClosedOrders", args...)
+func (this *KrakenCore) PrivatePostClosedOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostClosedOrders", args...)
 }
 
-func (this *kraken) PrivatePostDepositAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositAddresses", args...)
+func (this *KrakenCore) PrivatePostQueryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQueryOrders", args...)
 }
 
-func (this *kraken) PrivatePostDepositMethods (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositMethods", args...)
+func (this *KrakenCore) PrivatePostOrderAmends(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderAmends", args...)
 }
 
-func (this *kraken) PrivatePostDepositStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositStatus", args...)
+func (this *KrakenCore) PrivatePostTradesHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradesHistory", args...)
 }
 
-func (this *kraken) PrivatePostEditOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEditOrder", args...)
+func (this *KrakenCore) PrivatePostQueryTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQueryTrades", args...)
 }
 
-func (this *kraken) PrivatePostExportStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExportStatus", args...)
+func (this *KrakenCore) PrivatePostOpenPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenPositions", args...)
 }
 
-func (this *kraken) PrivatePostGetWebSocketsToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGetWebSocketsToken", args...)
+func (this *KrakenCore) PrivatePostLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLedgers", args...)
 }
 
-func (this *kraken) PrivatePostLedgers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostLedgers", args...)
+func (this *KrakenCore) PrivatePostQueryLedgers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQueryLedgers", args...)
 }
 
-func (this *kraken) PrivatePostOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOpenOrders", args...)
+func (this *KrakenCore) PrivatePostTradeVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeVolume", args...)
 }
 
-func (this *kraken) PrivatePostOpenPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOpenPositions", args...)
+func (this *KrakenCore) PrivatePostAddExport(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddExport", args...)
 }
 
-func (this *kraken) PrivatePostQueryLedgers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostQueryLedgers", args...)
+func (this *KrakenCore) PrivatePostExportStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExportStatus", args...)
 }
 
-func (this *kraken) PrivatePostQueryOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostQueryOrders", args...)
+func (this *KrakenCore) PrivatePostRetrieveExport(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRetrieveExport", args...)
 }
 
-func (this *kraken) PrivatePostQueryTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostQueryTrades", args...)
+func (this *KrakenCore) PrivatePostRemoveExport(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRemoveExport", args...)
 }
 
-func (this *kraken) PrivatePostRetrieveExport (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRetrieveExport", args...)
+func (this *KrakenCore) PrivatePostGetApiKeyInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetApiKeyInfo", args...)
 }
 
-func (this *kraken) PrivatePostRemoveExport (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostRemoveExport", args...)
+func (this *KrakenCore) PrivatePostAddOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddOrder", args...)
 }
 
-func (this *kraken) PrivatePostBalanceEx (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBalanceEx", args...)
+func (this *KrakenCore) PrivatePostAmendOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAmendOrder", args...)
 }
 
-func (this *kraken) PrivatePostTradeBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeBalance", args...)
+func (this *KrakenCore) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *kraken) PrivatePostTradesHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradesHistory", args...)
+func (this *KrakenCore) PrivatePostCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAll", args...)
 }
 
-func (this *kraken) PrivatePostTradeVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTradeVolume", args...)
+func (this *KrakenCore) PrivatePostCancelAllOrdersAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAllOrdersAfter", args...)
 }
 
-func (this *kraken) PrivatePostWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdraw", args...)
+func (this *KrakenCore) PrivatePostGetWebSocketsToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetWebSocketsToken", args...)
 }
 
-func (this *kraken) PrivatePostWithdrawCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawCancel", args...)
+func (this *KrakenCore) PrivatePostAddOrderBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddOrderBatch", args...)
 }
 
-func (this *kraken) PrivatePostWithdrawInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawInfo", args...)
+func (this *KrakenCore) PrivatePostCancelOrderBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrderBatch", args...)
 }
 
-func (this *kraken) PrivatePostWithdrawMethods (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawMethods", args...)
+func (this *KrakenCore) PrivatePostEditOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEditOrder", args...)
 }
 
-func (this *kraken) PrivatePostWithdrawAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawAddresses", args...)
+func (this *KrakenCore) PrivatePostDepositMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositMethods", args...)
 }
 
-func (this *kraken) PrivatePostWithdrawStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawStatus", args...)
+func (this *KrakenCore) PrivatePostDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositAddresses", args...)
 }
 
-func (this *kraken) PrivatePostWalletTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletTransfer", args...)
+func (this *KrakenCore) PrivatePostDepositStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositStatus", args...)
 }
 
-func (this *kraken) PrivatePostCreateSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCreateSubaccount", args...)
+func (this *KrakenCore) PrivatePostWithdrawMethods(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawMethods", args...)
 }
 
-func (this *kraken) PrivatePostAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountTransfer", args...)
+func (this *KrakenCore) PrivatePostWithdrawAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawAddresses", args...)
 }
 
-func (this *kraken) PrivatePostEarnAllocate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEarnAllocate", args...)
+func (this *KrakenCore) PrivatePostWithdrawInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawInfo", args...)
 }
 
-func (this *kraken) PrivatePostEarnDeallocate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEarnDeallocate", args...)
+func (this *KrakenCore) PrivatePostWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *kraken) PrivatePostEarnAllocateStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEarnAllocateStatus", args...)
+func (this *KrakenCore) PrivatePostWithdrawStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawStatus", args...)
 }
 
-func (this *kraken) PrivatePostEarnDeallocateStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEarnDeallocateStatus", args...)
+func (this *KrakenCore) PrivatePostWithdrawCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawCancel", args...)
 }
 
-func (this *kraken) PrivatePostEarnStrategies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEarnStrategies", args...)
+func (this *KrakenCore) PrivatePostWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *kraken) PrivatePostEarnAllocations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostEarnAllocations", args...)
+func (this *KrakenCore) PrivatePostCreateSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
+}
+
+func (this *KrakenCore) PrivatePostAccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountTransfer", args...)
+}
+
+func (this *KrakenCore) PrivatePostEarnAllocate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEarnAllocate", args...)
+}
+
+func (this *KrakenCore) PrivatePostEarnDeallocate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEarnDeallocate", args...)
+}
+
+func (this *KrakenCore) PrivatePostEarnAllocateStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEarnAllocateStatus", args...)
+}
+
+func (this *KrakenCore) PrivatePostEarnDeallocateStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEarnDeallocateStatus", args...)
+}
+
+func (this *KrakenCore) PrivatePostEarnStrategies(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEarnStrategies", args...)
+}
+
+func (this *KrakenCore) PrivatePostEarnAllocations(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEarnAllocations", args...)
 }

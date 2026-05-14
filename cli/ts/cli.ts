@@ -59,6 +59,7 @@ interface CLIOptions {
     refreshMarkets?: boolean;
     testnet?: boolean;
     sandbox?: boolean;
+    demo?: boolean;
     signIn?: boolean;
     spot?: boolean;
     swap?: boolean;
@@ -74,6 +75,7 @@ interface CLIOptions {
     param?: any;
     config?: any;
     clipboard?: boolean;
+    history?: boolean;
 }
 
 const exchanges = Object.keys (ccxt.exchanges) as string[];
@@ -113,6 +115,7 @@ program
 program
     .option ('--verbose', 'enables the verbose mode')
     .option ('--sandbox', 'enables the sandbox mode')
+    .option ('--demo', 'enables the demo mode')
     .option ('--no-keys', 'does not set any apiKeys even if detected')
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .option ('--raw', 'keeps the output pristine without extra logs or formatting')
@@ -134,6 +137,7 @@ program
 // dev related options, docs not needed
 program.addOption (new Option ('--debug').hideHelp ());
 program.addOption (new Option ('--testnet').hideHelp ());
+// program.addOption (new Option ('--demo').hideHelp ());
 program.addOption (new Option ('--no-send').hideHelp ());
 program.addOption (new Option ('--request').hideHelp ());
 program.addOption (new Option ('--table').hideHelp ());
@@ -257,7 +261,7 @@ async function run () {
             process.exit (0);
         }
 
-        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions, params.length === 0);
+        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
 
         if (exchange[methodName] === undefined) {
             log.red (exchange.id + '.' + methodName + ': no such property');
@@ -265,7 +269,8 @@ async function run () {
         }
 
         if (typeof exchange[methodName] !== 'function') {
-            printHumanReadable (exchange, exchange[methodName], cliOptions);
+            printHumanReadable (exchange, exchange[methodName], cliOptions, cliOptions.table);
+            return;
         }
 
         let i = 0;

@@ -9,17 +9,16 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function create_order_after_delay($exchange) {
     return Async\async(function () use ($exchange) {
-        Async\await($exchange->sleep(3000));
-        Async\await($exchange->create_order('BTC/USDT:USDT', 'market', 'buy', 0.001));
+        \React\Async\await($exchange->sleep(3000));
+        \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'market', 'buy', 0.001));
     }) ();
 }
 
 
-function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
+function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'unWatchPositions';
         $exchange->set_sandbox_mode(true);
@@ -27,24 +26,24 @@ function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
         $positions_subscription = null;
         try {
             // First call uses snapshot
-            $positions_subscription = Async\await($exchange->watch_positions());
+            $positions_subscription = \React\Async\await($exchange->watch_positions());
             // trigger a position update
             $exchange->spawn('create_order_after_delay', $exchange);
             // Second call uses subscription
-            $positions_subscription = Async\await($exchange->watch_positions());
+            $positions_subscription = \React\Async\await($exchange->watch_positions());
         } catch(\Throwable $e) {
             if (!is_temporary_failure($e)) {
                 throw $e;
             }
             // If we can't subscribe, we can't test unsubscribe, so skip this test
-            return;
+            return false;
         }
         // Verify that we have a subscription
         assert(gettype($positions_subscription) === 'array' && array_is_list($positions_subscription), $exchange->id . ' ' . $method . ' requires a valid positions subscription to test unsubscribe');
         // Assert unWatchPositions for one symbol is not supported
         $error_response = null;
         try {
-            $error_response = Async\await($exchange->un_watch_positions([$symbol]));
+            $error_response = \React\Async\await($exchange->un_watch_positions([$symbol]));
         } catch(\Throwable $e) {
             $error_response = $e;
         }
@@ -52,7 +51,7 @@ function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
         // Test unwatching all positions (without specific symbols)
         $response_all = null;
         try {
-            $response_all = Async\await($exchange->un_watch_positions());
+            $response_all = \React\Async\await($exchange->un_watch_positions());
         } catch(\Throwable $e) {
             if (!is_temporary_failure($e)) {
                 throw $e;
@@ -64,9 +63,9 @@ function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         $resubscribe_response = null;
         try {
-            $resubscribe_response = Async\await($exchange->watch_positions());
+            $resubscribe_response = \React\Async\await($exchange->watch_positions());
             $exchange->spawn('create_order_after_delay', $exchange);
-            $resubscribe_response = Async\await($exchange->watch_positions());
+            $resubscribe_response = \React\Async\await($exchange->watch_positions());
         } catch(\Throwable $e) {
             if (!is_temporary_failure($e)) {
                 throw $e;
@@ -75,5 +74,6 @@ function test_unwatch_positions($exchange, $skipped_properties, $symbol) {
         }
         // Verify resubscription works
         assert(gettype($resubscribe_response) === 'array' && array_is_list($resubscribe_response), $exchange->id . ' ' . $method . ' must allow resubscription after unwatch, returned ' . $exchange->json($resubscribe_response));
+        return true;
     }) ();
 }

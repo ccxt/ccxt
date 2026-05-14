@@ -5,7 +5,7 @@ import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ export default class ascendex extends ascendexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -165,7 +165,7 @@ export default class ascendex extends ascendexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
@@ -181,7 +181,7 @@ export default class ascendex extends ascendexRest {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -254,7 +254,7 @@ export default class ascendex extends ascendexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -283,7 +283,7 @@ export default class ascendex extends ascendexRest {
         return orderbook.limit ();
     }
 
-    async fetchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBookSnapshotCustom (symbol: string, limit: Int = undefined, params = {}) {
         const restOrderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -416,7 +416,7 @@ export default class ascendex extends ascendexRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
@@ -542,7 +542,7 @@ export default class ascendex extends ascendexRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -739,7 +739,7 @@ export default class ascendex extends ascendexRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         // {
         //     "m": "disconnected",
@@ -980,7 +980,7 @@ export default class ascendex extends ascendexRest {
         }
         this.orderbooks[symbol] = this.orderBook ({});
         if (this.options['defaultType'] === 'swap' || market['contract']) {
-            this.spawn (this.fetchOrderBookSnapshot, symbol);
+            this.spawn (this.fetchOrderBookSnapshotCustom, symbol);
         } else {
             this.spawn (this.watchOrderBookSnapshot, symbol);
         }
@@ -993,7 +993,7 @@ export default class ascendex extends ascendexRest {
         try {
             await client.send ({ 'op': 'pong', 'hp': this.safeInteger (message, 'hp') });
         } catch (e) {
-            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.json (e));
+            const error = new NetworkError (this.id + ' handlePing failed with error ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }

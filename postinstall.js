@@ -80,6 +80,7 @@ async function main () {
         colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
         colorFunctions['gray'] (pad ('to help us maintain this package.'))
         colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
+        colorFunctions['gray'] (pad ('AI coding? Run: npx skills add ccxt/ccxt'))
 
     } catch (e) {
 

@@ -7,374 +7,374 @@
 
 package ccxt
 
-func (this *bitmex) PublicGetAnnouncement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAnnouncement", args...)
+func (this *BitmexCore) PublicGetAnnouncement(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAnnouncement", args...)
 }
 
-func (this *bitmex) PublicGetAnnouncementUrgent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAnnouncementUrgent", args...)
+func (this *BitmexCore) PublicGetAnnouncementUrgent(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAnnouncementUrgent", args...)
 }
 
-func (this *bitmex) PublicGetChat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetChat", args...)
+func (this *BitmexCore) PublicGetChat(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChat", args...)
 }
 
-func (this *bitmex) PublicGetChatChannels (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetChatChannels", args...)
+func (this *BitmexCore) PublicGetChatChannels(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChatChannels", args...)
 }
 
-func (this *bitmex) PublicGetChatConnected (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetChatConnected", args...)
+func (this *BitmexCore) PublicGetChatConnected(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChatConnected", args...)
 }
 
-func (this *bitmex) PublicGetChatPinned (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetChatPinned", args...)
+func (this *BitmexCore) PublicGetChatPinned(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChatPinned", args...)
 }
 
-func (this *bitmex) PublicGetFunding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFunding", args...)
+func (this *BitmexCore) PublicGetFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFunding", args...)
 }
 
-func (this *bitmex) PublicGetGuild (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGuild", args...)
+func (this *BitmexCore) PublicGetGuild(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGuild", args...)
 }
 
-func (this *bitmex) PublicGetInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrument", args...)
+func (this *BitmexCore) PublicGetInstrument(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrument", args...)
 }
 
-func (this *bitmex) PublicGetInstrumentActive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrumentActive", args...)
+func (this *BitmexCore) PublicGetInstrumentActive(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentActive", args...)
 }
 
-func (this *bitmex) PublicGetInstrumentActiveAndIndices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrumentActiveAndIndices", args...)
+func (this *BitmexCore) PublicGetInstrumentActiveAndIndices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentActiveAndIndices", args...)
 }
 
-func (this *bitmex) PublicGetInstrumentActiveIntervals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrumentActiveIntervals", args...)
+func (this *BitmexCore) PublicGetInstrumentActiveIntervals(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentActiveIntervals", args...)
 }
 
-func (this *bitmex) PublicGetInstrumentCompositeIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrumentCompositeIndex", args...)
+func (this *BitmexCore) PublicGetInstrumentCompositeIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentCompositeIndex", args...)
 }
 
-func (this *bitmex) PublicGetInstrumentIndices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrumentIndices", args...)
+func (this *BitmexCore) PublicGetInstrumentIndices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentIndices", args...)
 }
 
-func (this *bitmex) PublicGetInstrumentUsdVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInstrumentUsdVolume", args...)
+func (this *BitmexCore) PublicGetInstrumentUsdVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentUsdVolume", args...)
 }
 
-func (this *bitmex) PublicGetInsurance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetInsurance", args...)
+func (this *BitmexCore) PublicGetInsurance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInsurance", args...)
 }
 
-func (this *bitmex) PublicGetLeaderboard (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetLeaderboard", args...)
+func (this *BitmexCore) PublicGetLeaderboard(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLeaderboard", args...)
 }
 
-func (this *bitmex) PublicGetLiquidation (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetLiquidation", args...)
+func (this *BitmexCore) PublicGetLiquidation(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLiquidation", args...)
 }
 
-func (this *bitmex) PublicGetOrderBookL2 (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBookL2", args...)
+func (this *BitmexCore) PublicGetOrderBookL2(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderBookL2", args...)
 }
 
-func (this *bitmex) PublicGetPorlNonce (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPorlNonce", args...)
+func (this *BitmexCore) PublicGetPorlNonce(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPorlNonce", args...)
 }
 
-func (this *bitmex) PublicGetQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetQuote", args...)
+func (this *BitmexCore) PublicGetQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetQuote", args...)
 }
 
-func (this *bitmex) PublicGetQuoteBucketed (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetQuoteBucketed", args...)
+func (this *BitmexCore) PublicGetQuoteBucketed(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetQuoteBucketed", args...)
 }
 
-func (this *bitmex) PublicGetSchema (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSchema", args...)
+func (this *BitmexCore) PublicGetSchema(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSchema", args...)
 }
 
-func (this *bitmex) PublicGetSchemaWebsocketHelp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSchemaWebsocketHelp", args...)
+func (this *BitmexCore) PublicGetSchemaWebsocketHelp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSchemaWebsocketHelp", args...)
 }
 
-func (this *bitmex) PublicGetSettlement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSettlement", args...)
+func (this *BitmexCore) PublicGetSettlement(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSettlement", args...)
 }
 
-func (this *bitmex) PublicGetStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetStats", args...)
+func (this *BitmexCore) PublicGetStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStats", args...)
 }
 
-func (this *bitmex) PublicGetStatsHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetStatsHistory", args...)
+func (this *BitmexCore) PublicGetStatsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStatsHistory", args...)
 }
 
-func (this *bitmex) PublicGetStatsHistoryUSD (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetStatsHistoryUSD", args...)
+func (this *BitmexCore) PublicGetStatsHistoryUSD(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStatsHistoryUSD", args...)
 }
 
-func (this *bitmex) PublicGetTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrade", args...)
+func (this *BitmexCore) PublicGetTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrade", args...)
 }
 
-func (this *bitmex) PublicGetTradeBucketed (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTradeBucketed", args...)
+func (this *BitmexCore) PublicGetTradeBucketed(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradeBucketed", args...)
 }
 
-func (this *bitmex) PublicGetWalletAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetWalletAssets", args...)
+func (this *BitmexCore) PublicGetWalletAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWalletAssets", args...)
 }
 
-func (this *bitmex) PublicGetWalletNetworks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetWalletNetworks", args...)
+func (this *BitmexCore) PublicGetWalletNetworks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWalletNetworks", args...)
 }
 
-func (this *bitmex) PrivateGetAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAddress", args...)
+func (this *BitmexCore) PrivateGetAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAddress", args...)
 }
 
-func (this *bitmex) PrivateGetApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiKey", args...)
+func (this *BitmexCore) PrivateGetApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiKey", args...)
 }
 
-func (this *bitmex) PrivateGetExecution (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExecution", args...)
+func (this *BitmexCore) PrivateGetExecution(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExecution", args...)
 }
 
-func (this *bitmex) PrivateGetExecutionTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExecutionTradeHistory", args...)
+func (this *BitmexCore) PrivateGetExecutionTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExecutionTradeHistory", args...)
 }
 
-func (this *bitmex) PrivateGetGlobalNotification (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGlobalNotification", args...)
+func (this *BitmexCore) PrivateGetGlobalNotification(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGlobalNotification", args...)
 }
 
-func (this *bitmex) PrivateGetLeaderboardName (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLeaderboardName", args...)
+func (this *BitmexCore) PrivateGetLeaderboardName(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLeaderboardName", args...)
 }
 
-func (this *bitmex) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *BitmexCore) PrivateGetOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *bitmex) PrivateGetPorlSnapshots (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPorlSnapshots", args...)
+func (this *BitmexCore) PrivateGetPorlSnapshots(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPorlSnapshots", args...)
 }
 
-func (this *bitmex) PrivateGetPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPosition", args...)
+func (this *BitmexCore) PrivateGetPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPosition", args...)
 }
 
-func (this *bitmex) PrivateGetUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUser", args...)
+func (this *BitmexCore) PrivateGetUser(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUser", args...)
 }
 
-func (this *bitmex) PrivateGetUserAffiliateStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserAffiliateStatus", args...)
+func (this *BitmexCore) PrivateGetUserAffiliateStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserAffiliateStatus", args...)
 }
 
-func (this *bitmex) PrivateGetUserCheckReferralCode (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserCheckReferralCode", args...)
+func (this *BitmexCore) PrivateGetUserCheckReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserCheckReferralCode", args...)
 }
 
-func (this *bitmex) PrivateGetUserCommission (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserCommission", args...)
+func (this *BitmexCore) PrivateGetUserCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserCommission", args...)
 }
 
-func (this *bitmex) PrivateGetUserCsa (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserCsa", args...)
+func (this *BitmexCore) PrivateGetUserCsa(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserCsa", args...)
 }
 
-func (this *bitmex) PrivateGetUserDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserDepositAddress", args...)
+func (this *BitmexCore) PrivateGetUserDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserDepositAddress", args...)
 }
 
-func (this *bitmex) PrivateGetUserExecutionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserExecutionHistory", args...)
+func (this *BitmexCore) PrivateGetUserExecutionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserExecutionHistory", args...)
 }
 
-func (this *bitmex) PrivateGetUserGetWalletTransferAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserGetWalletTransferAccounts", args...)
+func (this *BitmexCore) PrivateGetUserGetWalletTransferAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserGetWalletTransferAccounts", args...)
 }
 
-func (this *bitmex) PrivateGetUserMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserMargin", args...)
+func (this *BitmexCore) PrivateGetUserMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserMargin", args...)
 }
 
-func (this *bitmex) PrivateGetUserQuoteFillRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserQuoteFillRatio", args...)
+func (this *BitmexCore) PrivateGetUserQuoteFillRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserQuoteFillRatio", args...)
 }
 
-func (this *bitmex) PrivateGetUserQuoteValueRatio (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserQuoteValueRatio", args...)
+func (this *BitmexCore) PrivateGetUserQuoteValueRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserQuoteValueRatio", args...)
 }
 
-func (this *bitmex) PrivateGetUserStaking (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserStaking", args...)
+func (this *BitmexCore) PrivateGetUserStaking(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStaking", args...)
 }
 
-func (this *bitmex) PrivateGetUserStakingInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserStakingInstruments", args...)
+func (this *BitmexCore) PrivateGetUserStakingInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStakingInstruments", args...)
 }
 
-func (this *bitmex) PrivateGetUserStakingTiers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserStakingTiers", args...)
+func (this *BitmexCore) PrivateGetUserStakingTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStakingTiers", args...)
 }
 
-func (this *bitmex) PrivateGetUserTradingVolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserTradingVolume", args...)
+func (this *BitmexCore) PrivateGetUserTradingVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserTradingVolume", args...)
 }
 
-func (this *bitmex) PrivateGetUserUnstakingRequests (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserUnstakingRequests", args...)
+func (this *BitmexCore) PrivateGetUserUnstakingRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserUnstakingRequests", args...)
 }
 
-func (this *bitmex) PrivateGetUserWallet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWallet", args...)
+func (this *BitmexCore) PrivateGetUserWallet(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWallet", args...)
 }
 
-func (this *bitmex) PrivateGetUserWalletHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWalletHistory", args...)
+func (this *BitmexCore) PrivateGetUserWalletHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWalletHistory", args...)
 }
 
-func (this *bitmex) PrivateGetUserWalletSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserWalletSummary", args...)
+func (this *BitmexCore) PrivateGetUserWalletSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWalletSummary", args...)
 }
 
-func (this *bitmex) PrivateGetUserAffiliates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserAffiliates", args...)
+func (this *BitmexCore) PrivateGetUserAffiliates(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserAffiliates", args...)
 }
 
-func (this *bitmex) PrivateGetUserEvent (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUserEvent", args...)
+func (this *BitmexCore) PrivateGetUserEvent(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserEvent", args...)
 }
 
-func (this *bitmex) PrivatePostAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAddress", args...)
+func (this *BitmexCore) PrivatePostAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddress", args...)
 }
 
-func (this *bitmex) PrivatePostChat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostChat", args...)
+func (this *BitmexCore) PrivatePostChat(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostChat", args...)
 }
 
-func (this *bitmex) PrivatePostGuild (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGuild", args...)
+func (this *BitmexCore) PrivatePostGuild(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuild", args...)
 }
 
-func (this *bitmex) PrivatePostGuildArchive (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGuildArchive", args...)
+func (this *BitmexCore) PrivatePostGuildArchive(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildArchive", args...)
 }
 
-func (this *bitmex) PrivatePostGuildJoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGuildJoin", args...)
+func (this *BitmexCore) PrivatePostGuildJoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildJoin", args...)
 }
 
-func (this *bitmex) PrivatePostGuildKick (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGuildKick", args...)
+func (this *BitmexCore) PrivatePostGuildKick(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildKick", args...)
 }
 
-func (this *bitmex) PrivatePostGuildLeave (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGuildLeave", args...)
+func (this *BitmexCore) PrivatePostGuildLeave(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildLeave", args...)
 }
 
-func (this *bitmex) PrivatePostGuildSharesTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostGuildSharesTrades", args...)
+func (this *BitmexCore) PrivatePostGuildSharesTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildSharesTrades", args...)
 }
 
-func (this *bitmex) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *BitmexCore) PrivatePostOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *bitmex) PrivatePostOrderCancelAllAfter (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCancelAllAfter", args...)
+func (this *BitmexCore) PrivatePostOrderCancelAllAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderCancelAllAfter", args...)
 }
 
-func (this *bitmex) PrivatePostOrderClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderClosePosition", args...)
+func (this *BitmexCore) PrivatePostOrderClosePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderClosePosition", args...)
 }
 
-func (this *bitmex) PrivatePostPositionIsolate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionIsolate", args...)
+func (this *BitmexCore) PrivatePostPositionIsolate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionIsolate", args...)
 }
 
-func (this *bitmex) PrivatePostPositionLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionLeverage", args...)
+func (this *BitmexCore) PrivatePostPositionLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionLeverage", args...)
 }
 
-func (this *bitmex) PrivatePostPositionRiskLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionRiskLimit", args...)
+func (this *BitmexCore) PrivatePostPositionRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionRiskLimit", args...)
 }
 
-func (this *bitmex) PrivatePostPositionTransferMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostPositionTransferMargin", args...)
+func (this *BitmexCore) PrivatePostPositionTransferMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionTransferMargin", args...)
 }
 
-func (this *bitmex) PrivatePostUserAddSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserAddSubaccount", args...)
+func (this *BitmexCore) PrivatePostUserAddSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserAddSubaccount", args...)
 }
 
-func (this *bitmex) PrivatePostUserCancelWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserCancelWithdrawal", args...)
+func (this *BitmexCore) PrivatePostUserCancelWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserCancelWithdrawal", args...)
 }
 
-func (this *bitmex) PrivatePostUserCommunicationToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserCommunicationToken", args...)
+func (this *BitmexCore) PrivatePostUserCommunicationToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserCommunicationToken", args...)
 }
 
-func (this *bitmex) PrivatePostUserConfirmEmail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserConfirmEmail", args...)
+func (this *BitmexCore) PrivatePostUserConfirmEmail(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserConfirmEmail", args...)
 }
 
-func (this *bitmex) PrivatePostUserConfirmWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserConfirmWithdrawal", args...)
+func (this *BitmexCore) PrivatePostUserConfirmWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserConfirmWithdrawal", args...)
 }
 
-func (this *bitmex) PrivatePostUserLogout (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserLogout", args...)
+func (this *BitmexCore) PrivatePostUserLogout(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserLogout", args...)
 }
 
-func (this *bitmex) PrivatePostUserPreferences (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserPreferences", args...)
+func (this *BitmexCore) PrivatePostUserPreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserPreferences", args...)
 }
 
-func (this *bitmex) PrivatePostUserRequestWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
+func (this *BitmexCore) PrivatePostUserRequestWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
 }
 
-func (this *bitmex) PrivatePostUserUnstakingRequests (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserUnstakingRequests", args...)
+func (this *BitmexCore) PrivatePostUserUnstakingRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserUnstakingRequests", args...)
 }
 
-func (this *bitmex) PrivatePostUserUpdateSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserUpdateSubaccount", args...)
+func (this *BitmexCore) PrivatePostUserUpdateSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserUpdateSubaccount", args...)
 }
 
-func (this *bitmex) PrivatePostUserWalletTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserWalletTransfer", args...)
+func (this *BitmexCore) PrivatePostUserWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserWalletTransfer", args...)
 }
 
-func (this *bitmex) PrivatePutGuild (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutGuild", args...)
+func (this *BitmexCore) PrivatePutGuild(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutGuild", args...)
 }
 
-func (this *bitmex) PrivatePutOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrder", args...)
+func (this *BitmexCore) PrivatePutOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrder", args...)
 }
 
-func (this *bitmex) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *BitmexCore) PrivateDeleteOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *bitmex) PrivateDeleteOrderAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrderAll", args...)
+func (this *BitmexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
-func (this *bitmex) PrivateDeleteUserUnstakingRequests (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteUserUnstakingRequests", args...)
+func (this *BitmexCore) PrivateDeleteUserUnstakingRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteUserUnstakingRequests", args...)
 }

@@ -9,6 +9,7 @@ on:
         default: 'default-value'
 
 permissions:
+  id-token: write
   contents: write
 
 
@@ -37,7 +38,7 @@ jobs:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.4.6'
           # cache: true
           ini-values: |
             zend.assertions=1
@@ -86,7 +87,8 @@ jobs:
       - name: Set new Version
         run: |
           npm config set git-tag-version=false
-          NPM_VERSION=$(npm version patch)
+          NEW_VERSION=$(./build/smart-bump.sh)
+          NPM_VERSION=$(npm version "$NEW_VERSION")
           echo "NPM_VERSION=$NPM_VERSION" >> $GITHUB_ENV
           COMMIT_MESSAGE=${NPM_VERSION:1}
           echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
@@ -144,12 +146,28 @@ jobs:
           NUGGET_TOKEN: ${{ secrets.NUGET_PROD }}
         run: ./cs/deploy.sh;
       - name: Deploy Python
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
-        run: cd python && ./deploy.sh && cd ..;
-      - uses: JS-DevTools/npm-publish@v3
+        # env:
+        #   PYPI_TOKEN: ${{ secrets.PYPI_PROD }}
+        # run: cd python && ./deploy.sh && cd ..;
+        run: cd python && python setup.py sdist bdist_wheel;
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          token: ${{ secrets.NPM_PROD }}
+            print_hash: true
+      - name: go back
+        run: cd ..;
+      # - uses: JS-DevTools/npm-publish@v3
+      #   with:
+      #     token: ${{ secrets.NPM_PROD }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
+      - run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
 # jobs:
 #   manual-job:
 #     runs-on: ubuntu-latest

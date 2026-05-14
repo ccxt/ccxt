@@ -44,9 +44,7 @@ interface Exchange {
     v1PrivateGetClientFuturesLeverage(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostOrderCancelAllAfter(params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostAssetMainSubTransfer(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetLtv(params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostAssetWithdraw(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostAssetInternalWithdraw(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostInterestRepay(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostClientAccountMode(params?: {}): Promise<implicitReturnType>;
@@ -102,7 +100,6 @@ interface Exchange {
     v3PrivateGetSpotMarginMaxMargin(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetAlgoOrderOid(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetAlgoOrders(params?: {}): Promise<implicitReturnType>;
-    v3PrivateGetBalances(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBuypower(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;

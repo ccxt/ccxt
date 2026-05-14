@@ -10,12 +10,11 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_leverage_tier.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchLeverageTiers';
-        $tiers = Async\await($exchange->fetch_leverage_tiers(['symbol']));
+        $tiers = \React\Async\await($exchange->fetch_leverage_tiers(['symbol']));
         // const format = {
         //     'RAY/USDT': [
         //       {},

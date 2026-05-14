@@ -7,102 +7,102 @@
 
 package ccxt
 
-func (this *novadax) PublicGetCommonSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonSymbol", args...)
+func (this *NovadaxCore) PublicGetCommonSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCommonSymbol", args...)
 }
 
-func (this *novadax) PublicGetCommonSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonSymbols", args...)
+func (this *NovadaxCore) PublicGetCommonSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCommonSymbols", args...)
 }
 
-func (this *novadax) PublicGetCommonTimestamp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCommonTimestamp", args...)
+func (this *NovadaxCore) PublicGetCommonTimestamp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCommonTimestamp", args...)
 }
 
-func (this *novadax) PublicGetMarketTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTickers", args...)
+func (this *NovadaxCore) PublicGetMarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *novadax) PublicGetMarketTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTicker", args...)
+func (this *NovadaxCore) PublicGetMarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *novadax) PublicGetMarketDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketDepth", args...)
+func (this *NovadaxCore) PublicGetMarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketDepth", args...)
 }
 
-func (this *novadax) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketTrades", args...)
+func (this *NovadaxCore) PublicGetMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *novadax) PublicGetMarketKlineHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketKlineHistory", args...)
+func (this *NovadaxCore) PublicGetMarketKlineHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketKlineHistory", args...)
 }
 
-func (this *novadax) PrivateGetOrdersGet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersGet", args...)
+func (this *NovadaxCore) PrivateGetOrdersGet(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersGet", args...)
 }
 
-func (this *novadax) PrivateGetOrdersList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersList", args...)
+func (this *NovadaxCore) PrivateGetOrdersList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersList", args...)
 }
 
-func (this *novadax) PrivateGetOrdersFill (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersFill", args...)
+func (this *NovadaxCore) PrivateGetOrdersFill(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersFill", args...)
 }
 
-func (this *novadax) PrivateGetOrdersFills (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersFills", args...)
+func (this *NovadaxCore) PrivateGetOrdersFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersFills", args...)
 }
 
-func (this *novadax) PrivateGetAccountGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountGetBalance", args...)
+func (this *NovadaxCore) PrivateGetAccountGetBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountGetBalance", args...)
 }
 
-func (this *novadax) PrivateGetAccountSubs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubs", args...)
+func (this *NovadaxCore) PrivateGetAccountSubs(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountSubs", args...)
 }
 
-func (this *novadax) PrivateGetAccountSubsBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubsBalance", args...)
+func (this *NovadaxCore) PrivateGetAccountSubsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountSubsBalance", args...)
 }
 
-func (this *novadax) PrivateGetAccountSubsTransferRecord (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountSubsTransferRecord", args...)
+func (this *NovadaxCore) PrivateGetAccountSubsTransferRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountSubsTransferRecord", args...)
 }
 
-func (this *novadax) PrivateGetWalletQueryDepositWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletQueryDepositWithdraw", args...)
+func (this *NovadaxCore) PrivateGetWalletQueryDepositWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletQueryDepositWithdraw", args...)
 }
 
-func (this *novadax) PrivatePostOrdersCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersCreate", args...)
+func (this *NovadaxCore) PrivatePostOrdersCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersCreate", args...)
 }
 
-func (this *novadax) PrivatePostOrdersBatchCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersBatchCreate", args...)
+func (this *NovadaxCore) PrivatePostOrdersBatchCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBatchCreate", args...)
 }
 
-func (this *novadax) PrivatePostOrdersCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersCancel", args...)
+func (this *NovadaxCore) PrivatePostOrdersCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
-func (this *novadax) PrivatePostOrdersBatchCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersBatchCancel", args...)
+func (this *NovadaxCore) PrivatePostOrdersBatchCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBatchCancel", args...)
 }
 
-func (this *novadax) PrivatePostOrdersCancelBySymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersCancelBySymbol", args...)
+func (this *NovadaxCore) PrivatePostOrdersCancelBySymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersCancelBySymbol", args...)
 }
 
-func (this *novadax) PrivatePostAccountSubsTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountSubsTransfer", args...)
+func (this *NovadaxCore) PrivatePostAccountSubsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSubsTransfer", args...)
 }
 
-func (this *novadax) PrivatePostWalletWithdrawCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletWithdrawCoin", args...)
+func (this *NovadaxCore) PrivatePostWalletWithdrawCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletWithdrawCoin", args...)
 }
 
-func (this *novadax) PrivatePostAccountWithdrawCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountWithdrawCoin", args...)
+func (this *NovadaxCore) PrivatePostAccountWithdrawCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountWithdrawCoin", args...)
 }

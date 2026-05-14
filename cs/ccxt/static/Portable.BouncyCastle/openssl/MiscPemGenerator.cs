@@ -125,7 +125,7 @@ namespace Org.BouncyCastle.OpenSsl
                 throw new PemGenerationException("Object type not supported: " + Platform.GetTypeName(obj));
             }
 
-            return new PemObject(type, encoding);
+            // return new PemObject(type, encoding);
         }
 
         //		private string GetHexEncoded(byte[] bytes)

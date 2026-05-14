@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var errors = require('./base/errors.js');
  * @class apex
  * @augments Exchange
  */
-class apex extends apex$1 {
+class apex extends apex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'apex',
@@ -33,6 +35,7 @@ class apex extends apex$1 {
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
@@ -51,10 +54,14 @@ class apex extends apex$1 {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrders': false,
@@ -70,6 +77,7 @@ class apex extends apex$1 {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -88,6 +96,8 @@ class apex extends apex$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -105,6 +115,7 @@ class apex extends apex$1 {
                 'fetchTradingFees': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
@@ -348,7 +359,7 @@ class apex extends apex$1 {
      * @description query for account info
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -371,7 +382,7 @@ class apex extends apex$1 {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchAccount(params = {}) {
         await this.loadMarkets();
@@ -751,7 +762,7 @@ class apex extends apex$1 {
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -771,7 +782,7 @@ class apex extends apex$1 {
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -803,9 +814,9 @@ class apex extends apex$1 {
             limit = 200; // default is 200 when requested with `since`
         }
         request['limit'] = limit; // max 200, default 200
-        [request, params] = this.handleUntilOption('end', request, params);
+        [request, params] = this.handleUntilOption('end', request, params, 0.001);
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = Math.floor(since / 1000);
         }
         const response = await this.publicGetV3Klines(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
@@ -843,7 +854,7 @@ class apex extends apex$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -899,7 +910,7 @@ class apex extends apex$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -980,7 +991,7 @@ class apex extends apex$1 {
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
@@ -1032,11 +1043,11 @@ class apex extends apex$1 {
      * @see https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1218,14 +1229,14 @@ class apex extends apex$1 {
     }
     parseOrderType(type) {
         const types = {
-            'LIMIT': 'LIMIT',
-            'MARKET': 'MARKET',
-            'STOP_LIMIT': 'STOP_LIMIT',
-            'STOP_MARKET': 'STOP_MARKET',
-            'TAKE_PROFIT_LIMIT': 'TAKE_PROFIT_LIMIT',
-            'TAKE_PROFIT_MARKET': 'TAKE_PROFIT_MARKET',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeStringUpper(types, type, type);
+        return this.safeString(types, type, type);
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         if (market === undefined && marketId !== undefined) {
@@ -1290,16 +1301,18 @@ class apex extends apex$1 {
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] The price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const orderType = type.toUpperCase();
+        let orderType = type.toUpperCase();
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1307,11 +1320,21 @@ class apex extends apex$1 {
             orderPrice = this.priceToPrecision(symbol, price);
         }
         const fees = this.safeDict(this.fees, 'swap', {});
-        const taker = this.safeNumber(fees, 'taker', 0.0005);
-        const maker = this.safeNumber(fees, 'maker', 0.0002);
-        const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker.toString()), market['precision']['price'].toString()), number.TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const taker = this.safeString(fees, 'taker', '0.0005');
+        const maker = this.safeString(fees, 'maker', '0.0002');
+        const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker), this.numberToString(market['precision']['price'])), number.TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds();
-        // const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeString(params, 'triggerPrice');
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'STOP_MARKET' : 'STOP_LIMIT';
+            triggerPrice = stopLossPrice;
+        }
+        else if (takeProfitPrice !== undefined) {
+            orderType = (orderType === 'MARKET') ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
+            triggerPrice = takeProfitPrice;
+        }
         const isMarket = orderType === 'MARKET';
         if (isMarket && (price === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price argument for market orders');
@@ -1336,7 +1359,7 @@ class apex extends apex$1 {
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
-        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
+        params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
         const orderToSign = {
             'accountId': accountId,
             'slotId': clientOrderId,
@@ -1345,9 +1368,12 @@ class apex extends apex$1 {
             'size': orderSize,
             'price': orderPrice,
             'direction': orderSide,
-            'makerFeeRate': maker.toString(),
-            'takerFeeRate': taker.toString(),
+            'makerFeeRate': maker,
+            'takerFeeRate': taker,
         };
+        if (triggerPrice !== undefined) {
+            orderToSign['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+        }
         const signature = await this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
         const request = {
             'symbol': market['id'],
@@ -1361,6 +1387,9 @@ class apex extends apex$1 {
             'clientId': clientOrderId,
             'brokerId': this.safeString(this.options, 'brokerId', '6956'),
         };
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
+        }
         request['signature'] = signature;
         const response = await this.privatePostV3Order(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
@@ -1376,7 +1405,7 @@ class apex extends apex$1 {
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.transferId] UUID, which is unique across the platform
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -1525,7 +1554,7 @@ class apex extends apex$1 {
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1547,7 +1576,7 @@ class apex extends apex$1 {
      * @param {string} id order id
      * @param symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const request = {};
@@ -1575,7 +1604,7 @@ class apex extends apex$1 {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1603,7 +1632,7 @@ class apex extends apex$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1626,7 +1655,7 @@ class apex extends apex$1 {
      * @param {string} [params.type] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
      * @param {string} [params.orderType] "ACTIVE","CONDITION","HISTORY"
      * @param {boolean} [params.page] Page numbers start from 0
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1662,7 +1691,7 @@ class apex extends apex$1 {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1693,7 +1722,7 @@ class apex extends apex$1 {
      * @param {boolean} [params.side] BUY or SELL
      * @param {string} [params.orderType] "LIMIT", "MARKET","STOP_LIMIT", "STOP_MARKET", "TAKE_PROFIT_LIMIT","TAKE_PROFIT_MARKET"
      * @param {boolean} [params.page] Page numbers start from 0
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1731,7 +1760,7 @@ class apex extends apex$1 {
      * @param {object} [params.until] end time, ms
      * @param {boolean} [params.side] BUY or SELL
      * @param {boolean} [params.page] Page numbers start from 0
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1820,7 +1849,7 @@ class apex extends apex$1 {
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1937,4 +1966,4 @@ class apex extends apex$1 {
     }
 }
 
-module.exports = apex;
+exports["default"] = apex;
