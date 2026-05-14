@@ -62,7 +62,7 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
-                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
+                    'adjustLimit': true, // to automatically ceil the limit number to the nearest supported value
                     'utaDepth': 'increment', // '1', '5', '50' or 'increment'
                     'spotMethod': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                     'contractMethod': '/contractMarket/level2', // '/contractMarket/level2Depth5' or '/contractMarket/level2Depth20'
@@ -1359,7 +1359,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @param {boolean} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 5, 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1460,7 +1460,7 @@ export default class kucoin extends kucoinRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
+     * @param {boolean} [params.adjustLimit] (default: true) to automatically ceil the limit to the nearest supported value, otherwise you should select one from: 5, 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -1471,8 +1471,10 @@ export default class kucoin extends kucoinRest {
         if (limit !== undefined) {
             const supported = [ 5, 50 ];
             if (!this.inArray (limit, supported)) {
-                if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
-                    supported.push (limit); // count limit itself it it's more than 50
+                let adjustLimit = undefined;
+                [ adjustLimit, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'adjustLimit');
+                if (adjustLimit) {
+                    supported.push (limit); // count limit itself if it's above 50, so it will be skipped from channel down below
                     limit = this.findNearestCeiling (supported, limit);
                 } else {
                     throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined (for realtime channel) or one of: " + this.json (supported) + ' or set .options["watchOrderBook"]["adjustLimit"] = true to adjust to nearest higher limit automatically');
