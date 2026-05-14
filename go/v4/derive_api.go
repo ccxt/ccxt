@@ -7,454 +7,454 @@
 
 package ccxt
 
-func (this *derive) PublicGetGetAllCurrencies(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicGetGetAllCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetAllCurrencies", args...)
 }
 
-func (this *derive) PublicPostBuildRegisterSessionKeyTx(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostBuildRegisterSessionKeyTx(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostBuildRegisterSessionKeyTx", args...)
 }
 
-func (this *derive) PublicPostRegisterSessionKey(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostRegisterSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostRegisterSessionKey", args...)
 }
 
-func (this *derive) PublicPostDeregisterSessionKey(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostDeregisterSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostDeregisterSessionKey", args...)
 }
 
-func (this *derive) PublicPostLogin(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostLogin", args...)
 }
 
-func (this *derive) PublicPostStatistics(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostStatistics(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostStatistics", args...)
 }
 
-func (this *derive) PublicPostGetAllCurrencies(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetAllCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetAllCurrencies", args...)
 }
 
-func (this *derive) PublicPostGetCurrency(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetCurrency", args...)
 }
 
-func (this *derive) PublicPostGetInstrument(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetInstrument", args...)
 }
 
-func (this *derive) PublicPostGetAllInstruments(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetAllInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetAllInstruments", args...)
 }
 
-func (this *derive) PublicPostGetInstruments(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetInstruments", args...)
 }
 
-func (this *derive) PublicPostGetTicker(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTicker", args...)
 }
 
-func (this *derive) PublicPostGetLatestSignedFeeds(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetLatestSignedFeeds(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetLatestSignedFeeds", args...)
 }
 
-func (this *derive) PublicPostGetOptionSettlementPrices(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetOptionSettlementPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetOptionSettlementPrices", args...)
 }
 
-func (this *derive) PublicPostGetSpotFeedHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetSpotFeedHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetSpotFeedHistory", args...)
 }
 
-func (this *derive) PublicPostGetSpotFeedHistoryCandles(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetSpotFeedHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetSpotFeedHistoryCandles", args...)
 }
 
-func (this *derive) PublicPostGetFundingRateHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetFundingRateHistory", args...)
 }
 
-func (this *derive) PublicPostGetTradeHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetTradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
 }
 
-func (this *derive) PublicPostGetOptionSettlementHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetOptionSettlementHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetOptionSettlementHistory", args...)
 }
 
-func (this *derive) PublicPostGetLiquidationHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetLiquidationHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetLiquidationHistory", args...)
 }
 
-func (this *derive) PublicPostGetInterestRateHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetInterestRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetInterestRateHistory", args...)
 }
 
-func (this *derive) PublicPostGetTransaction(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetTransaction(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTransaction", args...)
 }
 
-func (this *derive) PublicPostGetMargin(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetMargin", args...)
 }
 
-func (this *derive) PublicPostMarginWatch(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostMarginWatch(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostMarginWatch", args...)
 }
 
-func (this *derive) PublicPostValidateInviteCode(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostValidateInviteCode(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostValidateInviteCode", args...)
 }
 
-func (this *derive) PublicPostGetPoints(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetPoints", args...)
 }
 
-func (this *derive) PublicPostGetAllPoints(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetAllPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetAllPoints", args...)
 }
 
-func (this *derive) PublicPostGetPointsLeaderboard(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetPointsLeaderboard(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetPointsLeaderboard", args...)
 }
 
-func (this *derive) PublicPostGetDescendantTree(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetDescendantTree(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetDescendantTree", args...)
 }
 
-func (this *derive) PublicPostGetTreeRoots(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetTreeRoots(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTreeRoots", args...)
 }
 
-func (this *derive) PublicPostGetSwellPercentPoints(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetSwellPercentPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetSwellPercentPoints", args...)
 }
 
-func (this *derive) PublicPostGetVaultAssets(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetVaultAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetVaultAssets", args...)
 }
 
-func (this *derive) PublicPostGetEtherfiEffectiveBalances(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetEtherfiEffectiveBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetEtherfiEffectiveBalances", args...)
 }
 
-func (this *derive) PublicPostGetKelpEffectiveBalances(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetKelpEffectiveBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetKelpEffectiveBalances", args...)
 }
 
-func (this *derive) PublicPostGetBridgeBalances(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetBridgeBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetBridgeBalances", args...)
 }
 
-func (this *derive) PublicPostGetEthenaParticipants(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetEthenaParticipants(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetEthenaParticipants", args...)
 }
 
-func (this *derive) PublicPostGetVaultShare(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetVaultShare(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetVaultShare", args...)
 }
 
-func (this *derive) PublicPostGetVaultStatistics(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetVaultStatistics(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetVaultStatistics", args...)
 }
 
-func (this *derive) PublicPostGetVaultBalances(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetVaultBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetVaultBalances", args...)
 }
 
-func (this *derive) PublicPostEstimateIntegratorPoints(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostEstimateIntegratorPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostEstimateIntegratorPoints", args...)
 }
 
-func (this *derive) PublicPostCreateSubaccountDebug(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostCreateSubaccountDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostCreateSubaccountDebug", args...)
 }
 
-func (this *derive) PublicPostDepositDebug(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostDepositDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostDepositDebug", args...)
 }
 
-func (this *derive) PublicPostWithdrawDebug(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostWithdrawDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostWithdrawDebug", args...)
 }
 
-func (this *derive) PublicPostSendQuoteDebug(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostSendQuoteDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostSendQuoteDebug", args...)
 }
 
-func (this *derive) PublicPostExecuteQuoteDebug(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostExecuteQuoteDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostExecuteQuoteDebug", args...)
 }
 
-func (this *derive) PublicPostGetInviteCode(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetInviteCode(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetInviteCode", args...)
 }
 
-func (this *derive) PublicPostRegisterInvite(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostRegisterInvite(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostRegisterInvite", args...)
 }
 
-func (this *derive) PublicPostGetTime(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTime", args...)
 }
 
-func (this *derive) PublicPostGetLiveIncidents(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetLiveIncidents(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetLiveIncidents", args...)
 }
 
-func (this *derive) PublicPostGetMakerPrograms(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetMakerPrograms(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetMakerPrograms", args...)
 }
 
-func (this *derive) PublicPostGetMakerProgramScores(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PublicPostGetMakerProgramScores(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetMakerProgramScores", args...)
 }
 
-func (this *derive) PrivatePostGetAccount(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetAccount", args...)
 }
 
-func (this *derive) PrivatePostCreateSubaccount(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCreateSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCreateSubaccount", args...)
 }
 
-func (this *derive) PrivatePostGetSubaccount(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetSubaccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetSubaccount", args...)
 }
 
-func (this *derive) PrivatePostGetSubaccounts(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetSubaccounts", args...)
 }
 
-func (this *derive) PrivatePostGetAllPortfolios(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetAllPortfolios(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetAllPortfolios", args...)
 }
 
-func (this *derive) PrivatePostChangeSubaccountLabel(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostChangeSubaccountLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostChangeSubaccountLabel", args...)
 }
 
-func (this *derive) PrivatePostGetNotificationsv(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetNotificationsv(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetNotificationsv", args...)
 }
 
-func (this *derive) PrivatePostUpdateNotifications(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostUpdateNotifications(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUpdateNotifications", args...)
 }
 
-func (this *derive) PrivatePostDeposit(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDeposit", args...)
 }
 
-func (this *derive) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *derive) PrivatePostTransferErc20(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostTransferErc20(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransferErc20", args...)
 }
 
-func (this *derive) PrivatePostTransferPosition(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostTransferPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransferPosition", args...)
 }
 
-func (this *derive) PrivatePostTransferPositions(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostTransferPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransferPositions", args...)
 }
 
-func (this *derive) PrivatePostOrder(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *derive) PrivatePostReplace(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostReplace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostReplace", args...)
 }
 
-func (this *derive) PrivatePostOrderDebug(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostOrderDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderDebug", args...)
 }
 
-func (this *derive) PrivatePostGetOrder(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrder", args...)
 }
 
-func (this *derive) PrivatePostGetOrders(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrders", args...)
 }
 
-func (this *derive) PrivatePostGetOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
 }
 
-func (this *derive) PrivatePostCancel(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancel", args...)
 }
 
-func (this *derive) PrivatePostCancelByLabel(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelByLabel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelByLabel", args...)
 }
 
-func (this *derive) PrivatePostCancelByNonce(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelByNonce(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelByNonce", args...)
 }
 
-func (this *derive) PrivatePostCancelByInstrument(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelByInstrument(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelByInstrument", args...)
 }
 
-func (this *derive) PrivatePostCancelAll(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelAll", args...)
 }
 
-func (this *derive) PrivatePostCancelTriggerOrder(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelTriggerOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelTriggerOrder", args...)
 }
 
-func (this *derive) PrivatePostGetOrderHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrderHistory", args...)
 }
 
-func (this *derive) PrivatePostGetTradeHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetTradeHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
 }
 
-func (this *derive) PrivatePostGetDepositHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDepositHistory", args...)
 }
 
-func (this *derive) PrivatePostGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetWithdrawalHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetWithdrawalHistory", args...)
 }
 
-func (this *derive) PrivatePostSendRfq(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostSendRfq(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendRfq", args...)
 }
 
-func (this *derive) PrivatePostCancelRfq(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelRfq(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelRfq", args...)
 }
 
-func (this *derive) PrivatePostCancelBatchRfqs(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelBatchRfqs(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelBatchRfqs", args...)
 }
 
-func (this *derive) PrivatePostGetRfqs(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetRfqs(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetRfqs", args...)
 }
 
-func (this *derive) PrivatePostPollRfqs(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostPollRfqs(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPollRfqs", args...)
 }
 
-func (this *derive) PrivatePostSendQuote(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostSendQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendQuote", args...)
 }
 
-func (this *derive) PrivatePostCancelQuote(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelQuote", args...)
 }
 
-func (this *derive) PrivatePostCancelBatchQuotes(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostCancelBatchQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelBatchQuotes", args...)
 }
 
-func (this *derive) PrivatePostGetQuotes(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetQuotes", args...)
 }
 
-func (this *derive) PrivatePostPollQuotes(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostPollQuotes(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPollQuotes", args...)
 }
 
-func (this *derive) PrivatePostExecuteQuote(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostExecuteQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExecuteQuote", args...)
 }
 
-func (this *derive) PrivatePostRfqGetBestQuote(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostRfqGetBestQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRfqGetBestQuote", args...)
 }
 
-func (this *derive) PrivatePostGetMargin(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetMargin", args...)
 }
 
-func (this *derive) PrivatePostGetCollaterals(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetCollaterals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetCollaterals", args...)
 }
 
-func (this *derive) PrivatePostGetPositions(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetPositions", args...)
 }
 
-func (this *derive) PrivatePostGetOptionSettlementHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetOptionSettlementHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOptionSettlementHistory", args...)
 }
 
-func (this *derive) PrivatePostGetSubaccountValueHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetSubaccountValueHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetSubaccountValueHistory", args...)
 }
 
-func (this *derive) PrivatePostExpiredAndCancelledHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostExpiredAndCancelledHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExpiredAndCancelledHistory", args...)
 }
 
-func (this *derive) PrivatePostGetFundingHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetFundingHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetFundingHistory", args...)
 }
 
-func (this *derive) PrivatePostGetInterestHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetInterestHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetInterestHistory", args...)
 }
 
-func (this *derive) PrivatePostGetErc20TransferHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetErc20TransferHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetErc20TransferHistory", args...)
 }
 
-func (this *derive) PrivatePostGetLiquidationHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetLiquidationHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetLiquidationHistory", args...)
 }
 
-func (this *derive) PrivatePostLiquidate(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostLiquidate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostLiquidate", args...)
 }
 
-func (this *derive) PrivatePostGetLiquidatorHistory(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetLiquidatorHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetLiquidatorHistory", args...)
 }
 
-func (this *derive) PrivatePostSessionKeys(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostSessionKeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSessionKeys", args...)
 }
 
-func (this *derive) PrivatePostEditSessionKey(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostEditSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEditSessionKey", args...)
 }
 
-func (this *derive) PrivatePostRegisterScopedSessionKey(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostRegisterScopedSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRegisterScopedSessionKey", args...)
 }
 
-func (this *derive) PrivatePostGetMmpConfig(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetMmpConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetMmpConfig", args...)
 }
 
-func (this *derive) PrivatePostSetMmpConfig(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostSetMmpConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSetMmpConfig", args...)
 }
 
-func (this *derive) PrivatePostResetMmp(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostResetMmp(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostResetMmp", args...)
 }
 
-func (this *derive) PrivatePostSetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostSetCancelOnDisconnect(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSetCancelOnDisconnect", args...)
 }
 
-func (this *derive) PrivatePostGetInviteCode(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostGetInviteCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetInviteCode", args...)
 }
 
-func (this *derive) PrivatePostRegisterInvite(args ...interface{}) <-chan interface{} {
+func (this *DeriveCore) PrivatePostRegisterInvite(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRegisterInvite", args...)
 }

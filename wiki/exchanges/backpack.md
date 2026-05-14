@@ -101,7 +101,7 @@ backpack.fetchMarkets ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_tickers  
 
@@ -122,7 +122,7 @@ backpack.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_ticker  
 
@@ -189,7 +189,7 @@ backpack.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices  
 
@@ -210,7 +210,7 @@ backpack.fetchFundingRate (symbol[, params])
 Retrieves the open interest of a derivative trading pair
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=interest-history-structure](https://docs.ccxt.com/#/?id=interest-history-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=interest-history-structure](https://docs.ccxt.com/?id=interest-history-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest  
 
@@ -231,7 +231,7 @@ backpack.fetchOpenInterest (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Markets/operation/get_funding_interval_rates  
 
@@ -254,7 +254,7 @@ backpack.fetchFundingRateHistory (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -282,7 +282,7 @@ backpack.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.backpack.exchange/#tag/History/operation/get_fills  
 
@@ -307,7 +307,7 @@ backpack.fetchMyTrades (symbol[, since, limit, params])
 the latest known information on the availability of the exchange API
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
 **See**: https://docs.backpack.exchange/#tag/System/operation/get_status  
 
@@ -347,7 +347,7 @@ backpack.fetchTime ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Capital/operation/get_balances  
 
@@ -367,7 +367,7 @@ backpack.fetchBalance ([params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Capital/operation/get_deposits  
 
@@ -391,7 +391,7 @@ backpack.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals  
 
@@ -415,7 +415,7 @@ backpack.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Capital/operation/request_withdrawal  
 
@@ -426,7 +426,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.network | <code>string</code> | No | the network to withdraw on (mandatory) |
+| params.network | <code>string</code> | Yes | the network to withdraw on (mandatory) |
 
 
 ```javascript
@@ -440,7 +440,7 @@ backpack.withdraw (code, amount, address, tag[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Capital/operation/get_deposit_address  
 
@@ -462,7 +462,7 @@ backpack.fetchDepositAddress (code[, params])
 create a trade order
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/execute_order  
 
@@ -504,7 +504,7 @@ backpack.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch  
 
@@ -525,7 +525,7 @@ backpack.createOrders (orders[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/get_open_orders  
 
@@ -548,7 +548,7 @@ backpack.fetchOpenOrders (symbol[, since, limit, params])
 fetch an open order by it's id
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/get_order  
 
@@ -570,7 +570,7 @@ backpack.fetchOpenOrder (id, symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/cancel_order  
 
@@ -592,7 +592,7 @@ backpack.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders  
 
@@ -636,7 +636,7 @@ backpack.fetchOrders (symbol[, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Futures/operation/get_positions  
 
@@ -657,7 +657,7 @@ backpack.fetchPositions (symbols[, params])
 fetches the history of funding payments
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.backpack.exchange/#tag/History/operation/get_funding_payments  
 
@@ -681,7 +681,7 @@ backpack.fetchFundingHistory (symbol[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Ticker  
 
@@ -702,7 +702,7 @@ backpack.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Ticker  
 
@@ -723,7 +723,7 @@ backpack.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Ticker  
 
@@ -744,7 +744,7 @@ backpack.watchTickers (symbols[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Ticker  
 
@@ -765,7 +765,7 @@ backpack.unWatchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker  
 
@@ -786,7 +786,7 @@ backpack.watchBidsAsks (symbols[, params])
 unWatches best bid & ask for symbols
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -896,7 +896,7 @@ backpack.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Trade  
 
@@ -919,7 +919,7 @@ backpack.watchTrades (symbol[, since, limit, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Trade  
 
@@ -940,7 +940,7 @@ backpack.unWatchTrades (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Trade  
 
@@ -963,7 +963,7 @@ backpack.watchTradesForSymbols (symbols[, since, limit, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Trade  
 
@@ -984,7 +984,7 @@ backpack.unWatchTradesForSymbols (symbols[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Depth  
 
@@ -1006,7 +1006,7 @@ backpack.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Public/Depth  
 
@@ -1029,7 +1029,7 @@ backpack.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -1049,7 +1049,7 @@ backpack.unWatchOrderBook (symbol[, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -1070,7 +1070,7 @@ backpack.unWatchOrderBookForSymbols (symbols[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Private/Order-update  
 
@@ -1093,7 +1093,7 @@ backpack.watchOrders ([symbol, since, limit, params])
 unWatches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>backpack</code>](#backpack)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.backpack.exchange/#tag/Streams/Private/Order-update  
 

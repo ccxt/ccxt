@@ -38,7 +38,8 @@ const foldersToSearch = [
     './python/ccxt',
     './cs',
     './php',
-    './go'
+    './go',
+    './dist',
 
 ];
 

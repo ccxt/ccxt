@@ -3,6 +3,56 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "withdraw USDT on SOL",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    10.1,
+                    "8vW5Fpyeyae8fGQMfQEUmPpyyGetYwBtasuKvRVsWpyc",
+                    null,
+                    {
+                        "network": "SOL"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "needBrokerAudit": false,
+                    "id": "2112046725602537472",
+                    "canWithdraw": true,
+                    "refuseReason": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": true,
+                        "needBrokerAudit": false,
+                        "id": "2112046725602537472",
+                        "canWithdraw": true,
+                        "refuseReason": "0"
+                    },
+                    "id": "2112046725602537472",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "fee": null,
+                    "comment": null,
+                    "internal": null
+                }
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "fetchOrders symbol spot",
@@ -3371,6 +3421,7 @@
         "fetchMarkets": [
             {
                 "description": "fetchMarkets no args",
+                "disabledGO": true,
                 "method": "fetchMarkets",
                 "disabledGO": true,
                 "input": [],

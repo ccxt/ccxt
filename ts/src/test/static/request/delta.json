@@ -12,6 +12,29 @@
                 "output": null
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "Fetch Order",
+                "method": "fetchOrder",
+                "url": "https://api.delta.exchange/v2/orders/123",
+                "input": [
+                    "123",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.delta.exchange/v2/orders/client_order_id/123",
+                "input": [
+                    "123",
+                    "BTC/USDT",
+                    {
+                        "clientOrderId": "123"
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch Open Orders",
@@ -241,6 +264,16 @@
                 "url": "https://api.delta.exchange/v2/tickers/P-BTC-65000-290324",
                 "input": [
                   "BTC/USDT:USDT-240329-65000-P"
+                ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.delta.exchange/v2/positions/margined",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

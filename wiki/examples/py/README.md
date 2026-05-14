@@ -287,6 +287,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Create Trailing Percent Order](./examples/py/create-trailing-percent-order.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/py/exchange-rate-limiter-rollingWindow.md)
+
 - [Exchange Save Load Markets Cache](./examples/py/exchange-save-load-markets-cache.md)
 
 - [Exchanges By Country](./examples/py/exchanges-by-country.md)
@@ -356,6 +358,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Huobi Spot](./examples/py/huobi-spot.md)
 
 - [Huobi Swaps](./examples/py/huobi-swaps.md)
+
+- [Hyperliquid Load Hip3 Dexes](./examples/py/hyperliquid-load-hip3-dexes.md)
 
 - [Instantiate All At Once](./examples/py/instantiate-all-at-once.md)
 
@@ -470,10 +474,6 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Watch Trades For Symbols](./examples/py/watch-Trades-For-Symbols.md)
 
 - [Watch Tickers](./examples/py/watch-tickers.md)
-
-- [Watchohlcvforsymbols](./examples/py/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/py/watchOrderBookForSymbols.md)
 
 - [Watchpositions Many Exchanges Continuosly](./examples/py/watchPositions-many-exchanges-continuosly.md)
 

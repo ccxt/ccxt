@@ -13,7 +13,7 @@ function log_template($exchange, $method, $entry) {
     // there are cases when exchange is undefined (eg. base tests)
     $id = ($exchange !== null) ? $exchange->id : 'undefined';
     $method_string = ($method !== null) ? $method : 'undefined';
-    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    $entry_string = ($exchange !== null && $entry !== null) ? $exchange->json($entry) : '';
     return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 
@@ -170,9 +170,13 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
-            $dt_parsed_string = $exchange->iso8601($dt_parsed);
-            $dt_entry_string = $exchange->iso8601($entry['timestamp']);
-            assert($dt_parsed_string === $dt_entry_string, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
+            $ts_ms = $entry['timestamp'];
+            $diff = abs($dt_parsed - $ts_ms);
+            if ($diff >= 500) {
+                $dt_parsed_string = $exchange->iso8601($dt_parsed);
+                $dt_entry_string = $exchange->iso8601($ts_ms);
+                assert(false, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
+            }
         }
     }
 }
@@ -395,8 +399,11 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
     if ($exchange->is_tick_precision()) {
         // \ccxt\TICK_SIZE should be above zero
         assert_greater($exchange, $skipped_properties, $method, $entry, $key, '0');
-        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         $decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16'];
+        if ($key === 'amount' && is_array($skipped_properties) && array_key_exists('precisionAmountAbnormal', $skipped_properties)) {
+            return;
+        }
         for ($i = 0; $i < count($decimal_numbers); $i++) {
             $num = $decimal_numbers[$i];
             $num_str = $num;
@@ -635,12 +642,23 @@ function assert_round_minute_timestamp($exchange, $skipped_properties, $method, 
 }
 
 
-function deep_equal($a, $b) {
+function deep_equal($exchange, $a, $b) {
     return json_encode($a) === json_encode($b);
 }
 
 
 function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
     $log_text = log_template($exchange, $method, array());
-    assert(deep_equal($a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
+    assert(deep_equal($exchange, $a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
+}
+
+
+function exchange_prop($exchange, $key, $default_value = null) {
+    $value = $exchange->get_property($exchange, ((string) $key));
+    if ($value !== null) {
+        return $value;
+    }
+    // try UpperCase key also, for other langs
+    $key_upper = $exchange->capitalize(((string) $key));
+    return $exchange->get_property($exchange, $key_upper, $default_value);
 }

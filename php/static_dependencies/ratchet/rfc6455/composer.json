@@ -30,7 +30,7 @@
         "guzzlehttp/psr7": "^2 || ^1.7"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7",
+        "phpunit/phpunit": "^8.5.52",
         "react/socket": "^1.3"
     },
     "scripts": {

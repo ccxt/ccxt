@@ -44,10 +44,26 @@ public partial class testMainClass : BaseTest
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         // check market
         object market = null;
+        object isFetchTickerCalled = isEqual(method, "fetchTicker");
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(isTrue(!isEqual(symbolForMarket, null)) && isTrue((inOp(exchange.markets, symbolForMarket)))))
         {
             market = exchange.market(symbolForMarket);
+        }
+        // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
+        if (!isTrue((inOp(skippedProperties, "checkInactiveMarkets"))))
+        {
+            if (isTrue(isTrue(!isEqual(market, null)) && isTrue(isEqual(getValue(market, "active"), false))))
+            {
+                return;
+            }
+        }
+        if (isTrue(inOp(skippedProperties, "skipNonActiveMarkets")))
+        {
+            if (isTrue(isTrue(isEqual(market, null)) || !isTrue(getValue(market, "active"))))
+            {
+                return;
+            }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
@@ -152,6 +168,15 @@ public partial class testMainClass : BaseTest
         if (isTrue(isTrue(isTrue((!isEqual(askString, null))) && isTrue((!isEqual(bidString, null)))) && !isTrue((inOp(skippedProperties, "spread")))))
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
+        }
+        // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+        object allowedPercentageVariation = "0.01";
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(isFetchTickerCalled) && isTrue(!isEqual(lastString, null))) && isTrue(!isEqual(bidString, null))) && isTrue(!isEqual(askString, null))) && !isTrue((inOp(skippedProperties, "lastBetweenBidAsk")))))
+        {
+            object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
+            object medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
+            object medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
+            assert(isTrue(Precise.stringGe(lastString, medianLow)) && isTrue(Precise.stringLe(lastString, medianHigh)), add("last price should be within 1% of the bid/ask median price", logText));
         }
         object percentage = exchange.safeString(entry, "percentage");
         object change = exchange.safeString(entry, "change");

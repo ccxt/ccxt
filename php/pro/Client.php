@@ -34,6 +34,8 @@ class Client {
     public $rejections = array();
     public $options = array();
 
+    public $cookies = array();
+
     public $on_message_callback;
     public $on_error_callback;
     public $on_close_callback;
@@ -85,6 +87,13 @@ class Client {
         return $future;
     }
 
+    public function reusable_future($message_hash) {
+        return $this->future($message_hash);  // only used in go
+    }
+
+    public function reusableFuture($message_hash) {
+        return $this->future($message_hash);  // only used in go
+    }
     public function resolve($result, $message_hash) {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
@@ -168,6 +177,13 @@ class Client {
                 echo date('c'), ' connecting to ', $this->url, "\n";
             }
             $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
+            if (is_array($this->cookies) && count($this->cookies)) {
+                $cookie_string = '';
+                foreach ($this->cookies as $key => $value) {
+                    $cookie_string .= $key . '=' . $value . '; ';
+                }
+                $headers['Cookie'] = rtrim($cookie_string, '; ');
+            }
             $promise = call_user_func($this->connector, $this->url, [], $headers);
             Timer\timeout($promise, $timeout, Loop::get())->then(
                 function(WebSocket $connection) {

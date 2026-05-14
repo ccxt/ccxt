@@ -831,7 +831,7 @@ public partial class bitteam : Exchange
         object response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters));
         //
         //     {
-        //         "timestamp": 1701166703285,
+        //         "timestamp": 1701166703284,
         //         "bids": [
         //             [
         //                 2019.334988,
@@ -1096,7 +1096,7 @@ public partial class bitteam : Exchange
      * @param {object} [params] extra parameters specific to the bitteam api endpoint
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
