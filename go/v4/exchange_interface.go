@@ -240,6 +240,7 @@ type ICoreExchange interface {
 	GetItf() any
 	ConvertToSafeDictionary(data any) any
 	CreateSafeDictionary(isWs ...bool) *sync.Map
+	OrderBookToDict(orderbook any) any
 	SetOptions(options any)
 	CreateOrders(orders any, optionalArgs ...any) <-chan any
 	Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any
@@ -349,7 +350,6 @@ type IDerivedExchange interface {
 	ParseTicker(ticker any, optionalArgs ...any) any
 	ParseTickers(tickers any, optionalArgs ...any) any
 	ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any
-	OrderBookToDict(orderbook any) any
 	ParsePosition(position any, optionalArgs ...any) any
 	SafeMarketStructure(optionalArgs ...any) any
 	ParseOpenInterest(interest any, optionalArgs ...any) any
