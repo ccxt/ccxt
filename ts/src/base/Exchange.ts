@@ -4797,9 +4797,9 @@ export default class Exchange {
         let quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
             vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
-        } else if ((quoteVolume === undefined) || (baseVolume !== undefined)) {
+        } else if ((quoteVolume === undefined) && (baseVolume !== undefined)) {
             quoteVolume = Precise.stringMul (vwap, baseVolume);
-        } else if ((quoteVolume !== undefined) || (baseVolume === undefined)) {
+        } else if ((quoteVolume !== undefined) && (baseVolume === undefined)) {
             baseVolume = Precise.stringDiv (quoteVolume, vwap);
         }
         // calculate open
