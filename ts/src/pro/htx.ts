@@ -428,7 +428,7 @@ export default class htx extends htxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
+     * @param {boolean} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
