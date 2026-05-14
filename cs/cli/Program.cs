@@ -1,4 +1,5 @@
 ﻿namespace Example;
+
 using ccxt;
 using System;
 using System.Threading.Tasks;
@@ -11,11 +12,14 @@ public static class Program
 {
 
     public static bool verbose = false;
+    public static bool noLoadMarkets = false;
 
     public class Options
     {
         public bool Verbose { get; set; }
         public bool Sandbox { get; set; }
+        public bool NoLoadMarkets { get; set; }
+        public bool Demo { get; set; }
     }
     public static string exchangesPath = System.AppDomain.CurrentDomain.BaseDirectory + "../../../../.." + "/exchanges.json"; // when using debugguer
 
@@ -32,6 +36,15 @@ public static class Program
         if (args.Contains("--sandbox") || args.Contains("--test") || args.Contains("--testnet"))
         {
             instance.setSandboxMode(true);
+        }
+        if (args.Contains("--no-load-markets"))
+        {
+            noLoadMarkets = true;
+        }
+
+        if (args.Contains("--demo"))
+        {
+            instance.enableDemoTrading(true);
         }
     }
 
@@ -101,13 +114,16 @@ public static class Program
 
     public static void Main(string[] args)
     {
-        if (File.Exists(exchangesPath)) {
+        if (File.Exists(exchangesPath))
+        {
             var file = File.ReadAllText(exchangesPath);
             var converted = (dict)JsonHelper.Deserialize(file);
             var ids = (list)converted["ids"];
             List<string> strings = ids.Select(s => (string)s).ToList();
             exchangesId = strings;
-        } else {
+        }
+        else
+        {
             exchangesId = null;
         }
 
@@ -178,8 +194,11 @@ public static class Program
         try
         {
             Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
-            var task = instance.loadMarkets();
-            task.Wait();
+            if (!noLoadMarkets)
+            {
+                var task = instance.loadMarkets();
+                task.Wait();
+            }
             if (verbose)
             {
                 instance.verbose = true;

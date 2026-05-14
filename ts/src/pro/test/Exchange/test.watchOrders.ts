@@ -9,6 +9,7 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOrders (symbol);
         } catch (e) {
@@ -16,15 +17,19 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
-        now = exchange.milliseconds ();
-        for (let i = 0; i < response.length; i++) {
-            testOrder (exchange, skippedProperties, method, response[i], symbol, now);
+        if (success === true) {
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
+            now = exchange.milliseconds ();
+            for (let i = 0; i < response.length; i++) {
+                testOrder (exchange, skippedProperties, method, response[i], symbol, now);
+            }
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
         }
-        testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
     }
+    return true;
 }
 
 export default testWatchOrders;

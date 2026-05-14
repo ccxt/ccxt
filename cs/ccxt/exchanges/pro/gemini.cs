@@ -45,7 +45,7 @@ public partial class gemini : ccxt.gemini
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -80,7 +80,7 @@ public partial class gemini : ccxt.gemini
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -384,7 +384,7 @@ public partial class gemini : ccxt.gemini
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -442,7 +442,7 @@ public partial class gemini : ccxt.gemini
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -458,7 +458,7 @@ public partial class gemini : ccxt.gemini
      * @see https://docs.gemini.com/websocket-api/#multi-market-data
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -530,14 +530,20 @@ public partial class gemini : ccxt.gemini
         ((IDictionary<string,object>)currentBidAsk)["timestamp"] = timestamp;
         ((IDictionary<string,object>)currentBidAsk)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)currentBidAsk)["info"] = rawBidAskChanges;
+        object bidsAsksDict = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)bidsAsksDict)[(string)symbol] = currentBidAsk;
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = currentBidAsk;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {currentBidAsk, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {bidsAsksDict, messageHash});
     }
 
-    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols, object parameters = null)
+    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " watchMultiple requires at least one symbol")) ;
+        }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object firstMarket = this.market(getValue(symbols, 0));
         if (isTrue(!isTrue(getValue(firstMarket, "spot")) && !isTrue(getValue(firstMarket, "linear"))))
@@ -674,7 +680,7 @@ public partial class gemini : ccxt.gemini
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {

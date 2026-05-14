@@ -209,10 +209,10 @@ public partial class testMainClass : BaseTest
             if (isTrue(option))
             {
                 // strike should be defined
-                assert(!isEqual(getValue(market, "strike"), null), add("\"strike\" must be defined when \"option\" is true", logText));
+                assert((isTrue((inOp(skippedProperties, "strike"))) || isTrue(!isEqual(getValue(market, "strike"), null))), add("\"strike\" must be defined when \"option\" is true", logText));
                 testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "strike", "0");
                 // optionType should be defined
-                assert(!isEqual(getValue(market, "optionType"), null), add("\"optionType\" must be defined when \"option\" is true", logText));
+                assert((isTrue((inOp(skippedProperties, "optionType"))) || isTrue(!isEqual(getValue(market, "optionType"), null))), add("\"optionType\" must be defined when \"option\" is true", logText));
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "optionType", new List<object>() {"put", "call"});
             } else
             {

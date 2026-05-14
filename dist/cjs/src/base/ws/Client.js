@@ -10,6 +10,7 @@ var generic = require('../functions/generic.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/io.js');
 var index = require('../../static_dependencies/scure-base/index.js');
 
 // ----------------------------------------------------------------------------
@@ -50,6 +51,10 @@ class Client {
         Object.assign(this, generic.deepExtend(defaults, config));
         // connection-related Future
         this.connected = Future.Future();
+    }
+    reusableFuture(messageHash) {
+        // only used in go
+        return this.future(messageHash);
     }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
@@ -153,6 +158,9 @@ class Client {
                 if (this.ping) {
                     message = this.ping(this);
                 }
+                if (this.verbose) {
+                    this.log(new Date(), 'onPingInterval', '|', this.url);
+                }
                 if (message) {
                     this.send(message).catch((error) => {
                         this.onError(error);
@@ -175,7 +183,7 @@ class Client {
     }
     onOpen() {
         if (this.verbose) {
-            this.log(new Date(), 'onOpen');
+            this.log(new Date(), 'onOpen', '|', this.url);
         }
         this.connectionEstablished = time.milliseconds();
         this.isConnected = true;
@@ -190,18 +198,18 @@ class Client {
     // however, some devs may want to track connection states in their app
     onPing() {
         if (this.verbose) {
-            this.log(new Date(), 'onPing');
+            this.log(new Date(), 'onPing', '|', this.url);
         }
     }
     onPong() {
         this.lastPong = time.milliseconds();
         if (this.verbose) {
-            this.log(new Date(), 'onPong');
+            this.log(new Date(), 'onPong', '|', this.url);
         }
     }
     onError(error) {
         if (this.verbose) {
-            this.log(new Date(), 'onError', error.message);
+            this.log(new Date(), 'onError', error.message, '|', this.url);
         }
         if (!(error instanceof errors.BaseError)) {
             // in case of ErrorEvent from node_modules/ws/lib/event-target.js
@@ -214,7 +222,7 @@ class Client {
     /* eslint-disable no-shadow */
     onClose(event) {
         if (this.verbose) {
-            this.log(new Date(), 'onClose', event);
+            this.log(new Date(), 'onClose', event, '|', this.url);
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
@@ -232,7 +240,7 @@ class Client {
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade(message) {
         if (this.verbose) {
-            this.log(new Date(), 'onUpgrade');
+            this.log(new Date(), 'onUpgrade', '|', this.url);
         }
     }
     async send(message) {
@@ -298,7 +306,7 @@ class Client {
             }
         }
         catch (e) {
-            this.log(new Date(), 'onMessage JSON.parse', e);
+            this.log(new Date(), 'onMessage JSON.parse', e, '|', this.url);
             // reset with a json encoding error ?
         }
         try {

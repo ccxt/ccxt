@@ -281,7 +281,12 @@ class oxfun(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
-                        'selfTradePrevention': True,  # todo
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': True,
+                        },
                         'iceberg': True,  # todo
                     },
                     'createOrders': {
@@ -730,7 +735,7 @@ class oxfun(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -793,7 +798,7 @@ class oxfun(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -870,7 +875,7 @@ class oxfun(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -962,7 +967,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 5, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1008,7 +1013,7 @@ class oxfun(Exchange, ImplicitAPI):
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1042,7 +1047,7 @@ class oxfun(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -1097,7 +1102,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch(default now)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1174,7 +1179,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch(default now)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1257,7 +1262,7 @@ class oxfun(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
         response = await self.publicGetV3LeverageTiers(params)
@@ -1351,7 +1356,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade to fetch(default now)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1508,7 +1513,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.asset]: currency id, if empty the exchange returns info about all currencies
         :param str [params.subAcc]: Name of sub account. If no subAcc is given, then the response contains only the account linked to the API-Key.
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetV3Balances(params)
@@ -1599,7 +1604,7 @@ class oxfun(Exchange, ImplicitAPI):
         https://docs.ox.fun/?json#get-v3-account-names
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         await self.load_markets()
         # self endpoint can only be called using API keys paired with the parent account! Returns all active subaccounts.
@@ -1644,7 +1649,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str fromAccount: account id to transfer from
         :param str toAccount: account id to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         # transferring funds between sub-accounts is restricted to API keys linked to the parent account.
         await self.load_markets()
@@ -1687,7 +1692,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for(default time now)
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         # API keys linked to the parent account can get all account transfers, while API keys linked to a sub-account can only see transfers where the sub-account is either the "fromAccount" or "toAccount"
         await self.load_markets()
@@ -1770,7 +1775,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for fetch deposit address
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         networkCode = self.safe_string(params, 'network')
         networkId = self.network_code_to_id(networkCode, code)
@@ -1815,7 +1820,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for(default time now)
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -1865,7 +1870,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch transfers for(default time now)
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -2041,7 +2046,7 @@ class oxfun(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.tfaType]: GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
         :param str [params.code]: 2FA code
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
@@ -2089,7 +2094,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.subAcc]:
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         # Calling self endpoint using an API key pair linked to the parent account with the parameter "subAcc"
         # allows the caller to include positions of additional sub-accounts in the response.
@@ -2216,9 +2221,9 @@ class oxfun(Exchange, ImplicitAPI):
         :param float [params.limitPrice]: Limit price for the STOP_LIMIT order
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param str [params.timeInForce]: GTC(default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE(reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        :param str [params.selfTradePreventionMode]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        :param str [params.selfTradePrevention]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         :param str [params.displayQuantity]: for an iceberg order, pass both quantity and displayQuantity fields in the order request
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -2364,7 +2369,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [params.timestamp]: *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected.
         :param int [params.recvWindow]: *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
         :param str [params.responseType]: *for all orders* FULL or ACK
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -2401,7 +2406,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param float [params.limitPrice]: Limit price for the STOP_LIMIT order
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param str [params.timeInForce]: GTC(default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE(reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        :param str [params.selfTradePreventionMode]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        :param str [params.selfTradePrevention]: NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         :param str [params.displayQuantity]: for an iceberg order, pass both quantity and displayQuantity fields in the order request
         """
         market = self.market(symbol)
@@ -2436,6 +2441,10 @@ class oxfun(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if postOnly and (timeInForce != 'MAKER_ONLY_REPRICE'):
             request['timeInForce'] = 'MAKER_ONLY'
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            request['selfTradePreventionMode'] = selfTradePrevention.upper()
         return self.extend(request, params)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -2447,7 +2456,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2468,7 +2477,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str [symbol]: not used by oxfun fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.clientOrderId]: the client order id of the order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -2513,7 +2522,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.orderId]: a unique id for the order
         :param int [params.clientOrderId]: the client order id of the order
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -2537,7 +2546,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [params.timestamp]: in milliseconds
         :param int [params.recvWindow]: in milliseconds
         :param str [params.responseType]: 'FULL' or 'ACK'
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2600,7 +2609,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param int [params.timestamp]: in milliseconds
         :param int [params.recvWindow]: in milliseconds
         :param str [params.responseType]: 'FULL' or 'ACK'
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
