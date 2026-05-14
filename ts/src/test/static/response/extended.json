@@ -2938,6 +2938,20 @@
                     "fee": null
                 }
             }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders with symbol",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "status": "OK",
+                    "data": {}
+                },
+                "parsedResponse": []
+            }
         ]
     }
 }

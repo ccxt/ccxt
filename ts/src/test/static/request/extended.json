@@ -447,6 +447,17 @@
                 ]
             }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders with symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/massCancel",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"cancelAll\":true,\"markets\":[\"BTC-USD\"]}"
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap limit buy",

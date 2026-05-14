@@ -34,7 +34,7 @@ export default class extended extends Exchange {
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
@@ -2416,11 +2416,11 @@ export default class extended extends Exchange {
             }
             request['type'] = 'TPSL';
             if (hasStopLoss) {
-                const stopLossTriggerPrice = this.safeString (stopLoss, 'triggerPrice');
-                const stopLossExecutionPrice = this.safeString (stopLoss, 'price')
-                const stopLossType = this.safeString (stopLoss, 'type')
+                const stopLossTrigger = this.safeString (stopLoss, 'triggerPrice');
+                const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
+                const stopLossType = this.safeString (stopLoss, 'type');
                 request['stopLoss'] = {
-                    'triggerPrice': this.priceToPrecision (symbol, stopLossTriggerPrice),
+                    'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
                     'priceType': stopLossType,
                     'settlement': {
@@ -2429,11 +2429,11 @@ export default class extended extends Exchange {
                 };
             }
             if (hasTakeProfit) {
-                const takeProfitTriggerPrice = this.safeString (takeProfit, 'triggerPrice');
-                const takeProfitExecutionPrice = this.safeString (takeProfit, 'price')
-                const takeProfitType = this.safeString (takeProfit, 'type')
+                const takeProfitTrigger = this.safeString (takeProfit, 'triggerPrice');
+                const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
+                const takeProfitType = this.safeString (takeProfit, 'type');
                 request['stopLoss'] = {
-                    'triggerPrice': this.priceToPrecision (symbol, takeProfitTriggerPrice),
+                    'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
                     'priceType': takeProfitType,
                     'settlement': {
@@ -2507,7 +2507,7 @@ export default class extended extends Exchange {
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {float} [params.takeProfit.price] *swap only* the execution price for a take profit attached to a trigger order
-     * * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
+     * @param {string} [params.takeProfit.type] *swap only* the type for a take profit attached to a trigger order, 'LAST', 'MARK' or 'INDEX', default is ''
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
      * @param {float} [params.stopLoss.price] *swap only* the execution price for a stop loss attached to a trigger order
@@ -2673,6 +2673,35 @@ export default class extended extends Exchange {
             'symbol': orderSymbol,
             'status': 'canceled',
         }, market);
+    }
+
+    /**
+     * @method
+     * @name extended#cancelAllOrders
+     * @description cancels all open orders, optionally filtered by symbol
+     * @see https://api.docs.extended.exchange/#mass-cancel
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'cancelAll': true,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['markets'] = [ market['id'] ];
+        }
+        await this.v1PrivatePostUserOrderMassCancel (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {}
+        //     }
+        //
+        return [];
     }
 
     /**
