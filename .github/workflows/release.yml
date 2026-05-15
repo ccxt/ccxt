@@ -141,6 +141,7 @@ jobs:
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: NuGet login (OIDC - temp API key)
+        id: login
         uses: NuGet/login@v1
         with:
           user: carlosmiei
