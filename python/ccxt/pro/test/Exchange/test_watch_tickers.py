@@ -29,6 +29,8 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
     ends = now + 15000
     while now < ends:
         response = None
+        success = True
+        should_return = False
         try:
             response = await exchange.watch_tickers(arg_symbols, arg_params)
         except Exception as e:
@@ -38,18 +40,25 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
             # mark tests as failed, but just skip them
             if (isinstance(e, ArgumentsRequired)) and (arg_symbols is None or len(arg_symbols) == 0):
                 # todo: provide random symbols to try
-                return
+                # return;
+                # return false;
+                should_return = True
             elif not test_shared_methods.is_temporary_failure(e):
                 raise e
             now = exchange.milliseconds()
-            continue
-        assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
-        values = list(response.values())
-        checked_symbol = None
-        if arg_symbols is not None and len(arg_symbols) == 1:
-            checked_symbol = arg_symbols[0]
-        test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
-        for i in range(0, len(values)):
-            ticker = values[i]
-            test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
-        now = exchange.milliseconds()
+            # continue;
+            success = False
+        if should_return:
+            return False
+        if success:
+            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return an object. ' + exchange.json(response)
+            values = list(response.values())
+            checked_symbol = None
+            if arg_symbols is not None and len(arg_symbols) == 1:
+                checked_symbol = arg_symbols[0]
+            test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values, checked_symbol)
+            for i in range(0, len(values)):
+                ticker = values[i]
+                test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
+            now = exchange.milliseconds()
+    return True

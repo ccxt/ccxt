@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'challenge';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const request: Dict = {
@@ -100,7 +100,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, params);
@@ -173,7 +173,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -189,7 +189,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
@@ -210,7 +210,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         const ticker = await this.watchMultiHelper ('bidask', 'ticker_lite', symbols, undefined, params);
@@ -231,9 +231,9 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async watchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -246,7 +246,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const trades = await this.watchMultiHelper ('trade', 'trade', symbols, undefined, params);
@@ -266,7 +266,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] not used by krakenfutures watchOrderBook
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
@@ -375,8 +375,13 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const marketId = this.safeString (position, 'instrument');
         const hedged = 'both';
-        const balance = this.safeNumber (position, 'balance');
-        const side = (balance > 0) ? 'long' : 'short';
+        const balanceString = this.safeString (position, 'balance');
+        let side = undefined;
+        if (Precise.stringGt (balanceString, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (balanceString, '0')) {
+            side = 'short';
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -387,7 +392,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': this.safeNumber (position, 'pnl'),
             'percentage': this.safeNumber (position, 'return_on_equity'),
-            'contracts': this.parseNumber (Precise.stringAbs (this.numberToString (balance))),
+            'contracts': this.parseNumber (Precise.stringAbs (balanceString)),
             'contractSize': undefined,
             'markPrice': this.safeNumber (position, 'mark_price'),
             'side': side,
@@ -414,7 +419,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
@@ -440,7 +445,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -464,7 +469,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
-     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
@@ -492,7 +497,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            {
         //                "feed": "trade",
         //                "product_id": "PI_XBTUSD",
-        //                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
         //                "side": "sell",
         //                "type": "fill",
         //                "seq": 655508,
@@ -560,6 +565,21 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         const marketId = this.safeString (trade, 'product_id');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
@@ -573,8 +593,8 @@ export default class krakenfutures extends krakenfuturesRest {
             'type': this.safeString (trade, 'type'),
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': 'taker',
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'qty'),
+            'price': this.safeString2 (trade, 'price', 'limit_price'),
+            'amount': this.safeString2 (trade, 'filled', 'qty'),
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -625,7 +645,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'type': this.safeStringLower (trade, 'type'),
             'side': this.safeString (trade, 'side'),
             'takerOrMaker': this.safeString (trade, 'matchRole'),
-            'price': this.safeString (trade, 'price'),
+            'price': this.safeString2 (trade, 'price', 'limit_price'),
             'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
             'cost': undefined,
             'fee': {
@@ -744,13 +764,13 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
                 }
                 previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    const stringOrderFilled = this.numberToString (previousOrder['filled']);
-                    previousOrder['filled'] = Precise.stringAdd (stringOrderFilled, this.numberToString (trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (this.numberToString (previousOrder['amount']), stringOrderFilled);
-                    }
-                }
+                const filledString = this.numberToString (trade['amount']);
+                const stringOrderFilled = this.safeString (previousOrder, 'filled', '0');
+                const totalFilled = Precise.stringAdd (stringOrderFilled, filledString);
+                previousOrder['filled'] = totalFilled;
+                const prevAmountString = this.safeString (previousOrder, 'amount');
+                const remaining = Precise.stringSub (prevAmountString, totalFilled);
+                previousOrder['remaining'] = remaining;
                 if (previousOrder['fee'] === undefined) {
                     previousOrder['fee'] = {
                         'rate': undefined,
@@ -926,11 +946,11 @@ export default class krakenfutures extends krakenfuturesRest {
             'price': this.safeString (unparsedOrder, 'limit_price'),
             'stopPrice': this.safeString (unparsedOrder, 'stop_price'),
             'triggerPrice': this.safeString (unparsedOrder, 'stop_price'),
-            'amount': this.safeString (unparsedOrder, 'qty'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString (unparsedOrder, 'filled'),
-            'remaining': undefined,
+            'remaining': this.safeString (unparsedOrder, 'qty'),
             'status': status,
             'fee': {
                 'rate': undefined,
@@ -1498,20 +1518,34 @@ export default class krakenfutures extends krakenfuturesRest {
 
     async watchMultiHelper (unifiedName: string, channelName: string, symbols: Strings = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const messageHashes = [];
+        const rawSubs = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push (this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i])));
+            const messageHash = this.getMessageHash (unifiedName, undefined, this.symbol (symbols[i]));
+            messageHashes.push (messageHash);
+            const market = this.market (symbols[i]);
+            if (!this.subscriptionExistsForHash (url, messageHash)) {
+                rawSubs.push (market['id']);
+            }
         }
-        const marketIds = this.marketIds (symbols);
-        const request: Dict = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        };
-        const url = this.urls['api']['ws'];
+        let request: Dict = {};
+        const length = rawSubs.length;
+        if (length > 0) {
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            };
+        }
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscriptionArgs);
+    }
+
+    subscriptionExistsForHash (url: string, hash: string) {
+        const client = this.client (url);
+        return (hash in client.subscriptions);
     }
 
     getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
@@ -1530,7 +1564,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return messageHash;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        event: 'alert',
@@ -1542,6 +1576,7 @@ export default class krakenfutures extends krakenfuturesRest {
             throw new ExchangeError (this.id + ' ' + errMsg);
         } catch (error) {
             client.reject (error);
+            return false;
         }
     }
 

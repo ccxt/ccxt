@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -61,6 +61,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -91,6 +92,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchLiquidations': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -102,7 +104,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
-                'fetchPositionMode': False,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -115,6 +117,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchWithdrawAddresses': True,
                 'fetchWithdrawAddressesByNetwork': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -123,6 +126,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -177,6 +181,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6,  # should be 5 but errors
                         'account/v1/currencies': 30,
+                        'contract/public/markprice-kline': 5,  # 6 times per 1 second
                     },
                 },
                 'private': {
@@ -197,6 +202,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'account/v1/withdraw/charge': 32,  # should be 30 but errors
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
+                        'account/v1/withdraw/address/list': 30,  # 2 times per 2 seconds
                         # order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -219,6 +225,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -226,6 +233,7 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         # sub-account endpoints
@@ -253,12 +261,19 @@ class bitmart(Exchange, ImplicitAPI):
                         'spot/v4/cancel_orders': 3,
                         'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
+                        'spot/v4/algo/submit_order': 6,  # 10 times per 2 seconds
+                        'spot/v4/algo/cancel_order': 6,
+                        'spot/v4/algo/cancel_all': 12,  # 5 times per 2 seconds
+                        'spot/v4/query/algo/order': 1.5,
+                        'spot/v4/query/algo/client-order': 1.5,  # 40 times per 2 seconds
+                        'spot/v4/query/algo/open-orders': 3,
+                        'spot/v4/query/algo/history-orders': 3,  # 20 times per 2 seconds
                         # newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
                         # margin
-                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/submit_order': 1.5,  # 20 times per second
                         'spot/v1/margin/isolated/borrow': 30,
                         'spot/v1/margin/isolated/repay': 30,
                         'spot/v1/margin/isolated/transfer': 30,
@@ -274,7 +289,11 @@ class bitmart(Exchange, ImplicitAPI):
                         'contract/private/submit-tp-sl-order': 2.5,
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
+                        'contract/private/submit-trail-order': 2.5,  # weight is not provided by the exchange, is set order
+                        'contract/private/cancel-trail-order': 1.5,  # weight is not provided by the exchange, is set order
+                        'contract/private/set-position-mode': 1,
                     },
                 },
             },
@@ -530,7 +549,7 @@ class bitmart(Exchange, ImplicitAPI):
                 },
                 'broad': {
                     'You contract account available balance not enough': InsufficientFunds,
-                    'you contract account available balance not enough': InsufficientFunds,
+                    'This trading pair does not support API trading': BadSymbol,  # {"message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":{}}
                 },
             },
             'commonCurrencies': {
@@ -870,6 +889,9 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+
+        https://developer-pro.bitmart.com/en/spot/#get-system-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -890,8 +912,11 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+
+        https://developer-pro.bitmart.com/en/spot/#get-system-service-status
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         options = self.safe_dict(self.options, 'fetchStatus', {})
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -929,7 +954,7 @@ class bitmart(Exchange, ImplicitAPI):
         servicesByType = self.index_by(services, 'service_type')
         if type == 'swap':
             type = 'contract'
-        service = self.safe_string(servicesByType, type)
+        service = self.safe_dict(servicesByType, type)
         status = None
         eta = None
         if service is not None:
@@ -1008,7 +1033,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': self.safe_string_lower_2(market, 'status', 'trade_status') == 'trading',
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -1123,7 +1148,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': isSwap,
                 'future': isFutures,
                 'option': False,
-                'active': True,
+                'active': self.safe_string_lower(market, 'status') == 'trading',
                 'contract': True,
                 'linear': True,
                 'inverse': False,
@@ -1163,22 +1188,27 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
+        retrieves data on all markets for bitmart
 
+        https://developer-pro.bitmart.com/en/spot/#get-trading-pair-details-v1
         https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
 
-        retrieves data on all markets for bitmart
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        spot = self.fetch_spot_markets(params)
-        contract = self.fetch_contract_markets(params)
+        spotPromise = self.fetch_spot_markets(params)
+        contractPromise = self.fetch_contract_markets(params)
+        spot, contract = [spotPromise, contractPromise]
         return self.array_concat(spot, contract)
 
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+
+        https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1186,19 +1216,22 @@ class bitmart(Exchange, ImplicitAPI):
         #
         #     {
         #         "message": "OK",
-        #         "code":1000,
-        #         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        #         "code": 1000,
+        #         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         #         "data": {
         #             "currencies": [
         #                 {
         #                     "currency": "BTC",
         #                     "name": "Bitcoin",
+        #                     "recharge_minsize": '0.00000001',
         #                     "contract_address": null,
         #                     "network": "BTC",
         #                     "withdraw_enabled": True,
         #                     "deposit_enabled": True,
         #                     "withdraw_minsize": "0.0003",
-        #                     "withdraw_minfee": "9.74"
+        #                     "withdraw_minfee": "9.61",
+        #                     "withdraw_fee_estimate": "9.61",
+        #                     "withdraw_fee": "0.0001"
         #                 }
         #             ]
         #         }
@@ -1212,7 +1245,8 @@ class bitmart(Exchange, ImplicitAPI):
             fullId = self.safe_string(currency, 'currency')
             currencyId = fullId
             networkId = self.safe_string(currency, 'network')
-            if fullId.find('NFT') < 0:
+            isNtf = (fullId.find('NFT') >= 0)
+            if not isNtf:
                 parts = fullId.split('-')
                 currencyId = self.safe_string(parts, 0)
                 second = self.safe_string(parts, 1)
@@ -1231,6 +1265,7 @@ class bitmart(Exchange, ImplicitAPI):
                     'withdraw': None,
                     'active': None,
                     'networks': {},
+                    'type': 'other' if isNtf else 'crypto',
                 }
             networkCode = self.network_id_to_code(networkId)
             withdraw = self.safe_bool(currency, 'withdraw_enabled')
@@ -1242,7 +1277,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'withdraw': withdraw,
                 'deposit': deposit,
                 'active': withdraw and deposit,
-                'fee': self.safe_number(currency, 'withdraw_minfee'),  # todo check
+                'fee': self.safe_number(currency, 'withdraw_fee'),
                 'limits': {
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdraw_minsize'),
@@ -1297,7 +1332,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the network code of the currency
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1354,10 +1389,13 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fee(self, code: str, params={}):
         """
         fetch the fee for deposits and withdrawals
+
+        https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the network code of the currency
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         network: Str = None
@@ -1546,7 +1584,7 @@ class bitmart(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1641,7 +1679,7 @@ class bitmart(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1743,13 +1781,12 @@ class bitmart(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
         https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-        https://developer-pro.bitmart.com/en/futures/#get-market-depth
         https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1926,7 +1963,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum number of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2019,7 +2056,7 @@ class bitmart(Exchange, ImplicitAPI):
                 self.safe_number_2(ohlcv, 'volume', 'v'),
             ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2074,7 +2111,12 @@ class bitmart(Exchange, ImplicitAPI):
             request, params = self.handle_until_option('end_time', request, params, 0.001)
         response = None
         if market['swap']:
-            response = self.publicGetContractPublicKline(self.extend(request, params))
+            price = self.safe_string(params, 'price')
+            if price == 'mark':
+                params = self.omit(params, 'price')
+                response = self.publicGetContractPublicMarkpriceKline(self.extend(request, params))
+            else:
+                response = self.publicGetContractPublicKline(self.extend(request, params))
         else:
             response = self.publicGetSpotQuotationV3Klines(self.extend(request, params))
         #
@@ -2117,7 +2159,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
 
         https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-        https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-order-trade-keyed
 
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -2126,7 +2168,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.marginMode]: *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders(only isolated margin orders are supported)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         market = None
@@ -2230,7 +2273,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2272,7 +2316,7 @@ class bitmart(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string_2(balance, 'available', 'available_balance')
-                account['used'] = self.safe_string_2(balance, 'frozen', 'frozen_balance')
+                account['used'] = self.safe_string_n(balance, ['unAvailable', 'frozen', 'frozen_balance'])
                 result[code] = account
             return self.safe_balance(result)
 
@@ -2290,14 +2334,13 @@ class bitmart(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-        https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+        https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance-keyed
         https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-        https://developer-pro.bitmart.com/en/spot/#get-account-balance
-        https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+        https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
+        https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         marketType = None
@@ -2342,8 +2385,8 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
         #         "data":{
         #             "wallet":[
-        #                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
-        #                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        #                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000","available_usd_valuation":null},
+        #                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000","available_usd_valuation":null}
         #             ]
         #         }
         #     }
@@ -2436,9 +2479,12 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
+
+        https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2630,7 +2676,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2644,11 +2690,12 @@ class bitmart(Exchange, ImplicitAPI):
         create a trade order
 
         https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-        https://developer-pro.bitmart.com/en/spot/#place-margin-order
-        https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-        https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+        https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
@@ -2670,7 +2717,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.stopLossPrice]: *swap only* the price to trigger a stop-loss order
         :param str [params.takeProfitPrice]: *swap only* the price to trigger a take-profit order
         :param int [params.plan_category]: *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2685,13 +2733,19 @@ class bitmart(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
-            if marginMode == 'isolated':
+            if isStopLoss or isTakeProfit or isTriggerOrder:
+                response = self.privatePostSpotV4AlgoSubmitOrder(spotRequest)
+            elif marginMode == 'isolated':
                 response = self.privatePostSpotV1MarginSubmitOrder(spotRequest)
             else:
                 response = self.privatePostSpotV2SubmitOrder(spotRequest)
         else:
             swapRequest = self.create_swap_order_request(symbol, type, side, amount, price, params)
-            if isTriggerOrder:
+            activationPrice = self.safe_string(swapRequest, 'activation_price')
+            if activationPrice is not None:
+                # if type is trailing
+                response = self.privatePostContractPrivateSubmitTrailOrder(swapRequest)
+            elif isTriggerOrder:
                 response = self.privatePostContractPrivateSubmitPlanOrder(swapRequest)
             elif isStopLoss or isTakeProfit:
                 response = self.privatePostContractPrivateSubmitTpSlOrder(swapRequest)
@@ -2728,7 +2782,8 @@ class bitmart(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         ordersRequests = []
@@ -2790,7 +2845,8 @@ class bitmart(Exchange, ImplicitAPI):
         create a trade order
         https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-        https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
         :param str side: 'buy' or 'sell'
@@ -2810,7 +2866,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.stopLossPrice]: *swap only* the price to trigger a stop-loss order
         :param str [params.takeProfitPrice]: *swap only* the price to trigger a take-profit order
         :param int [params.plan_category]: *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         market = self.market(symbol)
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
@@ -2823,7 +2879,6 @@ class bitmart(Exchange, ImplicitAPI):
             type = 'take_profit'
         request: dict = {
             'symbol': market['id'],
-            'type': type,
             'size': int(self.amount_to_precision(symbol, amount)),
         }
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -2851,6 +2906,7 @@ class bitmart(Exchange, ImplicitAPI):
         if isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
         elif type == 'trailing' or isTrailingPercentOrder:
+            type = 'trailing'
             request['callback_rate'] = trailingPercent
             request['activation_price'] = self.price_to_precision(symbol, trailingTriggerPrice)
             request['activation_price_type'] = self.safe_integer(params, 'activation_price_type', 1)
@@ -2901,14 +2957,17 @@ class bitmart(Exchange, ImplicitAPI):
             request['leverage'] = self.number_to_string(leverage)
         elif isTriggerOrder:
             request['leverage'] = '1'  # for plan orders leverage is required, if not available default to 1
+        if type != 'trailing':
+            request['type'] = type
         return self.extend(request, params)
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
  @ignore
         create a spot order request
-        https://developer-pro.bitmart.com/en/spot/#place-spot-order
-        https://developer-pro.bitmart.com/en/spot/#place-margin-order
+        https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+        https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+        https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2916,13 +2975,23 @@ class bitmart(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str [params.clientOrderId]: client order id of the order
+        :param str [params.triggerPrice]: the price to trigger a stop order
+        :param str [params.stopLossPrice]: the price to trigger a stop-loss order
+        :param str [params.takeProfitPrice]: the price to trigger a take-profit order
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         market = self.market(symbol)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        isTriggerOrder = triggerPrice is not None
+        isAlgoOrder = isStopLoss or isTakeProfit or isTriggerOrder
         request: dict = {
             'symbol': market['id'],
             'side': side,
-            'type': type,
         }
         timeInForce = self.safe_string(params, 'timeInForce')
         if timeInForce == 'FOK':
@@ -2935,7 +3004,23 @@ class bitmart(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'postOnly'])
         ioc = ((timeInForce == 'IOC') or (type == 'ioc'))
         isLimitOrder = (type == 'limit') or postOnly or ioc
-        # method = 'privatePostSpotV2SubmitOrder'
+        if isAlgoOrder:
+            if isTriggerOrder:
+                request['type'] = 'trigger'
+            else:
+                request['type'] = 'tp/sl'
+            if isLimitOrder:
+                request['trigger_type'] = 'limit'
+            else:
+                request['trigger_type'] = 'market'
+            if isStopLoss:
+                request['trigger_price'] = self.price_to_precision(symbol, stopLossPrice)
+            elif isTakeProfit:
+                request['trigger_price'] = self.price_to_precision(symbol, takeProfitPrice)
+            elif isTriggerOrder:
+                request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+        else:
+            request['type'] = type
         if isLimitOrder:
             request['size'] = self.amount_to_precision(symbol, amount)
             request['price'] = self.price_to_precision(symbol, price)
@@ -2972,19 +3057,21 @@ class bitmart(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
         https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-        https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-        https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: *spot only* the client order id of the order to cancel
-        :param boolean [params.trigger]: *swap only* whether the order is a trigger order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param boolean [params.trailing]: *swap only* whether the order is a stop order
+        :param boolean [params.trigger]: whether the order is a trigger order
+        :param boolean [params.stopLossTakeProfit]: whether the order is a stopLossPrice or takeProfitPrice order
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2998,17 +3085,27 @@ class bitmart(Exchange, ImplicitAPI):
             request['client_order_id'] = clientOrderId
         else:
             request['order_id'] = str(id)
-        params = self.omit(params, ['clientOrderId'])
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        trailing = self.safe_bool(params, 'trailing')
+        params = self.omit(params, ['clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit'])
         response = None
         if market['spot']:
-            response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
-        else:
-            trigger = self.safe_bool_2(params, 'stop', 'trigger')
-            params = self.omit(params, ['stop', 'trigger'])
-            if not trigger:
-                response = self.privatePostContractPrivateCancelOrder(self.extend(request, params))
+            if trigger or stopLossTakeProfit:
+                if stopLossTakeProfit:
+                    request['type'] = 'tp/sl'
+                elif trigger:
+                    request['type'] = 'trigger'
+                response = self.privatePostSpotV4AlgoCancelOrder(self.extend(request, params))
             else:
+                response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
+        else:
+            if trigger:
                 response = self.privatePostContractPrivateCancelPlanOrder(self.extend(request, params))
+            elif trailing:
+                response = self.privatePostContractPrivateCancelTrailOrder(self.extend(request, params))
+            else:
+                response = self.privatePostContractPrivateCancelOrder(self.extend(request, params))
         # swap
         # {"code":1000,"message":"Ok","trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.55.16959817848001851"}
         #
@@ -3033,7 +3130,7 @@ class bitmart(Exchange, ImplicitAPI):
         #     }
         #
         if market['swap']:
-            return response
+            return self.safe_order({'info': response})
         data = self.safe_value(response, 'data')
         if data is True:
             return self.safe_order({'id': id}, market)
@@ -3059,7 +3156,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
@@ -3109,15 +3206,16 @@ class bitmart(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
 
-        https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-        https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-        https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
         https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *spot only* 'buy' or 'sell'
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param boolean [params.trigger]: whether the orders are trigger orders
+        :param boolean [params.stopLossTakeProfit]: whether the orders are stopLossPrice or takeProfitPrice orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -3129,7 +3227,17 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if type == 'spot':
-            response = self.privatePostSpotV4CancelAll(self.extend(request, params))
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+            params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
+            if trigger or stopLossTakeProfit:
+                if stopLossTakeProfit:
+                    request['type'] = 'tp/sl'
+                elif trigger:
+                    request['type'] = 'trigger'
+                response = self.privatePostSpotV4AlgoCancelAll(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV4CancelAll(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -3152,7 +3260,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if symbol is None:
@@ -3209,12 +3317,13 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetch all unfilled currently open orders
 
         https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-        https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-        https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+        https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
 
-        fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -3225,8 +3334,10 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.order_state]: *swap* the order state, 'all' or 'partially_filled', default is 'all'
         :param str [params.orderType]: *swap only* 'limit', 'market', or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch trailing orders
-        :param boolean [params.trigger]: *swap only* set to True if you want to fetch trigger orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param boolean [params.trigger]: set to True if you want to fetch trigger orders
+        :param boolean [params.stopLossTakeProfit]: set to True if you want to fetch stopLossPrice or takeProfitPrice orders
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -3237,6 +3348,9 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
         if type == 'spot':
             if limit is not None:
                 request['limit'] = min(limit, 200)
@@ -3250,12 +3364,17 @@ class bitmart(Exchange, ImplicitAPI):
             if until is not None:
                 params = self.omit(params, ['endTime'])
                 request['endTime'] = until
-            response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
+            if isTrigger or stopLossTakeProfit:
+                if isTrigger:
+                    request['orderMode'] = 'trigger'
+                elif stopLossTakeProfit:
+                    request['orderMode'] = 'tp/sl'
+                response = self.privatePostSpotV4QueryAlgoOpenOrders(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
             if limit is not None:
                 request['limit'] = min(limit, 100)
-            isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
-            params = self.omit(params, ['stop', 'trigger'])
             if isTrigger:
                 response = self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
             else:
@@ -3328,19 +3447,22 @@ class bitmart(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        fetches information on multiple closed orders made by the user
 
         https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-        https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
         https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+        https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
 
-        fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated', for margin trading
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :param boolean [params.trigger]: set to True if you want to fetch trigger orders
+        :param boolean [params.stopLossTakeProfit]: set to True if you want to fetch stopLossPrice or takeProfitPrice orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -3361,13 +3483,23 @@ class bitmart(Exchange, ImplicitAPI):
         if until is not None:
             params = self.omit(params, ['until'])
             request[endTimeKey] = until
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger')
+        stopLossTakeProfit = self.safe_bool(params, 'stopLossTakeProfit')
+        params = self.omit(params, ['stop', 'trigger', 'stopLossTakeProfit'])
         response = None
         if type == 'spot':
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchClosedOrders', params)
             if marginMode == 'isolated':
                 request['orderMode'] = 'iso_margin'
-            response = self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
+            if isTrigger or stopLossTakeProfit:
+                if isTrigger:
+                    request['orderMode'] = 'trigger'
+                elif stopLossTakeProfit:
+                    request['orderMode'] = 'tp/sl'
+                response = self.privatePostSpotV4QueryAlgoHistoryOrders(self.extend(request, params))
+            else:
+                response = self.privatePostSpotV4QueryHistoryOrders(self.extend(request, params))
         else:
             response = self.privateGetContractPrivateOrderHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
@@ -3380,7 +3512,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         return self.fetch_orders_by_status('canceled', symbol, since, limit, params)
 
@@ -3390,8 +3522,9 @@ class bitmart(Exchange, ImplicitAPI):
 
         https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
         https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-        https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
         https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+        https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+        https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
 
         :param str id: the id of the order
         :param str symbol: unified symbol of the market the order was made in
@@ -3399,7 +3532,9 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: *spot* fetch the order by client order id instead of order id
         :param str [params.orderType]: *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
         :param boolean [params.trailing]: *swap only* set to True if you want to fetch a trailing order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str [params.stpMode]: self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+        :param boolean [params.trigger]: whether the orders is a trigger, stopLossPrice or takeProfitPrice order
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -3411,12 +3546,20 @@ class bitmart(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchOrder', market, params)
         if type == 'spot':
             clientOrderId = self.safe_string(params, 'clientOrderId')
+            trigger = self.safe_bool_2(params, 'stop', 'trigger')
+            params = self.omit(params, ['stop', 'trigger'])
             if not clientOrderId:
                 request['orderId'] = id
-            if clientOrderId is not None:
-                response = self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+            if trigger:
+                if clientOrderId is not None:
+                    response = self.privatePostSpotV4QueryAlgoClientOrder(self.extend(request, params))
+                else:
+                    response = self.privatePostSpotV4QueryAlgoOrder(self.extend(request, params))
             else:
-                response = self.privatePostSpotV4QueryOrder(self.extend(request, params))
+                if clientOrderId is not None:
+                    response = self.privatePostSpotV4QueryClientOrder(self.extend(request, params))
+                else:
+                    response = self.privatePostSpotV4QueryOrder(self.extend(request, params))
         elif type == 'swap':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -3491,7 +3634,7 @@ class bitmart(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -3519,6 +3662,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
         #
+        # fetchDepositAddress
         #    {
         #        currency: 'ETH',
         #        chain: 'Ethereum',
@@ -3526,8 +3670,19 @@ class bitmart(Exchange, ImplicitAPI):
         #        address_memo: ''
         #    }
         #
+        # fetchWithdrawAddress
+        #     {
+        #         "currency": "ETH",
+        #         "network": "ETH",
+        #         "address": "0x1121",
+        #         "memo": "12",
+        #         "remark": "12",
+        #         "addressType": 0,
+        #         "verifyStatus": 0
+        #     }
+        #
         currencyId = self.safe_string(depositAddress, 'currency')
-        network = self.safe_string(depositAddress, 'chain')
+        network = self.safe_string_2(depositAddress, 'chain', 'network')
         if currencyId.find('NFT') < 0:
             parts = currencyId.split('-')
             currencyId = self.safe_string(parts, 0)
@@ -3542,19 +3697,22 @@ class bitmart(Exchange, ImplicitAPI):
             'currency': self.safe_string(currency, 'code'),
             'network': self.network_id_to_code(network),
             'address': address,
-            'tag': self.safe_string(depositAddress, 'address_memo'),
+            'tag': self.safe_string_2(depositAddress, 'address_memo', 'memo'),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
+
+        https://developer-pro.bitmart.com/en/spot/#withdraw-signed
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the network name for self withdrawal
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -3592,16 +3750,21 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_transactions_by_type(self, type, code: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         if limit is None:
-            limit = 50  # max 50
+            limit = 1000  # max 1000
         request: dict = {
             'operation_type': type,  # deposit or withdraw
-            'offset': 1,
             'N': limit,
         }
         currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            params = self.omit(params, 'until')
+            request['endTime'] = until
         response = self.privateGetAccountV2DepositWithdrawHistory(self.extend(request, params))
         #
         #     {
@@ -3634,10 +3797,13 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch information on a deposit
+
+        https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
+
         :param str id: deposit id
         :param str code: not used by bitmart fetchDeposit()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -3673,21 +3839,27 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
+
+        https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         return self.fetch_transactions_by_type('deposit', code, since, limit, params)
 
     def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
+
+        https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
+
         :param str id: withdrawal id
         :param str code: not used by bitmart.fetchWithdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -3723,11 +3895,14 @@ class bitmart(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
+
+        https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         return self.fetch_transactions_by_type('withdraw', code, since, limit, params)
 
@@ -3780,10 +3955,11 @@ class bitmart(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(transaction, 'apply_time')
         currencyId = self.safe_string(transaction, 'currency')
         networkId: Str = None
-        if currencyId.find('NFT') < 0:
-            parts = currencyId.split('-')
-            currencyId = self.safe_string(parts, 0)
-            networkId = self.safe_string(parts, 1)
+        if currencyId is not None:
+            if currencyId.find('NFT') < 0:
+                parts = currencyId.split('-')
+                currencyId = self.safe_string(parts, 0)
+                networkId = self.safe_string(parts, 1)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number(transaction, 'fee')
@@ -3823,13 +3999,13 @@ class bitmart(Exchange, ImplicitAPI):
         """
         repay borrowed margin and interest
 
-        https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+        https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated-signed
 
         :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param str amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3861,13 +4037,13 @@ class bitmart(Exchange, ImplicitAPI):
         """
         create a loan to borrow margin
 
-        https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+        https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated-signed
 
         :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4021,7 +4197,7 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
+        :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/?id=isolated-borrow-rate-structure>`
         """
         self.load_markets()
         response = self.privateGetSpotV1MarginIsolatedPairs(params)
@@ -4066,7 +4242,6 @@ class bitmart(Exchange, ImplicitAPI):
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
 
         https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-        https://developer-pro.bitmart.com/en/futures/#transfer-signed
         https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
 
         :param str code: unified currency code
@@ -4074,7 +4249,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -4198,7 +4373,7 @@ class bitmart(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
 
-        https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed
 
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
@@ -4206,7 +4381,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.page]: the required number of pages, default is 1, max is 1000
         :param int [params.until]: the latest time in ms to fetch transfers for
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         if limit is None:
@@ -4256,14 +4431,14 @@ class bitmart(Exchange, ImplicitAPI):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
-        https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+        https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed
 
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
@@ -4339,7 +4514,7 @@ class bitmart(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4385,11 +4560,10 @@ class bitmart(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
-        https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
         https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
 
         :param float leverage: the rate of leverage
@@ -4422,7 +4596,7 @@ class bitmart(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4437,12 +4611,15 @@ class bitmart(Exchange, ImplicitAPI):
         #         "code": 1000,
         #         "message": "Ok",
         #         "data": {
-        #             "timestamp": 1695184410697,
         #             "symbol": "BTCUSDT",
-        #             "rate_value": "-0.00002614",
-        #             "expected_rate": "-0.00002"
+        #             "expected_rate": "-0.0000238",
+        #             "rate_value": "0.000009601106",
+        #             "funding_time": 1761292800000,
+        #             "funding_upper_limit": "0.0375",
+        #             "funding_lower_limit": "-0.0375",
+        #             "timestamp": 1761291544336
         #         },
-        #         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        #         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -4458,7 +4635,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [since]: not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
         :param int [limit]: the maximum amount of funding rate structures to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -4507,14 +4684,32 @@ class bitmart(Exchange, ImplicitAPI):
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
-        #         "timestamp": 1695184410697,
         #         "symbol": "BTCUSDT",
-        #         "rate_value": "-0.00002614",
-        #         "expected_rate": "-0.00002"
+        #         "expected_rate": "-0.0000238",
+        #         "rate_value": "0.000009601106",
+        #         "funding_time": 1761292800000,
+        #         "funding_upper_limit": "0.0375",
+        #         "funding_lower_limit": "-0.0375",
+        #         "timestamp": 1761291544336
+        #     }
+        #
+        # watchFundingRates
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "fundingRate": "0.0000561",
+        #         "fundingTime": 1770978448000,
+        #         "nextFundingRate": "-0.0000195",
+        #         "nextFundingTime": 1770998400000,
+        #         "funding_upper_limit": "0.0375",
+        #         "funding_lower_limit": "-0.0375",
+        #         "ts": 1770978448970
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
-        timestamp = self.safe_integer(contract, 'timestamp')
+        timestamp = self.safe_integer_2(contract, 'timestamp', 'ts')
+        fundingTimestamp = self.safe_integer_2(contract, 'funding_time', 'fundingTime')
+        nextFundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market),
@@ -4524,12 +4719,12 @@ class bitmart(Exchange, ImplicitAPI):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': self.safe_number(contract, 'expected_rate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': None,
-            'nextFundingTimestamp': None,
-            'nextFundingDatetime': None,
+            'fundingRate': self.safe_number_2(contract, 'expected_rate', 'fundingRate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': self.safe_number(contract, 'nextFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
             'previousFundingRate': self.safe_number(contract, 'rate_value'),
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -4540,12 +4735,11 @@ class bitmart(Exchange, ImplicitAPI):
         """
         fetch data on a single open contract trade position
 
-        https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4586,16 +4780,16 @@ class bitmart(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open contract positions
 
-        https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = None
@@ -4608,7 +4802,7 @@ class bitmart(Exchange, ImplicitAPI):
         if symbolsLength == 1:
             # only supports symbols or sending one symbol
             request['symbol'] = market['id']
-        response = self.privateGetContractPrivatePosition(self.extend(request, params))
+        response = self.privateGetContractPrivatePositionV2(self.extend(request, params))
         #
         #     {
         #         "code": 1000,
@@ -4713,14 +4907,14 @@ class bitmart(Exchange, ImplicitAPI):
         """
         retrieves the users liquidated positions
 
-        https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
 
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the bitmart api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
-        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyLiquidations() requires a symbol argument')
@@ -4814,6 +5008,7 @@ class bitmart(Exchange, ImplicitAPI):
         https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
         https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
 
         :param str id: order id
         :param str symbol: unified symbol of the market to edit an order in
@@ -4830,7 +5025,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id of the order
         :param int [params.price_type]: *swap only* 1: last price, 2: fair price, default is 1
         :param int [params.plan_category]: *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4848,6 +5043,7 @@ class bitmart(Exchange, ImplicitAPI):
         isTakeProfit = takeProfitPrice is not None
         isPresetStopLoss = presetStopLoss is not None
         isPresetTakeProfit = presetTakeProfit is not None
+        isLimitOrder = (type == 'limit')
         request: dict = {
             'symbol': market['id'],
         }
@@ -4912,8 +5108,15 @@ class bitmart(Exchange, ImplicitAPI):
             #         "trace": "a5c3234534534a836bc476a203.123452.172716624359200197"
             #     }
             #
+        elif isLimitOrder:
+            request['order_id'] = self.parse_to_int(id)  # reparse id self endpoint is the only one requiring it
+            if amount is not None:
+                request['size'] = self.amount_to_precision(symbol, amount)
+            if price is not None:
+                request['price'] = self.price_to_precision(symbol, price)
+            response = self.privatePostContractPrivateModifyLimitOrder(self.extend(request, params))
         else:
-            raise NotSupported(self.id + ' editOrder() only supports trigger, stop loss and take profit orders')
+            raise NotSupported(self.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders')
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
@@ -4928,7 +5131,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         currency = None
@@ -5036,7 +5239,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [limit]: the number of entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch funding history for
-        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets()
         market = None
@@ -5100,6 +5303,106 @@ class bitmart(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
+    def fetch_withdraw_addresses(self, code: str, note=None, networkCode=None, params={}):
+        self.load_markets()
+        codes = None
+        if code is not None:
+            currency = self.currency(code)
+            code = currency['code']
+            codes = [code]
+        response = self.privateGetAccountV1WithdrawAddressList(params)
+        #
+        #     {
+        #         "message": "OK",
+        #         "code": 1000,
+        #         "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "currency": "ETH",
+        #                     "network": "ETH",
+        #                     "address": "0x1121",
+        #                     "memo": "12",
+        #                     "remark": "12",
+        #                     "addressType": 0,
+        #                     "verifyStatus": 0
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        list = self.safe_list(data, 'list', [])
+        allAddresses = self.parse_deposit_addresses(list, codes, False)
+        addresses = []
+        for i in range(0, len(allAddresses)):
+            address = allAddresses[i]
+            noteMatch = (note is None) or (address['note'] == note)
+            networkMatch = (networkCode is None) or (address['network'] == networkCode)
+            if noteMatch and networkMatch:
+                addresses.append(address)
+        return addresses
+
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+
+        :param bool hedged: set to True to use dualSidePosition
+        :param str symbol: not used by bingx setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        self.load_markets()
+        positionMode = None
+        if hedged:
+            positionMode = 'hedge_mode'
+        else:
+            positionMode = 'one_way_mode'
+        request: dict = {
+            'position_mode': positionMode,
+        }
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        return self.privatePostContractPrivateSetPositionMode(self.extend(request, params))
+
+    def fetch_position_mode(self, symbol: Str = None, params={}):
+        """
+        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+
+        :param str symbol: not used
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an object detailing whether the market is in hedged or one-way mode
+        """
+        response = self.privateGetContractPrivateGetPositionMode(params)
+        #
+        # {
+        #     "code": 1000,
+        #     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        #     "message": "Ok",
+        #     "data": {
+        #       "position_mode":"one_way_mode"
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data')
+        positionMode = self.safe_string(data, 'position_mode')
+        return {
+            'info': response,
+            'hedged': (positionMode == 'hedge_mode'),
+        }
+
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -5151,8 +5454,9 @@ class bitmart(Exchange, ImplicitAPI):
         #
         #     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         #
-        message = self.safe_string_lower(response, 'message')
-        isErrorMessage = (message is not None) and (message != 'ok') and (message != 'success')
+        message = self.safe_string(response, 'message')
+        messageLower = message.lower()
+        isErrorMessage = (message is not None) and (messageLower != 'ok') and (messageLower != 'success')
         errorCode = self.safe_string(response, 'code')
         isErrorCode = (errorCode is not None) and (errorCode != '1000')
         if isErrorCode or isErrorMessage:

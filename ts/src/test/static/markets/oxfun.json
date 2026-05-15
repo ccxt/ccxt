@@ -1,6 +1,7 @@
 {
     "BTC/USD:OX": {
         "id": "BTC-USD-SWAP-LIN",
+        "lowercaseId": null,
         "symbol": "BTC/USD:OX",
         "base": "BTC",
         "quote": "USD",
@@ -14,6 +15,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -22,20 +24,40 @@
         "taker": 0.0007,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 1
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.0001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1704686640000,
         "info": {
             "marketCode": "BTC-USD-SWAP-LIN",
-            "name": "BTC/USD Perp",
+            "name": "BTC",
             "referencePair": "BTC/USDT",
             "base": "BTC",
             "counter": "USD",
@@ -43,11 +65,11 @@
             "tickSize": "1",
             "minSize": "0.0001",
             "listedAt": "1704686640000",
-            "upperPriceBound": "75026",
-            "lowerPriceBound": "61384",
-            "markPrice": "68205",
-            "indexPrice": "68022",
-            "lastUpdatedAt": "1717348153013"
+            "upperPriceBound": "122026",
+            "lowerPriceBound": "99838",
+            "markPrice": "110932",
+            "indexPrice": "110974",
+            "lastUpdatedAt": "1747996729613"
         },
         "tierBased": true,
         "percentage": true,
@@ -80,10 +102,12 @@
                     0.0004
                 ]
             ]
-        }
+        },
+        "numericId": null
     },
     "SOL/USD:OX": {
         "id": "SOL-USD-SWAP-LIN",
+        "lowercaseId": null,
         "symbol": "SOL/USD:OX",
         "base": "SOL",
         "quote": "USD",
@@ -97,6 +121,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -105,20 +130,40 @@
         "taker": 0.0007,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.01
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1704801780000,
         "info": {
             "marketCode": "SOL-USD-SWAP-LIN",
-            "name": "SOL/USD Perp",
+            "name": "SOL",
             "referencePair": "SOL/USDT",
             "base": "SOL",
             "counter": "USD",
@@ -127,11 +172,11 @@
             "minSize": "0.01",
             "listedAt": "1704801780000",
             "settlementAt": "2147625300000",
-            "upperPriceBound": "174.26",
-            "lowerPriceBound": "154.52",
-            "markPrice": "164.39",
-            "indexPrice": "163.82",
-            "lastUpdatedAt": "1717348162899"
+            "upperPriceBound": "204.63",
+            "lowerPriceBound": "167.41",
+            "markPrice": "186.02",
+            "indexPrice": "186.05",
+            "lastUpdatedAt": "1747996733427"
         },
         "tierBased": true,
         "percentage": true,
@@ -164,10 +209,12 @@
                     0.0004
                 ]
             ]
-        }
+        },
+        "numericId": null
     },
     "ETH/USD:OX": {
         "id": "ETH-USD-SWAP-LIN",
+        "lowercaseId": null,
         "symbol": "ETH/USD:OX",
         "base": "ETH",
         "quote": "USD",
@@ -181,6 +228,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -189,20 +237,40 @@
         "taker": 0.0007,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.1
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1704801600000,
         "info": {
             "marketCode": "ETH-USD-SWAP-LIN",
-            "name": "ETH/USD Perp",
+            "name": "ETH",
             "referencePair": "ETH/USDT",
             "base": "ETH",
             "counter": "USD",
@@ -210,11 +278,11 @@
             "tickSize": "0.1",
             "minSize": "0.001",
             "listedAt": "1704801600000",
-            "upperPriceBound": "4173.3",
-            "lowerPriceBound": "3414.5",
-            "markPrice": "3793.9",
-            "indexPrice": "3782.5",
-            "lastUpdatedAt": "1717348158904"
+            "upperPriceBound": "2928.0",
+            "lowerPriceBound": "2395.6",
+            "markPrice": "2661.8",
+            "indexPrice": "2662.4",
+            "lastUpdatedAt": "1747996733040"
         },
         "tierBased": true,
         "percentage": true,
@@ -247,10 +315,12 @@
                     0.0004
                 ]
             ]
-        }
+        },
+        "numericId": null
     },
     "ADA/USD:OX": {
         "id": "ADA-USD-SWAP-LIN",
+        "lowercaseId": null,
         "symbol": "ADA/USD:OX",
         "base": "ADA",
         "quote": "USD",
@@ -264,6 +334,7 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": true,
         "linear": true,
@@ -272,20 +343,40 @@
         "taker": 0.0007,
         "maker": 0.0002,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
+            "amount": null,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 1
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1704807000000,
         "info": {
             "marketCode": "ADA-USD-SWAP-LIN",
-            "name": "ADA/USD Perp",
+            "name": "ADA",
             "referencePair": "ADA/USDT",
             "base": "ADA",
             "counter": "USD",
@@ -293,11 +384,11 @@
             "tickSize": "0.0001",
             "minSize": "1",
             "listedAt": "1704807000000",
-            "upperPriceBound": "0.4704",
-            "lowerPriceBound": "0.4256",
-            "markPrice": "0.4480",
-            "indexPrice": "0.4480",
-            "lastUpdatedAt": "1717348143091"
+            "upperPriceBound": "0.8984",
+            "lowerPriceBound": "0.7350",
+            "markPrice": "0.8167",
+            "indexPrice": "0.8168",
+            "lastUpdatedAt": "1747996727990"
         },
         "tierBased": true,
         "percentage": true,
@@ -330,7 +421,8 @@
                     0.0004
                 ]
             ]
-        }
+        },
+        "numericId": null
     },
     "BTC/USDT": {
         "id": "BTC-USDT",

@@ -32,8 +32,14 @@ public partial class ascendex : Exchange
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
@@ -46,7 +52,10 @@ public partial class ascendex : Exchange
                 { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", true },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
                 { "fetchLeverage", "emulated" },
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
@@ -55,10 +64,14 @@ public partial class ascendex : Exchange
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchOHLCV", true },
-                { "fetchOpenInterest", false },
+                { "fetchOpenInterest", "emulated" },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -67,6 +80,7 @@ public partial class ascendex : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -78,6 +92,7 @@ public partial class ascendex : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
@@ -444,6 +459,7 @@ public partial class ascendex : Exchange
                 { "broad", new Dictionary<string, object>() {} },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "XBT" },
                 { "BOND", "BONDED" },
                 { "BTCBEAR", "BEAR" },
                 { "BTCBULL", "BULL" },
@@ -472,99 +488,85 @@ public partial class ascendex : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object assetsPromise = this.v1PublicGetAssets(parameters);
+        object response = await this.v2PublicGetAssets(parameters);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode" : "LTCBULL",
-        //                 "assetName" : "3X Long LTC Token",
-        //                 "precisionScale" : 9,
-        //                 "nativeScale" : 4,
-        //                 "withdrawalFee" : "0.2",
-        //                 "minWithdrawalAmt" : "1.0",
-        //                 "status" : "Normal"
-        //             },
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "assetCode": "USDT",
+        //                "assetName": "Tether",
+        //                "precisionScale": 9,
+        //                "nativeScale": 4,
+        //                "blockChain": [
+        //                    {
+        //                        "chainName": "Solana",
+        //                        "withdrawFee": "2.0",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": true,
+        //                        "minDepositAmt": "0.01",
+        //                        "minWithdrawal": "4.0",
+        //                        "numConfirmations": 1
+        //                    },
+        //                    ...
+        //                ]
+        //            },
         //         ]
-        //     }
+        //    }
         //
-        object marginPromise = this.v1PublicGetMarginAssets(parameters);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"BTT",
-        //                 "borrowAssetCode":"BTT-B",
-        //                 "interestAssetCode":"BTT-I",
-        //                 "nativeScale":0,
-        //                 "numConfirmations":1,
-        //                 "withdrawFee":"100.0",
-        //                 "minWithdrawalAmt":"1000.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "interestRate":"0.001"
-        //             }
-        //         ]
-        //     }
-        //
-        object cashPromise = this.v1PublicGetCashAssets(parameters);
-        //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "assetCode":"LTCBULL",
-        //                 "nativeScale":4,
-        //                 "numConfirmations":20,
-        //                 "withdrawFee":"0.2",
-        //                 "minWithdrawalAmt":"1.0",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":""
-        //             }
-        //         ]
-        //     }
-        //
-        var assetsmargincashVariable = await promiseAll(new List<object>() {assetsPromise, marginPromise, cashPromise});
-        var assets = ((IList<object>) assetsmargincashVariable)[0];
-        var margin = ((IList<object>) assetsmargincashVariable)[1];
-        var cash = ((IList<object>) assetsmargincashVariable)[2];
-        object assetsData = this.safeList(assets, "data", new List<object>() {});
-        object marginData = this.safeList(margin, "data", new List<object>() {});
-        object cashData = this.safeList(cash, "data", new List<object>() {});
-        object assetsById = this.indexBy(assetsData, "assetCode");
-        object marginById = this.indexBy(marginData, "assetCode");
-        object cashById = this.indexBy(cashData, "assetCode");
-        object dataById = this.deepExtend(assetsById, marginById, cashById);
-        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            object currency = getValue(dataById, id);
+            object currency = getValue(data, i);
+            object id = this.safeString(currency, "assetCode");
             object code = this.safeCurrencyCode(id);
-            object scale = this.safeString2(currency, "precisionScale", "nativeScale");
-            object precision = this.parseNumber(this.parsePrecision(scale));
-            object fee = this.safeNumber2(currency, "withdrawFee", "withdrawalFee");
-            object status = this.safeString2(currency, "status", "statusCode");
-            object active = (isEqual(status, "Normal"));
-            object marginInside = (inOp(currency, "borrowAssetCode"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object chains = this.safeList(currency, "blockChain", new List<object>() {});
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "nativeScale")));
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            {
+                object networkEtnry = getValue(chains, j);
+                object networkId = this.safeString(networkEtnry, "chainName");
+                object networkCode = this.networkCodeToId(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
+                    { "active", null },
+                    { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
+                    { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
+                    { "precision", precision },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "type", null },
-                { "margin", marginInside },
+                { "margin", null },
                 { "name", this.safeString(currency, "assetName") },
-                { "active", active },
+                { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
-                { "fee", fee },
+                { "fee", null },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -572,8 +574,8 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -586,6 +588,17 @@ public partial class ascendex : Exchange
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object spotPromise = this.fetchSpotMarkets(parameters);
+        object contractPromise = this.fetchContractMarkets(parameters);
+        var spotMarketscontractMarketsVariable = await promiseAll(new List<object>() {spotPromise, contractPromise});
+        var spotMarkets = ((IList<object>) spotMarketscontractMarketsVariable)[0];
+        var contractMarkets = ((IList<object>) spotMarketscontractMarketsVariable)[1];
+        return this.arrayConcat(spotMarkets, contractMarkets);
+    }
+
+    public async virtual Task<object> fetchSpotMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object productsPromise = this.v1PublicGetProducts(parameters);
@@ -639,7 +652,102 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object perpetualsPromise = this.v2PublicGetFuturesContract(parameters);
+        var productscashVariable = await promiseAll(new List<object>() {productsPromise, cashPromise});
+        var products = ((IList<object>) productscashVariable)[0];
+        var cash = ((IList<object>) productscashVariable)[1];
+        object productsData = this.safeList(products, "data", new List<object>() {});
+        object productsById = this.indexBy(productsData, "symbol");
+        object cashData = this.safeList(cash, "data", new List<object>() {});
+        object cashAndPerpetualsById = this.indexBy(cashData, "symbol");
+        object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
+        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            object id = getValue(ids, i);
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(id, "-PERP"), 0)))
+            {
+                continue;
+            }
+            object market = getValue(dataById, id);
+            object status = this.safeString(market, "status");
+            object domain = this.safeString(market, "domain");
+            object active = false;
+            if (isTrue(isTrue((isTrue((isEqual(status, "Normal"))) || isTrue((isEqual(status, "InternalTrading"))))) && isTrue((!isEqual(domain, "LeveragedETF")))))
+            {
+                active = true;
+            }
+            object minQty = this.safeNumber(market, "minQty");
+            object maxQty = this.safeNumber(market, "maxQty");
+            object minPrice = this.safeNumber(market, "tickSize");
+            object maxPrice = null;
+            object underlying = this.safeString2(market, "underlying", "symbol");
+            object parts = ((string)underlying).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+            object baseId = this.safeString(parts, 0);
+            object quoteId = this.safeString(parts, 1);
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object fee = this.safeNumber(market, "commissionReserveRate");
+            object marginTradable = this.safeBool(market, "marginTradable", false);
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "id", id },
+                { "symbol", add(add(bs, "/"), quote) },
+                { "base", bs },
+                { "baseId", baseId },
+                { "quote", quote },
+                { "quoteId", quoteId },
+                { "settle", null },
+                { "settleId", null },
+                { "type", "spot" },
+                { "spot", true },
+                { "margin", marginTradable },
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+                { "active", active },
+                { "contract", false },
+                { "linear", null },
+                { "inverse", null },
+                { "taker", fee },
+                { "maker", fee },
+                { "contractSize", null },
+                { "expiry", null },
+                { "expiryDatetime", null },
+                { "strike", null },
+                { "optionType", null },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", this.safeNumber(market, "lotSize") },
+                    { "price", this.safeNumber(market, "tickSize") },
+                } },
+                { "limits", new Dictionary<string, object>() {
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", minQty },
+                        { "max", maxQty },
+                    } },
+                    { "price", new Dictionary<string, object>() {
+                        { "min", minPrice },
+                        { "max", maxPrice },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(market, "minNotional") },
+                        { "max", this.safeNumber(market, "maxNotional") },
+                    } },
+                } },
+                { "created", this.safeInteger(market, "tradingStartTime") },
+                { "info", market },
+            });
+        }
+        return result;
+    }
+
+    public async virtual Task<object> fetchContractMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object contracts = await this.v2PublicGetFuturesContract(parameters);
         //
         //    {
         //        "code": 0,
@@ -652,9 +760,9 @@ public partial class ascendex : Exchange
         //                "underlying": "BTC/USDT",
         //                "tradingStartTime": 1579701600000,
         //                "priceFilter": {
-        //                    "minPrice": "1",
+        //                    "minPrice": "0.1",
         //                    "maxPrice": "1000000",
-        //                    "tickSize": "1"
+        //                    "tickSize": "0.1"
         //                },
         //                "lotSizeFilter": {
         //                    "minQty": "0.0001",
@@ -677,58 +785,26 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        var productscashperpetualsVariable = await promiseAll(new List<object>() {productsPromise, cashPromise, perpetualsPromise});
-        var products = ((IList<object>) productscashperpetualsVariable)[0];
-        var cash = ((IList<object>) productscashperpetualsVariable)[1];
-        var perpetuals = ((IList<object>) productscashperpetualsVariable)[2];
-        object productsData = this.safeList(products, "data", new List<object>() {});
-        object productsById = this.indexBy(productsData, "symbol");
-        object cashData = this.safeList(cash, "data", new List<object>() {});
-        object perpetualsData = this.safeList(perpetuals, "data", new List<object>() {});
-        object cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
-        object cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, "symbol");
-        object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
-        object ids = new List<object>(((IDictionary<string,object>)dataById).Keys);
+        object data = this.safeList(contracts, "data", new List<object>() {});
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            object market = getValue(dataById, id);
-            object settleId = this.safeString(market, "settlementAsset");
-            object settle = this.safeCurrencyCode(settleId);
-            object status = this.safeString(market, "status");
-            object domain = this.safeString(market, "domain");
-            object active = false;
-            if (isTrue(isTrue((isTrue((isEqual(status, "Normal"))) || isTrue((isEqual(status, "InternalTrading"))))) && isTrue((!isEqual(domain, "LeveragedETF")))))
-            {
-                active = true;
-            }
-            object spot = isEqual(settle, null);
-            object swap = !isTrue(spot);
-            object linear = ((bool) isTrue(swap)) ? true : null;
-            object minQty = this.safeNumber(market, "minQty");
-            object maxQty = this.safeNumber(market, "maxQty");
-            object minPrice = this.safeNumber(market, "tickSize");
-            object maxPrice = null;
-            object underlying = this.safeString2(market, "underlying", "symbol");
+            object market = getValue(data, i);
+            object id = this.safeString(market, "symbol");
+            object underlying = this.safeString(market, "underlying");
             object parts = ((string)underlying).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             object baseId = this.safeString(parts, 0);
-            object quoteId = this.safeString(parts, 1);
             object bs = this.safeCurrencyCode(baseId);
+            object quoteId = this.safeString(parts, 1);
             object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
-            if (isTrue(swap))
-            {
-                object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
-                minQty = this.safeNumber(lotSizeFilter, "minQty");
-                maxQty = this.safeNumber(lotSizeFilter, "maxQty");
-                object priceFilter = this.safeDict(market, "priceFilter");
-                minPrice = this.safeNumber(priceFilter, "minPrice");
-                maxPrice = this.safeNumber(priceFilter, "maxPrice");
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-            }
+            object settleId = this.safeString(market, "settlementAsset");
+            object settle = this.safeCurrencyCode(settleId);
+            object linear = isEqual(settle, quote);
+            object inverse = isEqual(settle, bs);
+            object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            object priceFilter = this.safeDict(market, "priceFilter");
+            object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
             object fee = this.safeNumber(market, "commissionReserveRate");
-            object marginTradable = this.safeBool(market, "marginTradable", false);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -738,26 +814,26 @@ public partial class ascendex : Exchange
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
-                { "type", ((bool) isTrue(swap)) ? "swap" : "spot" },
-                { "spot", spot },
-                { "margin", ((bool) isTrue(spot)) ? marginTradable : null },
-                { "swap", swap },
+                { "type", "swap" },
+                { "spot", false },
+                { "margin", null },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
-                { "active", active },
-                { "contract", swap },
+                { "active", isEqual(this.safeString(market, "status"), "Normal") },
+                { "contract", true },
                 { "linear", linear },
-                { "inverse", ((bool) isTrue(swap)) ? !isTrue(linear) : null },
+                { "inverse", inverse },
                 { "taker", fee },
                 { "maker", fee },
-                { "contractSize", ((bool) isTrue(swap)) ? this.parseNumber("1") : null },
+                { "contractSize", this.parseNumber("1") },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeNumber(market, "lotSize") },
-                    { "price", this.safeNumber(market, "tickSize") },
+                    { "amount", this.safeNumber(lotSizeFilter, "lotSize") },
+                    { "price", this.safeNumber(priceFilter, "tickSize") },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -765,12 +841,12 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", minQty },
-                        { "max", maxQty },
+                        { "min", this.safeNumber(lotSizeFilter, "minQty") },
+                        { "max", this.safeNumber(lotSizeFilter, "maxQty") },
                     } },
                     { "price", new Dictionary<string, object>() {
-                        { "min", minPrice },
-                        { "max", maxPrice },
+                        { "min", this.safeNumber(priceFilter, "minPrice") },
+                        { "max", this.safeNumber(priceFilter, "maxPrice") },
                     } },
                     { "cost", new Dictionary<string, object>() {
                         { "min", this.safeNumber(market, "minNotional") },
@@ -817,7 +893,7 @@ public partial class ascendex : Exchange
      * @name ascendex#fetchAccounts
      * @description fetch all the accounts associated with a profile
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -928,7 +1004,7 @@ public partial class ascendex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
      * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1035,7 +1111,7 @@ public partial class ascendex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1131,7 +1207,7 @@ public partial class ascendex : Exchange
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -1170,7 +1246,7 @@ public partial class ascendex : Exchange
      * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1374,7 +1450,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1434,6 +1510,8 @@ public partial class ascendex : Exchange
         //         "timestamp": 1573576916201
         //     }
         //
+        //  & linear (fetchClosedOrders)
+        //
         //     {
         //         "ac": "FUTURES",
         //         "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
@@ -1441,7 +1519,7 @@ public partial class ascendex : Exchange
         //         "orderId": "a17e0874ecbdU0711043490bbtcpDU5X",
         //         "seqNum": -1,
         //         "orderType": "Limit",
-        //         "execInst": "NULL_VAL",
+        //         "execInst": "NULL_VAL", // NULL_VAL, ReduceOnly , ...
         //         "side": "Buy",
         //         "symbol": "BTC-PERP",
         //         "price": "30000",
@@ -1530,7 +1608,7 @@ public partial class ascendex : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object marketId = this.safeString(order, "symbol");
         object symbol = this.safeSymbol(marketId, market, "/");
-        object timestamp = this.safeInteger2(order, "timestamp", "sendingTime");
+        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "sendingTime", "time"});
         object lastTradeTimestamp = this.safeInteger(order, "lastExecTime");
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -1538,7 +1616,7 @@ public partial class ascendex : Exchange
         }
         object price = this.safeString(order, "price");
         object amount = this.safeString(order, "orderQty");
-        object average = this.safeString(order, "avgPx");
+        object average = this.safeString2(order, "avgPx", "avgFilledPx");
         object filled = this.safeStringN(order, new List<object>() {"cumFilledQty", "cumQty", "fillQty"});
         object id = this.safeString(order, "orderId");
         object clientOrderId = this.safeString(order, "id");
@@ -1576,13 +1654,13 @@ public partial class ascendex : Exchange
         }
         object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
-        object execInst = this.safeString(order, "execInst");
-        if (isTrue(isEqual(execInst, "reduceOnly")))
+        object execInst = this.safeStringLower(order, "execInst");
+        if (isTrue(isEqual(execInst, "reduceonly")))
         {
             reduceOnly = true;
         }
         object postOnly = null;
-        if (isTrue(isEqual(execInst, "Post")))
+        if (isTrue(isEqual(execInst, "post")))
         {
             postOnly = true;
         }
@@ -1617,7 +1695,7 @@ public partial class ascendex : Exchange
      * @name ascendex#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -1635,7 +1713,7 @@ public partial class ascendex : Exchange
         //         "code": "0",
         //         "data": {
         //           "domain": "spot",
-        //           "userUID": "U1479576458",
+        //           "userUID": "U1479576457",
         //           "vipLevel": "0",
         //           "fees": [
         //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: "0.001" } },
@@ -1791,7 +1869,7 @@ public partial class ascendex : Exchange
      * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
-     * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1887,7 +1965,7 @@ public partial class ascendex : Exchange
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
      * @param {bool} [params.postOnly] true or false
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -1991,7 +2069,7 @@ public partial class ascendex : Exchange
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2108,7 +2186,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2153,7 +2231,7 @@ public partial class ascendex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "avgPx": "0",         // Average filled price of the order
+        //                 "avgPx": "0",        // Average filled price of the order
         //                 "cumFee": "0",       // cumulative fee paid for this order
         //                 "cumFilledQty": "0", // cumulative filled quantity
         //                 "errorCode": "",     // error code; could be empty
@@ -2237,7 +2315,7 @@ public partial class ascendex : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2397,8 +2475,7 @@ public partial class ascendex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        if (!isTrue(isArray))
+        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             data = this.safeList(data, "data", new List<object>() {});
         }
@@ -2414,7 +2491,7 @@ public partial class ascendex : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -2537,7 +2614,7 @@ public partial class ascendex : Exchange
      * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
+     * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/?id=order-structure} with the response assigned to the info property
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -2611,9 +2688,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2655,7 +2732,7 @@ public partial class ascendex : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code for deposit chain
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -2736,7 +2813,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2755,7 +2832,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2774,7 +2851,7 @@ public partial class ascendex : Exchange
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2900,7 +2977,7 @@ public partial class ascendex : Exchange
      * @description fetch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -3078,7 +3155,7 @@ public partial class ascendex : Exchange
      * @description fetch the funding rate for multiple markets
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -3179,7 +3256,7 @@ public partial class ascendex : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -3194,7 +3271,7 @@ public partial class ascendex : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
@@ -3289,7 +3366,7 @@ public partial class ascendex : Exchange
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
@@ -3447,7 +3524,7 @@ public partial class ascendex : Exchange
      * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -3467,7 +3544,7 @@ public partial class ascendex : Exchange
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -3547,7 +3624,7 @@ public partial class ascendex : Exchange
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3631,7 +3708,7 @@ public partial class ascendex : Exchange
      * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     public async override Task<object> fetchMarginModes(object symbols = null, object parameters = null)
     {
@@ -3707,7 +3784,7 @@ public partial class ascendex : Exchange
      * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {
@@ -3762,6 +3839,82 @@ public partial class ascendex : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object leverages = this.safeList(data, "contracts", new List<object>() {});
         return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    /**
+     * @method
+     * @name ascendex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            contracts: [
+        //                {
+        //                    time: '1772138885616',
+        //                    symbol: 'ZIL-PERP',
+        //                    markPrice: '0.004167783',
+        //                    indexPrice: '0.004168',
+        //                    lastPrice: '0.00416',
+        //                    openInterest: '7685003',
+        //                    fundingRate: '0.0003',
+        //                    nextFundingTime: '1772139600000'
+        //                },
+        //            ]
+        //            collaterals: [
+        //                { asset: 'TAO', referencePrice: '182.15' },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        symbols = this.marketSymbols(symbols);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object contracts = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseOpenInterests(contracts, symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        // fetchOpenInterests
+        //
+        //    {
+        //        time: '1772138885616',
+        //        symbol: 'ZIL-PERP',
+        //        markPrice: '0.004167783',
+        //        indexPrice: '0.004168',
+        //        lastPrice: '0.00416',
+        //        openInterest: '7685003',
+        //        fundingRate: '0.0003',
+        //        nextFundingTime: '1772139600000'
+        //    }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        object timestamp = this.safeInteger(interest, "time");
+        object openInterest = this.safeNumber(interest, "openInterest");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "baseVolume", openInterest },
+            { "quoteVolume", null },
+            { "openInterestAmount", openInterest },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        }, market);
     }
 
     public override object parseLeverage(object leverage, object market = null)

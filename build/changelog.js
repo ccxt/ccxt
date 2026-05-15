@@ -53,8 +53,9 @@ async function getAllPRs() {
 // fetchAndWriteFullChangelog fetches and writes the full changelog
 async function fetchAndWriteFullChangelog() {
     try {
-        const tags = await getAllTags();
-        let changelog = '# Changelog\n\n';
+        let tags = await getAllTags();
+        // filter out go tags
+        tags = tags.filter(tag => !tag.name.includes('go'));
         const changelogContent = await generateChangelog(tags.map (tag => tag.name));
         await fs.writeFile('CHANGELOG.md', changelogContent);
         console.log('Changelog created successfully.');
@@ -106,9 +107,9 @@ async function generateChangelog(tags) {
         const currentTag = tags[i];
         const nextTag = tags[i + 1];
 
-        changelog += `## ${nextTag.name}\n\n`;
+        changelog += `## ${nextTag}\n\n`;
 
-        const commitsBetweenTags = await getCommitsBetweenTags(currentTag.name, nextTag.name);
+        const commitsBetweenTags = await getCommitsBetweenTags(currentTag, nextTag);
 
         commitsBetweenTags.forEach(commit => {
             const pr = prs.find(pr => pr.merge_commit_sha === commit);
@@ -147,6 +148,6 @@ function runCommand(command) {
     });
   }
 
-// fetchAndWriteFullChangelog(); Uncomment and run if you wish to get full Changelog.md
+// fetchAndWriteFullChangelog(); //Uncomment and run if you wish to get full Changelog.md
 // ----------------------------------------------------------------------------
 updateChangelogSinceLastTag();

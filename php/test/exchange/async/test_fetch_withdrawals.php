@@ -10,12 +10,11 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_deposit_withdrawal.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_withdrawals($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchWithdrawals';
-        $transactions = Async\await($exchange->fetch_withdrawals($code));
+        $transactions = \React\Async\await($exchange->fetch_withdrawals($code));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $transactions, $code);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($transactions); $i++) {

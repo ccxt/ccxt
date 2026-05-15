@@ -22,52 +22,91 @@ public partial class luno : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
+                { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", true },
+                { "fetchDepositAddress", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", true },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionForSymbolWs", false },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
                 { "fetchPositionsForSymbol", false },
+                { "fetchPositionsForSymbolWs", false },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
             } },
@@ -109,6 +148,7 @@ public partial class luno : Exchange
                         { "accounts/{id}/transactions", 1 },
                         { "balance", 1 },
                         { "beneficiaries", 1 },
+                        { "send/networks", 1 },
                         { "fee_info", 1 },
                         { "funding_address", 1 },
                         { "listorders", 1 },
@@ -164,6 +204,9 @@ public partial class luno : Exchange
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", false },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "triggerPrice", true },
@@ -239,7 +282,105 @@ public partial class luno : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
+    }
+
+    /**
+     * @method
+     * @name luno#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
+    public async override Task<object> fetchCurrencies(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(this.checkRequiredCredentials(false)))
+        {
+            return new Dictionary<string, object>() {};
+        }
+        object response = await this.privateGetSendNetworks(parameters);
+        //
+        //     {
+        //         "networks": [
+        //           {
+        //             "id": 0,
+        //             "name": "Ethereum",
+        //             "native_currency": "ETH"
+        //           },
+        //           ...
+        //         ]
+        //     }
+        //
+        object currenciesData = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        {
+            object networkEntry = getValue(currenciesData, i);
+            object id = this.safeString(networkEntry, "native_currency");
+            object code = this.safeCurrencyCode(id);
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "code", code },
+                    { "precision", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", new Dictionary<string, object>() {} },
+                };
+            }
+            object networkId = this.safeString(networkEntry, "name");
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
+                { "precision", null },
+                { "info", networkEntry },
+            };
+            // add entry in info
+            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
+            ((IList<object>)info).Add(networkEntry);
+            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(allKeys, i);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
+        }
+        return result;
     }
 
     /**
@@ -343,7 +484,7 @@ public partial class luno : Exchange
      * @description fetch all the accounts associated with a profile
      * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -406,7 +547,7 @@ public partial class luno : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.luno.com/en/developers/api#tag/Accounts/operation/getBalances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -435,7 +576,7 @@ public partial class luno : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -552,7 +693,7 @@ public partial class luno : Exchange
      * @param {string} id order id
      * @param {string} symbol not used by luno fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -594,7 +735,7 @@ public partial class luno : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -611,7 +752,7 @@ public partial class luno : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -628,7 +769,7 @@ public partial class luno : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -682,7 +823,7 @@ public partial class luno : Exchange
      * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -711,7 +852,7 @@ public partial class luno : Exchange
      * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTicker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -845,7 +986,7 @@ public partial class luno : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -950,7 +1091,7 @@ public partial class luno : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1005,7 +1146,7 @@ public partial class luno : Exchange
      * @see https://www.luno.com/en/developers/api#tag/Orders/operation/getFeeInfo
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -1045,7 +1186,7 @@ public partial class luno : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1089,7 +1230,7 @@ public partial class luno : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1138,7 +1279,7 @@ public partial class luno : Exchange
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1289,6 +1430,124 @@ public partial class luno : Exchange
             { "status", status },
             { "fee", null },
         }, currency);
+    }
+
+    /**
+     * @method
+     * @name luno#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] an optional name for the new address
+     * @param {int} [params.account_id] an optional account id for the new address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "asset", getValue(currency, "id") },
+        };
+        object response = await this.privatePostFundingAddress(this.extend(request, parameters));
+        //
+        //     {
+        //         "account_id": "string",
+        //         "address": "string",
+        //         "address_meta": [
+        //             {
+        //                 "label": "string",
+        //                 "value": "string"
+        //             }
+        //         ],
+        //         "asset": "string",
+        //         "assigned_at": 0,
+        //         "name": "string",
+        //         "network": 0,
+        //         "qr_code_uri": "string",
+        //         "receive_fee": "string",
+        //         "total_received": "string",
+        //         "total_unconfirmed": "string"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+
+    /**
+     * @method
+     * @name luno#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.address] a specific cryptocurrency address to retrieve
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "asset", getValue(currency, "id") },
+        };
+        object response = await this.privateGetFundingAddress(this.extend(request, parameters));
+        //
+        //     {
+        //         "account_id": "string",
+        //         "address": "string",
+        //         "address_meta": [
+        //             {
+        //                 "label": "string",
+        //                 "value": "string"
+        //             }
+        //         ],
+        //         "asset": "string",
+        //         "assigned_at": 0,
+        //         "name": "string",
+        //         "network": 0,
+        //         "qr_code_uri": "string",
+        //         "receive_fee": "string",
+        //         "total_received": "string",
+        //         "total_unconfirmed": "string"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //     {
+        //         "account_id": "string",
+        //         "address": "string",
+        //         "address_meta": [
+        //             {
+        //                 "label": "string",
+        //                 "value": "string"
+        //             }
+        //         ],
+        //         "asset": "string",
+        //         "assigned_at": 0,
+        //         "name": "string",
+        //         "network": 0,
+        //         "qr_code_uri": "string",
+        //         "receive_fee": "string",
+        //         "total_received": "string",
+        //         "total_unconfirmed": "string"
+        //     }
+        //
+        object currencyId = this.safeStringUpper(depositAddress, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", code },
+            { "network", null },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", this.safeString(depositAddress, "name") },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

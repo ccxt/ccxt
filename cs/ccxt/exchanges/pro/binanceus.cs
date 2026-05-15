@@ -38,11 +38,32 @@ public partial class binanceus : binance
                 { "doc", "https://github.com/binance-us/binance-official-api-docs" },
                 { "fees", "https://www.binance.us/en/fee/schedule" },
             } },
+            { "has", new Dictionary<string, object>() {
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createReduceOnlyOrderWs", false },
+                { "createStopLossOrderWs", false },
+                { "createTakeProfitOrderWs", false },
+                { "fetchPositionForSymbolWs", false },
+                { "fetchPositionsForSymbolWs", false },
+                { "fetchPositionsWs", false },
+                { "fetchPositionWs", false },
+                { "unWatchPositions", false },
+                { "watchLiquidations", false },
+                { "watchLiquidationsForSymbols", false },
+                { "watchMarkPrice", false },
+                { "watchMarkPrices", false },
+                { "watchMyLiquidations", false },
+                { "watchMyLiquidationsForSymbols", false },
+                { "watchPosition", false },
+                { "watchPositions", false },
+            } },
             { "options", new Dictionary<string, object>() {
                 { "fetchCurrencies", false },
                 { "quoteOrderQty", false },
                 { "defaultType", "spot" },
-                { "fetchMarkets", new List<object>() {"spot"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot"} },
+                } },
             } },
         });
     }

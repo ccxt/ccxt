@@ -2,6 +2,441 @@
     "exchange": "hashkey",
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "timezone": "UTC",
+                    "serverTime": "1747852481686",
+                    "brokerFilters": [],
+                    "symbols": [],
+                    "coins": [
+                        {
+                            "orgId": "9001",
+                            "coinId": "USDT",
+                            "coinName": "USDT",
+                            "coinFullName": "Tether",
+                            "allowWithdraw": true,
+                            "allowDeposit": true,
+                            "status": "1",
+                            "tokenType": "ERC20_TOKEN",
+                            "chainTypes": [
+                                {
+                                    "chainType": "ETH",
+                                    "withdrawFee": "8",
+                                    "minWithdrawQuantity": "25",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "TRC20",
+                                    "withdrawFee": "1",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "Arbitrum",
+                                    "withdrawFee": "0.3",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "BSC(BEP20)",
+                                    "withdrawFee": "0",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "TON",
+                                    "withdrawFee": "1",
+                                    "minWithdrawQuantity": "0.5",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false
+                                },
+                                {
+                                    "chainType": "Solana",
+                                    "withdrawFee": "2",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "Scroll",
+                                    "withdrawFee": "0",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false
+                                },
+                                {
+                                    "chainType": "HashKey",
+                                    "withdrawFee": "0.2",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            ]
+                        }
+                    ],
+                    "site": "BMU"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "orgId": "9001",
+                            "coinId": "USDT",
+                            "coinName": "USDT",
+                            "coinFullName": "Tether",
+                            "allowWithdraw": true,
+                            "allowDeposit": true,
+                            "status": "1",
+                            "tokenType": "ERC20_TOKEN",
+                            "chainTypes": [
+                                {
+                                    "chainType": "ETH",
+                                    "withdrawFee": "8",
+                                    "minWithdrawQuantity": "25",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "TRC20",
+                                    "withdrawFee": "1",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "Arbitrum",
+                                    "withdrawFee": "0.3",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "BSC(BEP20)",
+                                    "withdrawFee": "0",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "TON",
+                                    "withdrawFee": "1",
+                                    "minWithdrawQuantity": "0.5",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false
+                                },
+                                {
+                                    "chainType": "Solana",
+                                    "withdrawFee": "2",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                },
+                                {
+                                    "chainType": "Scroll",
+                                    "withdrawFee": "0",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false
+                                },
+                                {
+                                    "chainType": "HashKey",
+                                    "withdrawFee": "0.2",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {
+                            "ETH": {
+                                "id": "ETH",
+                                "network": "ETH",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 25,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 8,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "ETH",
+                                    "withdrawFee": "8",
+                                    "minWithdrawQuantity": "25",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            },
+                            "Tron": {
+                                "id": "TRC20",
+                                "network": "Tron",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "TRC20",
+                                    "withdrawFee": "1",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            },
+                            "Arbitrum": {
+                                "id": "Arbitrum",
+                                "network": "Arbitrum",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.3,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "Arbitrum",
+                                    "withdrawFee": "0.3",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            },
+                            "BSC(BEP20)": {
+                                "id": "BSC(BEP20)",
+                                "network": "BSC(BEP20)",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "BSC(BEP20)",
+                                    "withdrawFee": "0",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            },
+                            "TON": {
+                                "id": "TON",
+                                "network": "TON",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.5,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 1,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "TON",
+                                    "withdrawFee": "1",
+                                    "minWithdrawQuantity": "0.5",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false
+                                }
+                            },
+                            "Solana": {
+                                "id": "Solana",
+                                "network": "Solana",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 2,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "Solana",
+                                    "withdrawFee": "2",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            },
+                            "Scroll": {
+                                "id": "Scroll",
+                                "network": "Scroll",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 0,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "Scroll",
+                                    "withdrawFee": "0",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": false,
+                                    "allowWithdraw": false
+                                }
+                            },
+                            "HashKey": {
+                                "id": "HashKey",
+                                "network": "HashKey",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.2,
+                                "precision": null,
+                                "info": {
+                                    "chainType": "HashKey",
+                                    "withdrawFee": "0.2",
+                                    "minWithdrawQuantity": "1",
+                                    "maxWithdrawQuantity": "0",
+                                    "minDepositQuantity": "1",
+                                    "allowDeposit": true,
+                                    "allowWithdraw": true
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.5,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchStatus": [
             {
                 "description": "fetchstatus",

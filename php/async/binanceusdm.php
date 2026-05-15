@@ -33,10 +33,13 @@ class binanceusdm extends binance {
                 'createStopMarketOrder' => true,
             ),
             'options' => array(
-                'fetchMarkets' => array( 'linear' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'linear' ),
+                ),
+                'defaultType' => 'swap',
                 'defaultSubType' => 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
-                // tier amount, maintenance margin, initial margin
+                // tier amount, maintenance margin, initial margin,
                 'leverageBrackets' => null,
                 'marginTypes' => array(),
                 'marginModes' => array(),

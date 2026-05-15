@@ -7,578 +7,238 @@
 
 package ccxt
 
-func (this *paradex) PublicGetBboMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBboMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetBboMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetBboMarket", args...)
 }
 
-func (this *paradex) PublicGetFundingData (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFundingData", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetFundingData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFundingData", args...)
 }
 
-func (this *paradex) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *paradex) PublicGetMarketsKlines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketsKlines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetMarketsKlines(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsKlines", args...)
 }
 
-func (this *paradex) PublicGetMarketsSummary (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketsSummary", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetMarketsSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketsSummary", args...)
 }
 
-func (this *paradex) PublicGetOrderbookMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbookMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetOrderbookMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbookMarket", args...)
 }
 
-func (this *paradex) PublicGetInsurance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInsurance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetInsurance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInsurance", args...)
 }
 
-func (this *paradex) PublicGetReferralsConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetReferralsConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetReferralsConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReferralsConfig", args...)
 }
 
-func (this *paradex) PublicGetSystemConfig (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSystemConfig", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetSystemConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemConfig", args...)
 }
 
-func (this *paradex) PublicGetSystemState (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSystemState", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetSystemState(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemState", args...)
 }
 
-func (this *paradex) PublicGetSystemTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSystemTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetSystemTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemTime", args...)
 }
 
-func (this *paradex) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *paradex) PrivateGetAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaults(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaults", args...)
 }
 
-func (this *paradex) PrivateGetAccountProfile (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountProfile", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaultsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsBalance", args...)
 }
 
-func (this *paradex) PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaultsConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsConfig", args...)
 }
 
-func (this *paradex) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaultsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsHistory", args...)
 }
 
-func (this *paradex) PrivateGetFundingPayments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFundingPayments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaultsPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsPositions", args...)
 }
 
-func (this *paradex) PrivateGetPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaultsSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsSummary", args...)
 }
 
-func (this *paradex) PrivateGetTradebusts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradebusts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PublicGetVaultsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaultsTransfers", args...)
 }
 
-func (this *paradex) PrivateGetTransactions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTransactions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *paradex) PrivateGetLiquidations (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetLiquidations", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountInfo", args...)
 }
 
-func (this *paradex) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetAccountHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountHistory", args...)
 }
 
-func (this *paradex) PrivateGetOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetAccountMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountMargin", args...)
 }
 
-func (this *paradex) PrivateGetOrdersByClientIdClientId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersByClientIdClientId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetAccountProfile(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountProfile", args...)
 }
 
-func (this *paradex) PrivateGetOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetAccountSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountSubaccounts", args...)
 }
 
-func (this *paradex) PrivateGetPointsDataMarketProgram (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPointsDataMarketProgram", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *paradex) PrivateGetReferralsSummary (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetReferralsSummary", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *paradex) PrivateGetTransfers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTransfers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetFundingPayments(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFundingPayments", args...)
 }
 
-func (this *paradex) PrivatePostAccountProfileReferralCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountProfileReferralCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPositions", args...)
 }
 
-func (this *paradex) PrivatePostAccountProfileUsername (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountProfileUsername", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetTradebusts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradebusts", args...)
 }
 
-func (this *paradex) PrivatePostAuth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAuth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTransactions", args...)
 }
 
-func (this *paradex) PrivatePostOnboarding (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOnboarding", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetLiquidations(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLiquidations", args...)
 }
 
-func (this *paradex) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *paradex) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersHistory", args...)
 }
 
-func (this *paradex) PrivateDeleteOrdersByClientIdClientId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersByClientIdClientId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetOrdersByClientIdClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersByClientIdClientId", args...)
 }
 
-func (this *paradex) PrivateDeleteOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ParadexCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
+}
+
+func (this *ParadexCore) PrivateGetPointsDataMarketProgram(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPointsDataMarketProgram", args...)
+}
+
+func (this *ParadexCore) PrivateGetReferralsQrCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetReferralsQrCode", args...)
+}
+
+func (this *ParadexCore) PrivateGetReferralsSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetReferralsSummary", args...)
+}
+
+func (this *ParadexCore) PrivateGetTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTransfers", args...)
+}
+
+func (this *ParadexCore) PrivateGetAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAlgoOrders", args...)
+}
+
+func (this *ParadexCore) PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAlgoOrdersHistory", args...)
+}
+
+func (this *ParadexCore) PrivateGetAlgoOrdersAlgoId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...)
+}
+
+func (this *ParadexCore) PrivateGetVaultsAccountSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetVaultsAccountSummary", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountMarginMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountMarginMarket", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountProfileMaxSlippage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileMaxSlippage", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountProfileReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileReferralCode", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountProfileUsername(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileUsername", args...)
+}
+
+func (this *ParadexCore) PrivatePostAuth(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuth", args...)
+}
+
+func (this *ParadexCore) PrivatePostOnboarding(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOnboarding", args...)
+}
+
+func (this *ParadexCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
+}
+
+func (this *ParadexCore) PrivatePostOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersBatch", args...)
+}
+
+func (this *ParadexCore) PrivatePostAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAlgoOrders", args...)
+}
+
+func (this *ParadexCore) PrivatePostVaults(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostVaults", args...)
+}
+
+func (this *ParadexCore) PrivatePutOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrdersOrderId", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteOrdersByClientIdClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersByClientIdClientId", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteAlgoOrdersAlgoId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAlgoOrdersAlgoId", args...)
 }

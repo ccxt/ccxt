@@ -3,6 +3,26 @@
     "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
+        "fetchPositionMode": [
+            {
+                "description": "fetchPositionMode",
+                "method": "fetchPositionMode",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/get-position-mode",
+                "input": [],
+                "output": null
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set position mode hedged",
+                "method": "setPositionMode",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/set-position-mode",
+                "input": [
+                    true
+                ],
+                "output": "{\"position_mode\":\"hedge_mode\"}"
+            }
+        ],
         "fetchTransactionFee": [
             {
                 "description": "trx tx fee",
@@ -248,22 +268,22 @@
             {
                 "description": "Swap trailing order",
                 "method": "createOrder",
-                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-trail-order",
                 "input": [
-                    "BTC/USDT:USDT",
+                    "ETH/USDT:USDT",
                     "market",
                     "sell",
                     1,
                     null,
                     {
-                        "leverage": "10",
+                        "leverage": 2,
                         "marginMode": "isolated",
-                        "trailingPercent": "10",
-                        "trailingTriggerPrice": "50000",
+                        "trailingTriggerPrice": 2700,
+                        "trailingPercent": 3,
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"market\",\"size\":1,\"activation_price\":\"50000\",\"activation_price_type\":1,\"callback_rate\":\"10\",\"side\":3,\"open_type\":\"isolated\",\"leverage\":\"10\"}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"size\":1,\"callback_rate\":\"3\",\"activation_price\":\"2700\",\"activation_price_type\":1,\"open_type\":\"isolated\",\"side\":3,\"leverage\":\"2\"}"
             },
             {
                 "description": "Swap stop limit buy order using the triggerPrice param (type 1)",
@@ -344,6 +364,22 @@
                   }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"take_profit\",\"size\":1,\"price_type\":1,\"executive_price\":\"70000\",\"trigger_price\":\"71000\",\"side\":3}"
+            },
+            {
+                "description": "spot trigger create order",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v4/algo/submit_order",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    55000,
+                    {
+                        "triggerPrice": "56000"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"side\":\"buy\",\"type\":\"trigger\",\"trigger_type\":\"limit\",\"trigger_price\":\"56000\",\"size\":\"0.0001\",\"price\":\"55000\",\"triggerPrice\":\"56000\"}"
             }
         ],
         "createOrders": [
@@ -450,6 +486,20 @@
                         "trigger": true
                     }
                 ]
+            },
+            {
+                "description": "spot trigger fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/query/algo/open-orders",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"orderMode\":\"trigger\"}"
             }
         ],
         "fetchOrder": [
@@ -473,6 +523,19 @@
                         "orderType": "trailing"
                     }
                 ]
+            },
+            {
+                "description": "spot trigger fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v4/query/algo/order",
+                "input": [
+                    "1538407746150621696",
+                    "BTC/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"orderId\":\"1538407746150621696\"}"
             }
         ],
         "fetchClosedOrders": [
@@ -494,6 +557,20 @@
                     null,
                     1
                 ]
+            },
+            {
+                "description": "spot trigger fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/query/algo/history-orders",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"orderMode\":\"trigger\"}"
             }
         ],
         "cancelOrder": [
@@ -529,6 +606,32 @@
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"2312213461000000\"}"
+            },
+            {
+                "description": "Swap cancel trailing order",
+                "method": "cancelOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/cancel-trail-order",
+                "input": [
+                    3000080071007939,
+                    "ETH/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ETHUSDT\",\"order_id\":\"3000080071007939\"}"
+            },
+            {
+                "description": "spot trigger cancel order",
+                "method": "cancelOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v4/algo/cancel_order",
+                "input": [
+                    "1538407746150621696",
+                    "BTC/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"order_id\":\"1538407746150621696\",\"type\":\"trigger\"}"
             }
         ],
         "cancelOrders": [
@@ -562,6 +665,18 @@
                 "url": "https://api-cloud.bitmart.com/spot/v4/cancel_all",
                 "input": [],
                 "output": "{}"
+            },
+            {
+                "description": "spot trigger cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api-cloud.bitmart.com/spot/v4/algo/cancel_all",
+                "input": [
+                    "BTC/USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTC_USDT\",\"type\":\"trigger\"}"
             }
         ],
         "fetchBalance": [
@@ -610,7 +725,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api-cloud-v2.bitmart.com/contract/private/position?symbol=LTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/position-v2?symbol=LTCUSDT",
                 "input": [
                     [
                         "LTC/USDT:USDT"
@@ -622,15 +737,28 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
+                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&N=1000",
                 "input": []
             },
             {
                 "description": "Fetch deposits for USDT",
                 "method": "fetchDeposits",
-                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50&currency=USDT",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&N=1000&currency=USDT",
                 "input": [
                     "USDT"
+                ]
+            },
+            {
+                "description": "Fetch deposits for USDT with since and until",
+                "method": "fetchDeposits",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&N=1000&currency=USDT&startTime=1662552257155&endTime=1670328257154",
+                "input": [
+                    "USDT",
+                    1662552257155,
+                    null,
+                    {
+                        "until": 1670328257154
+                    }
                 ]
             }
         ],
@@ -638,7 +766,7 @@
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&offset=1&N=50",
+                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&N=1000",
                 "input": []
             }
         ],
@@ -752,6 +880,16 @@
                 ]
             }
         ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetch mark ohlcv",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/markprice-kline?symbol=ETHUSDT&step=1&start_time=1740288630&end_time=1740318630",
+                "input": [
+                  "ETH/USDT:USDT"
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fundingRate",
@@ -763,6 +901,20 @@
             }
         ],
         "editOrder": [
+            {
+                "description": "edit swap limit order",
+                "method": "editOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/modify-limit-order",
+                "input": [
+                    "3000013590000612",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    null,
+                    56
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"order_id\":3000013590000612,\"price\":\"56\"}"
+            },
             {
                 "description": "edit a stopLossPrice order",
                 "method": "editOrder",

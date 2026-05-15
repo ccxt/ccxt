@@ -11,6 +11,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#candles"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-kline-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -57,6 +58,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-all-product-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,6 +72,16 @@ public partial class poloniex
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSpotMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
@@ -97,6 +109,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-market-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -106,7 +119,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -117,6 +130,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-market-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -126,7 +140,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -137,6 +151,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#trades"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-execution-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -158,7 +173,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -171,6 +186,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/trade#trade-history"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/get-execution-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -204,7 +220,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -218,6 +234,7 @@ public partial class poloniex
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#open-orders"/>  <br/>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/get-current-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -245,12 +262,52 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple closed orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/get-order-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest entry
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
@@ -286,7 +343,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -326,7 +383,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -353,6 +410,7 @@ public partial class poloniex
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders"/>  <br/>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -368,7 +426,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
@@ -395,7 +453,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -432,7 +490,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -445,6 +503,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/private/account#all-account-balances"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/account/balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -454,7 +513,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -474,7 +533,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -485,6 +544,7 @@ public partial class poloniex
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#order-book"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/market/get-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -500,7 +560,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -521,11 +581,11 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -541,7 +601,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
@@ -561,7 +621,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
@@ -581,8 +641,8 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -626,7 +686,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -660,7 +720,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -682,7 +742,7 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
@@ -714,12 +774,124 @@ public partial class poloniex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// set the level of leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/set-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setLeverage(leverage, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
+    }
+    /// <summary>
+    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an object detailing whether the market is in hedged or one-way mode.</returns>
+    public async Task<Dictionary<string, object>> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionMode(symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// set hedged to true or false for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setPositionMode(hedged, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/get-current-position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.standard</term>
+    /// <description>
+    /// boolean : whether to fetch standard contract positions
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
 }

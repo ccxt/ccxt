@@ -12,6 +12,23 @@ async function testFetchMarkets (exchange: Exchange, skippedProperties: object) 
     for (let i = 0; i < marketValues.length; i++) {
         testMarket (exchange, skippedProperties, method, marketValues[i]);
     }
+    detectMarketConflicts (exchange, markets);
+    return true;
+}
+
+function detectMarketConflicts (exchange: Exchange, marketValues: any[]) {
+    // detect if there are markets with different ids for the same symbol
+    const ids = {};
+    for (let i = 0; i < marketValues.length; i++) {
+        const market = marketValues[i];
+        const symbol = market['symbol'];
+        if (!(symbol in ids)) {
+            ids[symbol] = market['id'];
+        } else {
+            const isDifferent = ids[symbol] !== market['id'];
+            assert (!isDifferent, exchange.id + ' fetchMarkets() has different ids for the same symbol: ' + symbol + ' ' + ids[symbol] + ' ' + market['id']);
+        }
+    }
     return true;
 }
 

@@ -49,7 +49,7 @@ class luno(ccxt.async_support.luno):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -140,7 +140,7 @@ class luno(ccxt.async_support.luno):
         :param int [limit]: the maximum amount of order book entries to return
         :param dictConstructor [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -196,15 +196,16 @@ class luno(ccxt.async_support.luno):
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.indexed_order_book({})
-        orderbook = self.orderbooks[symbol]
         asks = self.safe_value(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
-            orderbook.reset(snapshot)
+            self.orderbooks[symbol] = self.indexed_order_book(snapshot)
         else:
-            self.handle_delta(orderbook, message)
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
+            ob = self.orderbooks[symbol]
+            self.handle_delta(ob, message)
+            ob['timestamp'] = timestamp
+            ob['datetime'] = self.iso8601(timestamp)
+        orderbook = self.orderbooks[symbol]
         nonce = self.safe_integer(message, 'sequence')
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)

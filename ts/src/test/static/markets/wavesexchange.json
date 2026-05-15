@@ -1,51 +1,85 @@
 {
     "WAVES/USDT": {
         "id": "WAVES/G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC",
+        "lowercaseId": null,
         "symbol": "WAVES/USDT",
         "base": "WAVES",
         "quote": "USDT",
+        "settle": null,
         "baseId": "WAVES",
         "quoteId": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.00000001,
+            "amount": 1e-8,
             "price": 0.000001
         },
         "limits": {
-            "leverage": {},
-        "amount": {},
-            "price": {},
-            "cost": {}
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "WAVES/USDT",
             "amountAssetID": "WAVES",
             "amountAssetName": "Waves",
             "amountAssetDecimals": "8",
-            "amountAssetTotalSupply": "114061138.00000000",
-            "amountAssetMaxSupply": "114061138.00000000",
-            "amountAssetCirculatingSupply": "114061138.00000000",
+            "amountAssetTotalSupply": "118050712.00000000",
+            "amountAssetMaxSupply": "118050712.00000000",
+            "amountAssetCirculatingSupply": "118050712.00000000",
             "priceAssetID": "G5WWWzzVsWRyzGf32xojbnfp7gXbWrgqJT8RcVWEfLmC",
-            "priceAssetName": "USDT-PPT",
+            "priceAssetName": "USDTu",
             "priceAssetDecimals": "6",
-            "priceAssetTotalSupply": "230463.987610",
+            "priceAssetTotalSupply": "836780.205731",
             "priceAssetMaxSupply": "infinite",
-            "priceAssetCirculatingSupply": "161211.072956",
-            "24h_open": "2.307011",
-            "24h_high": "2.456173",
-            "24h_low": "2.265315",
-            "24h_close": "2.422148",
-            "24h_vwap": "2.382613",
-            "24h_volume": "3465.26177029",
-            "24h_priceVolume": "8256.379031",
-            "timestamp": "1715797842122",
-            "last_price": "2.422148"
-        }
+            "priceAssetCirculatingSupply": "836780.205731",
+            "24h_open": "0.990866",
+            "24h_high": "1.045503",
+            "24h_low": "0.954998",
+            "24h_close": "1.031624",
+            "24h_vwap": "1.024747",
+            "24h_volume": "44460.90894229",
+            "24h_priceVolume": "45561.208874",
+            "timestamp": "1752136237113",
+            "last_price": "1.031624"
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }

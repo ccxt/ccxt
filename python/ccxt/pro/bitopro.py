@@ -64,7 +64,7 @@ class bitopro(ccxt.async_support.bitopro):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         if limit is not None:
             if (limit != 5) and (limit != 10) and (limit != 20) and (limit != 50) and (limit != 100) and (limit != 500) and (limit != 1000):
@@ -77,7 +77,7 @@ class bitopro(ccxt.async_support.bitopro):
         if limit is None:
             endPart = market['id']
         else:
-            endPart = market['id'] + ':' + limit
+            endPart = market['id'] + ':' + self.number_to_string(limit)
         orderbook = await self.watch_public('order-books', messageHash, endPart)
         return orderbook.limit()
 
@@ -126,7 +126,7 @@ class bitopro(ccxt.async_support.bitopro):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -183,7 +183,7 @@ class bitopro(ccxt.async_support.bitopro):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -315,7 +315,7 @@ class bitopro(ccxt.async_support.bitopro):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -343,15 +343,16 @@ class bitopro(ccxt.async_support.bitopro):
         #     }
         #
         marketId = self.safe_string(message, 'pair')
-        market = self.safe_market(marketId, None, '_')
+        # market-ids are lowercase in REST API and uppercase in WS API
+        market = self.safe_market(marketId.lower(), None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
         messageHash = event + ':' + symbol
-        result = self.parse_ticker(message)
+        result = self.parse_ticker(message, market)
+        result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
-        datetime = self.safe_string(message, 'datetime')
         result['timestamp'] = timestamp
-        result['datetime'] = datetime
+        result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
@@ -394,7 +395,7 @@ class bitopro(ccxt.async_support.bitopro):
         https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()

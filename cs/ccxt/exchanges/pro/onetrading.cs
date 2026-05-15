@@ -75,11 +75,11 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchBalance
+     * @name onetrading#watchBalance
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -137,12 +137,12 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchTicker
+     * @name onetrading#watchTicker
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -164,12 +164,12 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchTickers
+     * @name onetrading#watchTickers
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
      * @param {string} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -267,14 +267,14 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchMyTrades
+     * @name onetrading#watchMyTrades
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description get the list of trades associated with the user
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -315,13 +315,13 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchOrderBook
+     * @name onetrading#watchOrderBook
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -444,7 +444,7 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchOrders
+     * @name onetrading#watchOrders
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -452,7 +452,7 @@ public partial class onetrading : ccxt.onetrading
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1090,7 +1090,7 @@ public partial class onetrading : ccxt.onetrading
 
     /**
      * @method
-     * @name bitpanda#watchOHLCV
+     * @name onetrading#watchOHLCV
      * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1273,7 +1273,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         throw new ExchangeError ((string)add(add(this.id, " "), this.json(message))) ;
     }
@@ -1413,7 +1413,7 @@ public partial class onetrading : ccxt.onetrading
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future("authenticated");
+        var future = client.reusableFuture("authenticated");
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

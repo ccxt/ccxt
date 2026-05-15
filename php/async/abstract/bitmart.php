@@ -85,6 +85,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function public_get_account_v1_currencies($params = array()) {
         return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
+    public function public_get_contract_public_markprice_kline($params = array()) {
+        return $this->request('contract/public/markprice-kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_account_sub_account_v1_transfer_list($params = array()) {
         return $this->request('account/sub-account/v1/transfer-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -126,6 +129,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function private_get_account_v1_deposit_withdraw_detail($params = array()) {
         return $this->request('account/v1/deposit-withdraw/detail', 'private', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function private_get_account_v1_withdraw_address_list($params = array()) {
+        return $this->request('account/v1/withdraw/address/list', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_spot_v1_order_detail($params = array()) {
         return $this->request('spot/v1/order_detail', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -178,6 +184,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function private_get_contract_private_position($params = array()) {
         return $this->request('contract/private/position', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_contract_private_position_v2($params = array()) {
+        return $this->request('contract/private/position-v2', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_get_contract_private_get_open_orders($params = array()) {
         return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
@@ -198,6 +207,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function private_get_contract_private_transaction_history($params = array()) {
         return $this->request('contract/private/transaction-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_contract_private_get_position_mode($params = array()) {
+        return $this->request('contract/private/get-position-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_account_sub_account_main_v1_sub_to_main($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -265,6 +277,27 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function private_post_spot_v4_batch_orders($params = array()) {
         return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_spot_v4_algo_submit_order($params = array()) {
+        return $this->request('spot/v4/algo/submit_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function private_post_spot_v4_algo_cancel_order($params = array()) {
+        return $this->request('spot/v4/algo/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function private_post_spot_v4_algo_cancel_all($params = array()) {
+        return $this->request('spot/v4/algo/cancel_all', 'private', 'POST', $params, null, null, array("cost" => 12));
+    }
+    public function private_post_spot_v4_query_algo_order($params = array()) {
+        return $this->request('spot/v4/query/algo/order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_spot_v4_query_algo_client_order($params = array()) {
+        return $this->request('spot/v4/query/algo/client-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_spot_v4_query_algo_open_orders($params = array()) {
+        return $this->request('spot/v4/query/algo/open-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_spot_v4_query_algo_history_orders($params = array()) {
+        return $this->request('spot/v4/query/algo/history-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function private_post_spot_v3_cancel_order($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -275,7 +308,7 @@ abstract class bitmart extends \ccxt\async\Exchange {
         return $this->request('spot/v2/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_spot_v1_margin_submit_order($params = array()) {
-        return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function private_post_spot_v1_margin_isolated_borrow($params = array()) {
         return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -319,8 +352,20 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function private_post_contract_private_modify_preset_plan_order($params = array()) {
         return $this->request('contract/private/modify-preset-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function private_post_contract_private_modify_limit_order($params = array()) {
+        return $this->request('contract/private/modify-limit-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function private_post_contract_private_modify_tp_sl_order($params = array()) {
         return $this->request('contract/private/modify-tp-sl-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_submit_trail_order($params = array()) {
+        return $this->request('contract/private/submit-trail-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function private_post_contract_private_cancel_trail_order($params = array()) {
+        return $this->request('contract/private/cancel-trail-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function private_post_contract_private_set_position_mode($params = array()) {
+        return $this->request('contract/private/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function publicGetSystemTime($params = array()) {
         return $this->request('system/time', 'public', 'GET', $params, null, null, array("cost" => 3));
@@ -400,6 +445,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function publicGetAccountV1Currencies($params = array()) {
         return $this->request('account/v1/currencies', 'public', 'GET', $params, null, null, array("cost" => 30));
     }
+    public function publicGetContractPublicMarkpriceKline($params = array()) {
+        return $this->request('contract/public/markprice-kline', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetAccountSubAccountV1TransferList($params = array()) {
         return $this->request('account/sub-account/v1/transfer-list', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -441,6 +489,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function privateGetAccountV1DepositWithdrawDetail($params = array()) {
         return $this->request('account/v1/deposit-withdraw/detail', 'private', 'GET', $params, null, null, array("cost" => 7.5));
+    }
+    public function privateGetAccountV1WithdrawAddressList($params = array()) {
+        return $this->request('account/v1/withdraw/address/list', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetSpotV1OrderDetail($params = array()) {
         return $this->request('spot/v1/order_detail', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -493,6 +544,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function privateGetContractPrivatePosition($params = array()) {
         return $this->request('contract/private/position', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function privateGetContractPrivatePositionV2($params = array()) {
+        return $this->request('contract/private/position-v2', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function privateGetContractPrivateGetOpenOrders($params = array()) {
         return $this->request('contract/private/get-open-orders', 'private', 'GET', $params, null, null, array("cost" => 1.2));
     }
@@ -513,6 +567,9 @@ abstract class bitmart extends \ccxt\async\Exchange {
     }
     public function privateGetContractPrivateTransactionHistory($params = array()) {
         return $this->request('contract/private/transaction-history', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetContractPrivateGetPositionMode($params = array()) {
+        return $this->request('contract/private/get-position-mode', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostAccountSubAccountMainV1SubToMain($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -580,6 +637,27 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function privatePostSpotV4BatchOrders($params = array()) {
         return $this->request('spot/v4/batch_orders', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function privatePostSpotV4AlgoSubmitOrder($params = array()) {
+        return $this->request('spot/v4/algo/submit_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function privatePostSpotV4AlgoCancelOrder($params = array()) {
+        return $this->request('spot/v4/algo/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    public function privatePostSpotV4AlgoCancelAll($params = array()) {
+        return $this->request('spot/v4/algo/cancel_all', 'private', 'POST', $params, null, null, array("cost" => 12));
+    }
+    public function privatePostSpotV4QueryAlgoOrder($params = array()) {
+        return $this->request('spot/v4/query/algo/order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostSpotV4QueryAlgoClientOrder($params = array()) {
+        return $this->request('spot/v4/query/algo/client-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostSpotV4QueryAlgoOpenOrders($params = array()) {
+        return $this->request('spot/v4/query/algo/open-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostSpotV4QueryAlgoHistoryOrders($params = array()) {
+        return $this->request('spot/v4/query/algo/history-orders', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function privatePostSpotV3CancelOrder($params = array()) {
         return $this->request('spot/v3/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -590,7 +668,7 @@ abstract class bitmart extends \ccxt\async\Exchange {
         return $this->request('spot/v2/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostSpotV1MarginSubmitOrder($params = array()) {
-        return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+        return $this->request('spot/v1/margin/submit_order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
     }
     public function privatePostSpotV1MarginIsolatedBorrow($params = array()) {
         return $this->request('spot/v1/margin/isolated/borrow', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -634,7 +712,19 @@ abstract class bitmart extends \ccxt\async\Exchange {
     public function privatePostContractPrivateModifyPresetPlanOrder($params = array()) {
         return $this->request('contract/private/modify-preset-plan-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
+    public function privatePostContractPrivateModifyLimitOrder($params = array()) {
+        return $this->request('contract/private/modify-limit-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
     public function privatePostContractPrivateModifyTpSlOrder($params = array()) {
         return $this->request('contract/private/modify-tp-sl-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateSubmitTrailOrder($params = array()) {
+        return $this->request('contract/private/submit-trail-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
+    }
+    public function privatePostContractPrivateCancelTrailOrder($params = array()) {
+        return $this->request('contract/private/cancel-trail-order', 'private', 'POST', $params, null, null, array("cost" => 1.5));
+    }
+    public function privatePostContractPrivateSetPositionMode($params = array()) {
+        return $this->request('contract/private/set-position-mode', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

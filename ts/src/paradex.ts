@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -55,6 +55,7 @@ export default class paradex extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
+                'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -69,18 +70,19 @@ export default class paradex extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
-                'fetchMarginMode': undefined,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -114,8 +116,8 @@ export default class paradex extends Exchange {
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': true,
-                'setLeverage': false,
-                'setMarginMode': false,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
@@ -157,12 +159,23 @@ export default class paradex extends Exchange {
                         'system/state': 1,
                         'system/time': 1,
                         'trades': 1,
+                        'vaults': 1,
+                        'vaults/balance': 1,
+                        'vaults/config': 1,
+                        'vaults/history': 1,
+                        'vaults/positions': 1,
+                        'vaults/summary': 1,
+                        'vaults/transfers': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'account': 1,
+                        'account/info': 1,
+                        'account/history': 1,
+                        'account/margin': 1,
                         'account/profile': 1,
+                        'account/subaccounts': 1,
                         'balance': 1,
                         'fills': 1,
                         'funding/payments': 1,
@@ -175,20 +188,34 @@ export default class paradex extends Exchange {
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
                         'points_data/{market}/{program}': 1,
+                        'referrals/qr-code': 1,
                         'referrals/summary': 1,
                         'transfers': 1,
+                        'algo/orders': 1,
+                        'algo/orders-history': 1,
+                        'algo/orders/{algo_id}': 1,
+                        'vaults/account-summary': 1,
                     },
                     'post': {
+                        'account/margin/{market}': 1,
+                        'account/profile/max_slippage': 1,
                         'account/profile/referral_code': 1,
                         'account/profile/username': 1,
                         'auth': 1,
                         'onboarding': 1,
                         'orders': 1,
+                        'orders/batch': 1,
+                        'algo/orders': 1,
+                        'vaults': 1,
+                    },
+                    'put': {
+                        'orders/{order_id}': 1,
                     },
                     'delete': {
                         'orders': 1,
                         'orders/by_client_id/{client_id}': 1,
                         'orders/{order_id}': 1,
+                        'algo/orders/{algo_id}': 1,
                     },
                 },
             },
@@ -275,7 +302,7 @@ export default class paradex extends Exchange {
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': undefined, // add {"privateKey": A, "publicKey": B, "address": C}
+                'paradexAccount': undefined, // add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -357,7 +384,7 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+     * @see https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -375,9 +402,9 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.api.testnet.paradex.trade/#get-system-state
+     * @see https://docs.paradex.trade/api/prod/system/get-state
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
         const response = await this.publicGetSystemState (params);
@@ -400,7 +427,7 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchMarkets
      * @description retrieves data on all markets for bitget
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -473,6 +500,59 @@ export default class paradex extends Exchange {
         //         "max_tob_spread": "0.2"
         //     }
         //
+        // {
+        //     "symbol":"BTC-USD-96000-C",
+        //     "base_currency":"BTC",
+        //     "quote_currency":"USD",
+        //     "settlement_currency":"USDC",
+        //     "order_size_increment":"0.001",
+        //     "price_tick_size":"0.01",
+        //     "min_notional":"100",
+        //     "open_at":"1736764200000",
+        //     "expiry_at":"0",
+        //     "asset_kind":"PERP_OPTION",
+        //     "market_kind":"cross",
+        //     "position_limit":"10",
+        //     "price_bands_width":"0.05",
+        //     "iv_bands_width":"0.05",
+        //     "max_open_orders":"100",
+        //     "max_funding_rate":"0.02",
+        //     "option_cross_margin_params":{
+        //        "imf":{
+        //           "long_itm":"0.2",
+        //           "short_itm":"0.15",
+        //           "short_otm":"0.1",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"1"
+        //        },
+        //        "mmf":{
+        //           "long_itm":"0.1",
+        //           "short_itm":"0.075",
+        //           "short_otm":"0.05",
+        //           "short_put_cap":"0.5",
+        //           "premium_multiplier":"0.5"
+        //        }
+        //     },
+        //     "price_feed_id":"GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+        //     "oracle_ewma_factor":"0.20000046249626113",
+        //     "max_order_size":"2",
+        //     "max_funding_rate_change":"0.02",
+        //     "max_tob_spread":"0.2",
+        //     "interest_rate":"0.0001",
+        //     "clamp_rate":"0.02",
+        //     "option_type":"CALL",
+        //     "strike_price":"96000",
+        //     "funding_period_hours":"24",
+        //     "tags":[
+        //     ]
+        //  }
+        //
+        const assetKind = this.safeString (market, 'asset_kind');
+        const isOptionPerpetual = (assetKind === 'PERP_OPTION');
+        const isOptionDelivery = (assetKind === 'OPTION');
+        const isOption = isOptionPerpetual || isOptionDelivery;
+        const type = (isOption) ? 'option' : 'swap';
+        const isSwap = (type === 'swap');
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quote_currency');
         const baseId = this.safeString (market, 'base_currency');
@@ -480,10 +560,20 @@ export default class paradex extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const settleId = this.safeString (market, 'settlement_currency');
         const settle = this.safeCurrencyCode (settleId);
-        const symbol = base + '/' + quote + ':' + settle;
-        const expiry = this.safeInteger (market, 'expiry_at');
+        let symbol = base + '/' + quote + ':' + settle;
+        let expiry = this.safeInteger (market, 'expiry_at');
+        const optionType = this.safeString (market, 'option_type');
+        const strikePrice = this.safeString (market, 'strike_price');
         const takerFee = this.parseNumber ('0.0003');
-        const makerFee = this.parseNumber ('-0.00005');
+        let makerFee = this.parseNumber ('-0.00005');
+        if (isOption) {
+            const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
+            const deliveryValue = (expiry === 0) ? '' : this.yymmdd (expiry) + '-';
+            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            makerFee = this.parseNumber ('0.0003');
+        } else {
+            expiry = undefined;
+        }
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
@@ -493,23 +583,23 @@ export default class paradex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'swap',
+            'type': type,
             'spot': false,
             'margin': undefined,
-            'swap': true,
+            'swap': isSwap,
             'future': false,
-            'option': false,
+            'option': isOption,
             'active': this.safeBool (market, 'enableTrading'),
             'contract': true,
             'linear': true,
-            'inverse': undefined,
+            'inverse': false,
             'taker': takerFee,
             'maker': makerFee,
             'contractSize': this.parseNumber ('1'),
-            'expiry': (expiry === 0) ? undefined : expiry,
+            'expiry': expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
-            'strike': undefined,
-            'optionType': undefined,
+            'strike': this.parseNumber (strikePrice),
+            'optionType': this.safeStringLower (market, 'option_type'),
             'precision': {
                 'amount': this.safeNumber (market, 'order_size_increment'),
                 'price': this.safeNumber (market, 'price_tick_size'),
@@ -541,16 +631,17 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
+     * @see https://docs.paradex.trade/api/prod/markets/klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -560,7 +651,11 @@ export default class paradex extends Exchange {
         const now = this.milliseconds ();
         const duration = this.parseTimeframe (timeframe);
         const until = this.safeInteger2 (params, 'until', 'till', now);
-        params = this.omit (params, [ 'until', 'till' ]);
+        const price = this.safeString (params, 'price');
+        if (price !== undefined) {
+            request['price_kind'] = price;
+        }
+        params = this.omit (params, [ 'until', 'till', 'price' ]);
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
@@ -620,24 +715,17 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request: Dict = {};
-        if (symbols !== undefined) {
-            if (Array.isArray (symbols)) {
-                request['market'] = this.marketId (symbols[0]);
-            } else {
-                request['market'] = this.marketId (symbols);
-            }
-        } else {
-            request['market'] = 'ALL';
-        }
+        const request: Dict = {
+            'market': 'ALL',
+        };
         const response = await this.publicGetMarketsSummary (this.extend (request, params));
         //
         //     {
@@ -668,10 +756,10 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -717,7 +805,7 @@ export default class paradex extends Exchange {
         //         "ask": "69578.2",
         //         "volume_24h": "5815541.397939004",
         //         "total_volume": "584031465.525259686",
-        //         "created_at": 1718170156580,
+        //         "created_at": 1718170156581,
         //         "underlying_price": "67367.37268422",
         //         "open_interest": "162.272",
         //         "funding_rate": "0.01629574927887",
@@ -762,11 +850,11 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.api.testnet.paradex.trade/#get-market-orderbook
+     * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -805,14 +893,14 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.api.testnet.paradex.trade/#trade-tape
+     * @see https://docs.paradex.trade/api/prod/trades/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -826,7 +914,7 @@ export default class paradex extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['page_size'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
             request['start_at'] = since;
@@ -926,10 +1014,10 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest (symbol: string, params = {}) {
         await this.loadMarkets ();
@@ -1203,11 +1291,24 @@ export default class paradex extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
-        const status = this.safeString (order, 'status');
+        const cancelReason = this.safeString (order, 'cancel_reason');
+        let status = this.safeString (order, 'status');
+        if (cancelReason !== undefined) {
+            if (cancelReason === 'NOT_ENOUGH_MARGIN' || cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
+                status = 'rejected';
+            } else {
+                status = 'canceled';
+            }
+        }
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
+        const flags = this.safeList (order, 'flags', []);
+        let reduceOnly = undefined;
+        if ('REDUCE_ONLY' in flags) {
+            reduceOnly = true;
+        }
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1218,9 +1319,9 @@ export default class paradex extends Exchange {
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': this.parseOrderType (orderType),
-            'timeInForce': this.parseTimeInForce (this.safeString (order, 'instrunction')),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'instruction')),
             'postOnly': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': this.safeString (order, 'trigger_price'),
@@ -1272,11 +1373,6 @@ export default class paradex extends Exchange {
         return this.safeStringLower (types, type, type);
     }
 
-    convertShortString (str: string) {
-        // TODO: add stringToBase16 in exchange
-        return '0x' + this.binaryToBase16 (this.base64ToBinary (this.stringToBase64 (str)));
-    }
-
     scaleNumber (num: string) {
         return Precise.stringMul (num, '100000000');
     }
@@ -1285,7 +1381,7 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#createOrder
      * @description create a trade order
-     * @see https://docs.api.prod.paradex.trade/#create-order
+     * @see https://docs.paradex.trade/api/prod/orders/new
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1294,27 +1390,33 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.authenticateRest ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
-            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
-            'size': this.amountToPrecision (symbol, amount),
+            'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
         };
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const isMarket = orderType === 'MARKET';
+        const isTakeProfitOrder = (takeProfitPrice !== undefined);
+        const isStopLossOrder = (stopLossPrice !== undefined);
+        const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         if (!isMarket) {
@@ -1324,11 +1426,6 @@ export default class paradex extends Exchange {
                 request['instruction'] = 'IOC';
             }
         }
-        if (reduceOnly) {
-            request['flags'] = [
-                'REDUCE_ONLY',
-            ];
-        }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1336,22 +1433,59 @@ export default class paradex extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
-        if (triggerPrice !== undefined) {
+        let sizeString = '0';
+        let stopPrice = undefined;
+        if (isStopOrder) {
+            // flags: Reduce_Only must be provided for TPSL orders.
             if (isMarket) {
-                request['type'] = 'STOP_MARKET';
+                if (isStopLossOrder) {
+                    stopPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    reduceOnly = true;
+                    request['type'] = 'STOP_LOSS_MARKET';
+                } else if (isTakeProfitOrder) {
+                    stopPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    request['type'] = 'TAKE_PROFIT_MARKET';
+                } else {
+                    stopPrice = this.priceToPrecision (symbol, triggerPrice);
+                    sizeString = this.amountToPrecision (symbol, amount);
+                    request['type'] = 'STOP_MARKET';
+                }
             } else {
-                request['type'] = 'STOP_LIMIT';
+                if (isStopLossOrder) {
+                    stopPrice = this.priceToPrecision (symbol, stopLossPrice);
+                    reduceOnly = true;
+                    request['type'] = 'STOP_LOSS_LIMIT';
+                } else if (isTakeProfitOrder) {
+                    stopPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                    reduceOnly = true;
+                    request['type'] = 'TAKE_PROFIT_LIMIT';
+                } else {
+                    stopPrice = this.priceToPrecision (symbol, triggerPrice);
+                    sizeString = this.amountToPrecision (symbol, amount);
+                    request['type'] = 'STOP_LIMIT';
+                }
             }
-            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+        } else {
+            sizeString = this.amountToPrecision (symbol, amount);
         }
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
+        if (stopPrice !== undefined) {
+            request['trigger_price'] = stopPrice;
+        }
+        request['size'] = sizeString;
+        if (reduceOnly) {
+            request['flags'] = [
+                'REDUCE_ONLY',
+            ];
+        }
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const orderReq = {
             'timestamp': now * 1000,
-            'market': this.convertShortString (request['market']),
+            'market': this.stringToBase16 (request['market']),
             'side': (orderSide === 'BUY') ? '1' : '2',
-            'orderType': this.convertShortString (request['type']),
+            'orderType': this.stringToBase16 (request['type']),
             'size': this.scaleNumber (request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
         };
@@ -1407,13 +1541,13 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#cancelOrder
      * @description cancels an open order
-     * @see https://docs.api.prod.paradex.trade/#cancel-order
-     * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+     * @see https://docs.paradex.trade/api/prod/orders/cancel
+     * @see https://docs.paradex.trade/api/prod/orders/cancel-by-client-id
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.authenticateRest ();
@@ -1438,10 +1572,10 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+     * @see https://docs.paradex.trade/api/prod/orders/cancel-all
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1457,20 +1591,20 @@ export default class paradex extends Exchange {
         //
         // if success, no response...
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
      * @method
      * @name paradex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.api.prod.paradex.trade/#get-order
-     * @see https://docs.api.prod.paradex.trade/#get-order-by-client-id
+     * @see https://docs.paradex.trade/api/prod/orders/get
+     * @see https://docs.paradex.trade/api/prod/orders/get-by-client-id
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.authenticateRest ();
@@ -1519,7 +1653,7 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.api.prod.paradex.trade/#get-orders
+     * @see https://docs.paradex.trade/api/prod/orders/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1527,7 +1661,7 @@ export default class paradex extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @param {int} params.until timestamp in ms of the latest order to fetch
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.authenticateRest ();
@@ -1600,12 +1734,12 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
+     * @see https://docs.paradex.trade/api/prod/orders/get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.authenticateRest ();
@@ -1657,9 +1791,9 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.api.prod.paradex.trade/#list-balances
+     * @see https://docs.paradex.trade/api/prod/account/get-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.authenticateRest ();
@@ -1697,14 +1831,14 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.api.prod.paradex.trade/#list-fills
+     * @see https://docs.paradex.trade/api/prod/account/list-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.authenticateRest ();
@@ -1734,7 +1868,7 @@ export default class paradex extends Exchange {
         //         "prev": null,
         //         "results": [
         //             {
-        //                 "id": "1718947571560201703986670001",
+        //                 "id": "1718947571560201703986670002",
         //                 "side": "BUY",
         //                 "liquidity": "TAKER",
         //                 "market": "BTC-USD-PERP",
@@ -1762,10 +1896,10 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchPosition
      * @description fetch data on an open position
-     * @see https://docs.api.prod.paradex.trade/#list-open-positions
+     * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}) {
         await this.authenticateRest ();
@@ -1779,12 +1913,12 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.api.prod.paradex.trade/#list-open-positions
+     * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.authenticateRest ();
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -1880,13 +2014,13 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.api.prod.paradex.trade/#list-liquidations
+     * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the huobi api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.authenticateRest ();
@@ -1927,6 +2061,7 @@ export default class paradex extends Exchange {
             'contracts': undefined,
             'contractSize': undefined,
             'price': undefined,
+            'side': undefined,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -1938,14 +2073,14 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchTransfers
      * @description fetch all deposits made to an account
-     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+     * @see https://docs.paradex.trade/api/prod/transfers/get
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.authenticateRest ();
@@ -2000,14 +2135,14 @@ export default class paradex extends Exchange {
      * @method
      * @name paradex#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+     * @see https://docs.paradex.trade/api/prod/transfers/get
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.authenticateRest ();
@@ -2119,6 +2254,396 @@ export default class paradex extends Exchange {
             'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchMarginMode
+     * @description fetches the margin mode of a specific symbol
+     * @see https://docs.paradex.trade/api/prod/account/get-account-margin
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountMargin (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        const configs = this.safeList (response, 'configs');
+        return this.parseMarginMode (this.safeDict (configs, 0), market);
+    }
+
+    parseMarginMode (rawMarginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (rawMarginMode, 'market');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (rawMarginMode, 'margin_type');
+        return {
+            'info': rawMarginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginMode,
+        } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name paradex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.leverage] the rate of leverage
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setMarginMode', symbol, 'symbol');
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let leverage: Str = undefined;
+        [ leverage, params ] = this.handleOptionAndParams (params, 'setMarginMode', 'leverage', 1);
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.paradex.trade/api/prod/account/get-account-margin
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountMargin (this.extend (request, params));
+        //
+        // {
+        //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
+        //     "configs": [
+        //         {
+        //             "market": "SOL-USD-PERP",
+        //             "leverage": 50,
+        //             "margin_type": "CROSS"
+        //         }
+        //     ]
+        // }
+        //
+        const configs = this.safeList (response, 'configs');
+        return this.parseLeverage (this.safeDict (configs, 0), market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'market');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (leverage, 'margin_type');
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': this.safeInteger (leverage, 'leverage'),
+            'shortLeverage': this.safeInteger (leverage, 'leverage'),
+        } as Leverage;
+    }
+
+    encodeMarginMode (mode) {
+        const modes = {
+            'cross': 'CROSS',
+            'isolated': 'ISOLATED',
+        };
+        return this.safeString (modes, mode, mode);
+    }
+
+    /**
+     * @method
+     * @name paradex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
+     * @param {float} leverage the rate of leverage
+     * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        this.checkRequiredArgument ('setLeverage', symbol, 'symbol');
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
+        const request: Dict = {
+            'market': market['id'],
+            'leverage': leverage,
+            'margin_type': this.encodeMarginMode (marginMode),
+        };
+        return await this.privatePostAccountMarginMarket (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchGreeks
+     * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} symbol unified symbol of the market to fetch greeks for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     */
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetMarketsSummary (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-114000-P",
+        //                 "mark_price": "10835.66892602",
+        //                 "mark_iv": "0.71781855",
+        //                 "delta": "-0.98726024",
+        //                 "greeks": {
+        //                     "delta": "-0.9872602390817709",
+        //                     "gamma": "0.000004560958862297231",
+        //                     "vega": "227.11344863639806",
+        //                     "rho": "-302.0617972461581",
+        //                     "vanna": "0.06609830491614832",
+        //                     "volga": "925.9501532805552"
+        //                 },
+        //                 "last_traded_price": "10551.5",
+        //                 "bid": "10794.9",
+        //                 "bid_iv": "0.05",
+        //                 "ask": "10887.3",
+        //                 "ask_iv": "0.8783283",
+        //                 "last_iv": "0.05",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "195240.72672261014",
+        //                 "created_at": 1747644009995,
+        //                 "underlying_price": "103164.79162649",
+        //                 "open_interest": "0",
+        //                 "funding_rate": "0.000004464241170536191",
+        //                 "price_change_rate_24h": "0.074915",
+        //                 "future_funding_rate": "0.0001"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        const greeks = this.safeDict (data, 0, {});
+        return this.parseGreeks (greeks, market);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchAllGreeks
+     * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     */
+    async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const request: Dict = {
+            'market': 'ALL',
+        };
+        const response = await this.publicGetMarketsSummary (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-114000-P",
+        //                 "mark_price": "10835.66892602",
+        //                 "mark_iv": "0.71781855",
+        //                 "delta": "-0.98726024",
+        //                 "greeks": {
+        //                     "delta": "-0.9872602390817709",
+        //                     "gamma": "0.000004560958862297231",
+        //                     "vega": "227.11344863639806",
+        //                     "rho": "-302.0617972461581",
+        //                     "vanna": "0.06609830491614832",
+        //                     "volga": "925.9501532805552"
+        //                 },
+        //                 "last_traded_price": "10551.5",
+        //                 "bid": "10794.9",
+        //                 "bid_iv": "0.05",
+        //                 "ask": "10887.3",
+        //                 "ask_iv": "0.8783283",
+        //                 "last_iv": "0.05",
+        //                 "volume_24h": "0",
+        //                 "total_volume": "195240.72672261014",
+        //                 "created_at": 1747644009995,
+        //                 "underlying_price": "103164.79162649",
+        //                 "open_interest": "0",
+        //                 "funding_rate": "0.000004464241170536191",
+        //                 "price_change_rate_24h": "0.074915",
+        //                 "future_funding_rate": "0.0001"
+        //             }
+        //         ]
+        //     }
+        //
+        const results = this.safeList (response, 'results', []);
+        return this.parseAllGreeks (results, symbols);
+    }
+
+    parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
+        //
+        //     {
+        //         "symbol": "BTC-USD-114000-P",
+        //         "mark_price": "10835.66892602",
+        //         "mark_iv": "0.71781855",
+        //         "delta": "-0.98726024",
+        //         "greeks": {
+        //             "delta": "-0.9872602390817709",
+        //             "gamma": "0.000004560958862297231",
+        //             "vega": "227.11344863639806",
+        //             "rho": "-302.0617972461581",
+        //             "vanna": "0.06609830491614832",
+        //             "volga": "925.9501532805552"
+        //         },
+        //         "last_traded_price": "10551.5",
+        //         "bid": "10794.9",
+        //         "bid_iv": "0.05",
+        //         "ask": "10887.3",
+        //         "ask_iv": "0.8783283",
+        //         "last_iv": "0.05",
+        //         "volume_24h": "0",
+        //         "total_volume": "195240.72672261014",
+        //         "created_at": 1747644009995,
+        //         "underlying_price": "103164.79162649",
+        //         "open_interest": "0",
+        //         "funding_rate": "0.000004464241170536191",
+        //         "price_change_rate_24h": "0.074915",
+        //         "future_funding_rate": "0.0001"
+        //     }
+        //
+        const marketId = this.safeString (greeks, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'option');
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (greeks, 'created_at');
+        const greeksData = this.safeDict (greeks, 'greeks', {});
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'delta': this.safeNumber (greeksData, 'delta'),
+            'gamma': this.safeNumber (greeksData, 'gamma'),
+            'theta': undefined,
+            'vega': this.safeNumber (greeksData, 'vega'),
+            'rho': this.safeNumber (greeksData, 'rho'),
+            'vanna': this.safeNumber (greeksData, 'vanna'),
+            'volga': this.safeNumber (greeksData, 'volga'),
+            'bidSize': undefined,
+            'askSize': undefined,
+            'bidImpliedVolatility': this.safeNumber (greeks, 'bid_iv'),
+            'askImpliedVolatility': this.safeNumber (greeks, 'ask_iv'),
+            'markImpliedVolatility': this.safeNumber (greeks, 'mark_iv'),
+            'bidPrice': this.safeNumber (greeks, 'bid'),
+            'askPrice': this.safeNumber (greeks, 'ask'),
+            'markPrice': this.safeNumber (greeks, 'mark_price'),
+            'lastPrice': this.safeNumber (greeks, 'last_traded_price'),
+            'underlyingPrice': this.safeNumber (greeks, 'underlying_price'),
+            'info': greeks,
+        };
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['page_size'] = Math.min (limit, 5000); // api maximum 5000
+        } else {
+            request['page_size'] = 1000; // max is 5000
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end_at'] = until;
+        }
+        const response = await this.publicGetFundingData (this.extend (request, params));
+        //
+        // {
+        //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results": [
+        //          {
+        //              "market":"BTC-USD-PERP",
+        //              "funding_index":"20511.93608234044552",
+        //              "funding_premium":"-6.04646651485986656",
+        //              "funding_rate":"-0.00006992598926",
+        //              "funding_rate_8h":"",
+        //              "funding_period_hours":0,
+        //              "created_at":1764160327843
+        //          }
+        //     ]
+        // }
+        //
+        const results = this.safeList (response, 'results', []);
+        const rates = [];
+        for (let i = 0; i < results.length; i++) {
+            const rate = results[i];
+            const timestamp = this.safeInteger (rate, 'created_at');
+            const datetime = this.iso8601 (timestamp);
+            rates.push ({
+                'info': rate,
+                'symbol': market['symbol'],
+                'fundingRate': this.safeNumber (rate, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -31,9 +31,6 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, orderbook)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, orderbook, 'symbol', symbol)
     log_text = test_shared_methods.log_template(exchange, method, orderbook)
-    #
-    if ('bid' in skipped_properties) or ('ask' in skipped_properties):
-        return
     # todo: check non-emtpy arrays for bids/asks for toptier exchanges
     bids = orderbook['bids']
     bids_length = len(bids)

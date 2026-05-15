@@ -43,11 +43,44 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function public_get_trades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_vaults($params = array()) {
+        return $this->request('vaults', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_vaults_balance($params = array()) {
+        return $this->request('vaults/balance', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_vaults_config($params = array()) {
+        return $this->request('vaults/config', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_vaults_history($params = array()) {
+        return $this->request('vaults/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_vaults_positions($params = array()) {
+        return $this->request('vaults/positions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_vaults_summary($params = array()) {
+        return $this->request('vaults/summary', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_vaults_transfers($params = array()) {
+        return $this->request('vaults/transfers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account($params = array()) {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_account_info($params = array()) {
+        return $this->request('account/info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_account_history($params = array()) {
+        return $this->request('account/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_account_margin($params = array()) {
+        return $this->request('account/margin', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account_profile($params = array()) {
         return $this->request('account/profile', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_account_subaccounts($params = array()) {
+        return $this->request('account/subaccounts', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_balance($params = array()) {
         return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -85,11 +118,32 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function private_get_points_data_market_program($params = array()) {
         return $this->request('points_data/{market}/{program}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_referrals_qr_code($params = array()) {
+        return $this->request('referrals/qr-code', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_referrals_summary($params = array()) {
         return $this->request('referrals/summary', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_transfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_algo_orders($params = array()) {
+        return $this->request('algo/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_algo_orders_history($params = array()) {
+        return $this->request('algo/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_algo_orders_algo_id($params = array()) {
+        return $this->request('algo/orders/{algo_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_vaults_account_summary($params = array()) {
+        return $this->request('vaults/account-summary', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_margin_market($params = array()) {
+        return $this->request('account/margin/{market}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_account_profile_max_slippage($params = array()) {
+        return $this->request('account/profile/max_slippage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_account_profile_referral_code($params = array()) {
         return $this->request('account/profile/referral_code', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -106,6 +160,18 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_orders_batch($params = array()) {
+        return $this->request('orders/batch', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_algo_orders($params = array()) {
+        return $this->request('algo/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_vaults($params = array()) {
+        return $this->request('vaults', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_put_orders_order_id($params = array()) {
+        return $this->request('orders/{order_id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
     public function private_delete_orders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -114,6 +180,9 @@ abstract class paradex extends \ccxt\async\Exchange {
     }
     public function private_delete_orders_order_id($params = array()) {
         return $this->request('orders/{order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function private_delete_algo_orders_algo_id($params = array()) {
+        return $this->request('algo/orders/{algo_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function publicGetBboMarket($params = array()) {
         return $this->request('bbo/{market}', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -151,11 +220,44 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function publicGetTrades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetVaults($params = array()) {
+        return $this->request('vaults', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetVaultsBalance($params = array()) {
+        return $this->request('vaults/balance', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetVaultsConfig($params = array()) {
+        return $this->request('vaults/config', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetVaultsHistory($params = array()) {
+        return $this->request('vaults/history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetVaultsPositions($params = array()) {
+        return $this->request('vaults/positions', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetVaultsSummary($params = array()) {
+        return $this->request('vaults/summary', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetVaultsTransfers($params = array()) {
+        return $this->request('vaults/transfers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAccount($params = array()) {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetAccountInfo($params = array()) {
+        return $this->request('account/info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountHistory($params = array()) {
+        return $this->request('account/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountMargin($params = array()) {
+        return $this->request('account/margin', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetAccountProfile($params = array()) {
         return $this->request('account/profile', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountSubaccounts($params = array()) {
+        return $this->request('account/subaccounts', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetBalance($params = array()) {
         return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -193,11 +295,32 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function privateGetPointsDataMarketProgram($params = array()) {
         return $this->request('points_data/{market}/{program}', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetReferralsQrCode($params = array()) {
+        return $this->request('referrals/qr-code', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetReferralsSummary($params = array()) {
         return $this->request('referrals/summary', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTransfers($params = array()) {
         return $this->request('transfers', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAlgoOrders($params = array()) {
+        return $this->request('algo/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAlgoOrdersHistory($params = array()) {
+        return $this->request('algo/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAlgoOrdersAlgoId($params = array()) {
+        return $this->request('algo/orders/{algo_id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetVaultsAccountSummary($params = array()) {
+        return $this->request('vaults/account-summary', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountMarginMarket($params = array()) {
+        return $this->request('account/margin/{market}', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAccountProfileMaxSlippage($params = array()) {
+        return $this->request('account/profile/max_slippage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostAccountProfileReferralCode($params = array()) {
         return $this->request('account/profile/referral_code', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -214,6 +337,18 @@ abstract class paradex extends \ccxt\async\Exchange {
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostOrdersBatch($params = array()) {
+        return $this->request('orders/batch', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAlgoOrders($params = array()) {
+        return $this->request('algo/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostVaults($params = array()) {
+        return $this->request('vaults', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePutOrdersOrderId($params = array()) {
+        return $this->request('orders/{order_id}', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
     public function privateDeleteOrders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -222,5 +357,8 @@ abstract class paradex extends \ccxt\async\Exchange {
     }
     public function privateDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{order_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function privateDeleteAlgoOrdersAlgoId($params = array()) {
+        return $this->request('algo/orders/{algo_id}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

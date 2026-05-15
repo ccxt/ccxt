@@ -26,6 +26,11 @@ public partial class lbank : Exchange
         return await this.callAsync ("spotPublicGetUsdToCny",parameters);
     }
 
+    public async Task<object> spotPublicGetAssetConfigs (object parameters = null)
+    {
+        return await this.callAsync ("spotPublicGetAssetConfigs",parameters);
+    }
+
     public async Task<object> spotPublicGetWithdrawConfigs (object parameters = null)
     {
         return await this.callAsync ("spotPublicGetWithdrawConfigs",parameters);

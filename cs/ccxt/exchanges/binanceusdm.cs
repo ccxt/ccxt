@@ -24,7 +24,10 @@ public partial class binanceusdm : binance
                 { "createStopMarketOrder", true },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarkets", new List<object>() {"linear"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"linear"} },
+                } },
+                { "defaultType", "swap" },
                 { "defaultSubType", "linear" },
                 { "leverageBrackets", null },
                 { "marginTypes", new Dictionary<string, object>() {} },

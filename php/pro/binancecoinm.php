@@ -22,7 +22,9 @@ class binancecoinm extends \ccxt\pro\binance {
                 'doc' => 'https://developers.binance.com/en',
             ),
             'options' => array(
-                'fetchMarkets' => array( 'inverse' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'inverse' ),
+                ),
                 'defaultSubType' => 'inverse',
             ),
         ));

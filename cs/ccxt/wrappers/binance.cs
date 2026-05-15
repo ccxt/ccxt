@@ -15,9 +15,9 @@ public partial class binance
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Check-Server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -43,9 +43,9 @@ public partial class binance
     /// retrieves data on all markets for binance
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol"/>  <br/>
@@ -68,12 +68,12 @@ public partial class binance
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/wallet/asset/funding-wallet"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance"/>  <br/>
     /// <list type="table">
@@ -109,7 +109,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -119,9 +119,10 @@ public partial class binance
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Order-Book"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -136,9 +137,15 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.rpi</term>
+    /// <description>
+    /// boolean : *future only* set to true to use the RPI endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -159,7 +166,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
@@ -169,10 +176,10 @@ public partial class binance
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -189,7 +196,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -199,9 +206,9 @@ public partial class binance
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -217,7 +224,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
@@ -227,9 +234,9 @@ public partial class binance
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -255,9 +262,9 @@ public partial class binance
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -280,7 +287,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -290,8 +297,8 @@ public partial class binance
     /// fetches mark price for the market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#mark-price"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -307,7 +314,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkPrice(symbol, parameters);
@@ -317,8 +324,8 @@ public partial class binance
     /// fetches mark prices for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#mark-price"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -334,7 +341,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkPrices(symbols, parameters);
@@ -344,16 +351,16 @@ public partial class binance
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -405,16 +412,16 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -461,7 +468,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -473,7 +480,7 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -495,7 +502,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditSpotOrder(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -539,7 +546,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-UM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Modify-CM-Order"/>  <br/>
     /// <list type="table">
@@ -563,7 +570,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditContractOrder(string id, string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -574,9 +581,9 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -592,7 +599,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -605,7 +612,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Multiple-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Multiple-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -615,7 +622,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrders(orders, parameters);
@@ -625,7 +632,7 @@ public partial class binance
     /// *contract only* create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders"/>  <br/>
     /// <list type="table">
@@ -637,7 +644,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
@@ -648,17 +655,18 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#test-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/New-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -735,7 +743,7 @@ public partial class binance
     /// <item>
     /// <term>params.selfTradePrevention</term>
     /// <description>
-    /// string : set unified value for stp (see .features for available values)
+    /// string : set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
     /// </description>
     /// </item>
     /// <item>
@@ -762,9 +770,15 @@ public partial class binance
     /// bool : *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -801,7 +815,7 @@ public partial class binance
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -811,7 +825,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketOrderWithCost(string symbol, string side, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketOrderWithCost(symbol, side, cost, parameters);
@@ -821,7 +835,7 @@ public partial class binance
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -831,7 +845,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
@@ -841,7 +855,7 @@ public partial class binance
     /// create a market sell order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -851,7 +865,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketSellOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketSellOrderWithCost(symbol, cost, parameters);
@@ -861,13 +875,14 @@ public partial class binance
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -887,9 +902,15 @@ public partial class binance
     /// boolean : set to true if you would like to fetch an order in a portfolio margin account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true if you would like to fetch a trigger or conditional order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -899,15 +920,16 @@ public partial class binance
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -959,7 +981,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -971,15 +993,16 @@ public partial class binance
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1025,7 +1048,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1038,7 +1061,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order"/>  <br/>
@@ -1064,7 +1087,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOpenOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenOrder(id, symbol, parameters);
@@ -1074,9 +1097,9 @@ public partial class binance
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
@@ -1122,7 +1145,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1134,9 +1157,9 @@ public partial class binance
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
@@ -1182,21 +1205,21 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders"/>  <br/>
@@ -1242,7 +1265,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1254,9 +1277,9 @@ public partial class binance
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order"/>  <br/>
@@ -1264,6 +1287,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1285,7 +1309,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
@@ -1295,8 +1319,9 @@ public partial class binance
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders"/>  <br/>
@@ -1304,6 +1329,7 @@ public partial class binance
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1331,7 +1357,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
@@ -1342,7 +1368,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Multiple-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1358,7 +1384,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
@@ -1368,9 +1394,9 @@ public partial class binance
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1393,7 +1419,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1405,9 +1431,9 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List"/>  <br/>
@@ -1451,7 +1477,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1491,7 +1517,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchMyDustTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1544,7 +1570,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1597,7 +1623,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1631,7 +1657,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
@@ -1681,7 +1707,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1709,7 +1735,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
@@ -1729,7 +1755,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchTransactionFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactionFees(codes, parameters);
@@ -1749,7 +1775,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
@@ -1769,8 +1795,8 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1781,7 +1807,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/User-Commission-Rate"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM"/>  <br/>
     /// <list type="table">
@@ -1805,7 +1831,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
@@ -1817,7 +1843,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1834,7 +1860,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -1845,7 +1871,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1855,7 +1881,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
     public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
@@ -1866,7 +1892,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Rate-History-of-Perpetual-Futures"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1877,7 +1903,7 @@ public partial class binance
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -1906,7 +1932,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1919,7 +1945,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1935,7 +1961,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
     public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
@@ -1946,7 +1972,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets"/>  <br/>
     /// <list type="table">
@@ -1970,7 +1996,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
     public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
@@ -1990,7 +2016,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
@@ -2010,7 +2036,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchOptionPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOptionPositions(symbols, parameters);
@@ -2021,9 +2047,9 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -2052,7 +2078,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -2063,9 +2089,9 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -2111,7 +2137,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3"/>  <br/>
@@ -2153,7 +2179,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History"/>  <br/>
     /// <list type="table">
@@ -2195,7 +2221,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>
+    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
     public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2208,7 +2234,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Initial-Leverage"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage"/>  <br/>
     /// <list type="table">
@@ -2237,7 +2263,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Margin-Type"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2258,7 +2284,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode"/>  <br/>
     /// <list type="table">
@@ -2293,7 +2319,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config"/>  <br/>
@@ -2312,7 +2338,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
     public async Task<Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverages(symbols, parameters);
@@ -2344,7 +2370,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2400,7 +2426,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerEntry(id, code, parameters);
@@ -2412,7 +2438,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History"/>  <br/>
     /// <list type="table">
@@ -2466,7 +2492,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2488,7 +2514,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
     public async Task<CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCrossBorrowRate(code, parameters);
@@ -2514,7 +2540,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
+    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}.</returns>
     public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
@@ -2546,7 +2572,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    /// <returns> <term>object</term> a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
     public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRates(parameters);
@@ -2567,7 +2593,7 @@ public partial class binance
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+    /// int : the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
     /// </description>
     /// </item>
     /// <item>
@@ -2578,7 +2604,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}.</returns>
+    /// <returns> <term>object[]</term> an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchBorrowRateHistory(string code, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2651,7 +2677,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}.</returns>
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2664,7 +2690,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2698,7 +2724,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    /// <returns> <term>object</term> an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
     public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2711,7 +2737,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -2722,7 +2748,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
     public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterest(symbol, parameters);
@@ -2734,7 +2760,7 @@ public partial class binance
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders"/>  <br/>
     /// <list type="table">
@@ -2794,7 +2820,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}.</returns>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}.</returns>
     public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2816,11 +2842,31 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}.</returns>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}.</returns>
     public async Task<Greeks> FetchGreeks(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchGreeks(symbol, parameters);
         return new Greeks(res);
+    }
+    /// <summary>
+    /// fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}.</returns>
+    public async Task<List<Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAllGreeks(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Greeks(item)).ToList<Greeks>();
     }
     public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -2832,7 +2878,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Current-Position-Mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2858,7 +2904,7 @@ public partial class binance
     /// fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config"/>  <br/>
     /// <list type="table">
@@ -2876,7 +2922,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
     public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginModes(symbols, parameters);
@@ -2887,7 +2933,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2903,7 +2949,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
     public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);
@@ -2923,7 +2969,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}.</returns>
+    /// <returns> <term>object</term> an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}.</returns>
     public async Task<Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOption(symbol, parameters);
@@ -2934,7 +2980,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Get-Position-Margin-Change-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>type</term>
@@ -2962,7 +3008,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}.</returns>
     public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -3010,7 +3056,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -3037,7 +3083,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -3064,7 +3110,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchConvertTrade(id, code, parameters);
@@ -3108,7 +3154,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -3120,8 +3166,8 @@ public partial class binance
     /// fetch the funding rate interval for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Get-Funding-Info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -3137,7 +3183,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
     public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingIntervals(symbols, parameters);
@@ -3148,7 +3194,7 @@ public partial class binance
     /// </summary>
     /// <remarks>
     /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio"/>  <br/>
-    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Long-Short-Ratio"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>timeframe</term>
@@ -3182,12 +3228,61 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}.</returns>
+    /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}.</returns>
     public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LongShortRatio(item)).ToList<LongShortRatio>();
+    }
+    /// <summary>
+    /// fetches the auto deleveraging rank and risk percentage for a symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
+    public async Task<ADL> FetchADLRank(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchADLRank(symbol, parameters);
+        return new ADL(res);
+    }
+    /// <summary>
+    /// fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolioMargin</term>
+    /// <description>
+    /// boolean : set to true for the portfolio margin account
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
     }
 }

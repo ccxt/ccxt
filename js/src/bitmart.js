@@ -45,6 +45,7 @@ export default class bitmart extends Exchange {
                 'createOrder': true,
                 'createOrders': true,
                 'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -75,6 +76,7 @@ export default class bitmart extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -86,7 +88,7 @@ export default class bitmart extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
-                'fetchPositionMode': false,
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -99,6 +101,7 @@ export default class bitmart extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
+                'fetchWithdrawAddresses': true,
                 'fetchWithdrawAddressesByNetwork': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -107,6 +110,7 @@ export default class bitmart extends Exchange {
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -161,6 +165,7 @@ export default class bitmart extends Exchange {
                         'contract/public/funding-rate-history': 30,
                         'contract/public/kline': 6,
                         'account/v1/currencies': 30,
+                        'contract/public/markprice-kline': 5, // 6 times per 1 second
                     },
                 },
                 'private': {
@@ -181,6 +186,7 @@ export default class bitmart extends Exchange {
                         'account/v1/withdraw/charge': 32,
                         'account/v2/deposit-withdraw/history': 7.5,
                         'account/v1/deposit-withdraw/detail': 7.5,
+                        'account/v1/withdraw/address/list': 30,
                         // order
                         'spot/v1/order_detail': 1,
                         'spot/v2/orders': 5,
@@ -203,6 +209,7 @@ export default class bitmart extends Exchange {
                         'contract/private/order': 1.2,
                         'contract/private/order-history': 10,
                         'contract/private/position': 10,
+                        'contract/private/position-v2': 10,
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
@@ -210,6 +217,7 @@ export default class bitmart extends Exchange {
                         'contract/private/affilate/rebate-list': 10,
                         'contract/private/affilate/trade-list': 10,
                         'contract/private/transaction-history': 10,
+                        'contract/private/get-position-mode': 1,
                     },
                     'post': {
                         // sub-account endpoints
@@ -237,12 +245,19 @@ export default class bitmart extends Exchange {
                         'spot/v4/cancel_orders': 3,
                         'spot/v4/cancel_all': 90,
                         'spot/v4/batch_orders': 3,
+                        'spot/v4/algo/submit_order': 6,
+                        'spot/v4/algo/cancel_order': 6,
+                        'spot/v4/algo/cancel_all': 12,
+                        'spot/v4/query/algo/order': 1.5,
+                        'spot/v4/query/algo/client-order': 1.5,
+                        'spot/v4/query/algo/open-orders': 3,
+                        'spot/v4/query/algo/history-orders': 3,
                         // newer endpoint
                         'spot/v3/cancel_order': 1,
                         'spot/v2/batch_orders': 1,
                         'spot/v2/submit_order': 1,
                         // margin
-                        'spot/v1/margin/submit_order': 1,
+                        'spot/v1/margin/submit_order': 1.5,
                         'spot/v1/margin/isolated/borrow': 30,
                         'spot/v1/margin/isolated/repay': 30,
                         'spot/v1/margin/isolated/transfer': 30,
@@ -258,7 +273,11 @@ export default class bitmart extends Exchange {
                         'contract/private/submit-tp-sl-order': 2.5,
                         'contract/private/modify-plan-order': 2.5,
                         'contract/private/modify-preset-plan-order': 2.5,
+                        'contract/private/modify-limit-order': 2.5,
                         'contract/private/modify-tp-sl-order': 2.5,
+                        'contract/private/submit-trail-order': 2.5,
+                        'contract/private/cancel-trail-order': 1.5,
+                        'contract/private/set-position-mode': 1,
                     },
                 },
             },
@@ -514,7 +533,7 @@ export default class bitmart extends Exchange {
                 },
                 'broad': {
                     'You contract account available balance not enough': InsufficientFunds,
-                    'you contract account available balance not enough': InsufficientFunds,
+                    'This trading pair does not support API trading': BadSymbol, // {"message":"This trading pair does not support API trading","code":51008,"trace":"5d3ebd46-4e7a-4505-b37b-74464f398f01","data":{}}
                 },
             },
             'commonCurrencies': {
@@ -855,6 +874,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -877,8 +897,9 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchStatus
      * @description the latest known information on the availability of the exchange API
+     * @see https://developer-pro.bitmart.com/en/spot/#get-system-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const options = this.safeDict(this.options, 'fetchStatus', {});
@@ -918,7 +939,7 @@ export default class bitmart extends Exchange {
         if (type === 'swap') {
             type = 'contract';
         }
-        const service = this.safeString(servicesByType, type);
+        const service = this.safeDict(servicesByType, type);
         let status = undefined;
         let eta = undefined;
         if (service !== undefined) {
@@ -1000,7 +1021,7 @@ export default class bitmart extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower2(market, 'status', 'trade_status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1117,7 +1138,7 @@ export default class bitmart extends Exchange {
                 'swap': isSwap,
                 'future': isFutures,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower(market, 'status') === 'trading',
                 'contract': true,
                 'linear': true,
                 'inverse': false,
@@ -1159,8 +1180,9 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchMarkets
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @description retrieves data on all markets for bitmart
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-details-v1
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1168,14 +1190,16 @@ export default class bitmart extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const spot = await this.fetchSpotMarkets(params);
-        const contract = await this.fetchContractMarkets(params);
+        const spotPromise = this.fetchSpotMarkets(params);
+        const contractPromise = this.fetchContractMarkets(params);
+        const [spot, contract] = await Promise.all([spotPromise, contractPromise]);
         return this.arrayConcat(spot, contract);
     }
     /**
      * @method
      * @name bitmart#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1184,19 +1208,22 @@ export default class bitmart extends Exchange {
         //
         //     {
         //         "message": "OK",
-        //         "code":1000,
-        //         "trace": "9eaec51cd80d46d48a1c6b447206c4d6.71.17392193317851454",
+        //         "code": 1000,
+        //         "trace": "619294ecef584282b26a3be322b1e01f.66.17403093228242229",
         //         "data": {
         //             "currencies": [
         //                 {
         //                     "currency": "BTC",
         //                     "name": "Bitcoin",
+        //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
         //                     "withdraw_enabled": true,
         //                     "deposit_enabled": true,
         //                     "withdraw_minsize": "0.0003",
-        //                     "withdraw_minfee": "9.74"
+        //                     "withdraw_minfee": "9.61",
+        //                     "withdraw_fee_estimate": "9.61",
+        //                     "withdraw_fee": "0.0001"
         //                 }
         //             ]
         //         }
@@ -1210,7 +1237,8 @@ export default class bitmart extends Exchange {
             const fullId = this.safeString(currency, 'currency');
             let currencyId = fullId;
             let networkId = this.safeString(currency, 'network');
-            if (fullId.indexOf('NFT') < 0) {
+            const isNtf = (fullId.indexOf('NFT') >= 0);
+            if (!isNtf) {
                 const parts = fullId.split('-');
                 currencyId = this.safeString(parts, 0);
                 const second = this.safeString(parts, 1);
@@ -1231,6 +1259,7 @@ export default class bitmart extends Exchange {
                     'withdraw': undefined,
                     'active': undefined,
                     'networks': {},
+                    'type': isNtf ? 'other' : 'crypto',
                 };
             }
             const networkCode = this.networkIdToCode(networkId);
@@ -1243,7 +1272,7 @@ export default class bitmart extends Exchange {
                 'withdraw': withdraw,
                 'deposit': deposit,
                 'active': withdraw && deposit,
-                'fee': this.safeNumber(currency, 'withdraw_minfee'),
+                'fee': this.safeNumber(currency, 'withdraw_fee'),
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber(currency, 'withdraw_minsize'),
@@ -1308,7 +1337,7 @@ export default class bitmart extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network code of the currency
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFee(code, params = {}) {
         await this.loadMarkets();
@@ -1367,10 +1396,11 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDepositWithdrawFee
      * @description fetch the fee for deposits and withdrawals
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-quota-keyed
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network code of the currency
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFee(code, params = {}) {
         await this.loadMarkets();
@@ -1565,7 +1595,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1665,7 +1695,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1777,12 +1807,11 @@ export default class bitmart extends Exchange {
      * @name bitmart#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-     * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1967,7 +1996,7 @@ export default class bitmart extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum number of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2130,7 +2159,14 @@ export default class bitmart extends Exchange {
         }
         let response = undefined;
         if (market['swap']) {
-            response = await this.publicGetContractPublicKline(this.extend(request, params));
+            const price = this.safeString(params, 'price');
+            if (price === 'mark') {
+                params = this.omit(params, 'price');
+                response = await this.publicGetContractPublicMarkpriceKline(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetContractPublicKline(this.extend(request, params));
+            }
         }
         else {
             response = await this.publicGetSpotQuotationV3Klines(this.extend(request, params));
@@ -2175,7 +2211,7 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchMyTrades
      * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-trade-keyed
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2183,7 +2219,8 @@ export default class bitmart extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2298,7 +2335,8 @@ export default class bitmart extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2346,7 +2384,7 @@ export default class bitmart extends Exchange {
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['free'] = this.safeString2(balance, 'available', 'available_balance');
-                account['used'] = this.safeString2(balance, 'frozen', 'frozen_balance');
+                account['used'] = this.safeStringN(balance, ['unAvailable', 'frozen', 'frozen_balance']);
                 result[code] = account;
             }
             return this.safeBalance(result);
@@ -2366,13 +2404,12 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-     * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
-     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -2424,8 +2461,8 @@ export default class bitmart extends Exchange {
         //         "trace":"5c3b7fc7-93b2-49ef-bb59-7fdc56915b59",
         //         "data":{
         //             "wallet":[
-        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000"},
-        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000"}
+        //                 {"currency":"BTC","name":"Bitcoin","available":"0.00000062","frozen":"0.00000000","available_usd_valuation":null},
+        //                 {"currency":"ETH","name":"Ethereum","available":"0.00002277","frozen":"0.00000000","available_usd_valuation":null}
         //             ]
         //         }
         //     }
@@ -2519,9 +2556,10 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTradingFee
      * @description fetch the trading fees for a market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
         await this.loadMarkets();
@@ -2718,7 +2756,7 @@ export default class bitmart extends Exchange {
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
         await this.loadMarkets();
@@ -2734,11 +2772,12 @@ export default class bitmart extends Exchange {
      * @name bitmart#createOrder
      * @description create a trade order
      * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-     * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
      * @param {string} side 'buy' or 'sell'
@@ -2759,7 +2798,8 @@ export default class bitmart extends Exchange {
      * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
      * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
      * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2775,7 +2815,10 @@ export default class bitmart extends Exchange {
         let response = undefined;
         if (market['spot']) {
             const spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-            if (marginMode === 'isolated') {
+            if (isStopLoss || isTakeProfit || isTriggerOrder) {
+                response = await this.privatePostSpotV4AlgoSubmitOrder(spotRequest);
+            }
+            else if (marginMode === 'isolated') {
                 response = await this.privatePostSpotV1MarginSubmitOrder(spotRequest);
             }
             else {
@@ -2784,7 +2827,12 @@ export default class bitmart extends Exchange {
         }
         else {
             const swapRequest = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
-            if (isTriggerOrder) {
+            const activationPrice = this.safeString(swapRequest, 'activation_price');
+            if (activationPrice !== undefined) {
+                // if type is trailing
+                response = await this.privatePostContractPrivateSubmitTrailOrder(swapRequest);
+            }
+            else if (isTriggerOrder) {
                 response = await this.privatePostContractPrivateSubmitPlanOrder(swapRequest);
             }
             else if (isStopLoss || isTakeProfit) {
@@ -2824,7 +2872,8 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
         await this.loadMarkets();
@@ -2895,7 +2944,8 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-sl-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-trail-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
          * @param {string} side 'buy' or 'sell'
@@ -2915,7 +2965,7 @@ export default class bitmart extends Exchange {
          * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
          * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
          * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         const market = this.market(symbol);
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
@@ -2930,7 +2980,6 @@ export default class bitmart extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'type': type,
             'size': parseInt(this.amountToPrecision(symbol, amount)),
         };
         const timeInForce = this.safeString(params, 'timeInForce');
@@ -2963,6 +3012,7 @@ export default class bitmart extends Exchange {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         else if (type === 'trailing' || isTrailingPercentOrder) {
+            type = 'trailing';
             request['callback_rate'] = trailingPercent;
             request['activation_price'] = this.priceToPrecision(symbol, trailingTriggerPrice);
             request['activation_price_type'] = this.safeInteger(params, 'activation_price_type', 1);
@@ -3035,6 +3085,9 @@ export default class bitmart extends Exchange {
         else if (isTriggerOrder) {
             request['leverage'] = '1'; // for plan orders leverage is required, if not available default to 1
         }
+        if (type !== 'trailing') {
+            request['type'] = type;
+        }
         return this.extend(request, params);
     }
     createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -3043,8 +3096,9 @@ export default class bitmart extends Exchange {
          * @name bitmart#createSpotOrderRequest
          * @ignore
          * @description create a spot order request
-         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
-         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#new-margin-order-v1-signed
+         * @see https://developer-pro.bitmart.com/en/spot/#new-algo-order-v4-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -3052,13 +3106,23 @@ export default class bitmart extends Exchange {
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @param {string} [params.triggerPrice] the price to trigger a stop order
+         * @param {string} [params.stopLossPrice] the price to trigger a stop-loss order
+         * @param {string} [params.takeProfitPrice] the price to trigger a take-profit order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         const market = this.market(symbol);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const isTriggerOrder = triggerPrice !== undefined;
+        const isAlgoOrder = isStopLoss || isTakeProfit || isTriggerOrder;
         const request = {
             'symbol': market['id'],
             'side': side,
-            'type': type,
         };
         const timeInForce = this.safeString(params, 'timeInForce');
         if (timeInForce === 'FOK') {
@@ -3072,7 +3136,32 @@ export default class bitmart extends Exchange {
         params = this.omit(params, ['timeInForce', 'postOnly']);
         const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
         const isLimitOrder = (type === 'limit') || postOnly || ioc;
-        // method = 'privatePostSpotV2SubmitOrder';
+        if (isAlgoOrder) {
+            if (isTriggerOrder) {
+                request['type'] = 'trigger';
+            }
+            else {
+                request['type'] = 'tp/sl';
+            }
+            if (isLimitOrder) {
+                request['trigger_type'] = 'limit';
+            }
+            else {
+                request['trigger_type'] = 'market';
+            }
+            if (isStopLoss) {
+                request['trigger_price'] = this.priceToPrecision(symbol, stopLossPrice);
+            }
+            else if (isTakeProfit) {
+                request['trigger_price'] = this.priceToPrecision(symbol, takeProfitPrice);
+            }
+            else if (isTriggerOrder) {
+                request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
+            }
+        }
+        else {
+            request['type'] = type;
+        }
         if (isLimitOrder) {
             request['size'] = this.amountToPrecision(symbol, amount);
             request['price'] = this.priceToPrecision(symbol, price);
@@ -3120,18 +3209,20 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#cancelOrder
      * @description cancels an open order
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
      * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-trail-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-algo-order-v4-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-     * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
+     * @param {boolean} [params.trigger] whether the order is a trigger order
+     * @param {boolean} [params.stopLossTakeProfit] whether the order is a stopLossPrice or takeProfitPrice order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3149,19 +3240,34 @@ export default class bitmart extends Exchange {
         else {
             request['order_id'] = id.toString();
         }
-        params = this.omit(params, ['clientOrderId']);
+        const trigger = this.safeBool2(params, 'stop', 'trigger');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        const trailing = this.safeBool(params, 'trailing');
+        params = this.omit(params, ['clientOrderId', 'stop', 'trigger', 'trailing', 'stopLossTakeProfit']);
         let response = undefined;
         if (market['spot']) {
-            response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
-        }
-        else {
-            const trigger = this.safeBool2(params, 'stop', 'trigger');
-            params = this.omit(params, ['stop', 'trigger']);
-            if (!trigger) {
-                response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
+            if (trigger || stopLossTakeProfit) {
+                if (stopLossTakeProfit) {
+                    request['type'] = 'tp/sl';
+                }
+                else if (trigger) {
+                    request['type'] = 'trigger';
+                }
+                response = await this.privatePostSpotV4AlgoCancelOrder(this.extend(request, params));
             }
             else {
+                response = await this.privatePostSpotV3CancelOrder(this.extend(request, params));
+            }
+        }
+        else {
+            if (trigger) {
                 response = await this.privatePostContractPrivateCancelPlanOrder(this.extend(request, params));
+            }
+            else if (trailing) {
+                response = await this.privatePostContractPrivateCancelTrailOrder(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostContractPrivateCancelOrder(this.extend(request, params));
             }
         }
         // swap
@@ -3188,7 +3294,7 @@ export default class bitmart extends Exchange {
         //     }
         //
         if (market['swap']) {
-            return response;
+            return this.safeOrder({ 'info': response });
         }
         const data = this.safeValue(response, 'data');
         if (data === true) {
@@ -3219,7 +3325,7 @@ export default class bitmart extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3276,14 +3382,15 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-order-v4-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-algo-order-v4-signed
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.side] *spot only* 'buy' or 'sell'
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.trigger] whether the orders are trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] whether the orders are stopLossPrice or takeProfitPrice orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -3297,7 +3404,21 @@ export default class bitmart extends Exchange {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if (type === 'spot') {
-            response = await this.privatePostSpotV4CancelAll(this.extend(request, params));
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
+            const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+            params = this.omit(params, ['stop', 'trigger', 'stopLossTakeProfit']);
+            if (trigger || stopLossTakeProfit) {
+                if (stopLossTakeProfit) {
+                    request['type'] = 'tp/sl';
+                }
+                else if (trigger) {
+                    request['type'] = 'trigger';
+                }
+                response = await this.privatePostSpotV4AlgoCancelAll(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSpotV4CancelAll(this.extend(request, params));
+            }
         }
         else if (type === 'swap') {
             if (symbol === undefined) {
@@ -3323,7 +3444,7 @@ export default class bitmart extends Exchange {
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -3387,10 +3508,11 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchOpenOrders
-     * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
      * @description fetch all unfilled currently open orders
+     * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-open-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-all-current-plan-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#current-algo-open-orders-v4-signed
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3401,8 +3523,10 @@ export default class bitmart extends Exchange {
      * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
      * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
-     * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.trigger] set to true if you want to fetch trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3415,6 +3539,9 @@ export default class bitmart extends Exchange {
         let type = undefined;
         let response = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        params = this.omit(params, ['stop', 'trigger', 'stopLossTakeProfit']);
         if (type === 'spot') {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 200);
@@ -3432,14 +3559,23 @@ export default class bitmart extends Exchange {
                 params = this.omit(params, ['endTime']);
                 request['endTime'] = until;
             }
-            response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
+            if (isTrigger || stopLossTakeProfit) {
+                if (isTrigger) {
+                    request['orderMode'] = 'trigger';
+                }
+                else if (stopLossTakeProfit) {
+                    request['orderMode'] = 'tp/sl';
+                }
+                response = await this.privatePostSpotV4QueryAlgoOpenOrders(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, params));
+            }
         }
         else if (type === 'swap') {
             if (limit !== undefined) {
                 request['limit'] = Math.min(limit, 100);
             }
-            const isTrigger = this.safeBool2(params, 'stop', 'trigger');
-            params = this.omit(params, ['stop', 'trigger']);
             if (isTrigger) {
                 response = await this.privateGetContractPrivateCurrentPlanOrder(this.extend(request, params));
             }
@@ -3519,17 +3655,20 @@ export default class bitmart extends Exchange {
     /**
      * @method
      * @name bitmart#fetchClosedOrders
-     * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @description fetches information on multiple closed orders made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#account-algo-orders-v4-signed
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @param {boolean} [params.trigger] set to true if you want to fetch trigger orders
+     * @param {boolean} [params.stopLossTakeProfit] set to true if you want to fetch stopLossPrice or takeProfitPrice orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3556,6 +3695,9 @@ export default class bitmart extends Exchange {
             params = this.omit(params, ['until']);
             request[endTimeKey] = until;
         }
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger');
+        const stopLossTakeProfit = this.safeBool(params, 'stopLossTakeProfit');
+        params = this.omit(params, ['stop', 'trigger', 'stopLossTakeProfit']);
         let response = undefined;
         if (type === 'spot') {
             let marginMode = undefined;
@@ -3563,7 +3705,18 @@ export default class bitmart extends Exchange {
             if (marginMode === 'isolated') {
                 request['orderMode'] = 'iso_margin';
             }
-            response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
+            if (isTrigger || stopLossTakeProfit) {
+                if (isTrigger) {
+                    request['orderMode'] = 'trigger';
+                }
+                else if (stopLossTakeProfit) {
+                    request['orderMode'] = 'tp/sl';
+                }
+                response = await this.privatePostSpotV4QueryAlgoHistoryOrders(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, params));
+            }
         }
         else {
             response = await this.privateGetContractPrivateOrderHistory(this.extend(request, params));
@@ -3579,7 +3732,7 @@ export default class bitmart extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStatus('canceled', symbol, since, limit, params);
@@ -3590,15 +3743,18 @@ export default class bitmart extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
      * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-id-v4-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-algo-order-by-clientorderid-v4-signed
      * @param {string} id the id of the order
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
      * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
      * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+     * @param {boolean} [params.trigger] whether the orders is a trigger, stopLossPrice or takeProfitPrice order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -3612,14 +3768,26 @@ export default class bitmart extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
         if (type === 'spot') {
             const clientOrderId = this.safeString(params, 'clientOrderId');
+            const trigger = this.safeBool2(params, 'stop', 'trigger');
+            params = this.omit(params, ['stop', 'trigger']);
             if (!clientOrderId) {
                 request['orderId'] = id;
             }
-            if (clientOrderId !== undefined) {
-                response = await this.privatePostSpotV4QueryClientOrder(this.extend(request, params));
+            if (trigger) {
+                if (clientOrderId !== undefined) {
+                    response = await this.privatePostSpotV4QueryAlgoClientOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.privatePostSpotV4QueryAlgoOrder(this.extend(request, params));
+                }
             }
             else {
-                response = await this.privatePostSpotV4QueryOrder(this.extend(request, params));
+                if (clientOrderId !== undefined) {
+                    response = await this.privatePostSpotV4QueryClientOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.privatePostSpotV4QueryOrder(this.extend(request, params));
+                }
             }
         }
         else if (type === 'swap') {
@@ -3699,7 +3867,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -3728,6 +3896,7 @@ export default class bitmart extends Exchange {
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
+        // fetchDepositAddress
         //    {
         //        currency: 'ETH',
         //        chain: 'Ethereum',
@@ -3735,8 +3904,19 @@ export default class bitmart extends Exchange {
         //        address_memo: ''
         //    }
         //
+        // fetchWithdrawAddress
+        //     {
+        //         "currency": "ETH",
+        //         "network": "ETH",
+        //         "address": "0x1121",
+        //         "memo": "12",
+        //         "remark": "12",
+        //         "addressType": 0,
+        //         "verifyStatus": 0
+        //     }
+        //
         let currencyId = this.safeString(depositAddress, 'currency');
-        let network = this.safeString(depositAddress, 'chain');
+        let network = this.safeString2(depositAddress, 'chain', 'network');
         if (currencyId.indexOf('NFT') < 0) {
             const parts = currencyId.split('-');
             currencyId = this.safeString(parts, 0);
@@ -3753,20 +3933,21 @@ export default class bitmart extends Exchange {
             'currency': this.safeString(currency, 'code'),
             'network': this.networkIdToCode(network),
             'address': address,
-            'tag': this.safeString(depositAddress, 'address_memo'),
+            'tag': this.safeString2(depositAddress, 'address_memo', 'memo'),
         };
     }
     /**
      * @method
      * @name bitmart#withdraw
      * @description make a withdrawal
+     * @see https://developer-pro.bitmart.com/en/spot/#withdraw-signed
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the network name for this withdrawal
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
@@ -3806,17 +3987,24 @@ export default class bitmart extends Exchange {
     async fetchTransactionsByType(type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         if (limit === undefined) {
-            limit = 50; // max 50
+            limit = 1000; // max 1000
         }
         const request = {
             'operation_type': type,
-            'offset': 1,
             'N': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['endTime'] = until;
         }
         const response = await this.privateGetAccountV2DepositWithdrawHistory(this.extend(request, params));
         //
@@ -3851,10 +4039,11 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDeposit
      * @description fetch information on a deposit
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id deposit id
      * @param {string} code not used by bitmart fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit(id, code = undefined, params = {}) {
         await this.loadMarkets();
@@ -3892,11 +4081,12 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType('deposit', code, since, limit, params);
@@ -3905,10 +4095,11 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchWithdrawal
      * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://developer-pro.bitmart.com/en/spot/#get-a-deposit-or-withdraw-detail-keyed
      * @param {string} id withdrawal id
      * @param {string} code not used by bitmart.fetchWithdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawal(id, code = undefined, params = {}) {
         await this.loadMarkets();
@@ -3946,11 +4137,12 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://developer-pro.bitmart.com/en/spot/#get-deposit-and-withdraw-history-keyed
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchTransactionsByType('withdraw', code, since, limit, params);
@@ -4006,10 +4198,12 @@ export default class bitmart extends Exchange {
         const timestamp = this.safeInteger(transaction, 'apply_time');
         let currencyId = this.safeString(transaction, 'currency');
         let networkId = undefined;
-        if (currencyId.indexOf('NFT') < 0) {
-            const parts = currencyId.split('-');
-            currencyId = this.safeString(parts, 0);
-            networkId = this.safeString(parts, 1);
+        if (currencyId !== undefined) {
+            if (currencyId.indexOf('NFT') < 0) {
+                const parts = currencyId.split('-');
+                currencyId = this.safeString(parts, 0);
+                networkId = this.safeString(parts, 1);
+            }
         }
         const code = this.safeCurrencyCode(currencyId, currency);
         const status = this.parseTransactionStatus(this.safeString(transaction, 'status'));
@@ -4051,12 +4245,12 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#repayIsolatedMargin
      * @description repay borrowed margin and interest
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to repay
      * @param {string} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayIsolatedMargin(symbol, code, amount, params = {}) {
         await this.loadMarkets();
@@ -4089,12 +4283,12 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#borrowIsolatedMargin
      * @description create a loan to borrow margin
-     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated-signed
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to borrow
      * @param {string} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {
         await this.loadMarkets();
@@ -4248,7 +4442,7 @@ export default class bitmart extends Exchange {
      * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
      * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+     * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
     async fetchIsolatedBorrowRates(params = {}) {
         await this.loadMarkets();
@@ -4294,14 +4488,13 @@ export default class bitmart extends Exchange {
      * @name bitmart#transfer
      * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
      * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-     * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -4435,14 +4628,14 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchTransfers
      * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-     * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-transfer-list-signed
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfer structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.page] the required number of pages, default is 1, max is 1000
      * @param {int} [params.until] the latest time in ms to fetch transfers for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -4498,13 +4691,13 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchBorrowInterest
      * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated-keyed
      * @param {string} code unified currency code
      * @param {string} symbol unified market symbol when fetch interest in isolated markets
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -4583,7 +4776,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
      * @param {string} symbol Unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
@@ -4635,7 +4828,6 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
@@ -4669,7 +4861,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
@@ -4686,12 +4878,15 @@ export default class bitmart extends Exchange {
         //         "code": 1000,
         //         "message": "Ok",
         //         "data": {
-        //             "timestamp": 1695184410697,
         //             "symbol": "BTCUSDT",
-        //             "rate_value": "-0.00002614",
-        //             "expected_rate": "-0.00002"
+        //             "expected_rate": "-0.0000238",
+        //             "rate_value": "0.000009601106",
+        //             "funding_time": 1761292800000,
+        //             "funding_upper_limit": "0.0375",
+        //             "funding_lower_limit": "-0.0375",
+        //             "timestamp": 1761291544336
         //         },
-        //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        //         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         //     }
         //
         const data = this.safeDict(response, 'data', {});
@@ -4706,7 +4901,7 @@ export default class bitmart extends Exchange {
      * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
      * @param {int} [limit] the maximum amount of funding rate structures to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -4759,14 +4954,32 @@ export default class bitmart extends Exchange {
     parseFundingRate(contract, market = undefined) {
         //
         //     {
-        //         "timestamp": 1695184410697,
         //         "symbol": "BTCUSDT",
-        //         "rate_value": "-0.00002614",
-        //         "expected_rate": "-0.00002"
+        //         "expected_rate": "-0.0000238",
+        //         "rate_value": "0.000009601106",
+        //         "funding_time": 1761292800000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "timestamp": 1761291544336
+        //     }
+        //
+        // watchFundingRates
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.0000561",
+        //         "fundingTime": 1770978448000,
+        //         "nextFundingRate": "-0.0000195",
+        //         "nextFundingTime": 1770998400000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "ts": 1770978448970
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
-        const timestamp = this.safeInteger(contract, 'timestamp');
+        const timestamp = this.safeInteger2(contract, 'timestamp', 'ts');
+        const fundingTimestamp = this.safeInteger2(contract, 'funding_time', 'fundingTime');
+        const nextFundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market),
@@ -4776,12 +4989,12 @@ export default class bitmart extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 'expected_rate'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
+            'fundingRate': this.safeNumber2(contract, 'expected_rate', 'fundingRate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': this.safeNumber(contract, 'nextFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
             'previousFundingRate': this.safeNumber(contract, 'rate_value'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
@@ -4792,11 +5005,10 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
@@ -4842,11 +5054,11 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchPositions
      * @description fetch all open contract positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -4862,7 +5074,7 @@ export default class bitmart extends Exchange {
             // only supports symbols as undefined or sending one symbol
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetContractPrivatePosition(this.extend(request, params));
+        const response = await this.privateGetContractPrivatePositionV2(this.extend(request, params));
         //
         //     {
         //         "code": 1000,
@@ -4968,13 +5180,13 @@ export default class bitmart extends Exchange {
      * @method
      * @name bitmart#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmart api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
@@ -5074,6 +5286,7 @@ export default class bitmart extends Exchange {
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
      * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-limit-order-signed
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'market' or 'limit'
@@ -5089,7 +5302,7 @@ export default class bitmart extends Exchange {
      * @param {string} [params.clientOrderId] client order id of the order
      * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
      * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -5109,6 +5322,7 @@ export default class bitmart extends Exchange {
         const isTakeProfit = takeProfitPrice !== undefined;
         const isPresetStopLoss = presetStopLoss !== undefined;
         const isPresetTakeProfit = presetTakeProfit !== undefined;
+        const isLimitOrder = (type === 'limit');
         const request = {
             'symbol': market['id'],
         };
@@ -5184,8 +5398,18 @@ export default class bitmart extends Exchange {
             //     }
             //
         }
+        else if (isLimitOrder) {
+            request['order_id'] = this.parseToInt(id); // reparse id as int this endpoint is the only one requiring it
+            if (amount !== undefined) {
+                request['size'] = this.amountToPrecision(symbol, amount);
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            response = await this.privatePostContractPrivateModifyLimitOrder(this.extend(request, params));
+        }
         else {
-            throw new NotSupported(this.id + ' editOrder() only supports trigger, stop loss and take profit orders');
+            throw new NotSupported(this.id + ' editOrder() only supports limit, trigger, stop loss and take profit orders');
         }
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
@@ -5200,7 +5424,7 @@ export default class bitmart extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -5315,7 +5539,7 @@ export default class bitmart extends Exchange {
      * @param {int} [limit] the number of entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch funding history for
-     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -5382,6 +5606,111 @@ export default class bitmart extends Exchange {
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySinceLimit(sorted, since, limit);
     }
+    async fetchWithdrawAddresses(code, note = undefined, networkCode = undefined, params = {}) {
+        await this.loadMarkets();
+        let codes = undefined;
+        if (code !== undefined) {
+            const currency = this.currency(code);
+            code = currency['code'];
+            codes = [code];
+        }
+        const response = await this.privateGetAccountV1WithdrawAddressList(params);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "0e6edd79-f77f-4251-abe5-83ba75d06c1a",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "currency": "ETH",
+        //                     "network": "ETH",
+        //                     "address": "0x1121",
+        //                     "memo": "12",
+        //                     "remark": "12",
+        //                     "addressType": 0,
+        //                     "verifyStatus": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const list = this.safeList(data, 'list', []);
+        const allAddresses = this.parseDepositAddresses(list, codes, false);
+        const addresses = [];
+        for (let i = 0; i < allAddresses.length; i++) {
+            const address = allAddresses[i];
+            const noteMatch = (note === undefined) || (address['note'] === note);
+            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            if (noteMatch && networkMatch) {
+                addresses.push(address);
+            }
+        }
+        return addresses;
+    }
+    /**
+     * @method
+     * @name bitmart#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let positionMode = undefined;
+        if (hedged) {
+            positionMode = 'hedge_mode';
+        }
+        else {
+            positionMode = 'one_way_mode';
+        }
+        const request = {
+            'position_mode': positionMode,
+        };
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        return await this.privatePostContractPrivateSetPositionMode(this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name bitmart#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-position-mode-keyed
+     * @param {string} symbol not used
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode(symbol = undefined, params = {}) {
+        const response = await this.privateGetContractPrivateGetPositionMode(params);
+        //
+        // {
+        //     "code": 1000,
+        //     "trace": "0cc6f4c4-8b8c-4253-8e90-8d3195aa109c",
+        //     "message": "Ok",
+        //     "data": {
+        //       "position_mode":"one_way_mode"
+        //     }
+        // }
+        //
+        const data = this.safeDict(response, 'data');
+        const positionMode = this.safeString(data, 'position_mode');
+        return {
+            'info': response,
+            'hedged': (positionMode === 'hedge_mode'),
+        };
+    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
@@ -5438,8 +5767,9 @@ export default class bitmart extends Exchange {
         //
         //     {"errno":"OK","message":"INVALID_PARAMETER","code":49998,"trace":"eb5ebb54-23cd-4de2-9064-e090b6c3b2e3","data":null}
         //
-        const message = this.safeStringLower(response, 'message');
-        const isErrorMessage = (message !== undefined) && (message !== 'ok') && (message !== 'success');
+        const message = this.safeString(response, 'message');
+        const messageLower = message.toLowerCase();
+        const isErrorMessage = (message !== undefined) && (messageLower !== 'ok') && (messageLower !== 'success');
         const errorCode = this.safeString(response, 'code');
         const isErrorCode = (errorCode !== undefined) && (errorCode !== '1000');
         if (isErrorCode || isErrorMessage) {
