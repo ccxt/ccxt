@@ -622,6 +622,21 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         object marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(trade, "time");
@@ -635,8 +650,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "type", this.safeString(trade, "type") },
             { "side", this.safeString(trade, "side") },
             { "takerOrMaker", "taker" },
-            { "price", this.safeString(trade, "price") },
-            { "amount", this.safeString(trade, "qty") },
+            { "price", this.safeString2(trade, "price", "limit_price") },
+            { "amount", this.safeString2(trade, "filled", "qty") },
             { "cost", null },
             { "fee", new Dictionary<string, object>() {
                 { "rate", null },
@@ -688,7 +703,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "type", this.safeStringLower(trade, "type") },
             { "side", this.safeString(trade, "side") },
             { "takerOrMaker", this.safeString(trade, "matchRole") },
-            { "price", this.safeString(trade, "price") },
+            { "price", this.safeString2(trade, "price", "limit_price") },
             { "amount", this.safeString(trade, "tradeAmount") },
             { "cost", null },
             { "fee", new Dictionary<string, object>() {
@@ -815,15 +830,13 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)previousOrder)["average"] = Precise.stringDiv(totalCost, totalAmount);
                 }
                 ((IDictionary<string,object>)previousOrder)["cost"] = totalCost;
-                if (isTrue(!isEqual(getValue(previousOrder, "filled"), null)))
-                {
-                    object stringOrderFilled = this.numberToString(getValue(previousOrder, "filled"));
-                    ((IDictionary<string,object>)previousOrder)["filled"] = Precise.stringAdd(stringOrderFilled, this.numberToString(getValue(trade, "amount")));
-                    if (isTrue(!isEqual(getValue(previousOrder, "amount"), null)))
-                    {
-                        ((IDictionary<string,object>)previousOrder)["remaining"] = Precise.stringSub(this.numberToString(getValue(previousOrder, "amount")), stringOrderFilled);
-                    }
-                }
+                object filledString = this.numberToString(getValue(trade, "amount"));
+                object stringOrderFilled = this.safeString(previousOrder, "filled", "0");
+                object totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
+                ((IDictionary<string,object>)previousOrder)["filled"] = totalFilled;
+                object prevAmountString = this.safeString(previousOrder, "amount");
+                object remaining = Precise.stringSub(prevAmountString, totalFilled);
+                ((IDictionary<string,object>)previousOrder)["remaining"] = remaining;
                 if (isTrue(isEqual(getValue(previousOrder, "fee"), null)))
                 {
                     ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
@@ -1012,11 +1025,11 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "price", this.safeString(unparsedOrder, "limit_price") },
             { "stopPrice", this.safeString(unparsedOrder, "stop_price") },
             { "triggerPrice", this.safeString(unparsedOrder, "stop_price") },
-            { "amount", this.safeString(unparsedOrder, "qty") },
+            { "amount", null },
             { "cost", null },
             { "average", null },
             { "filled", this.safeString(unparsedOrder, "filled") },
-            { "remaining", null },
+            { "remaining", this.safeString(unparsedOrder, "qty") },
             { "status", status },
             { "fee", new Dictionary<string, object>() {
                 { "rate", null },

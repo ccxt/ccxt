@@ -1488,6 +1488,7 @@ export default class coinbase extends Exchange {
         //        has_promo_fee: false
         //    }
         //
+        const promises = await Promise.all(spotUnresolvedPromises);
         let unresolvedContractPromises = [];
         try {
             unresolvedContractPromises = [
@@ -1498,7 +1499,6 @@ export default class coinbase extends Exchange {
         catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
-        const promises = await Promise.all(spotUnresolvedPromises);
         let contractPromises = undefined;
         try {
             contractPromises = await Promise.all(unresolvedContractPromises); // some users don't have access to contracts

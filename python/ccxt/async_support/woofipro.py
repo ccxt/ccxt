@@ -1996,7 +1996,7 @@ class woofipro(Exchange, ImplicitAPI):
         #
         #     {
         #         "success": True,
-        #         "timestamp": 1702989203989,
+        #         "timestamp": 1702989203988,
         #         "data": {
         #             "meta": {
         #                 "total": 9,

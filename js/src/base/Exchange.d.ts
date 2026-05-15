@@ -654,6 +654,27 @@ export default class Exchange {
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    safeNetwork(network: any): {
+        info: any;
+        id: string;
+        name: string;
+        network: string;
+        active: boolean;
+        deposit: boolean;
+        withdraw: boolean;
+        fee: number;
+        precision: number;
+        limits: {
+            withdraw: {
+                min: number;
+                max: number;
+            };
+            deposit: {
+                min: number;
+                max: number;
+            };
+        };
+    };
     networkCodeToId(networkCode: string, currencyCode?: Str): string;
     networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     handleNetworkCodeAndParams(params: any): any[];

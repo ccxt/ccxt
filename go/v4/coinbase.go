@@ -1723,6 +1723,9 @@ func (this *CoinbaseCore) FetchMarketsV3(optionalArgs ...any) <-chan any {
 		//        has_promo_fee: false
 		//    }
 		//
+
+		promises := (<-promiseAll(spotUnresolvedPromises))
+		PanicOnError(promises)
 		var unresolvedContractPromises any = []any{}
 
 		{
@@ -1750,9 +1753,6 @@ func (this *CoinbaseCore) FetchMarketsV3(optionalArgs ...any) <-chan any {
 			}(this)
 
 		}
-
-		promises := (<-promiseAll(spotUnresolvedPromises))
-		PanicOnError(promises)
 		var contractPromises any = nil
 
 		{

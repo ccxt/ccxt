@@ -240,8 +240,13 @@ public partial class binance : ccxt.binance
         if (isTrue(isEqual(type, "future")))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
-            object firstProtocol = getIndexOf(baseUrl, "://");
-            if (isTrue(isTrue(!isEqual(firstProtocol, -1)) && isTrue(!isEqual(getIndexOf(baseUrl, "://"), -1))))
+            // const firstProtocol = baseUrl.indexOf ('://');
+            // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+            //     return baseUrl;
+            // }
+            object baseUrlSplit = ((string)baseUrl).Split(new [] {((string)"://")}, StringSplitOptions.None).ToList<object>();
+            object baseUrlSplitLength = getArrayLength(baseUrlSplit);
+            if (isTrue(isGreaterThan(baseUrlSplitLength, 2)))
             {
                 return baseUrl;
             }

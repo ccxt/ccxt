@@ -1897,11 +1897,11 @@ class xt(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             if limit is not None:
-                request['limit'] = limit
+                request['limit'] = min(limit, 1000)
             response = await self.publicSpotGetTradeRecent(self.extend(request, params))
         else:
             if limit is not None:
-                request['num'] = limit
+                request['num'] = min(limit, 1000)
             if market['linear']:
                 response = await self.publicLinearGetFutureMarketV1PublicQDeal(self.extend(request, params))
             elif market['inverse']:

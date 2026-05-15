@@ -798,6 +798,21 @@ func  (this *KrakenfuturesCore) ParseWsTrade(trade any, optionalArgs ...any) any
     //        "price": 34893
     //    }
     //
+    // order update
+    //     {
+    //         "instrument": "PF_DOGEUSD",
+    //         "time": 1778610421471,
+    //         "last_update_time": 1778610444402,
+    //         "qty": 0,
+    //         "filled": 10,
+    //         "limit_price": 0.10912,
+    //         "stop_price": 0,
+    //         "type": "limit",
+    //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+    //         "direction": 0,
+    //         "reduce_only": false
+    //     }
+    //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId any = this.SafeString(trade, "product_id")
@@ -813,8 +828,8 @@ func  (this *KrakenfuturesCore) ParseWsTrade(trade any, optionalArgs ...any) any
         "type": this.SafeString(trade, "type"),
         "side": this.SafeString(trade, "side"),
         "takerOrMaker": "taker",
-        "price": this.SafeString(trade, "price"),
-        "amount": this.SafeString(trade, "qty"),
+        "price": this.SafeString2(trade, "price", "limit_price"),
+        "amount": this.SafeString2(trade, "filled", "qty"),
         "cost": nil,
         "fee": map[string]any {
             "rate": nil,
@@ -866,7 +881,7 @@ func  (this *KrakenfuturesCore) ParseWsOrderTrade(trade any, optionalArgs ...any
         "type": this.SafeStringLower(trade, "type"),
         "side": this.SafeString(trade, "side"),
         "takerOrMaker": this.SafeString(trade, "matchRole"),
-        "price": this.SafeString(trade, "price"),
+        "price": this.SafeString2(trade, "price", "limit_price"),
         "amount": this.SafeString(trade, "tradeAmount"),
         "cost": nil,
         "fee": map[string]any {
@@ -970,8 +985,8 @@ func  (this *KrakenfuturesCore) HandleOrder(client any, message any) any  {
             if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
                 ccxt.AddElementToObject(previousOrder, "trades", []any{})
             }
-            retRes73716 := ccxt.GetValue(previousOrder, "trades")
-            ccxt.AppendToArray(&retRes73716, trade)
+            retRes75216 := ccxt.GetValue(previousOrder, "trades")
+            ccxt.AppendToArray(&retRes75216, trade)
             ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
             var totalCost any = "0"
             var totalAmount any = "0"
@@ -985,13 +1000,13 @@ func  (this *KrakenfuturesCore) HandleOrder(client any, message any) any  {
                 ccxt.AddElementToObject(previousOrder, "average", ccxt.Precise.StringDiv(totalCost, totalAmount))
             }
             ccxt.AddElementToObject(previousOrder, "cost", totalCost)
-            if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previousOrder, "filled"), nil)) {
-                var stringOrderFilled any = this.NumberToString(ccxt.GetValue(previousOrder, "filled"))
-                ccxt.AddElementToObject(previousOrder, "filled", ccxt.Precise.StringAdd(stringOrderFilled, this.NumberToString(ccxt.GetValue(trade, "amount"))))
-                if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previousOrder, "amount"), nil)) {
-                    ccxt.AddElementToObject(previousOrder, "remaining", ccxt.Precise.StringSub(this.NumberToString(ccxt.GetValue(previousOrder, "amount")), stringOrderFilled))
-                }
-            }
+            var filledString any = this.NumberToString(ccxt.GetValue(trade, "amount"))
+            var stringOrderFilled any = this.SafeString(previousOrder, "filled", "0")
+            var totalFilled any = ccxt.Precise.StringAdd(stringOrderFilled, filledString)
+            ccxt.AddElementToObject(previousOrder, "filled", totalFilled)
+            var prevAmountString any = this.SafeString(previousOrder, "amount")
+            var remaining any = ccxt.Precise.StringSub(prevAmountString, totalFilled)
+            ccxt.AddElementToObject(previousOrder, "remaining", remaining)
             if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "fee"), nil)) {
                 ccxt.AddElementToObject(previousOrder, "fee", map[string]any {
     "rate": nil,
@@ -1167,11 +1182,11 @@ func  (this *KrakenfuturesCore) ParseWsOrder(order any, optionalArgs ...any) any
         "price": this.SafeString(unparsedOrder, "limit_price"),
         "stopPrice": this.SafeString(unparsedOrder, "stop_price"),
         "triggerPrice": this.SafeString(unparsedOrder, "stop_price"),
-        "amount": this.SafeString(unparsedOrder, "qty"),
+        "amount": nil,
         "cost": nil,
         "average": nil,
         "filled": this.SafeString(unparsedOrder, "filled"),
-        "remaining": nil,
+        "remaining": this.SafeString(unparsedOrder, "qty"),
         "status": status,
         "fee": map[string]any {
             "rate": nil,
@@ -1744,8 +1759,8 @@ func  (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName an
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes15048 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15048)
+            retRes15198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15198)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             // symbols are required
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
@@ -1769,9 +1784,9 @@ func  (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName an
                 }
             }
         
-                retRes152715 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-                ccxt.PanicOnError(retRes152715)
-                ch <- retRes152715
+                retRes154215 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
+                ccxt.PanicOnError(retRes154215)
+                ch <- retRes154215
                 return nil
         
             }()

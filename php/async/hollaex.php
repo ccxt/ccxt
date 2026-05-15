@@ -953,12 +953,10 @@ class hollaex extends Exchange {
             $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
             $start = $since;
             $now = $this->milliseconds();
-            if ($until === null && $start === null) {
-                $until = $now;
-                $start = $until - $timeDelta;
-            } elseif ($until === null) {
+            if ($until === null) {
                 $until = $now; // the exchange has not a lot of trades, so if we count $until by $limit and $limit is small, it may return empty result
-            } elseif ($start === null) {
+            }
+            if ($start === null) {
                 $start = $until - $timeDelta;
             }
             $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds

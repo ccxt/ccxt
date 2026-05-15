@@ -449,10 +449,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		zebpayItf := NewZebpayCore()
 		zebpayItf.Init(exchangeArgs)
 		return zebpayItf, true
-	case "zonda":
-		zondaItf := NewZondaCore()
-		zondaItf.Init(exchangeArgs)
-		return zondaItf, true
 	default:
 		return nil, false
 	}

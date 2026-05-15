@@ -679,7 +679,7 @@ func (this *BydfiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
+			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 
 		response := (<-this.PublicGetV1FapiMarketTrades(this.Extend(request, params)))

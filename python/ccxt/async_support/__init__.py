@@ -174,7 +174,6 @@ from ccxt.async_support.xt import xt                                            
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
 from ccxt.async_support.zebpay import zebpay                                    # noqa: F401
-from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
     'aftermath',
@@ -287,7 +286,6 @@ exchanges = [
     'yobit',
     'zaif',
     'zebpay',
-    'zonda',
 ]
 
 base = [

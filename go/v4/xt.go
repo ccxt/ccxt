@@ -2058,14 +2058,14 @@ func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(GetValue(market, "spot")) {
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit)
+				AddElementToObject(request, "limit", mathMin(limit, 1000))
 			}
 
 			response = (<-this.PublicSpotGetTradeRecent(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "num", limit)
+				AddElementToObject(request, "num", mathMin(limit, 1000))
 			}
 			if IsTrue(GetValue(market, "linear")) {
 

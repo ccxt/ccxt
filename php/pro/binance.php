@@ -241,8 +241,13 @@ class binance extends \ccxt\async\binance {
         $baseUrl = $this->urls['api']['ws'][$type];
         if ($type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
-            $firstProtocol = mb_strpos($baseUrl, '://');
-            if ($firstProtocol !== -1 && mb_strpos($baseUrl, '://', $firstProtocol + 3) !== -1) {
+            // $firstProtocol = mb_strpos($baseUrl, '://');
+            // if ($firstProtocol !== -1 && mb_strpos($baseUrl, '://', $firstProtocol + 3) !== -1) {
+            //     return $baseUrl;
+            // }
+            $baseUrlSplit = explode('://', $baseUrl);
+            $baseUrlSplitLength = count($baseUrlSplit);
+            if ($baseUrlSplitLength > 2) {
                 return $baseUrl;
             }
             // only rewrite when the URL ends with exactly "/ws"

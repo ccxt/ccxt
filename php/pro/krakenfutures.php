@@ -595,6 +595,21 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "price" => 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument" => "PF_DOGEUSD",
+        //         "time" => 1778610421471,
+        //         "last_update_time" => 1778610444402,
+        //         "qty" => 0,
+        //         "filled" => 10,
+        //         "limit_price" => 0.10912,
+        //         "stop_price" => 0,
+        //         "type" => "limit",
+        //         "order_id" => "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction" => 0,
+        //         "reduce_only" => false
+        //     }
+        //
         $marketId = $this->safe_string($trade, 'product_id');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'time');
@@ -608,8 +623,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'type' => $this->safe_string($trade, 'type'),
             'side' => $this->safe_string($trade, 'side'),
             'takerOrMaker' => 'taker',
-            'price' => $this->safe_string($trade, 'price'),
-            'amount' => $this->safe_string($trade, 'qty'),
+            'price' => $this->safe_string_2($trade, 'price', 'limit_price'),
+            'amount' => $this->safe_string_2($trade, 'filled', 'qty'),
             'cost' => null,
             'fee' => array(
                 'rate' => null,
@@ -660,7 +675,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'type' => $this->safe_string_lower($trade, 'type'),
             'side' => $this->safe_string($trade, 'side'),
             'takerOrMaker' => $this->safe_string($trade, 'matchRole'),
-            'price' => $this->safe_string($trade, 'price'),
+            'price' => $this->safe_string_2($trade, 'price', 'limit_price'),
             'amount' => $this->safe_string($trade, 'tradeAmount'), // ? tradeQty?
             'cost' => null,
             'fee' => array(
@@ -779,13 +794,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                     $previousOrder['average'] = Precise::string_div($totalCost, $totalAmount);
                 }
                 $previousOrder['cost'] = $totalCost;
-                if ($previousOrder['filled'] !== null) {
-                    $stringOrderFilled = $this->number_to_string($previousOrder['filled']);
-                    $previousOrder['filled'] = Precise::string_add($stringOrderFilled, $this->number_to_string($trade['amount']));
-                    if ($previousOrder['amount'] !== null) {
-                        $previousOrder['remaining'] = Precise::string_sub($this->number_to_string($previousOrder['amount']), $stringOrderFilled);
-                    }
-                }
+                $filledString = $this->number_to_string($trade['amount']);
+                $stringOrderFilled = $this->safe_string($previousOrder, 'filled', '0');
+                $totalFilled = Precise::string_add($stringOrderFilled, $filledString);
+                $previousOrder['filled'] = $totalFilled;
+                $prevAmountString = $this->safe_string($previousOrder, 'amount');
+                $remaining = Precise::string_sub($prevAmountString, $totalFilled);
+                $previousOrder['remaining'] = $remaining;
                 if ($previousOrder['fee'] === null) {
                     $previousOrder['fee'] = array(
                         'rate' => null,
@@ -961,11 +976,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'price' => $this->safe_string($unparsedOrder, 'limit_price'),
             'stopPrice' => $this->safe_string($unparsedOrder, 'stop_price'),
             'triggerPrice' => $this->safe_string($unparsedOrder, 'stop_price'),
-            'amount' => $this->safe_string($unparsedOrder, 'qty'),
+            'amount' => null,
             'cost' => null,
             'average' => null,
             'filled' => $this->safe_string($unparsedOrder, 'filled'),
-            'remaining' => null,
+            'remaining' => $this->safe_string($unparsedOrder, 'qty'),
             'status' => $status,
             'fee' => array(
                 'rate' => null,

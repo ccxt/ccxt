@@ -235,8 +235,13 @@ class binance(ccxt.async_support.binance):
         baseUrl = self.urls['api']['ws'][type]
         if type == 'future':
             # skip URL manipulation for proxied/bridge URLs(contain an embedded protocol)
-            firstProtocol = baseUrl.find('://')
-            if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
+            # firstProtocol = baseUrl.find('://')
+            # if firstProtocol != -1 and baseUrl.find('://', firstProtocol + 3) != -1:
+            #     return baseUrl
+            # }
+            baseUrlSplit = baseUrl.split('://')
+            baseUrlSplitLength = len(baseUrlSplit)
+            if baseUrlSplitLength > 2:
                 return baseUrl
             # only rewrite when the URL ends with exactly "/ws"
             # self avoids matching "/wss", "/ws-api", "/ws-fapi/v1", etc.

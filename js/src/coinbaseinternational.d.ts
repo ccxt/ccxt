@@ -412,27 +412,6 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    safeNetwork(network: any): {
-        info: any;
-        id: string;
-        name: string;
-        network: string;
-        active: boolean;
-        deposit: boolean;
-        withdraw: boolean;
-        fee: number;
-        precision: number;
-        limits: {
-            withdraw: {
-                min: number;
-                max: number;
-            };
-            deposit: {
-                min: number;
-                max: number;
-            };
-        };
-    };
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;
