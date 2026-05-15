@@ -6537,7 +6537,7 @@ export default class binance extends Exchange {
         let triggerDirection = undefined;
         [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params, undefined, true);
         const triggerDirectionSet = triggerDirection !== undefined;
-        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice); // fallback to stopLoss
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingDelta = this.safeString (params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
