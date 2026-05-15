@@ -147,7 +147,7 @@ jobs:
       - name: Deploy C# Package
         run: ./cs/deploy.sh;
         env:
-          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
