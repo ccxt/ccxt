@@ -240,7 +240,7 @@ type ICoreExchange interface {
 	GetItf() any
 	ConvertToSafeDictionary(data any) any
 	CreateSafeDictionary(isWs ...bool) *sync.Map
-	OrderBookToDict(orderbook any) any
+	OrderbookToDictOrderbookToDict(orderbook any) any
 	SetOptions(options any)
 	CreateOrders(orders any, optionalArgs ...any) <-chan any
 	Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any
