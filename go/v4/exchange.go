@@ -2100,6 +2100,6 @@ func (this *Exchange) UnlockId() bool {
 	return true
 }
 
-func (this *Exchange) OrderBookToDict(orderbook any) any {
+func (this *Exchange) OrderbookToDict(orderbook any) any {
 	return orderbook
 }
