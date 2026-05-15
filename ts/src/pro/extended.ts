@@ -2,9 +2,9 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Bool, FundingRate, Int, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
+import type { Bool, Dict, FundingRate, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 // ----------------------------------------------------------------------------
 
@@ -19,13 +19,14 @@ export default class extended extends extendedRest {
                 'watchIndexPrice': true,
                 'watchMarkPrice': true,
                 'watchTrades': true,
+                'watchOrders': true,
             },
             'urls': {
                 'api': {
                     'ws': 'wss://api.starknet.extended.exchange/stream.extended.exchange/v1',
                 },
                 'test': {
-                    'ws': 'wss://starknet.sepolia.extended.exchange/stream.extended.exchange/v1',
+                    'ws': 'wss://api.starknet.sepolia.extended.exchange/stream.extended.exchange/v1',
                 },
             },
             'options': {
@@ -132,6 +133,121 @@ export default class extended extends extendedRest {
     handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    watchPrivate (messageHash: string, subscription = undefined) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws'] + '/account';
+        if ((this.clients === undefined) || !(url in this.clients)) {
+            const defaultOptions = {
+                'ws': {
+                    'options': {
+                        'headers': {},
+                    },
+                },
+            };
+            this.extendExchangeOptions (defaultOptions);
+            const originalHeaders = this.options['ws']['options']['headers'];
+            this.options['ws']['options']['headers'] = this.extend ({
+                'User-Agent': this.userAgents['chrome'],
+            }, originalHeaders, {
+                'X-Api-Key': this.apiKey,
+            });
+            this.client (url);
+            this.options['ws']['options']['headers'] = originalHeaders;
+        }
+        return this.watch (url, messageHash, undefined, messageHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name extended#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api.docs.extended.exchange/#account-updates-stream
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const orders = await this.watchPrivate (messageHash, {
+            'symbol': symbol,
+            'limit': limit,
+        });
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client: Client, message) {
+        //
+        //     {
+        //         "type": "ORDER",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "id": 1791181340771614723,
+        //                     "accountId": 1791181340771614721,
+        //                     "externalId": "-1771812132822291885",
+        //                     "market": "BTC-USD",
+        //                     "type": "LIMIT",
+        //                     "side": "BUY",
+        //                     "status": "NEW",
+        //                     "price": "12400.000000",
+        //                     "averagePrice": "13140.000000",
+        //                     "qty": "10.000000",
+        //                     "filledQty": "3.513000",
+        //                     "payedFee": "0.513000",
+        //                     "reduceOnly": true,
+        //                     "postOnly": false,
+        //                     "createdTime": 1715885888571,
+        //                     "updatedTime": 1715885888571,
+        //                     "expireTime": 1715885888571
+        //                 }
+        //             ]
+        //         },
+        //         "ts": 1715885884837,
+        //         "seq": 1
+        //     }
+        //
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const data = this.safeDict (message, 'data', {});
+        const rawOrders = this.safeList (data, 'orders', []);
+        const symbols: Dict = {};
+        for (let i = 0; i < rawOrders.length; i++) {
+            const order = this.parseOrder (rawOrders[i]);
+            const symbol = this.safeString (order, 'symbol');
+            symbols[symbol] = true;
+            orders.append (order);
+        }
+        const keys = Object.keys (symbols);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = 'orders:' + keys[i];
+            client.resolve (orders, messageHash);
+        }
+        client.resolve (orders, 'orders');
+        if (rawOrders.length === 0) {
+            const subscriptions = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptions.length; i++) {
+                const messageHash = subscriptions[i];
+                if (messageHash.indexOf ('orders:') === 0) {
+                    client.resolve (orders, messageHash);
+                }
+            }
         }
     }
 
@@ -533,6 +649,11 @@ export default class extended extends extendedRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
+        const type = this.safeString (message, 'type');
+        if (type === 'ORDER') {
+            this.handleOrders (client, message);
+            return;
+        }
         const data = this.safeValue (message, 'data');
         if (Array.isArray (data)) {
             const first = this.safeDict (data, 0, {});
@@ -543,7 +664,6 @@ export default class extended extends extendedRest {
                 this.handleOHLCV (client, message);
             }
         } else if (data !== undefined) {
-            const type = this.safeString (message, 'type');
             if (type === 'MP') {
                 this.handleMarkPrice (client, message);
             } else if (type === 'IP') {
