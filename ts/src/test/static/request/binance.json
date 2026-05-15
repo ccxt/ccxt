@@ -4,6 +4,7 @@
         "signature",
         "timestamp",
         "recvWindow",
+        "clientAlgoId",
         "newClientOrderId",
         "newClientStrategyId"
     ],
