@@ -6,8 +6,8 @@ include dirname(dirname(dirname(dirname(__FILE__)))). '/ccxt.php';
 $binance_id = '\\ccxt\\pro\\binance';
 $binance_exchange = new $binance_id( /*[ 'apiKey' => _YOUR_APIKEY_HERE_, 'secret' => _YOUR_SECRET_HERE_ ]*/ ); 
 
-$ftx_id = '\\ccxt\\pro\\ftx';
-$ftx_exchange = new $ftx_id( /*['apiKey' => _YOUR_APIKEY_HERE_, 'secret' => _YOUR_SECRET_HERE_]*/ ); 
+$okx_id = '\\ccxt\\pro\\okx';
+$okx_exchange = new $okx_id( /*['apiKey' => _YOUR_APIKEY_HERE_, 'secret' => _YOUR_SECRET_HERE_]*/ ); 
 
 $wrapper_func = function($exchange, $symbol, $method_name) {
     if ($exchange->has[$method_name]) {
@@ -37,5 +37,5 @@ function runAsync (...$args) {
 // runAsync($wrapper_func, ...[$exchange, 'ETH/USDT', 'watchMyTrades']);
 
 runAsync($wrapper_func, ...[$binance_exchange, 'SOL/USDT', 'watchTrades']);
-runAsync($wrapper_func, ...[$ftx_exchange, 'ETH/USDT', 'watchTrades']);
+runAsync($wrapper_func, ...[$okx_exchange, 'ETH/USDT', 'watchTrades']);
 
