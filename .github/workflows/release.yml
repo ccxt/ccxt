@@ -124,25 +124,27 @@ jobs:
 
       #          echo "Creating GitHub release from ${VERSION}…"
       #          gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
-      - name: Deploy Python Package
-        run: cd python && python setup.py sdist bdist_wheel;
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-            packages-dir: 'python/dist'
-            print_hash: true
-      - name: Publish Go node_modules
-        env:
-          VERSION: ${{ env.NPM_VERSION }}
-        run: |
-          cd go/
-          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
-          cd ..
+      # - name: Deploy Python Package
+      #   run: cd python && python setup.py sdist bdist_wheel;
+      # - name: Publish to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #       packages-dir: 'python/dist'
+      #       print_hash: true
+      # - name: Publish Go node_modules
+      #   env:
+      #     VERSION: ${{ env.NPM_VERSION }}
+      #   run: |
+      #     cd go/
+      #     GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
+      #     cd ..
       - name: C# Release Build
         run: npm run buildCSRelease
-      - name: Deploy C#
-        env:
-          NUGGET_TOKEN: ${{ secrets.NUGET_PROD }}
+      - name: NuGet login (OIDC - temp API key)
+        uses: NuGet/login@v1
+        with:
+          user: carlosmiei
+      - name: Deploy C# Package
         run: ./cs/deploy.sh;
       - uses: actions/setup-node@v6
         with:
