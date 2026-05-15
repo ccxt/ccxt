@@ -6534,7 +6534,10 @@ export default class binance extends Exchange {
             }
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        let triggerDirection = undefined;
+        [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params, undefined, true);
+        const triggerDirectionSet = triggerDirection !== undefined;
+        const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const trailingDelta = this.safeString (params, 'trailingDelta');
         const trailingTriggerPrice = this.safeString2 (params, 'trailingTriggerPrice', 'activationPrice');
@@ -6587,7 +6590,7 @@ export default class binance extends Exchange {
                 const trailingPercentConverted = Precise.stringMul (trailingPercent, '100');
                 request['trailingDelta'] = trailingPercentConverted;
             }
-        } else if (isStopLoss) {
+        } else if (isStopLoss && !triggerDirectionSet) {
             stopPrice = stopLossPrice;
             if (isMarketOrder) {
                 // spot STOP_LOSS market orders are not a valid order type
@@ -6595,7 +6598,7 @@ export default class binance extends Exchange {
             } else if (isLimitOrder) {
                 uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
             }
-        } else if (isTakeProfit) {
+        } else if (isTakeProfit && !triggerDirectionSet) {
             stopPrice = takeProfitPrice;
             if (isMarketOrder) {
                 // spot TAKE_PROFIT market orders are not a valid order type
@@ -6605,8 +6608,6 @@ export default class binance extends Exchange {
             }
         } else if (isTriggerOrder) {
             stopPrice = triggerPrice;
-            let triggerDirection = undefined;
-            [ triggerDirection, params ] = this.handleTriggerDirectionAndParams (params); // required
             const isAscending = (triggerDirection === 'ascending');
             if (side === 'buy') {
                 if (isMarketOrder) {
