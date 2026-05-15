@@ -35,6 +35,7 @@ export default class extended extends Exchange {
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -2951,6 +2952,23 @@ export default class extended extends Exchange {
 
     /**
      * @method
+     * @name extended#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://api.docs.extended.exchange/#mass-auto-cancel-dead-man-s-switch
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {
+            'countdownTime': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+        };
+        return await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
+    }
+
+    /**
+     * @method
      * @name extended#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://api.docs.extended.exchange/#get-order-by-id
@@ -3389,19 +3407,20 @@ export default class extended extends Exchange {
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        const queryPost = (path === 'user/deadmanswitch');
         let url = this.implodeHostname (this.urls['api']['rest']);
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             headers = {
                 'X-Api-Key': this.apiKey,
             };
-            if ((method === 'POST') || (method === 'PATCH')) {
+            if (((method === 'POST') || (method === 'PATCH')) && !queryPost) {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
         }
         url = url + '/api/' + version + endpoint;
-        if ((method === 'GET' || method === 'DELETE') && Object.keys (query).length) {
+        if ((method === 'GET' || method === 'DELETE' || queryPost) && Object.keys (query).length) {
             url += '?' + this.urlencodeWithArrayRepeat (query);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

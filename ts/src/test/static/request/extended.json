@@ -489,6 +489,26 @@
                 "output": "{\"cancelAll\":true,\"markets\":[\"BTC-USD\"]}"
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancel all orders after timeout",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/deadmanswitch?countdownTime=5",
+                "input": [
+                    5000
+                ],
+                "output": null
+            },
+            {
+                "description": "close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/deadmanswitch?countdownTime=0",
+                "input": [
+                    0
+                ],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap limit buy",

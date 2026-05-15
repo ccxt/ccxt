@@ -2989,6 +2989,26 @@
                 },
                 "parsedResponse": []
             }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancel all orders after timeout",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    5000
+                ],
+                "httpResponse": "",
+                "parsedResponse": ""
+            },
+            {
+                "description": "close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    0
+                ],
+                "httpResponse": "",
+                "parsedResponse": ""
+            }
         ]
     }
 }
