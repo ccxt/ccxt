@@ -388,7 +388,7 @@
             },
             "watchTrades":{
                 "side": "not set https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4312",
-                "sortedTimestamp": "messed order coming from exchange"
+                "timestampSort": "messed order coming from exchange"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -1658,7 +1658,7 @@
             },
             "watchTrades": {
                 "timestamp": "ts several hours ahead in in future :)",
-                "sortedTimestamp":"same"
+                "timestampSort":"same"
             },
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612",
@@ -2013,7 +2013,7 @@
                 "limits":"tmp"
             },
             "watchTrades": {
-                "sortedTimestamp": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3697"
+                "timestampSort": "timestamp reversed: https://app.travis-ci.com/github/ccxt/ccxt/builds/269484317#L3697"
             },
             "fetchLastPrices": "tmp",
             "ticker": {
