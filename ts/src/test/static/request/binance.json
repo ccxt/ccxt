@@ -481,6 +481,40 @@
                 "output": "timestamp=1707112388003&symbol=ETHUSD_PERP&newOrderRespType=RESULT&side=BUY&newClientOrderId=x-xcKtGhcu69273341d6114bd8b800aa&type=LIMIT&quantity=1&price=2000&timeInForce=GTC&recvWindow=10000&signature=4e4f549a6358aa1731060e825069022389780706305a60eaa58fbbf0c4a7d03f"
             },
             {
+                "description": "Linear swap portfolio margin conditional limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/um/conditional/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    35000,
+                    {
+                        "portfolioMargin": true,
+                        "triggerPrice": 45000
+                    }
+                ],
+                "output": "timestamp=1707112624772&symbol=BTCUSDT&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcu27f109953d6e4dc0974006&strategyType=STOP&quantity=0.01&price=35000&stopPrice=45000&recvWindow=10000&signature=2cacd678b9199f4f75ed8f7eb48cc35afc648346fc436c3808983baf983323ab"
+            },
+            {
+                "description": "Inverse swap portfolio margin conditional limit buy order",
+                "method": "createOrder",
+                "url": "https://papi.binance.com/papi/v1/cm/conditional/order",
+                "input": [
+                    "ETH/USD:ETH",
+                    "limit",
+                    "buy",
+                    1,
+                    2000,
+                    {
+                        "portfolioMargin": true,
+                        "triggerPrice": 3000
+                    }
+                ],
+                "output": "timestamp=1707113097689&symbol=ETHUSD_PERP&newOrderRespType=RESULT&side=BUY&newClientStrategyId=x-xcKtGhcuc6b86f054bb34933850739&strategyType=STOP&quantity=1&price=2000&stopPrice=3000&recvWindow=10000&signature=aa5ec5fa5eb51372fa68597242bc2ddc31a32e9be5c084f00c2f6999b31cad2b"
+            },
+            {
                 "description": "Spot margin portfolio margin limit buy order",
                 "method": "createOrder",
                 "url": "https://papi.binance.com/papi/v1/margin/order",
