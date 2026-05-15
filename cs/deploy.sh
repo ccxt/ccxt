@@ -8,4 +8,4 @@ bin_path="${bin_folder}${bin_file}"
 
 echo "Will publish nuget package: ${bin_path}"
 
-dotnet nuget push ${bin_path} -s https://api.nuget.org/v3/index.json
+dotnet nuget push ${bin_path}  --api-key "${NUGET_API_KEY}" -s https://api.nuget.org/v3/index.json
