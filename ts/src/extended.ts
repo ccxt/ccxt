@@ -141,7 +141,7 @@ export default class extended extends Exchange {
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1830,6 +1830,76 @@ export default class extended extends Exchange {
         return this.parseTransfers (data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name extended#transfer
+     * @description transfer collateral between sub-accounts associated with the same wallet
+     * @see https://api.docs.extended.exchange/#create-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to transfer
+     * @param {string} fromAccount source account id, defaults to the authenticated account id
+     * @param {string} toAccount destination account id
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.toVault destination account L2 vault
+     * @param {string} params.toL2Key destination account L2 public key
+     * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: Str, toAccount: string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const account = await this.fetchExtendedAccount ();
+        const currentAccountId = this.safeString (account, 'accountId');
+        if (fromAccount === undefined) {
+            fromAccount = currentAccountId;
+        } else if (fromAccount !== currentAccountId) {
+            throw new BadRequest (this.id + ' transfer() can only transfer from the authenticated account');
+        }
+        const toVault = this.safeString2 (params, 'toVault', 'receiverPositionId');
+        const toL2Key = this.safeString2 (params, 'toL2Key', 'receiverPublicKey');
+        if ((toAccount === undefined) || (toVault === undefined) || (toL2Key === undefined)) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires a toAccount argument and params["toVault"] and params["toL2Key"]');
+        }
+        const amountString = this.currencyToPrecision (code, amount);
+        const settlement = this.createTransferSettlementData (amountString, currency, account, toVault, toL2Key, params);
+        const request: Dict = {
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'amount': amountString,
+            'transferredAsset': settlement['assetId'],
+            'settlement': settlement,
+        };
+        params = this.omit (params, [ 'fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution' ]);
+        const response = await this.v1PrivatePostUserTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "status": "OK",
+        //         "data": {
+        //             "validSignature": true,
+        //             "id": 1820778187672010752
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const validSignature = this.safeBool (data, 'validSignature');
+        const now = this.milliseconds ();
+        let status = 'pending';
+        if (validSignature !== undefined) {
+            status = validSignature ? 'ok' : 'failed';
+        }
+        return {
+            'info': response,
+            'id': this.safeString (data, 'id'),
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'currency': currency['code'],
+            'amount': this.parseNumber (amountString),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
+    }
+
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         const timestamp = this.safeInteger (transfer, 'time');
         const assetId = this.safeString (transfer, 'asset');
@@ -2391,15 +2461,15 @@ export default class extended extends Exchange {
     createWithdrawalSettlementData (address: string, amountString: string, currency: Currency, account: Dict, params = {}) {
         const now = this.milliseconds ();
         const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((now + 999) / 1000) + 1209600 + 60);
-        const nonce = this.nonce ();
+        const nonce = this.safeInteger (params, 'nonce', this.nonce ());
         const positionId = this.safeString2 (params, 'positionId', 'l2Vault', this.safeString (account, 'l2Vault'));
         const recipient = this.safeString (params, 'recipient', address);
         const currencyInfo = this.safeDict (currency, 'info', {});
-        const collateralId = this.safeString (params, 'collateralId', this.safeString (currencyInfo, 'l1Id'));
-        const resolution = this.safeValue (params, 'resolution', this.safeValue (currencyInfo, 'l1Resolution'));
+        const collateralId = this.safeString (params, 'collateralId', this.safeString2 (currencyInfo, 'starkexId', 'l1Id'));
+        const resolution = this.safeValue (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
         const starkKey = this.safeString (account, 'l2Key');
         if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
-            throw new BadRequest (this.id + ' withdraw() requires currency l1Id, l1Resolution, account l2Vault and account l2Key');
+            throw new BadRequest (this.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
         const amount = this.getExtendedStarkAmount (amountString, resolution);
         const settlement: Dict = {
@@ -2415,8 +2485,40 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedWithdrawalMsgHash (settlement, starkKey);
         const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.intToBase16 (this.convertToBigInt (sig[0])),
-            's': this.intToBase16 (this.convertToBigInt (sig[1])),
+            'r': '0x' + this.intToBase16 (this.convertToBigInt (sig[0])),
+            's': '0x' + this.intToBase16 (this.convertToBigInt (sig[1])),
+        };
+        return settlement;
+    }
+
+    createTransferSettlementData (amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params = {}) {
+        const now = this.milliseconds ();
+        const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((now + 999) / 1000) + 1814400);
+        const nonce = this.safeInteger (params, 'nonce', this.nonce ());
+        const fromVault = this.safeString2 (params, 'fromVault', 'senderPositionId', this.safeString (account, 'l2Vault'));
+        const fromL2Key = this.safeString2 (params, 'fromL2Key', 'senderPublicKey', this.safeString (account, 'l2Key'));
+        const currencyInfo = this.safeDict (currency, 'info', {});
+        const collateralId = this.safeString2 (params, 'assetId', 'collateralId', this.safeString2 (currencyInfo, 'starkexId', 'l1Id'));
+        const resolution = this.safeValue (params, 'resolution', this.safeValue2 (currencyInfo, 'starkexResolution', 'l1Resolution'));
+        if ((fromVault === undefined) || (fromL2Key === undefined) || (collateralId === undefined) || (resolution === undefined)) {
+            throw new BadRequest (this.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
+        }
+        const transferAmount = this.getExtendedStarkAmount (amountString, resolution);
+        const settlement: Dict = {
+            'amount': transferAmount,
+            'assetId': collateralId,
+            'expirationTimestamp': settlementExpiration,
+            'nonce': nonce,
+            'receiverPositionId': toVault,
+            'receiverPublicKey': toL2Key,
+            'senderPositionId': fromVault,
+            'senderPublicKey': fromL2Key,
+        };
+        const msgHash = this.getExtendedTransferMsgHash (settlement);
+        const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
+        settlement['signature'] = {
+            'r': '0x' + this.intToBase16 (this.convertToBigInt (sig[0])),
+            's': '0x' + this.intToBase16 (this.convertToBigInt (sig[1])),
         };
         return settlement;
     }
@@ -3237,6 +3339,29 @@ export default class extended extends Exchange {
             domainHash,
             this.convertToBigInt (starkKey),
             withdrawalHash,
+        ]);
+    }
+
+    getExtendedTransferMsgHash (settlement: Dict): string {
+        const transferTypeHash = this.convertToBigInt (this.starknetGetSelectorFromName (
+            '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
+        ));
+        const domainHash = this.getExtendedDomainHash ();
+        const senderPublicKey = this.convertToBigInt (this.safeString (settlement, 'senderPublicKey'));
+        const transferHash = this.convertToBigInt (this.starknetComputePoseidonHashOnElements ([
+            transferTypeHash,
+            this.convertToBigInt (this.safeString (settlement, 'senderPositionId')),
+            this.convertToBigInt (this.safeString (settlement, 'receiverPositionId')),
+            this.convertToBigInt (this.safeString (settlement, 'assetId')),
+            this.convertToBigInt (this.safeString (settlement, 'amount')),
+            this.convertToBigInt (this.safeString (settlement, 'expirationTimestamp')),
+            this.convertToBigInt (this.safeString (settlement, 'nonce')),
+        ]));
+        return this.starknetComputePoseidonHashOnElements ([
+            this.getExtendedStringToFelt ('StarkNet Message'),
+            domainHash,
+            senderPublicKey,
+            transferHash,
         ]);
     }
 
