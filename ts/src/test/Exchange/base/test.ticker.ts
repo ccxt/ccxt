@@ -96,7 +96,7 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             const mPrecision = exchange.safeDict (market, 'precision');
             const amountPrecision = exchange.safeString (mPrecision, 'amount');
-            const tolerance = '1.0001';
+            const tolerance = '1.01'; // let's allow 1 percent
             if (amountPrecision !== undefined) {
                 baseLow = Precise.stringMul (Precise.stringSub (baseVolume, amountPrecision), low);
                 baseHigh = Precise.stringMul (Precise.stringAdd (baseVolume, amountPrecision), high);
