@@ -56,16 +56,16 @@ jobs:
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
-      - name: Install NPM dependencies
-        run: npm ci
-      - name: Composer install
-        run: composer install
-      - name: Install python dependencies
-        run: pip install -r ci-requirements.txt
-      - name: Install Wheel
-        run: pip install wheel twine
-      - name: export exchanges (remove later)
-        run: npm run export-exchanges
+      # - name: Install NPM dependencies
+      #   run: npm ci
+      # - name: Composer install
+      #   run: composer install
+      # - name: Install python dependencies
+      #   run: pip install -r ci-requirements.txt
+      # - name: Install Wheel
+      #   run: pip install wheel twine
+      # - name: export exchanges (remove later)
+      #   run: npm run export-exchanges
       # - name: Transpile and Build TMP REMOVE
       #   run: npm run force-build
       # - name: Base tests Rest
@@ -146,6 +146,8 @@ jobs:
           user: carlosmiei
       - name: Deploy C# Package
         run: ./cs/deploy.sh;
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
