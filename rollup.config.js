@@ -1,17 +1,18 @@
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
-import execute from 'rollup-plugin-execute';
+import commonjs from "@rollup/plugin-commonjs"
+import json from "@rollup/plugin-json"
+import execute from 'rollup-plugin-execute'
 import nodeResolve from '@rollup/plugin-node-resolve'
+import rename from './rollup.rename.js'
 
 export default [
   {
-    preserveModules: true,
     context: 'globalThis',
     input: "./js/ccxt.js",
     output: [
       {
         dir: "./dist/cjs/",
         format: "cjs",
+        preserveModules: true,
         exports: "named",
       }
     ],
@@ -26,6 +27,7 @@ export default [
         transformMixedEsModules: true,
         dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
       }),
+      rename,
       execute("echo '{ \"type\": \"commonjs\" }' > ./dist/cjs/package.json"), // this is needed to make node treat files inside dist/cjs as CJS modules
       execute("echo 'import * as ccxt from \"./js/ccxt.js\";\\nexport = ccxt;' > ./index.d.cts") // CJS type declarations for node16/nodenext moduleResolution
     ],
@@ -40,7 +42,8 @@ export default [
       'debug',
       "http-proxy-agent",
       "https-proxy-agent",
-      "protobufjs/minimal"
+      "protobufjs/minimal",
+      "protobufjs/minimal.js"
     ]
   }
 ];
