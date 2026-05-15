@@ -70,11 +70,8 @@ async function testFetchTradesSideSequence (exchange, skippedProperties, symbol,
         const side = trade['side'];
         //
         const isSameTs = ts === lastTs;
-        lastTs = ts;
         const isSamePrice = Precise.stringEq (price, lastPrice);
-        lastPrice = price;
         const isSameSide = side === lastSide;
-        lastSide = side;
         //
         // we are only interested in trades that have: same timestamp, same side, but different(!) price
         if (!isSameTs || !isSameSide || isSamePrice) {
@@ -88,6 +85,9 @@ async function testFetchTradesSideSequence (exchange, skippedProperties, symbol,
         } else if (priceDecreasing) {
             assert (side === 'sell', 'Side should be `sell` if price is decreasing' + testSharedMethods.logTemplate (exchange, method, trade));
         }
+        lastPrice = price;
+        lastTs = ts;
+        lastSide = side;
     }
     return true;
 }
