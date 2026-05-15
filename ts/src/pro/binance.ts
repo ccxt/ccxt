@@ -2599,7 +2599,7 @@ export default class binance extends binanceRest {
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
             await this.ensureUserDataStreamWsSubscribeSignature ('spot');
-            return undefined;
+            return;
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
@@ -2653,7 +2653,7 @@ export default class binance extends binanceRest {
             client.subscriptions[messageHash] = undefined;
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
-        return await future;
+        await future;
     }
 
     async keepAliveListenKey (params = {}) {
