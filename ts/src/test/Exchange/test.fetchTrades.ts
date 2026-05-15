@@ -14,13 +14,10 @@ async function testFetchTrades (exchange: Exchange, skippedProperties: object, s
 async function testFetchTradesResponse (exchange, skippedProperties, symbol, method, trades) {
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, trades);
     await testFetchTradesStructure (exchange, skippedProperties, symbol, method, trades);
-    if (!('timestamp' in skippedProperties)) {
-        testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
-    }
     if (!('requireBothSides' in skippedProperties) && trades.length > 50) {
         await testFetchTradesSidesBuySell (exchange, skippedProperties, symbol, method, trades);
     }
-    if (('side' in skippedProperties) || ('timestamp' in skippedProperties)) {
+    if (!('side' in skippedProperties) && !('timestamp' in skippedProperties)) {
         await testFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades);
     }
     if (!('timestampSort' in skippedProperties)) {
