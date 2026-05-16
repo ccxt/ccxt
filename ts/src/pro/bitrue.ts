@@ -26,6 +26,7 @@ export default class bitrue extends bitrueRest {
                     'open': 'https://open.bitrue.com',
                     'ws': {
                         'public': 'wss://ws.bitrue.com/market/ws',
+                        'futurePublic': 'wss://fmarket-ws.bitrue.com/kline-api/ws',
                         'private': 'wss://wsapi.bitrue.com',
                     },
                 },
@@ -304,18 +305,40 @@ export default class bitrue extends bitrueRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const marketIdLowercase = market['id'].toLowerCase ();
-        const channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
-        const url = this.urls['api']['ws']['public'];
+        let url = undefined;
+        let channel = undefined;
+        let cbId = undefined;
+        if (market['swap']) {
+            const wsId = this.futuresWsSymbolId (market);
+            channel = 'market_' + wsId + '_depth_step0';
+            cbId = wsId;
+            url = this.urls['api']['ws']['futurePublic'];
+            this.registerFuturesWsChannel (channel, symbol);
+        } else {
+            const marketIdLowercase = market['id'].toLowerCase ();
+            channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
+            cbId = marketIdLowercase;
+            url = this.urls['api']['ws']['public'];
+        }
         const message: Dict = {
             'event': 'sub',
             'params': {
-                'cb_id': marketIdLowercase,
+                'cb_id': cbId,
                 'channel': channel,
             },
         };
         const request = this.deepExtend (message, params);
         return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    futuresWsSymbolId (market) {
+        return 'e_' + market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+    }
+
+    registerFuturesWsChannel (channel: string, symbol: string) {
+        const registry = this.safeDict (this.options, 'futuresWsSymbols', {});
+        registry[channel] = symbol;
+        this.options['futuresWsSymbols'] = registry;
     }
 
     handleOrderBook (client: Client, message) {
@@ -352,20 +375,53 @@ export default class bitrue extends bitrueRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
-        const parts = channel.split ('_');
-        const marketId = this.safeStringUpper (parts, 1);
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const futuresSymbols = this.safeDict (this.options, 'futuresWsSymbols', {});
+        const futuresSymbol = this.safeString (futuresSymbols, channel);
+        let market = undefined;
+        let symbol = undefined;
+        if (futuresSymbol !== undefined) {
+            market = this.market (futuresSymbol);
+            symbol = market['symbol'];
+        } else {
+            const parts = channel.split ('_');
+            const marketId = this.safeStringUpper (parts, 1);
+            market = this.safeMarket (marketId);
+            symbol = market['symbol'];
+        }
         const timestamp = this.safeInteger (message, 'ts');
         const tick = this.safeValue (message, 'tick', {});
+        const scaledTick = market['swap'] ? this.scaleFuturesDepth (tick, market) : tick;
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        const snapshot = this.parseOrderBook (scaledTick, symbol, timestamp, 'buys', 'asks');
         orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
+    }
+
+    scaleFuturesDepth (tick, market) {
+        const contractSize = this.safeNumber (market, 'contractSize', 1);
+        if (contractSize === 1) {
+            return tick;
+        }
+        return {
+            'asks': this.scaleDepthLevels (this.safeList (tick, 'asks', []), contractSize),
+            'buys': this.scaleDepthLevels (this.safeList (tick, 'buys', []), contractSize),
+        };
+    }
+
+    scaleDepthLevels (levels, contractSize: number) {
+        const result = [];
+        for (let i = 0; i < levels.length; i++) {
+            const level = levels[i];
+            const price = this.safeNumber (level, 0);
+            const amount = this.safeNumber (level, 1);
+            const scaled = (amount === undefined) ? undefined : amount * contractSize;
+            result.push ([ price, scaled ]);
+        }
+        return result;
     }
 
     parseWsOrderType (typeId) {
