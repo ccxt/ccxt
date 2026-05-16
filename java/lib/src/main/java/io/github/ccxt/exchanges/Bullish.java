@@ -109,6 +109,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<List<DepositAddress>> fetchDepositAddressesAsync(List<String> codes, Map<String, Object> params) {
         return super.fetchDepositAddresses(codes, params).thenApply(res -> toTypedList(res, DepositAddress::new));
     }
+    public List<DepositAddress> fetchDepositAddresses(String[] codes, Map<String, Object> params) { return fetchDepositAddresses(codes == null ? null : java.util.Arrays.asList(codes), params); }
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddressesAsync(String[] codes, Map<String, Object> params) { return fetchDepositAddressesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
 
     @SuppressWarnings("unchecked")
     public OrderBook fetchOrderBook(String symbol, Long limit, Map<String, Object> params) {
@@ -154,6 +156,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchMarginModes(symbols, params).thenApply(MarginModes::new);
     }
+    public MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return fetchMarginModes(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<MarginModes> fetchMarginModesAsync(String[] symbols, Map<String, Object> params) { return fetchMarginModesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Long fetchTime(Map<String, Object> params) {
@@ -194,6 +198,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchLeverageTiers(symbols, params).thenApply(LeverageTiers::new);
     }
+    public LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return fetchLeverageTiers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(String[] symbols, Map<String, Object> params) { return fetchLeverageTiersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingRates(List<String> symbols, Map<String, Object> params) {
@@ -204,6 +210,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchFundingRates(symbols, params).thenApply(FundingRates::new);
     }
+    public FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return fetchFundingRates(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<FundingRates> fetchFundingRatesAsync(String[] symbols, Map<String, Object> params) { return fetchFundingRatesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingIntervals(List<String> symbols, Map<String, Object> params) {
@@ -214,6 +222,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchFundingIntervals(symbols, params).thenApply(FundingRates::new);
     }
+    public FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return fetchFundingIntervals(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(String[] symbols, Map<String, Object> params) { return fetchFundingIntervalsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) {
@@ -269,6 +279,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Leverages> fetchLeveragesAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchLeverages(symbols, params).thenApply(Leverages::new);
     }
+    public Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return fetchLeverages(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public MarginModification setMargin(String symbol, Double amount, Map<String, Object> params) {
@@ -358,6 +370,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchOpenInterests(symbols, params).thenApply(OpenInterests::new);
     }
+    public OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public List<OHLCV> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
@@ -543,6 +557,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<List<Position>> fetchPositionsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchPositions(symbols, params).thenApply(res -> toTypedList(res, Position::new));
     }
+    public List<Position> fetchPositions(String[] symbols, Map<String, Object> params) { return fetchPositions(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<List<Position>> fetchPositionsAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public List<Position> fetchPositionsWs(List<String> symbols, Map<String, Object> params) {
@@ -553,6 +569,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<List<Position>> fetchPositionsWsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchPositionsWs(symbols, params).thenApply(res -> toTypedList(res, Position::new));
     }
+    public List<Position> fetchPositionsWs(String[] symbols, Map<String, Object> params) { return fetchPositionsWs(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<List<Position>> fetchPositionsWsAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsWsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public List<Position> fetchPositionsRisk(List<String> symbols, Map<String, Object> params) {
@@ -563,6 +581,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<List<Position>> fetchPositionsRiskAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchPositionsRisk(symbols, params).thenApply(res -> toTypedList(res, Position::new));
     }
+    public List<Position> fetchPositionsRisk(String[] symbols, Map<String, Object> params) { return fetchPositionsRisk(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<List<Position>> fetchPositionsRiskAsync(String[] symbols, Map<String, Object> params) { return fetchPositionsRiskAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Tickers fetchBidsAsks(List<String> symbols, Map<String, Object> params) {
@@ -573,6 +593,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Tickers> fetchBidsAsksAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchBidsAsks(symbols, params).thenApply(Tickers::new);
     }
+    public Tickers fetchBidsAsks(String[] symbols, Map<String, Object> params) { return fetchBidsAsks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Tickers> fetchBidsAsksAsync(String[] symbols, Map<String, Object> params) { return fetchBidsAsksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public List<BorrowInterest> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> params) {
@@ -742,6 +764,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Tickers> fetchTickersAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchTickers(symbols, params).thenApply(Tickers::new);
     }
+    public Tickers fetchTickers(String[] symbols, Map<String, Object> params) { return fetchTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Tickers> fetchTickersAsync(String[] symbols, Map<String, Object> params) { return fetchTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Tickers fetchSpotTickers(List<String> symbols, Map<String, Object> params) {
@@ -752,6 +776,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Tickers> fetchSpotTickersAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchSpotTickers(symbols, params).thenApply(Tickers::new);
     }
+    public Tickers fetchSpotTickers(String[] symbols, Map<String, Object> params) { return fetchSpotTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Tickers> fetchSpotTickersAsync(String[] symbols, Map<String, Object> params) { return fetchSpotTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Tickers fetchContractTickers(List<String> symbols, Map<String, Object> params) {
@@ -762,6 +788,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Tickers> fetchContractTickersAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchContractTickers(symbols, params).thenApply(Tickers::new);
     }
+    public Tickers fetchContractTickers(String[] symbols, Map<String, Object> params) { return fetchContractTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Tickers> fetchContractTickersAsync(String[] symbols, Map<String, Object> params) { return fetchContractTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Tickers fetchMarkPrices(List<String> symbols, Map<String, Object> params) {
@@ -772,6 +800,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Tickers> fetchMarkPricesAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchMarkPrices(symbols, params).thenApply(Tickers::new);
     }
+    public Tickers fetchMarkPrices(String[] symbols, Map<String, Object> params) { return fetchMarkPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Tickers> fetchMarkPricesAsync(String[] symbols, Map<String, Object> params) { return fetchMarkPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Tickers fetchTickersWs(List<String> symbols, Map<String, Object> params) {
@@ -782,6 +812,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<Tickers> fetchTickersWsAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchTickersWs(symbols, params).thenApply(Tickers::new);
     }
+    public Tickers fetchTickersWs(String[] symbols, Map<String, Object> params) { return fetchTickersWs(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<Tickers> fetchTickersWsAsync(String[] symbols, Map<String, Object> params) { return fetchTickersWsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public Order fetchOrder(String id, String symbol, Map<String, Object> params) {
@@ -1222,40 +1254,46 @@ public class Bullish extends BullishCore {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Order> cancelOrders(Object ids, String symbol, Map<String, Object> params) {
+    public List<Order> cancelOrders(List<String> ids, String symbol, Map<String, Object> params) {
         Object res = super.cancelOrders(ids, symbol, params).join();
         return toTypedList(res, Order::new);
     }
-    public List<Order> cancelOrders(Object ids) { return cancelOrders(ids, (String) null, (Map<String, Object>) null); }
-    public List<Order> cancelOrders(Object ids, String symbol) { return cancelOrders(ids, symbol, (Map<String, Object>) null); }
+    public List<Order> cancelOrders(List<String> ids) { return cancelOrders(ids, (String) null, (Map<String, Object>) null); }
+    public List<Order> cancelOrders(List<String> ids, String symbol) { return cancelOrders(ids, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelOrdersAsync(Object ids, String symbol, Map<String, Object> params) {
+    public CompletableFuture<List<Order>> cancelOrdersAsync(List<String> ids, String symbol, Map<String, Object> params) {
         return super.cancelOrders(ids, symbol, params).thenApply(res -> toTypedList(res, Order::new));
     }
+    public List<Order> cancelOrders(String[] ids, String symbol, Map<String, Object> params) { return cancelOrders(ids == null ? null : java.util.Arrays.asList(ids), symbol, params); }
+    public CompletableFuture<List<Order>> cancelOrdersAsync(String[] ids, String symbol, Map<String, Object> params) { return cancelOrdersAsync(ids == null ? null : java.util.Arrays.asList(ids), symbol, params); }
 
     @SuppressWarnings("unchecked")
-    public List<Order> cancelOrdersWithClientOrderIds(Object clientOrderIds, String symbol, Map<String, Object> params) {
+    public List<Order> cancelOrdersWithClientOrderIds(List<String> clientOrderIds, String symbol, Map<String, Object> params) {
         Object res = super.cancelOrdersWithClientOrderIds(clientOrderIds, symbol, params).join();
         return toTypedList(res, Order::new);
     }
-    public List<Order> cancelOrdersWithClientOrderIds(Object clientOrderIds) { return cancelOrdersWithClientOrderIds(clientOrderIds, (String) null, (Map<String, Object>) null); }
-    public List<Order> cancelOrdersWithClientOrderIds(Object clientOrderIds, String symbol) { return cancelOrdersWithClientOrderIds(clientOrderIds, symbol, (Map<String, Object>) null); }
+    public List<Order> cancelOrdersWithClientOrderIds(List<String> clientOrderIds) { return cancelOrdersWithClientOrderIds(clientOrderIds, (String) null, (Map<String, Object>) null); }
+    public List<Order> cancelOrdersWithClientOrderIds(List<String> clientOrderIds, String symbol) { return cancelOrdersWithClientOrderIds(clientOrderIds, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(Object clientOrderIds, String symbol, Map<String, Object> params) {
+    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(List<String> clientOrderIds, String symbol, Map<String, Object> params) {
         return super.cancelOrdersWithClientOrderIds(clientOrderIds, symbol, params).thenApply(res -> toTypedList(res, Order::new));
     }
+    public List<Order> cancelOrdersWithClientOrderIds(String[] clientOrderIds, String symbol, Map<String, Object> params) { return cancelOrdersWithClientOrderIds(clientOrderIds == null ? null : java.util.Arrays.asList(clientOrderIds), symbol, params); }
+    public CompletableFuture<List<Order>> cancelOrdersWithClientOrderIdsAsync(String[] clientOrderIds, String symbol, Map<String, Object> params) { return cancelOrdersWithClientOrderIdsAsync(clientOrderIds == null ? null : java.util.Arrays.asList(clientOrderIds), symbol, params); }
 
     @SuppressWarnings("unchecked")
-    public List<Order> cancelOrdersWs(Object ids, String symbol, Map<String, Object> params) {
+    public List<Order> cancelOrdersWs(List<String> ids, String symbol, Map<String, Object> params) {
         Object res = super.cancelOrdersWs(ids, symbol, params).join();
         return toTypedList(res, Order::new);
     }
-    public List<Order> cancelOrdersWs(Object ids) { return cancelOrdersWs(ids, (String) null, (Map<String, Object>) null); }
-    public List<Order> cancelOrdersWs(Object ids, String symbol) { return cancelOrdersWs(ids, symbol, (Map<String, Object>) null); }
+    public List<Order> cancelOrdersWs(List<String> ids) { return cancelOrdersWs(ids, (String) null, (Map<String, Object>) null); }
+    public List<Order> cancelOrdersWs(List<String> ids, String symbol) { return cancelOrdersWs(ids, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
-    public CompletableFuture<List<Order>> cancelOrdersWsAsync(Object ids, String symbol, Map<String, Object> params) {
+    public CompletableFuture<List<Order>> cancelOrdersWsAsync(List<String> ids, String symbol, Map<String, Object> params) {
         return super.cancelOrdersWs(ids, symbol, params).thenApply(res -> toTypedList(res, Order::new));
     }
+    public List<Order> cancelOrdersWs(String[] ids, String symbol, Map<String, Object> params) { return cancelOrdersWs(ids == null ? null : java.util.Arrays.asList(ids), symbol, params); }
+    public CompletableFuture<List<Order>> cancelOrdersWsAsync(String[] ids, String symbol, Map<String, Object> params) { return cancelOrdersWsAsync(ids == null ? null : java.util.Arrays.asList(ids), symbol, params); }
 
     @SuppressWarnings("unchecked")
     public List<Order> cancelAllOrders(String symbol, Map<String, Object> params) {
@@ -1465,6 +1503,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<List<Greeks>> fetchAllGreeksAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchAllGreeks(symbols, params).thenApply(res -> toTypedList(res, Greeks::new));
     }
+    public List<Greeks> fetchAllGreeks(String[] symbols, Map<String, Object> params) { return fetchAllGreeks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<List<Greeks>> fetchAllGreeksAsync(String[] symbols, Map<String, Object> params) { return fetchAllGreeksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
@@ -1878,6 +1918,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<LastPrices> fetchLastPricesAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchLastPrices(symbols, params).thenApply(LastPrices::new);
     }
+    public LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return fetchLastPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<LastPrices> fetchLastPricesAsync(String[] symbols, Map<String, Object> params) { return fetchLastPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public TradingFees fetchTradingFees(Map<String, Object> params) {
@@ -2016,6 +2058,8 @@ public class Bullish extends BullishCore {
     public CompletableFuture<List<Position>> fetchPositionsHistoryAsync(List<String> symbols, Long since, Long limit, Map<String, Object> params) {
         return super.fetchPositionsHistory(symbols, since, limit, params).thenApply(res -> toTypedList(res, Position::new));
     }
+    public List<Position> fetchPositionsHistory(String[] symbols, Long since, Long limit, Map<String, Object> params) { return fetchPositionsHistory(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }
+    public CompletableFuture<List<Position>> fetchPositionsHistoryAsync(String[] symbols, Long since, Long limit, Map<String, Object> params) { return fetchPositionsHistoryAsync(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }
 
     @SuppressWarnings("unchecked")
     public TransferEntry fetchTransfer(String id, String code, Map<String, Object> params) {

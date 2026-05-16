@@ -51,7 +51,7 @@ function tsTypeToJavaType(tsType: string | undefined, isReturn = false): string 
     if (isIntegerType(tsType)) return 'Long';
     if (isNumberType(tsType)) return 'Double';
     if (isBooleanType(tsType)) return 'Boolean';
-    if (tsType === 'Strings') return 'List<String>';
+    if (tsType === 'Strings' || tsType === 'string[]') return 'List<String>';
     if (isObjectType(tsType)) return isReturn ? 'Map<String, Object>' : 'Object';
     if (KNOWN_TYPES.has(tsType)) return tsType;
     return 'Object';
@@ -285,6 +285,34 @@ function genMethod(m: MethodInfo, castToObject = false): string {
         lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
         lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
         lines.push(`    }`);
+    }
+
+    // String[] ergonomic overload at FULL ARITY for any List<String> param.
+    //
+    // Without this, callers that pass `new String[]{...}` hit Java's varargs
+    // gotcha: String[] is-a Object[], so an `Object...` core method unpacks
+    // each element into a separate slot — second symbol overwrites the params
+    // slot, producing `ClassCastException: String cannot be cast to Map`.
+    //
+    // Only the full-arity variant is generated. Adding the same overload at
+    // truncated arities would collide with the existing `List<String>`
+    // truncations on `f(null,...)` calls — Java can't pick between
+    // `List<String>` and `String[]` for a literal null. The full-arity slot
+    // is uniquely sized so no resolution clash.
+    const hasListString = allParams.some(p => p.javaType === 'List<String>');
+    if (hasListString) {
+        const stringArrDecl = allParams.map(p =>
+            p.javaType === 'List<String>' ? `String[] ${p.name}` : `${p.javaType} ${p.name}`
+        ).join(', ');
+        const delegateArgs = allParams.map(p =>
+            p.javaType === 'List<String>'
+                ? `${p.name} == null ? null : java.util.Arrays.asList(${p.name})`
+                : p.name
+        ).join(', ');
+        lines.push(`    public ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return ${methodName}(${delegateArgs}); }`);
+        if (!m.isWatch) {
+            lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
+        }
     }
 
     return lines.join('\n');
