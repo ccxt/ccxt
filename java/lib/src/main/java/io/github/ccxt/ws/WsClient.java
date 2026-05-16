@@ -45,6 +45,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.codec.http.websocketx.extensions.WebSocketClientExtensionHandler;
@@ -348,6 +349,15 @@ public class WsClient {
                             // client_no_context_takeover (e.g. Coinbase).
                             pipeline.addLast(new WebSocketClientExtensionHandler(
                                     new PerMessageDeflateClientExtensionHandshaker(6, true, 15, true, true)));
+
+                            // Reassemble fragmented frames before handing to our handler.
+                            // Without this, bingx/bitrue's large gzip-compressed data frames
+                            // are split into a leading BinaryWebSocketFrame + multiple
+                            // ContinuationWebSocketFrames; we only consume the first chunk
+                            // (truncated gzip → decompress fails → message silently dropped →
+                            // watchOrderBook future never resolves). 8 MiB matches Netty docs'
+                            // recommended cap for market-data feeds.
+                            pipeline.addLast(new WebSocketFrameAggregator(8 * 1024 * 1024));
 
                             // WebSocket frame handler
                             pipeline.addLast(handler);
