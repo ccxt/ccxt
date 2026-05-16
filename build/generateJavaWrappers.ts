@@ -465,10 +465,14 @@ if (!fs.existsSync(EXCHANGES_FOLDER)) {
 const coreFiles = fs.readdirSync(EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
 let generated = 0;
 
-// REST typed wrappers include only non-watch methods. Watch/*Ws methods live on
-// the pro typed wrapper (generated below), since their implementations are in
-// the WS Core (pro/<Exchange>Core.java), not the REST Core.
-const restMethods = methods.filter(m => !m.isWatch);
+// REST typed wrappers include only non-watch, non-*Ws methods. Both watch* and
+// *Ws (WS-API variants) live on the pro typed wrapper, since their
+// implementations are in the WS Core (pro/<Exchange>Core.java), not the REST
+// Core. A typed REST `createOrderWs(...)` would `super.createOrderWs(...)` into
+// REST BinanceCore — which has no such method — falling through to base
+// Exchange.createOrderWs which throws NotSupported.
+const isWsApi = (m: MethodInfo) => m.name.endsWith('Ws');
+const restMethods = methods.filter(m => !m.isWatch && !isWsApi(m));
 for (const coreFile of coreFiles) {
     const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
     const className = capitalize(exchangeId);
@@ -484,7 +488,7 @@ console.log(`Generated ${generated} REST typed wrappers`);
 // Generate WS typed wrappers
 if (fs.existsSync(WS_EXCHANGES_FOLDER)) {
     const wsCoreFiles = fs.readdirSync(WS_EXCHANGES_FOLDER).filter(f => f.endsWith('Core.java'));
-    const watchMethods = methods.filter(m => m.isWatch);
+    const watchMethods = methods.filter(m => m.isWatch || isWsApi(m));
     let wsGenerated = 0;
 
     for (const coreFile of wsCoreFiles) {
