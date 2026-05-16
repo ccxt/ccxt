@@ -590,7 +590,19 @@ public final class Crypto {
         if (secret instanceof byte[] b) {
             raw = b;
         } else if (secret instanceof String s) {
-            raw = Base64.getDecoder().decode(s);
+            // Accept PEM-armored PKCS#8 (the common shape: -----BEGIN PRIVATE KEY-----\n...base64...\n-----END PRIVATE KEY-----)
+            // alongside raw base64. Without the PEM branch the literal hyphens in the
+            // armor lines trip Base64.getDecoder() with "Illegal base64 character 2d".
+            if (s.contains("-----BEGIN PRIVATE KEY-----")) {
+                raw = decodePemBody(s, "-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
+            } else if (s.contains("-----BEGIN EC PRIVATE KEY-----")) {
+                raw = decodePemBody(s, "-----BEGIN EC PRIVATE KEY-----", "-----END EC PRIVATE KEY-----");
+            } else if (s.contains("-----BEGIN RSA PRIVATE KEY-----")) {
+                raw = decodePemBody(s, "-----BEGIN RSA PRIVATE KEY-----", "-----END RSA PRIVATE KEY-----");
+            } else {
+                // Plain base64; tolerate optional whitespace/newlines callers may have left in.
+                raw = Base64.getMimeDecoder().decode(s);
+            }
         } else if (secret instanceof java.util.List<?> list) {
             // arraySlice returns List<Byte> — convert to byte[]
             raw = new byte[list.size()];
