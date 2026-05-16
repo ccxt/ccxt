@@ -1790,15 +1790,7 @@ public class Exchange {
      * blip (e.g. aftermath returning 404 on /stream/orderbook) propagates as a
      * `WebSocketClientHandshakeException` — which isn't an OperationFailed — and
      * the test treats it as a fatal assertion failure instead of looping.
-     *
-     * String reasons also need wrapping. `WsClient.channelInactive` calls
-     * `onClose("Connection closed")` and `CloseWebSocketFrame` produces
-     * `"Server closed: 1006 …"`. Python emits `NetworkError("Connection closed
-     * by remote server, closing code 1006")` for the same event — without the
-     * wrap on this side, all pending watch* futures would be rejected with a
-     * plain `RuntimeException("Future rejected: Connection closed")` and the
-     * test harness would treat the transient drop as fatal (no retry), which
-     * is exactly the lighter symptom we were seeing in CI.
+     * Already-CCXT errors (BaseError descendants) and plain strings pass through.
      */
     private Object wrapAsNetworkError(Object error) {
         if (error instanceof io.github.ccxt.errors.BaseError) {
@@ -1820,12 +1812,6 @@ public class Exchange {
                 wrapped.initCause(t);
                 return wrapped;
             }
-        }
-        if (error instanceof String s) {
-            return new io.github.ccxt.errors.NetworkError(s);
-        }
-        if (error == null) {
-            return new io.github.ccxt.errors.NetworkError("Connection closed");
         }
         return error;
     }

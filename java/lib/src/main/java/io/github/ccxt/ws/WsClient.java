@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.ccxt.Exchange;
 import io.github.ccxt.base.JsonHelper;
+import io.github.ccxt.errors.NetworkError;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -695,7 +696,13 @@ public class WsClient {
 
         @Override
         public void channelInactive(ChannelHandlerContext ctx) {
-            wsClient.onClose("Connection closed");
+            // Mirror JS/Python/PHP/Go which all construct a NetworkError at the
+            // WS close site (e.g. ts/src/base/ws/Client.ts onClose:298,
+            // python/ccxt/async_support/base/ws/client.py:224). Passing a String
+            // here would let it propagate through cleanupWsClient unwrapped and
+            // surface as a plain RuntimeException, defeating the test harness's
+            // OperationFailed-based retry path.
+            wsClient.onClose(new NetworkError("connection closed by remote server"));
         }
 
         @Override
@@ -786,7 +793,9 @@ public class WsClient {
                 wsClient.onPong();
 
             } else if (frame instanceof CloseWebSocketFrame closeFrame) {
-                wsClient.onClose("Server closed: " + closeFrame.statusCode() + " " + closeFrame.reasonText());
+                wsClient.onClose(new NetworkError(
+                    "connection closed by remote server, closing code " + closeFrame.statusCode()
+                    + " " + closeFrame.reasonText()));
             }
         }
 
