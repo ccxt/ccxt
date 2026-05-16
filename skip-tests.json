@@ -1218,6 +1218,7 @@
         "until": "2025-08-31",
         "skipPhpAsync": "tmp",
         "skipCSharp": "tmp",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
