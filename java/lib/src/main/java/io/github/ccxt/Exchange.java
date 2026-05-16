@@ -1790,7 +1790,15 @@ public class Exchange {
      * blip (e.g. aftermath returning 404 on /stream/orderbook) propagates as a
      * `WebSocketClientHandshakeException` — which isn't an OperationFailed — and
      * the test treats it as a fatal assertion failure instead of looping.
-     * Already-CCXT errors (BaseError descendants) and plain strings pass through.
+     *
+     * String reasons also need wrapping. `WsClient.channelInactive` calls
+     * `onClose("Connection closed")` and `CloseWebSocketFrame` produces
+     * `"Server closed: 1006 …"`. Python emits `NetworkError("Connection closed
+     * by remote server, closing code 1006")` for the same event — without the
+     * wrap on this side, all pending watch* futures would be rejected with a
+     * plain `RuntimeException("Future rejected: Connection closed")` and the
+     * test harness would treat the transient drop as fatal (no retry), which
+     * is exactly the lighter symptom we were seeing in CI.
      */
     private Object wrapAsNetworkError(Object error) {
         if (error instanceof io.github.ccxt.errors.BaseError) {
@@ -1812,6 +1820,12 @@ public class Exchange {
                 wrapped.initCause(t);
                 return wrapped;
             }
+        }
+        if (error instanceof String s) {
+            return new io.github.ccxt.errors.NetworkError(s);
+        }
+        if (error == null) {
+            return new io.github.ccxt.errors.NetworkError("Connection closed");
         }
         return error;
     }
@@ -6917,6 +6931,38 @@ public Object describe()
         return ohlcv;
     }
 
+    public Object safeNetwork(Object network)
+    {
+        Object withdrawEnabled = this.safeBool(network, "withdraw");
+        Object depositEnabled = this.safeBool(network, "deposit");
+        Object limits = this.safeDict(network, "limits");
+        Object withdraw = this.safeDict(limits, "withdraw");
+        Object deposit = this.safeDict(limits, "deposit");
+        Object isEnabled = (Helpers.isTrue(withdrawEnabled) && Helpers.isTrue(depositEnabled));
+        final Object finalWithdrawEnabled = withdrawEnabled;
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", Helpers.GetValue(network, "info") );
+            put( "id", Exchange.this.safeString(network, "id") );
+            put( "name", Exchange.this.safeString(network, "name") );
+            put( "network", Exchange.this.safeString(network, "network") );
+            put( "active", Exchange.this.safeBool(network, "active", isEnabled) );
+            put( "deposit", depositEnabled );
+            put( "withdraw", finalWithdrawEnabled );
+            put( "fee", Exchange.this.safeNumber(network, "fee") );
+            put( "precision", Exchange.this.safeNumber(network, "precision") );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", Exchange.this.safeNumber(withdraw, "min") );
+                    put( "max", Exchange.this.safeNumber(withdraw, "max") );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", Exchange.this.safeNumber(deposit, "min") );
+                    put( "max", Exchange.this.safeNumber(deposit, "max") );
+                }} );
+            }} );
+        }};
+    }
+
     public Object networkCodeToId(Object networkCode, Object... optionalArgs)
     {
         /**
@@ -7680,15 +7726,15 @@ public Object describe()
             var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
-            this.lastRestRequestTimestamp = this.milliseconds();
-            Object request = this.sign(path, api, method, parameters, headers, body);
-            this.last_request_headers = Helpers.GetValue(request, "headers");
-            this.last_request_body = Helpers.GetValue(request, "body");
-            this.last_request_url = Helpers.GetValue(request, "url");
             for (var i = 0; Helpers.isLessThan(i, Helpers.add(retries, 1)); i++)
             {
                 try
                 {
+                    this.lastRestRequestTimestamp = this.milliseconds();
+                    Object request = this.sign(path, api, method, parameters, headers, body);
+                    this.last_request_headers = Helpers.GetValue(request, "headers");
+                    this.last_request_body = Helpers.GetValue(request, "body");
+                    this.last_request_url = Helpers.GetValue(request, "url");
                     return (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
                 } catch(Exception e)
                 {
