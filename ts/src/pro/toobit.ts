@@ -51,11 +51,11 @@ export default class toobit extends toobitRest {
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchOrderBook': {
+                    'watchOrderBookForSymbols': {
                         'channel': 'depth', // depth, diffDepth
                     },
-                    'listenKeyRefreshRate': 1200000, // 20 mins
                 },
+                'listenKeyRefreshRate': 1200000, // 20 mins
             },
             'streaming': {
                 'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
@@ -529,7 +529,7 @@ export default class toobit extends toobitRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
-        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'depth');
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
         const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -1133,7 +1133,7 @@ export default class toobit extends toobitRest {
             this.checkRequiredCredentials ();
             const time = this.milliseconds ();
             const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
-            const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
+            const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             const delay = this.sum (listenKeyRefreshRate, 10000);
             if (time - lastAuthenticatedTime > delay) {
                 try {
@@ -1179,7 +1179,7 @@ export default class toobit extends toobitRest {
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
