@@ -64,7 +64,9 @@ class Client {
     public $heartbeat = null;
     public int $cost = 1;
     public $timeframes = null;
+    public $listenKeyRefreshRate = null;
     public $watchTradesForSymbols = null;
+    public $watchOrderBook = null;
     public $watchOrderBookForSymbols = null;
 
     public $decompressBinary = true;
