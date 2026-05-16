@@ -60,9 +60,14 @@ public class WsOrderBook {
         this(null, null);
     }
 
-    /** Reset from a REST snapshot Map: replaces metadata and clears+repopulates both sides. */
+    /** Reset from a REST snapshot Map: replaces metadata and clears+repopulates both sides.
+     *  Synchronized on `this` so concurrent toMap() readers can't observe a torn write
+     *  of the scalar fields. Exchanges that pass `reset({})` and then individually set
+     *  timestamp/datetime (upbit, bitmart, cryptocom) still have a window between reset()
+     *  returning and the addElementToObject calls — that's a per-handler issue, not fixed
+     *  here. */
     @SuppressWarnings("unchecked")
-    public void reset(Object snapshot) {
+    public synchronized void reset(Object snapshot) {
         Map<String, Object> snap = (snapshot instanceof Map) ? (Map<String, Object>) snapshot : null;
         if (snap != null) {
             this.symbol = (String) snap.get("symbol");
