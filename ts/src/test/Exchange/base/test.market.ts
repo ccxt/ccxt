@@ -74,8 +74,6 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const inverse = market['inverse'];
     const quanto = exchange.safeBool (market, 'quanto'); // todo: unify
     const isQuanto = (quanto !== undefined) && quanto;
-    // inactive markets (e.g. okx pre-launch / preopen contracts, delisted markets)
-    // often have empty/placeholder source fields and can't be fully populated
     const isInactiveMarket = market['active'] === false;
 
     //
@@ -161,8 +159,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     }
 
     const contractSize = exchange.safeString (market, 'contractSize');
-    // contract fields — skip strict shape checks for inactive contracts
-    // (preopen/delisted commonly have empty placeholder source fields)
+    // contract fields
     if (contract && !isInactiveMarket) {
         if (isQuanto) {
             assert (linear === false, 'linear must be false when "quanto" is true' + logText);
@@ -265,7 +262,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             }
         }
     }
-    // check currencies (skip for inactive markets — preopen/delisted commonly have empty currency ids)
+    // check currencies
     if (!isInactiveMarket) {
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
