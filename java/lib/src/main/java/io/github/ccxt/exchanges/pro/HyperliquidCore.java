@@ -134,7 +134,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object orders = (this.createOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order)))), (Object)(globalParams))).join();
+            Object orders = (this.createOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order))), globalParams)).join();
             Object ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
@@ -260,7 +260,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.cancelOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
+            Object orders = (this.cancelOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
             return this.safeDict(orders, 0);
         });
 

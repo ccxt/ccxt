@@ -454,6 +454,7 @@ public class CryptocomCore extends CryptocomApi
             put( "precisionMode", TICK_SIZE );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
                 put( "exact", new java.util.HashMap<String, Object>() {{
+                    put( "213", InvalidOrder.class );
                     put( "219", InvalidOrder.class );
                     put( "306", InsufficientFunds.class );
                     put( "314", InvalidOrder.class );

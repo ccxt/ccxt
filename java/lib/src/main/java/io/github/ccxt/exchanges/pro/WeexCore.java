@@ -1651,13 +1651,11 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object newOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawOrder = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Object parsed = this.parseWsOrder(rawOrder);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
-            ((java.util.List<Object>)newOrders).add(parsed);
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Helpers.addElementToObject(symbols, symbol, true);
         }
@@ -1672,9 +1670,9 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             Object symbol = Helpers.GetValue(symbolKeys, i);
             Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
-            client.resolve(newOrders, symbolMessageHash);
+            client.resolve(orders, symbolMessageHash);
         }
-        client.resolve(newOrders, messageHash);
+        client.resolve(this.orders, messageHash);
     }
 
     public Object parseWsOrder(Object order, Object... optionalArgs)
@@ -2198,7 +2196,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawPosition = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
-            Object position = this.parsePosition(rawPosition);
+            Object position = this.parseWsPosition(rawPosition);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             ((java.util.List<Object>)newPositions).add(position);
         }
@@ -2216,6 +2214,13 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
         }
         client.resolve(newPositions, "positions");
+    }
+
+    public Object parseWsPosition(Object position, Object... optionalArgs)
+    {
+        // same as REST api
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        return this.parsePosition(position, market);
     }
 
     public Object getMarketFromClientAndMessage(Client client, Object message)

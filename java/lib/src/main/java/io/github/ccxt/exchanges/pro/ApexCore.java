@@ -113,8 +113,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            Object url = this.getWsPublicUrl();
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -272,8 +271,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols);
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            Object url = this.getWsPublicUrl();
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -300,15 +298,63 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
+            // apex's server rejects a subscribe whose args include any
+            // already-subscribed topic ("topic:already subscribed ..."). Since the
+            // connection is now reused across watch* calls, filter to only the
+            // topics whose messageHash isn't yet tracked on this client; if all
+            // are already subscribed, skip the subscribe entirely.
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "op", "subscribe" );
-                put( "args", topics );
-            }};
-            Object message = this.extend(request, parameters);
+            Client client = this.client(url);
+            Object newTopics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object newTopicsCount = 0;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(topics)); i++)
+            {
+                if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, Helpers.GetValue(messageHashes, i)))))
+                {
+                    ((java.util.List<Object>)newTopics).add(Helpers.GetValue(topics, i));
+                    newTopicsCount = Helpers.add(newTopicsCount, 1);
+                }
+            }
+            Object message = null;
+            if (Helpers.isTrue(Helpers.isGreaterThan(newTopicsCount, 0)))
+            {
+                Object request = new java.util.HashMap<String, Object>() {{
+                    put( "op", "subscribe" );
+                    put( "args", newTopics );
+                }};
+                message = this.extend(request, parameters);
+            }
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
+    }
+
+    public Object getWsPublicUrl()
+    {
+        // apex appends a millisecond timestamp to the WS URL for connection-time
+        // signing. CCXT's client manager keys clients by URL, so recomputing the
+        // timestamp on every watch* call would open a new connection each time.
+        // Cache it per exchange instance.
+        Object url = this.safeString(this.options, "wsPublicUrl");
+        if (Helpers.isTrue(Helpers.isEqual(url, null)))
+        {
+            Object timeStamp = String.valueOf(this.milliseconds());
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            Helpers.addElementToObject(this.options, "wsPublicUrl", url);
+        }
+        return url;
+    }
+
+    public Object getWsPrivateUrl()
+    {
+        Object url = this.safeString(this.options, "wsPrivateUrl");
+        if (Helpers.isTrue(Helpers.isEqual(url, null)))
+        {
+            Object timeStamp = String.valueOf(this.milliseconds());
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+            Helpers.addElementToObject(this.options, "wsPrivateUrl", url);
+        }
+        return url;
     }
 
     public void handleOrderBook(Client client, Object message)
@@ -408,8 +454,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            Object url = this.getWsPublicUrl();
             Object messageHash = Helpers.add("ticker:", symbol);
             Object topic = Helpers.add(Helpers.add("instrumentInfo", ".H."), Helpers.GetValue(market, "id2"));
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
@@ -437,8 +482,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, false);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            Object url = this.getWsPublicUrl();
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -561,8 +605,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "&timestamp="), timeStamp);
+            Object url = this.getWsPublicUrl();
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
@@ -694,8 +737,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 symbol = this.symbol(symbol);
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+            Object url = this.getWsPrivateUrl();
             (this.authenticate(url)).join();
             Object trades = (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList("myTrades")), parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -734,8 +776,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 symbols = this.marketSymbols(symbols);
                 messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
             }
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+            Object url = this.getWsPrivateUrl();
             messageHash = Helpers.add("positions", messageHash);
             Client client = this.client(url);
             (this.authenticate(url)).join();
@@ -784,8 +825,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 symbol = this.symbol(symbol);
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object timeStamp = String.valueOf(this.milliseconds());
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "&timestamp="), timeStamp);
+            Object url = this.getWsPrivateUrl();
             (this.authenticate(url)).join();
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("orders"));
             Object orders = (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();

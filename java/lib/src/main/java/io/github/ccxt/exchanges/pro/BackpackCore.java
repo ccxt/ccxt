@@ -922,9 +922,20 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object id = this.safeString(trade, "t");
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        Object isMaker = this.safeBool(trade, "m");
-        Object side = ((Helpers.isTrue(isMaker))) ? "sell" : "buy";
-        Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+        Object isBuyerMaker = this.safeBool(trade, "m");
+        Object side = null;
+        Object takerOrMaker = null;
+        if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            if (Helpers.isTrue(isBuyerMaker))
+            {
+                side = "sell";
+            } else
+            {
+                side = "buy";
+            }
+        }
         Object price = this.safeString(trade, "p");
         Object amount = this.safeString(trade, "q");
         Object orderId = null;
@@ -938,6 +949,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         final Object finalMarket = market;
         final Object finalOrderId = orderId;
         final Object finalSide = side;
+        final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", id );
@@ -947,7 +959,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             put( "order", finalOrderId );
             put( "type", null );
             put( "side", finalSide );
-            put( "takerOrMaker", takerOrMaker );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", price );
             put( "amount", amount );
             put( "cost", null );

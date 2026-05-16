@@ -1456,6 +1456,13 @@ public class XtCore extends XtApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
+                if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+                {
+                    limit = Helpers.mathMin(limit, 1000); // spot max limit
+                } else
+                {
+                    limit = Helpers.mathMin(limit, 1500); // derivatives max limit
+                }
                 Helpers.addElementToObject(request, "limit", limit);
             } else
             {
@@ -2035,14 +2042,14 @@ public class XtCore extends XtApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
-                    Helpers.addElementToObject(request, "limit", limit);
+                    Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
                 }
                 response = (this.publicSpotGetTradeRecent(this.extend(request, parameters))).join();
             } else
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
-                    Helpers.addElementToObject(request, "num", limit);
+                    Helpers.addElementToObject(request, "num", Helpers.mathMin(limit, 1000));
                 }
                 if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
                 {

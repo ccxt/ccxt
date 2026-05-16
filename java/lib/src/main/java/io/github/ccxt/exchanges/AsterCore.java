@@ -839,7 +839,17 @@ public class AsterCore extends AsterApi
             //     ]
             //
             //
-            Object rows = this.arrayConcat(sapiRows, fapiRows);
+            Object fapiRowsFiltered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fapiRows)); i++)
+            {
+                Object market = Helpers.GetValue(fapiRows, i);
+                // tmp skip some markets with base = undefined
+                if (Helpers.isTrue(this.safeString(market, "baseAsset")))
+                {
+                    ((java.util.List<Object>)fapiRowsFiltered).add(market);
+                }
+            }
+            Object rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
             return this.parseMarkets(rows);
         });
 

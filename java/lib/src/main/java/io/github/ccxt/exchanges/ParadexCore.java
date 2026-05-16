@@ -997,7 +997,7 @@ public class ParadexCore extends ParadexApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                Helpers.addElementToObject(request, "page_size", Helpers.mathMin(limit, 1000));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {

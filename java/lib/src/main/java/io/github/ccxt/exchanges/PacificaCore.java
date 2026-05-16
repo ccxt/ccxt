@@ -1148,61 +1148,59 @@ public class PacificaCore extends PacificaApi
             if (Helpers.isTrue(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit)).join();
-            } else
+            }
+            Object tf = this.safeString(this.timeframes, timeframe, timeframe);
+            final Object finalSince = since;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "interval", tf );
+                put( "start_time", finalSince );
+            }};
+            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            request = ((java.util.List<Object>) requestparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
+            Object nowMillis = this.milliseconds();
+            Object until = this.safeInteger(request, "end_time");
+            if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
-                Object tf = this.safeString(this.timeframes, timeframe, timeframe);
-                final Object finalSince = since;
-                Object request = new java.util.HashMap<String, Object>() {{
-                    put( "symbol", Helpers.GetValue(market, "id") );
-                    put( "interval", tf );
-                    put( "start_time", finalSince );
-                }};
-                var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
-                request = ((java.util.List<Object>) requestparametersVariable).get(0);
-                parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                Object nowMillis = this.milliseconds();
-                Object until = this.safeInteger(request, "end_time");
+                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                {
+                    until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(limit, (Helpers.multiply(this.parseTimeframe(tf), 1000))))), 1);
+                }
                 if (Helpers.isTrue(Helpers.isEqual(until, null)))
                 {
-                    if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
-                    {
-                        until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(limit, (Helpers.multiply(this.parseTimeframe(tf), 1000))))), 1);
-                    }
-                    if (Helpers.isTrue(Helpers.isEqual(until, null)))
-                    {
-                        until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(defaultMaxLimit, (Helpers.multiply(this.parseTimeframe(tf), 1000))))), 1);
-                    }
-                    if (Helpers.isTrue(Helpers.isGreaterThan(until, nowMillis)))
-                    {
-                        until = nowMillis;
-                    }
-                    Helpers.addElementToObject(request, "end_time", until);
+                    until = Helpers.subtract(Helpers.add(since, (Helpers.multiply(defaultMaxLimit, (Helpers.multiply(this.parseTimeframe(tf), 1000))))), 1);
                 }
-                Object response = (this.publicGetKline(this.extend(request, parameters))).join();
-                //
-                // {
-                //   "success": true,
-                //   "data": [
-                //     {
-                //       "t": 1748954160000,
-                //       "T": 1748954220000,
-                //       "s": "BTC",
-                //       "i": "1m",
-                //       "o": "105376",
-                //       "c": "105376",
-                //       "h": "105376",
-                //       "l": "105376",
-                //       "v": "0.00022",
-                //       "n": 2
-                //     }
-                //   ],
-                //   "error": null,
-                //   "code": null
-                // }
-                //
-                Object candles = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                return this.parseOHLCVs(candles, market, timeframe, since, limit);
+                if (Helpers.isTrue(Helpers.isGreaterThan(until, nowMillis)))
+                {
+                    until = nowMillis;
+                }
+                Helpers.addElementToObject(request, "end_time", until);
             }
+            Object response = (this.publicGetKline(this.extend(request, parameters))).join();
+            //
+            // {
+            //   "success": true,
+            //   "data": [
+            //     {
+            //       "t": 1748954160000,
+            //       "T": 1748954220000,
+            //       "s": "BTC",
+            //       "i": "1m",
+            //       "o": "105376",
+            //       "c": "105376",
+            //       "h": "105376",
+            //       "l": "105376",
+            //       "v": "0.00022",
+            //       "n": 2
+            //     }
+            //   ],
+            //   "error": null,
+            //   "code": null
+            // }
+            //
+            Object candles = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
     }

@@ -326,6 +326,7 @@
         }
     },
     "bitflyer": {
+        "preferredSpotSymbol": "BTC/JPY",
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "not defined when contract",
@@ -365,6 +366,7 @@
         }
     },
     "bithumb": {
+        "preferredSpotSymbol": "BTC/KRW",
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"

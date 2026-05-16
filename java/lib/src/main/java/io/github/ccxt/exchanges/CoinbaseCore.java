@@ -1647,6 +1647,7 @@ public class CoinbaseCore extends CoinbaseApi
             //        has_promo_fee: false
             //    }
             //
+            Object promises = (Helpers.promiseAll(spotUnresolvedPromises)).join();
             Object unresolvedContractPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             try
             {
@@ -1660,7 +1661,6 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 unresolvedContractPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList()); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
             }
-            Object promises = (Helpers.promiseAll(spotUnresolvedPromises)).join();
             Object contractPromises = null;
             try
             {

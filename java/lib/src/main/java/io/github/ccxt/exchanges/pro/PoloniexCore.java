@@ -333,7 +333,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 Object clientOrderIds = this.safeValue(parameters, "clientOrderId", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Helpers.addElementToObject(parameters, "clientOrderIds", this.arrayConcat(clientOrderIds, new java.util.ArrayList<Object>(java.util.Arrays.asList(clientOrderId))));
             }
-            Object orders = (this.cancelOrdersWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(id))), (Object)(symbol), (Object)(parameters))).join();
+            Object orders = (this.cancelOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
             Object order = this.safeDict(orders, 0);
             return order;
         });

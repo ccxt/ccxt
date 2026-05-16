@@ -2590,7 +2590,7 @@ public class MexcCore extends MexcApi
                 response = (this.contractPrivatePostPlanorderPlace(this.extend(request, parameters))).join();
             } else
             {
-                response = (this.contractPrivatePostOrderSubmit(this.extend(request, parameters))).join();
+                response = (this.contractPrivatePostOrderCreate(this.extend(request, parameters))).join();
             }
             //
             // Swap

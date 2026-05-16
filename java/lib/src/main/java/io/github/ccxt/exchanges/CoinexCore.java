@@ -1472,7 +1472,7 @@ public class CoinexCore extends CoinexApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "swap")))

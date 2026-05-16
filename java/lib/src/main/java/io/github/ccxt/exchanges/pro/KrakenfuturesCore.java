@@ -722,6 +722,21 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
@@ -737,8 +752,8 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             put( "type", KrakenfuturesCore.this.safeString(trade, "type") );
             put( "side", KrakenfuturesCore.this.safeString(trade, "side") );
             put( "takerOrMaker", "taker" );
-            put( "price", KrakenfuturesCore.this.safeString(trade, "price") );
-            put( "amount", KrakenfuturesCore.this.safeString(trade, "qty") );
+            put( "price", KrakenfuturesCore.this.safeString2(trade, "price", "limit_price") );
+            put( "amount", KrakenfuturesCore.this.safeString2(trade, "filled", "qty") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );
@@ -791,7 +806,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             put( "type", KrakenfuturesCore.this.safeStringLower(trade, "type") );
             put( "side", KrakenfuturesCore.this.safeString(trade, "side") );
             put( "takerOrMaker", KrakenfuturesCore.this.safeString(trade, "matchRole") );
-            put( "price", KrakenfuturesCore.this.safeString(trade, "price") );
+            put( "price", KrakenfuturesCore.this.safeString2(trade, "price", "limit_price") );
             put( "amount", KrakenfuturesCore.this.safeString(trade, "tradeAmount") );
             put( "cost", null );
             put( "fee", new java.util.HashMap<String, Object>() {{
@@ -918,15 +933,13 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(previousOrder, "average", Precise.stringDiv(totalCost, totalAmount));
                 }
                 Helpers.addElementToObject(previousOrder, "cost", totalCost);
-                if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(previousOrder, "filled"), null)))
-                {
-                    Object stringOrderFilled = this.numberToString(Helpers.GetValue(previousOrder, "filled"));
-                    Helpers.addElementToObject(previousOrder, "filled", Precise.stringAdd(stringOrderFilled, this.numberToString(Helpers.GetValue(trade, "amount"))));
-                    if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(previousOrder, "amount"), null)))
-                    {
-                        Helpers.addElementToObject(previousOrder, "remaining", Precise.stringSub(this.numberToString(Helpers.GetValue(previousOrder, "amount")), stringOrderFilled));
-                    }
-                }
+                Object filledString = this.numberToString(Helpers.GetValue(trade, "amount"));
+                Object stringOrderFilled = this.safeString(previousOrder, "filled", "0");
+                Object totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
+                Helpers.addElementToObject(previousOrder, "filled", totalFilled);
+                Object prevAmountString = this.safeString(previousOrder, "amount");
+                Object remaining = Precise.stringSub(prevAmountString, totalFilled);
+                Helpers.addElementToObject(previousOrder, "remaining", remaining);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "fee"), null)))
                 {
                     Helpers.addElementToObject(previousOrder, "fee", new java.util.HashMap<String, Object>() {{
@@ -1119,11 +1132,11 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             put( "price", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "limit_price") );
             put( "stopPrice", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "stop_price") );
             put( "triggerPrice", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "stop_price") );
-            put( "amount", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "qty") );
+            put( "amount", null );
             put( "cost", null );
             put( "average", null );
             put( "filled", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "filled") );
-            put( "remaining", null );
+            put( "remaining", KrakenfuturesCore.this.safeString(finalUnparsedOrder, "qty") );
             put( "status", finalStatus );
             put( "fee", new java.util.HashMap<String, Object>() {{
                 put( "rate", null );

@@ -927,7 +927,7 @@ public class DeepcoinCore extends DeepcoinApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit); // default 100, max 500
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 2000));
             }
             Object productGroup = this.getProductGroupFromMarket(market);
             Helpers.addElementToObject(request, "productGroup", productGroup);

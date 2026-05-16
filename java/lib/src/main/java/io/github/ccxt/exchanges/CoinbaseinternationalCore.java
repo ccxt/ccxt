@@ -2663,52 +2663,6 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public Object safeNetwork(Object network)
-    {
-        Object withdrawEnabled = this.safeBool(network, "withdraw");
-        Object depositEnabled = this.safeBool(network, "deposit");
-        Object limits = this.safeDict(network, "limits");
-        Object withdraw = this.safeDict(limits, "withdraw");
-        Object withdrawMax = this.safeNumber(withdraw, "max");
-        Object deposit = this.safeDict(limits, "deposit");
-        Object depositMax = this.safeNumber(deposit, "max");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(withdrawEnabled, null)) && Helpers.isTrue(!Helpers.isEqual(withdrawMax, null))))
-        {
-            withdrawEnabled = (Helpers.isGreaterThan(withdrawMax, 0));
-        }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(depositEnabled, null)) && Helpers.isTrue(!Helpers.isEqual(depositMax, null))))
-        {
-            depositEnabled = (Helpers.isGreaterThan(depositMax, 0));
-        }
-        Object networkId = this.safeString(network, "id");
-        Object isEnabled = (Helpers.isTrue(withdrawEnabled) && Helpers.isTrue(depositEnabled));
-        final Object finalDepositEnabled = depositEnabled;
-        final Object finalWithdrawEnabled = withdrawEnabled;
-        final Object finalWithdrawMax = withdrawMax;
-        final Object finalDepositMax = depositMax;
-        return new java.util.HashMap<String, Object>() {{
-            put( "info", Helpers.GetValue(network, "info") );
-            put( "id", networkId );
-            put( "name", CoinbaseinternationalCore.this.safeString(network, "name") );
-            put( "network", CoinbaseinternationalCore.this.safeString(network, "network") );
-            put( "active", CoinbaseinternationalCore.this.safeBool(network, "active", isEnabled) );
-            put( "deposit", finalDepositEnabled );
-            put( "withdraw", finalWithdrawEnabled );
-            put( "fee", CoinbaseinternationalCore.this.safeNumber(network, "fee") );
-            put( "precision", CoinbaseinternationalCore.this.safeNumber(network, "precision") );
-            put( "limits", new java.util.HashMap<String, Object>() {{
-                put( "withdraw", new java.util.HashMap<String, Object>() {{
-                    put( "min", CoinbaseinternationalCore.this.safeNumber(withdraw, "min") );
-                    put( "max", finalWithdrawMax );
-                }} );
-                put( "deposit", new java.util.HashMap<String, Object>() {{
-                    put( "min", CoinbaseinternationalCore.this.safeNumber(deposit, "min") );
-                    put( "max", finalDepositMax );
-                }} );
-            }} );
-        }};
-    }
-
     public Object sign(Object path, Object... optionalArgs)
     {
         Object api = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));

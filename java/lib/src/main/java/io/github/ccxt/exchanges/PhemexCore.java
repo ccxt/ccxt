@@ -4424,7 +4424,7 @@ public class PhemexCore extends PhemexApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(200, limit));
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateGetApiDataGFuturesClosedPosition", new Object[] { this.extend(request, parameters) })).join();
+            Object response = (this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",

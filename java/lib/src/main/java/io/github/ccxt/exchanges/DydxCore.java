@@ -696,7 +696,7 @@ public class DydxCore extends DydxApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
             Object response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
             //

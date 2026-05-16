@@ -686,26 +686,30 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(trade, "t");
-        Object isMaker = this.safeBool(trade, "m");
+        Object isBuyerMaker = this.safeBool(trade, "m");
+        Object side = null;
         Object takerOrMaker = null;
-        if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
+        if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
-            if (Helpers.isTrue(isMaker))
+            if (Helpers.isTrue(isBuyerMaker))
             {
+                side = "sell";
                 takerOrMaker = "maker";
             } else
             {
+                side = "buy";
                 takerOrMaker = "taker";
             }
         }
         final Object finalMarket = market;
+        final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", HashkeyCore.this.safeString2(trade, "v", "T") );
             put( "timestamp", timestamp );
             put( "datetime", HashkeyCore.this.iso8601(timestamp) );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "side", HashkeyCore.this.safeStringLower(trade, "S") );
+            put( "side", HashkeyCore.this.safeStringLower(trade, "S", finalSide) );
             put( "price", HashkeyCore.this.safeString(trade, "p") );
             put( "amount", HashkeyCore.this.safeString(trade, "q") );
             put( "cost", null );

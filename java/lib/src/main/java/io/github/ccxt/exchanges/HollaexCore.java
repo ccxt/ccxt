@@ -1026,14 +1026,11 @@ public class HollaexCore extends HollaexApi
             Object timeDelta = Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
             Object start = since;
             Object now = this.milliseconds();
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(until, null)) && Helpers.isTrue(Helpers.isEqual(start, null))))
-            {
-                until = now;
-                start = Helpers.subtract(until, timeDelta);
-            } else if (Helpers.isTrue(Helpers.isEqual(until, null)))
+            if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
                 until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-            } else if (Helpers.isTrue(Helpers.isEqual(start, null)))
+            }
+            if (Helpers.isTrue(Helpers.isEqual(start, null)))
             {
                 start = Helpers.subtract(until, timeDelta);
             }

@@ -914,7 +914,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             {
                 channelName = "/contractMarket/tickerV2:";
             }
-            Object ticker = (this.watchMultiHelper("watchBidsAsks", channelName, symbols, parameters)).join();
+            Object ticker = (this.watchMultiHelper("watchBidsAsks", channelName, isFuturesMethod, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object tickers = new java.util.HashMap<String, Object>() {{}};
@@ -926,7 +926,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchMultiHelper(Object methodName, Object channelName, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> watchMultiHelper(Object methodName, Object channelName, Object isFuturesChannel, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -947,7 +947,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object market = this.market(symbol);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("bidask@", Helpers.GetValue(market, "symbol")));
             }
-            Object url = (this.negotiate(false)).join();
+            Object url = (this.negotiate(false, isFuturesChannel)).join();
             Object marketIds = this.marketIds(symbols);
             Object joined = String.join((String)",", (java.util.List<String>)marketIds);
             Object requestId = String.valueOf(this.requestId());

@@ -92,16 +92,16 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 }} );
                 put( "test", new java.util.HashMap<String, Object>() {{
                     put( "swap", new java.util.HashMap<String, Object>() {{
-                        put( "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt" );
+                        put( "usdt", "wss://ws-testnet.gate.com/v4/ws/futures/usdt" );
                         put( "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/btc" );
                     }} );
                     put( "future", new java.util.HashMap<String, Object>() {{
-                        put( "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt" );
-                        put( "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/btc" );
+                        put( "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/usdt" );
+                        put( "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/btc" );
                     }} );
                     put( "option", new java.util.HashMap<String, Object>() {{
-                        put( "usdt", "wss://op-ws-testnet.gateio.live/v4/ws/usdt" );
-                        put( "btc", "wss://op-ws-testnet.gateio.live/v4/ws/btc" );
+                        put( "usdt", "wss://ws-testnet.gate.com/v4/ws/options/usdt" );
+                        put( "btc", "wss://ws-testnet.gate.com/v4/ws/options/btc" );
                     }} );
                 }} );
             }} );
@@ -407,7 +407,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrdersByStatusWs((Object)("open"), (Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters)).join();
         });
 
     }
@@ -432,7 +432,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrdersByStatusWs((Object)("finished"), (Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            return (this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters)).join();
         });
 
     }

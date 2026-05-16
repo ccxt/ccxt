@@ -251,8 +251,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         if (Helpers.isTrue(Helpers.isEqual(type, "future")))
         {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
-            Object firstProtocol = Helpers.getIndexOf(baseUrl, "://");
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(firstProtocol, Helpers.opNeg(1))) && Helpers.isTrue(!Helpers.isEqual(Helpers.getIndexOf(baseUrl, "://"), Helpers.opNeg(1)))))
+            // const firstProtocol = baseUrl.indexOf ('://');
+            // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+            //     return baseUrl;
+            // }
+            Object baseUrlSplit = Helpers.split(baseUrl, "://");
+            Object baseUrlSplitLength = Helpers.getArrayLength(baseUrlSplit);
+            if (Helpers.isTrue(Helpers.isGreaterThan(baseUrlSplitLength, 2)))
             {
                 return baseUrl;
             }
@@ -3504,7 +3509,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchPositionsWs((Object)(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))), (Object)(parameters))).join();
+            return (this.fetchPositionsWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
     }
@@ -4497,7 +4502,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object orders = (this.fetchOrdersWs((Object)(symbol), (Object)(since), (Object)(limit), (Object)(parameters))).join();
+            Object orders = (this.fetchOrdersWs(symbol, since, limit, parameters)).join();
             Object closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {

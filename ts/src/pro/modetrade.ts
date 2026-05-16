@@ -1343,8 +1343,12 @@ export default class modetrade extends modetradeRest {
         return { 'event': 'ping' };
     }
 
+    async pong (client: Client, message) {
+        await client.send ({ 'event': 'pong' });
+    }
+
     handlePing (client: Client, message) {
-        return { 'event': 'pong' };
+        this.spawn (this.pong, client, message);
     }
 
     handlePong (client: Client, message) {

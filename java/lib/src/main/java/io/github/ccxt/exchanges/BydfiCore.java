@@ -674,7 +674,7 @@ public class BydfiCore extends BydfiApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
             Object response = (this.publicGetV1FapiMarketTrades(this.extend(request, parameters))).join();
             //

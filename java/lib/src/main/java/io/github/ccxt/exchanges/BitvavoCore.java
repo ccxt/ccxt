@@ -181,8 +181,8 @@ public class BitvavoCore extends BitvavoApi
                         put( "order", 1 );
                         put( "orders", 5 );
                         put( "ordersOpen", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                            put( "noMarket", 25 );
+                            put( "cost", 5 );
+                            put( "noMarket", 100 );
                         }} );
                         put( "trades", 5 );
                         put( "balance", 5 );
@@ -210,9 +210,15 @@ public class BitvavoCore extends BitvavoApi
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "order", 1 );
-                        put( "orders", 1 );
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 25 );
+                            put( "noMarket", 100 );
+                        }} );
                         put( "institutional/subaccounts/order", 1 );
-                        put( "institutional/subaccounts/orders", 1 );
+                        put( "institutional/subaccounts/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 25 );
+                            put( "noMarket", 100 );
+                        }} );
                     }} );
                 }} );
             }} );

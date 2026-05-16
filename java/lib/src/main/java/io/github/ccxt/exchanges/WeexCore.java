@@ -1488,6 +1488,10 @@ public class WeexCore extends WeexApi
             Object priceType = this.safeStringUpper(parameters, "price");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("historical", "until", "price")));
             Object response = null;
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                limit = Helpers.mathMin(limit, 1000); // hardcap threshold
+            }
             if (Helpers.isTrue(historical))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(priceType, null)))
@@ -1572,7 +1576,7 @@ public class WeexCore extends WeexApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
@@ -3850,7 +3854,7 @@ public class WeexCore extends WeexApi
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        Object marketId = this.safeString(position, "symbol");
+        Object marketId = this.safeString2(position, "symbol", "coinId"); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
         Object timestamp = this.safeInteger(position, "createdTime");
         Object marginType = this.safeString2(position, "marginType", "marginMode");
@@ -3868,6 +3872,9 @@ public class WeexCore extends WeexApi
         {
             hedged = true;
         }
+        Object notional = this.safeString(position, "openValue");
+        Object size = this.safeString(position, "size");
+        Object entryPrice = Precise.stringDiv(notional, size);
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
         final Object finalHedged = hedged;
@@ -3876,15 +3883,15 @@ public class WeexCore extends WeexApi
             put( "id", WeexCore.this.safeString2(position, "id", "positionId") );
             put( "timestamp", timestamp );
             put( "datetime", WeexCore.this.iso8601(timestamp) );
-            put( "contracts", WeexCore.this.safeNumber(position, "size") );
+            put( "contracts", WeexCore.this.parseNumber(size) );
             put( "contractSize", null );
             put( "side", WeexCore.this.safeStringLower(position, "side") );
-            put( "notional", WeexCore.this.safeNumber(position, "openValue") );
+            put( "notional", WeexCore.this.parseNumber(notional) );
             put( "leverage", WeexCore.this.safeNumber(position, "leverage") );
             put( "unrealizedPnl", WeexCore.this.safeNumber(position, "unrealizePnl") );
             put( "realizedPnl", null );
             put( "collateral", null );
-            put( "entryPrice", null );
+            put( "entryPrice", WeexCore.this.parseNumber(entryPrice) );
             put( "markPrice", null );
             put( "liquidationPrice", WeexCore.this.safeNumber(position, "liquidatePrice") );
             put( "marginMode", finalMarginMode );
@@ -3899,7 +3906,7 @@ public class WeexCore extends WeexApi
             put( "stopLossPrice", null );
             put( "takeProfitPrice", null );
             put( "percentage", null );
-            put( "info", null );
+            put( "info", position );
         }});
     }
 
