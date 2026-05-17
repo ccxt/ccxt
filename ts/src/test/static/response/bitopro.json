@@ -2,6 +2,12 @@
     "exchange": "bitopro",
     "skipKeys": [],
     "methods": {
+        "fetchMarkets": {
+            "description": "Fetch Markets",
+            "method": "fetchMarkets",
+            "url": "https://api.bitopro.com/v3/provisioning/trading-pairs",
+            "input": []
+        },
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -215,6 +221,17 @@
                         "takeProfitPrice": null,
                         "stopLossPrice": null
                     }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch Order Book",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitopro.com/v3/order-book/btc_usdt?limit=10",
+                "input": [
+                  "BTC/USDT",
+                  10
                 ]
             }
         ]
