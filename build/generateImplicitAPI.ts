@@ -315,6 +315,11 @@ async function editAPIFilesGo(){
 
 async function editAPIFilesJava(){
     const exchanges = Object.keys(storedCamelCaseMethods);
+    // The api/ dir is auto-generated and not committed (see java/.gitignore),
+    // so on a fresh clone it doesn't exist yet — fs.writeFile won't create
+    // the parent dir on its own. mkdir -p first so this script works whether
+    // the dir is already populated (CI rebuild) or empty (first run).
+    fs.mkdirSync(JAVA_PATH, { recursive: true });
     const files = exchanges.map(ex => JAVA_PATH + capitalize(ex) + 'Api.java');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
 }
