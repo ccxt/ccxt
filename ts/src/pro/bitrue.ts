@@ -454,8 +454,13 @@ export default class bitrue extends bitrueRest {
     /**
      * @method
      * @name bitrue#watchTrades
-     * @description watches public trades (futures-only)
+     * @description watches public trades for a swap (futures) market
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -561,8 +566,14 @@ export default class bitrue extends bitrueRest {
     /**
      * @method
      * @name bitrue#watchOHLCV
-     * @description watches OHLCV candles (futures-only)
+     * @description watches OHLCV candles for a swap (futures) market
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
@@ -625,7 +636,8 @@ export default class bitrue extends bitrueRest {
         }
         const symbol = market['symbol'];
         const wsInterval = this.safeString (parts, 4);
-        const timeframe = this.findTimeframeFromWsInterval (wsInterval);
+        const futuresTimeframes = this.safeDict (this.options, 'futuresTimeframes', {});
+        const timeframe = this.findTimeframe (wsInterval, futuresTimeframes);
         const tick = this.safeValue (message, 'tick');
         if (tick === undefined) {
             return;
@@ -657,24 +669,14 @@ export default class bitrue extends bitrueRest {
         return [ timestamp, open, high, low, close, baseVolume ];
     }
 
-    findTimeframeFromWsInterval (wsInterval: string): string {
-        const futuresTimeframes = this.safeDict (this.options, 'futuresTimeframes', {});
-        const timeframes = Object.keys (futuresTimeframes);
-        for (let i = 0; i < timeframes.length; i++) {
-            const tf = timeframes[i];
-            const value = this.safeString (futuresTimeframes, tf);
-            if (value === wsInterval) {
-                return tf;
-            }
-        }
-        return wsInterval;
-    }
-
     /**
      * @method
      * @name bitrue#watchTicker
-     * @description watches 24h ticker (futures-only)
+     * @description watches a 24h ticker for a swap (futures) market
      * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
