@@ -150,14 +150,18 @@ function helperBatchNetworkTests () {
                 const primaryNetworkCode = chainMapping['primary'];
                 const secondaryNetworkCode = chainMapping['secondary'];
                 const msg = 'network protocol test failed for networkCode:' + randomNetworkCode + ' & currencyCode: ' + randomCurrencyCode + ', result: ' + result + ', expected: ';
-                if (randomNetworkCode === primaryNetworkCode && randomCurrencyCode === baseCoin) {
-                    assert (result === primaryNetworkCode, msg + primaryNetworkCode);
-                } else if (randomNetworkCode === primaryNetworkCode && randomCurrencyCode !== baseCoin) {
-                    assert (result === secondaryNetworkCode, msg + secondaryNetworkCode);
-                } else if (randomNetworkCode === secondaryNetworkCode && randomCurrencyCode === baseCoin) {
-                    assert (result === primaryNetworkCode, msg + primaryNetworkCode);
-                } else if (randomNetworkCode === secondaryNetworkCode && randomCurrencyCode !== baseCoin) {
-                    assert (result === secondaryNetworkCode, msg + secondaryNetworkCode);
+                if (randomNetworkCode === primaryNetworkCode) {
+                    if (randomCurrencyCode === baseCoin) {
+                        assert (result === primaryNetworkCode, msg + primaryNetworkCode);
+                    } else {
+                        assert (result === secondaryNetworkCode, msg + secondaryNetworkCode);
+                    }
+                } else if (randomNetworkCode === secondaryNetworkCode) {
+                    if (randomCurrencyCode === baseCoin) {
+                        assert (result === primaryNetworkCode, msg + primaryNetworkCode);
+                    } else {
+                        assert (result === secondaryNetworkCode, msg + secondaryNetworkCode);
+                    }
                 }
             }
         }
