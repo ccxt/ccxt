@@ -200,8 +200,15 @@ const exec = (bin, ...args) => {
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
+            // Tag the output so the FAIL path picks it up (generateResultFromOutput
+            // looks for [TEST_FAILURE] / AssertionError / [...Error] patterns).
+            // Without this tag the harness was bucketing timeouts into WARN, which
+            // silently hid 12 hung WS exchanges across every language lane on every
+            // CI run (e.g. bybit which times out in all 6 langs). A killed-after-180s
+            // process is a real failure, not a transient warning — should be visible.
+            output += '\n[TEST_FAILURE] RUNTEST_TIMED_OUT';
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
-            const result = generateResultFromOutput (output, stderr, 0);
+            const result = generateResultFromOutput (output, stderr, 1);
             return result;
         }
         return {
