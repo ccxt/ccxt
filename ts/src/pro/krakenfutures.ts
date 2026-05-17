@@ -1577,10 +1577,10 @@ export default class krakenfutures extends krakenfuturesRest {
         //
         const errMsg = this.safeString (message, 'message');
         // Benign "already subscribed" notice: the original subscription is still
-        // active and delivering data on this socket. The generic `client.reject(error)`
+        // active and delivering data on this socket. The generic client.reject
         // below rejects every pending future on the connection, so a stray
-        // re-subscribe warning would kill unrelated in-flight watch* calls
-        // (mirrors the bitmart 90008 fix).
+        // re-subscribe warning would kill unrelated in-flight watch* calls —
+        // mirrors the bitmart 90008 fix.
         if (errMsg !== undefined && errMsg.indexOf ('Already subscribed') >= 0) {
             return false;
         }
