@@ -135,7 +135,7 @@ function helperBatchNetworkTests () {
     // check batch
     //
     const exchangeDefaultOpts = exchange.getDefaultOptions ();
-    const chainMappings = exchangeDefaultOpts['defaultNetworkCodeReplacements'];
+    const chainMappings = exchangeDefaultOpts['chainMappings'];
 
     const allNetworkCodes = helperSampleNetworkCodes ();
     const allCurrencyCodes = helperSampleCurrencyCodes ();
@@ -144,17 +144,12 @@ function helperBatchNetworkTests () {
         for (let j = 0; j < allCurrencyCodes.length; j++) {
             const randomCurrencyCode = allCurrencyCodes[j];
             const result = exchange.networkIdToCode (randomNetworkCode, randomCurrencyCode);
-            const defKeys = Object.keys (chainMappings);
-            for (let k = 0; k < defKeys.length; k++) {
-                const chainKey = defKeys[k];
-                const chainMapping = chainMappings[chainKey];
-                const chainMappingKeys = Object.keys (chainMapping);
-                const firstKey = chainMappingKeys[0];
-                const firstValue = chainMapping[firstKey];
-                const baseCoin = chainKey;
-                const primaryNetworkCode = firstValue;
-                const secondaryNetworkCode = firstKey;
-                const msg = 'network protocol test failed for currencyCode:' + randomCurrencyCode + ' & networkCode: ' + randomNetworkCode + ', result: ' + result + ', expected: ';
+            for (let k = 0; k < chainMappings.length; k++) {
+                const chainMapping = chainMappings[k];
+                const baseCoin = chainMapping['baseCoin'];
+                const primaryNetworkCode = chainMapping['primary'];
+                const secondaryNetworkCode = chainMapping['secondary'];
+                const msg = 'network protocol test failed for networkCode:' + randomNetworkCode + ' & currencyCode: ' + randomCurrencyCode + ', result: ' + result + ', expected: ';
                 if (randomNetworkCode === primaryNetworkCode && randomCurrencyCode === baseCoin) {
                     assert (result === primaryNetworkCode, msg + primaryNetworkCode);
                 } else if (randomNetworkCode === primaryNetworkCode && randomCurrencyCode !== baseCoin) {
@@ -170,7 +165,38 @@ function helperBatchNetworkTests () {
 }
 
 
+function helperTestNetworkProtocolCorrector () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    // for ETH
+    assert (exchange.networkCodeProtocolCorrector ('USDC', 'ERC20') === 'ERC20');
+    assert (exchange.networkCodeProtocolCorrector ('USDC', 'ETH') === 'ERC20');
+    assert (exchange.networkCodeProtocolCorrector ('ETH', 'ERC20') === 'ETH');
+    assert (exchange.networkCodeProtocolCorrector ('ETH', 'ETH') === 'ETH');
+
+    // for TRX
+    assert (exchange.networkCodeProtocolCorrector ('USDC', 'TRC20') === 'TRC20');
+    assert (exchange.networkCodeProtocolCorrector ('USDC', 'TRX') === 'TRC20');
+    assert (exchange.networkCodeProtocolCorrector ('TRX', 'TRC20') === 'TRX');
+    assert (exchange.networkCodeProtocolCorrector ('TRX', 'TRX') === 'TRX');
+
+    // for CRONOS
+    assert (exchange.networkCodeProtocolCorrector ('USDC', 'CRC20') === 'CRC20');
+    assert (exchange.networkCodeProtocolCorrector ('USDC', 'CRONOS') === 'CRC20');
+    assert (exchange.networkCodeProtocolCorrector ('CRO', 'CRC20') === 'CRONOS');
+    assert (exchange.networkCodeProtocolCorrector ('CRO', 'CRONOS') === 'CRONOS');
+
+    // for BTC
+    assert (exchange.networkCodeProtocolCorrector ('MEMECOIN', 'BRC20') === 'BRC20');
+    assert (exchange.networkCodeProtocolCorrector ('MEMECOIN', 'BTC') === 'BRC20');
+    assert (exchange.networkCodeProtocolCorrector ('BTC', 'BRC20') === 'BTC');
+    assert (exchange.networkCodeProtocolCorrector ('BTC', 'BTC') === 'BTC');
+}
+
 function testNetworkMethods () {
+    helperTestNetworkProtocolCorrector ();
     helperTestNetworkCodeToId ();
     helperTestNetworkIdToCode ();
     helperBatchNetworkTests ();
