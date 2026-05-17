@@ -2627,7 +2627,7 @@ public partial class bybit : ccxt.bybit
                 }
             } else
             {
-                object messageHash = this.safeString(message, "reqId");
+                object messageHash = this.safeString2(message, "req_id", "reqId");
                 ((WebSocketClient)client).reject(error, messageHash);
             }
             return true;

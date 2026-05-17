@@ -18,21 +18,21 @@ func NewBinanceusCore() *BinanceusCore {
     return p
 }
 
-func  (this *BinanceusCore) Describe() interface{}  {
+func  (this *BinanceusCore) Describe() any  {
     // eslint-disable-next-line new-cap
     restInstance := ccxt.NewBinanceus(nil)
-    var restDescribe interface{} = restInstance.Describe()
-    var parentWsDescribe interface{} = this.base.DescribeData()
-    var extended interface{} = this.DeepExtend(restDescribe, parentWsDescribe)
-    return this.DeepExtend(extended, map[string]interface{} {
+    var restDescribe any = restInstance.Describe()
+    var parentWsDescribe any = this.base.DescribeData()
+    var extended any = this.DeepExtend(restDescribe, parentWsDescribe)
+    return this.DeepExtend(extended, map[string]any {
         "id": "binanceus",
         "name": "Binance US",
-        "countries": []interface{}{"US"},
+        "countries": []any{"US"},
         "certified": false,
-        "urls": map[string]interface{} {
+        "urls": map[string]any {
             "logo": "https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg",
-            "api": map[string]interface{} {
-                "ws": map[string]interface{} {
+            "api": map[string]any {
+                "ws": map[string]any {
                     "spot": "wss://stream.binance.us:9443/ws",
                 },
                 "web": "https://www.binance.us",
@@ -48,7 +48,7 @@ func  (this *BinanceusCore) Describe() interface{}  {
             "doc": "https://github.com/binance-us/binance-official-api-docs",
             "fees": "https://www.binance.us/en/fee/schedule",
         },
-        "has": map[string]interface{} {
+        "has": map[string]any {
             "createOrderWithTakeProfitAndStopLossWs": false,
             "createReduceOnlyOrderWs": false,
             "createStopLossOrderWs": false,
@@ -67,19 +67,19 @@ func  (this *BinanceusCore) Describe() interface{}  {
             "watchPosition": false,
             "watchPositions": false,
         },
-        "options": map[string]interface{} {
+        "options": map[string]any {
             "fetchCurrencies": false,
             "quoteOrderQty": false,
             "defaultType": "spot",
-            "fetchMarkets": map[string]interface{} {
-                "types": []interface{}{"spot"},
+            "fetchMarkets": map[string]any {
+                "types": []any{"spot"},
             },
         },
     })
 }
 
 
-func (this *BinanceusCore) Init(userConfig map[string]interface{}) {
+func (this *BinanceusCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

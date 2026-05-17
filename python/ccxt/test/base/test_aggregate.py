@@ -20,7 +20,7 @@ def test_aggregate():
         'id': 'sampleexchange',
     })
     assert exchange.milliseconds() > 0, 'go transpiler workaround'
-    assert 'GO_SKIP_START'
+    # @SKIP_START_GO
     bids = [[789.1, 111.05], [789.1, 111.05], [123.3, 456.2], [784.2, 111.05], [789.1, 111.05]]
     expected_bids = [[123.3, 456.2], [784.2, 111.05], [789.1, 333.15]]
     test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(bids, 0)), expected_bids)
@@ -58,4 +58,5 @@ def test_aggregate():
     # Test 10: Mixed zero and non-zero for same price
     result10 = exchange.aggregate([[100.2, 1.04], [100.2, 0], [100.2, 2.04]])
     test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result10, [[100.2, 3.08]])
-    assert 'GO_SKIP_END'
+    # @SKIP_END_GO
+    exchange.uuid()  # placeholder for astt

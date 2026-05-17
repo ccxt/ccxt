@@ -551,7 +551,7 @@ bitstamp.fetchLedger ([code, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate  
 

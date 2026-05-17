@@ -674,7 +674,7 @@ class dydx(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = self.indexerGetTradesPerpetualMarketMarket(self.extend(request, params))
         #
         # {

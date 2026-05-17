@@ -476,6 +476,7 @@ class cryptocom extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '213' => '\\ccxt\\InvalidOrder', // array( "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" )
                     '219' => '\\ccxt\\InvalidOrder',
                     '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )

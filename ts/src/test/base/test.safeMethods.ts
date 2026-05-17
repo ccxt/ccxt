@@ -220,6 +220,7 @@ function testSafeMethods () {
     assert (exchange.safeIntegerProduct (inputDict, 'strNumber', factor) === 30);
     assert (exchange.safeIntegerProduct (inputList, 1, factor) === 20);
     assert (exchange.safeIntegerProduct (inputDict, 'longInt', 0.000001) === 123456789);
+    assert (exchange.safeIntegerProduct (inputDict, 'inexistent', 0.000001, 123456789) === 123456789);
 
     // safeIntegerProduct2
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'i', factor) === 10);

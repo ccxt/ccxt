@@ -2174,42 +2174,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def safe_network(self, network):
-        withdrawEnabled = self.safe_bool(network, 'withdraw')
-        depositEnabled = self.safe_bool(network, 'deposit')
-        limits = self.safe_dict(network, 'limits')
-        withdraw = self.safe_dict(limits, 'withdraw')
-        withdrawMax = self.safe_number(withdraw, 'max')
-        deposit = self.safe_dict(limits, 'deposit')
-        depositMax = self.safe_number(deposit, 'max')
-        if withdrawEnabled is None and withdrawMax is not None:
-            withdrawEnabled = (withdrawMax > 0)
-        if depositEnabled is None and depositMax is not None:
-            depositEnabled = (depositMax > 0)
-        networkId = self.safe_string(network, 'id')
-        isEnabled = (withdrawEnabled and depositEnabled)
-        return {
-            'info': network['info'],
-            'id': networkId,
-            'name': self.safe_string(network, 'name'),
-            'network': self.safe_string(network, 'network'),
-            'active': self.safe_bool(network, 'active', isEnabled),
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
-            'fee': self.safe_number(network, 'fee'),
-            'precision': self.safe_number(network, 'precision'),
-            'limits': {
-                'withdraw': {
-                    'min': self.safe_number(withdraw, 'min'),
-                    'max': withdrawMax,
-                },
-                'deposit': {
-                    'min': self.safe_number(deposit, 'min'),
-                    'max': depositMax,
-                },
-            },
-        }
-
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]
         signed = api[1] == 'private'

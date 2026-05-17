@@ -8,9 +8,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestAggregate() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	assert(ccxt.IsGreaterThan(exchange.Milliseconds(), 0), "go transpiler workaround")
-
+	//
+	exchange.Uuid() // placeholder for astt
 }

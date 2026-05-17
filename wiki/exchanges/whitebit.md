@@ -1239,7 +1239,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (default 100, max 1000) |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (default 100, max 100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 

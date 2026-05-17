@@ -1417,7 +1417,7 @@ bitmart.watchTradesForSymbols (symbols[, since, limit, params])
 unWatches from the stream channel
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1442,7 +1442,7 @@ bitmart.unWatchTrades (symbol[, params])
 unsubscribes from the trades channel
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1517,7 +1517,7 @@ bitmart.watchTickers (symbols[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1542,7 +1542,7 @@ bitmart.unWatchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1619,7 +1619,7 @@ bitmart.watchOrders (symbol[, since, limit, params])
 unWatches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1770,7 +1770,7 @@ bitmart.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1819,7 +1819,7 @@ bitmart.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmart</code>](#bitmart)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel  
 

@@ -30,10 +30,10 @@ public partial class htx : ccxt.htx
                 { "watchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
-                { "unwatchTicker", true },
-                { "unwatchOHLCV", true },
-                { "unwatchTrades", true },
-                { "unwatchOrderBook", true },
+                { "unWatchTicker", true },
+                { "unWatchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchOrderBook", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {

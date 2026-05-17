@@ -550,6 +550,21 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         const marketId = this.safeString(trade, 'product_id');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'time');
@@ -563,8 +578,8 @@ export default class krakenfutures extends krakenfuturesRest {
             'type': this.safeString(trade, 'type'),
             'side': this.safeString(trade, 'side'),
             'takerOrMaker': 'taker',
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'qty'),
+            'price': this.safeString2(trade, 'price', 'limit_price'),
+            'amount': this.safeString2(trade, 'filled', 'qty'),
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -614,7 +629,7 @@ export default class krakenfutures extends krakenfuturesRest {
             'type': this.safeStringLower(trade, 'type'),
             'side': this.safeString(trade, 'side'),
             'takerOrMaker': this.safeString(trade, 'matchRole'),
-            'price': this.safeString(trade, 'price'),
+            'price': this.safeString2(trade, 'price', 'limit_price'),
             'amount': this.safeString(trade, 'tradeAmount'),
             'cost': undefined,
             'fee': {
@@ -733,13 +748,13 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['average'] = Precise.stringDiv(totalCost, totalAmount);
                 }
                 previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    const stringOrderFilled = this.numberToString(previousOrder['filled']);
-                    previousOrder['filled'] = Precise.stringAdd(stringOrderFilled, this.numberToString(trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub(this.numberToString(previousOrder['amount']), stringOrderFilled);
-                    }
-                }
+                const filledString = this.numberToString(trade['amount']);
+                const stringOrderFilled = this.safeString(previousOrder, 'filled', '0');
+                const totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
+                previousOrder['filled'] = totalFilled;
+                const prevAmountString = this.safeString(previousOrder, 'amount');
+                const remaining = Precise.stringSub(prevAmountString, totalFilled);
+                previousOrder['remaining'] = remaining;
                 if (previousOrder['fee'] === undefined) {
                     previousOrder['fee'] = {
                         'rate': undefined,
@@ -914,11 +929,11 @@ export default class krakenfutures extends krakenfuturesRest {
             'price': this.safeString(unparsedOrder, 'limit_price'),
             'stopPrice': this.safeString(unparsedOrder, 'stop_price'),
             'triggerPrice': this.safeString(unparsedOrder, 'stop_price'),
-            'amount': this.safeString(unparsedOrder, 'qty'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString(unparsedOrder, 'filled'),
-            'remaining': undefined,
+            'remaining': this.safeString(unparsedOrder, 'qty'),
             'status': status,
             'fee': {
                 'rate': undefined,
@@ -1478,20 +1493,33 @@ export default class krakenfutures extends krakenfuturesRest {
     }
     async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
         await this.loadMarkets();
+        const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const messageHashes = [];
+        const rawSubs = [];
         for (let i = 0; i < symbols.length; i++) {
-            messageHashes.push(this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i])));
+            const messageHash = this.getMessageHash(unifiedName, undefined, this.symbol(symbols[i]));
+            messageHashes.push(messageHash);
+            const market = this.market(symbols[i]);
+            if (!this.subscriptionExistsForHash(url, messageHash)) {
+                rawSubs.push(market['id']);
+            }
         }
-        const marketIds = this.marketIds(symbols);
-        const request = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        };
-        const url = this.urls['api']['ws'];
+        let request = {};
+        const length = rawSubs.length;
+        if (length > 0) {
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            };
+        }
         return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscriptionArgs);
+    }
+    subscriptionExistsForHash(url, hash) {
+        const client = this.client(url);
+        return (hash in client.subscriptions);
     }
     getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...

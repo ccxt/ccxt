@@ -21,9 +21,9 @@ public partial class Exchange
         var res = await this.fetchMarketsWs(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public Dictionary<string, object> CreateSafeDictionary()
+    public Dictionary<string, object> CreateSafeDictionary(bool isWs = false)
     {
-        var res = this.createSafeDictionary();
+        var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
     public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
@@ -1414,7 +1414,6 @@ public class  Coinbase: coinbase { public Coinbase(object args = null) : base(ar
 public class  Coinbaseadvanced: coinbaseadvanced { public Coinbaseadvanced(object args = null) : base(args) { } }
 public class  Coinbaseexchange: coinbaseexchange { public Coinbaseexchange(object args = null) : base(args) { } }
 public class  Coinbaseinternational: coinbaseinternational { public Coinbaseinternational(object args = null) : base(args) { } }
-public class  Coincatch: coincatch { public Coincatch(object args = null) : base(args) { } }
 public class  Coincheck: coincheck { public Coincheck(object args = null) : base(args) { } }
 public class  Coinex: coinex { public Coinex(object args = null) : base(args) { } }
 public class  Coinmate: coinmate { public Coinmate(object args = null) : base(args) { } }
@@ -1465,6 +1464,7 @@ public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public class  Oxfun: oxfun { public Oxfun(object args = null) : base(args) { } }
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
+public class  Pacifica: pacifica { public Pacifica(object args = null) : base(args) { } }
 public class  Paradex: paradex { public Paradex(object args = null) : base(args) { } }
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
@@ -1473,6 +1473,7 @@ public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : b
 public class  Toobit: toobit { public Toobit(object args = null) : base(args) { } }
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
 public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = null) : base(args) { } }
+public class  Weex: weex { public Weex(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
 public class  Woo: woo { public Woo(object args = null) : base(args) { } }
 public class  Woofipro: woofipro { public Woofipro(object args = null) : base(args) { } }
@@ -1480,4 +1481,3 @@ public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
-public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

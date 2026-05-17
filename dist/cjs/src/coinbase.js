@@ -1487,6 +1487,7 @@ class coinbase extends coinbase$1["default"] {
         //        has_promo_fee: false
         //    }
         //
+        const promises = await Promise.all(spotUnresolvedPromises);
         let unresolvedContractPromises = [];
         try {
             unresolvedContractPromises = [
@@ -1497,7 +1498,6 @@ class coinbase extends coinbase$1["default"] {
         catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
-        const promises = await Promise.all(spotUnresolvedPromises);
         let contractPromises = undefined;
         try {
             contractPromises = await Promise.all(unresolvedContractPromises); // some users don't have access to contracts
@@ -5272,7 +5272,7 @@ class coinbase extends coinbase$1["default"] {
      * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account ID to fetch deposit addresses for
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
     async fetchDepositAddresses(codes = undefined, params = {}) {
         await this.loadMarkets();

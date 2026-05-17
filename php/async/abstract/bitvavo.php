@@ -44,7 +44,7 @@ abstract class bitvavo extends \ccxt\async\Exchange {
         return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_ordersopen($params = array()) {
-        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 5, "noMarket" => 100));
     }
     public function private_get_trades($params = array()) {
         return $this->request('trades', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -98,13 +98,13 @@ abstract class bitvavo extends \ccxt\async\Exchange {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_orders($params = array()) {
-        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
     }
     public function private_delete_institutional_subaccounts_order($params = array()) {
         return $this->request('institutional/subaccounts/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_institutional_subaccounts_orders($params = array()) {
-        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
     }
     public function publicGetTime($params = array()) {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -143,7 +143,7 @@ abstract class bitvavo extends \ccxt\async\Exchange {
         return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetOrdersOpen($params = array()) {
-        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 5, "noMarket" => 100));
     }
     public function privateGetTrades($params = array()) {
         return $this->request('trades', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -197,12 +197,12 @@ abstract class bitvavo extends \ccxt\async\Exchange {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteOrders($params = array()) {
-        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
     }
     public function privateDeleteInstitutionalSubaccountsOrder($params = array()) {
         return $this->request('institutional/subaccounts/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteInstitutionalSubaccountsOrders($params = array()) {
-        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
     }
 }

@@ -165,6 +165,7 @@ export default class gate extends gateRest {
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    handleNewSpotOrderBook(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     getCacheIndex(orderBook: any, cache: any): any;
     handleBidAsks(bookSide: any, bidAsks: any): void;

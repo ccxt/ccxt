@@ -307,7 +307,7 @@ class grvt(ccxt.async_support.grvt):
             market = self.market(symbol)
             marketId = market['id']
             limitRaw = self.safe_integer(params, 'limit', 50)  # 50, 200, 500, 1000
-            rawHashes.append(marketId + '@' + limitRaw)
+            rawHashes.append(marketId + '@' + str(limitRaw))
             messageHashes.append('trade::' + market['symbol'])
         request = {
             'stream': 'v1.trade',
@@ -499,7 +499,7 @@ class grvt(ccxt.async_support.grvt):
         interval = None
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
         symbols = self.market_symbols(symbols)
-        extraPart = (interval + '-' + limit) if isSnapshot else interval
+        extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -607,9 +607,9 @@ class grvt(ccxt.async_support.grvt):
         :param boolean [params.unifiedMargin]: use unified margin account
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        subAccountId = self.getSubAccountId(params)
         await self.load_markets()
         await self.authenticate()
+        subAccountId = self.getSubAccountId(params)
         messageHashes = []
         rawHashes = []
         if symbol is not None:
@@ -688,9 +688,9 @@ class grvt(ccxt.async_support.grvt):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        subAccountId = self.getSubAccountId(params)
         await self.authenticate()
         await self.load_markets()
+        subAccountId = self.getSubAccountId(params)
         symbols = self.market_symbols(symbols)
         rawHashes = []
         messageHashes = []
@@ -768,9 +768,9 @@ class grvt(ccxt.async_support.grvt):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        subAccountId = self.getSubAccountId(params)
         await self.load_markets()
         await self.authenticate()
+        subAccountId = self.getSubAccountId(params)
         messageHashes = []
         rawHashes = []
         if symbol is None:
@@ -861,8 +861,7 @@ class grvt(ccxt.async_support.grvt):
         order = self.parse_ws_order(data)
         self.orders.append(order)
         client.resolve(self.orders, 'orders')
-        ordersForSymbol = self.filter_by_symbol_since_limit(self.orders, order['symbol'], None, None, True)
-        client.resolve(ordersForSymbol, 'orders::' + order['symbol'])
+        client.resolve(self.orders, 'order::' + order['symbol'])
 
     def parse_ws_order(self, order, market=None) -> Order:
         # same api

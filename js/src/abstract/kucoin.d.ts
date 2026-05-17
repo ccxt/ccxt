@@ -314,6 +314,7 @@ interface Exchange {
     utaGetMarketPositionTiers(params?: {}): Promise<implicitReturnType>;
     utaGetMarketOpenInterest(params?: {}): Promise<implicitReturnType>;
     utaGetServerStatus(params?: {}): Promise<implicitReturnType>;
+    utaGetMarketBorrowableCurrency(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetMarketOrderbook(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountBalance(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountTransferQuota(params?: {}): Promise<implicitReturnType>;
@@ -330,10 +331,14 @@ interface Exchange {
     utaPrivateGetAccountModeOrderExecution(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionOpenList(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionHistory(params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetPositionHistory(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetAccountModePositionTiers(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetSubAccountBalance(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetUserFeeRate(params?: {}): Promise<implicitReturnType>;
     utaPrivateGetDcpQuery(params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetUnifiedAccountLeverage(params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetPositionFundingHistory(params?: {}): Promise<implicitReturnType>;
+    utaPrivateGetAccountInterestLimits(params?: {}): Promise<implicitReturnType>;
     utaPrivatePostAccountTransfer(params?: {}): Promise<implicitReturnType>;
     utaPrivatePostAccountMode(params?: {}): Promise<implicitReturnType>;
     utaPrivatePostAccountModeAccountModifyLeverage(params?: {}): Promise<implicitReturnType>;
@@ -344,6 +349,7 @@ interface Exchange {
     utaPrivatePostAccountModeOrderCancelAll(params?: {}): Promise<implicitReturnType>;
     utaPrivatePostSubAccountCanTransferOut(params?: {}): Promise<implicitReturnType>;
     utaPrivatePostDcpSet(params?: {}): Promise<implicitReturnType>;
+    utaPrivatePostAccountModeAccountModifyLeverageMarginCross(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

@@ -88,7 +88,6 @@ export default class Exchange {
         this.validateClientSsl = false;
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
         this.liquidations = undefined;
         this.orderbooks = {};
@@ -116,10 +115,10 @@ export default class Exchange {
         this.markets = undefined;
         this.features = undefined;
         this.status = undefined;
-        this.rateLimit = undefined; // milliseconds
+        this.rateLimit = 2000; // milliseconds
         this.tokenBucket = undefined;
         this.throttler = undefined;
-        this.enableRateLimit = undefined;
+        this.enableRateLimit = true;
         this.rollingWindowSize = 0.0; // set to 0.0 to use leaky bucket rate limiter
         this.rateLimiterAlgorithm = 'leakyBucket';
         this.httpExceptions = undefined;
@@ -143,10 +142,8 @@ export default class Exchange {
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;
-        this.marketsByAltname = undefined;
         this.name = undefined;
         this.targetAccount = undefined;
-        this.stablePairs = {};
         this.httpProxyAgentModule = undefined;
         this.httpsProxyAgentModule = undefined;
         this.socksProxyAgentModule = undefined;
@@ -605,6 +602,13 @@ export default class Exchange {
     isBinaryMessage(msg) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
+    stringToBinary(content) {
+        // same as: this.base64ToBinary (this.stringToBase64 (str));
+        return this.encode(content);
+    }
+    binaryToString(binary) {
+        return this.decode(binary);
+    }
     decodeProtoMsg(data) {
         if (!protobufMexc) {
             throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
@@ -679,7 +683,7 @@ export default class Exchange {
             if (typeof userAgent === 'string') {
                 headers = this.extend({ 'User-Agent': userAgent }, headers);
             }
-            else if ((typeof userAgent === 'object') && ('User-Agent' in userAgent)) {
+            else if (this.isDictionary(userAgent) && ('User-Agent' in userAgent)) {
                 headers = this.extend(userAgent, headers);
             }
         }
@@ -1563,7 +1567,7 @@ export default class Exchange {
     extendExchangeOptions(newOptions) {
         this.options = this.extend(this.options, newOptions);
     }
-    createSafeDictionary() {
+    createSafeDictionary(isWs = false) {
         return {};
     }
     convertToSafeDictionary(dict) {
@@ -1592,7 +1596,7 @@ export default class Exchange {
     unlockId() {
         return undefined; // c# stub
     }
-    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
@@ -1612,11 +1616,16 @@ export default class Exchange {
         const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
         const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
         go.run(instance);
-        // createCLient
+        if (createClient) {
+            this.lighterCreateClient(undefined, chainId, privateKey, apiKeyIndex, accountIndex);
+        }
+        return {}; // empty object we will read it from globalThis
+    }
+    lighterCreateClient(signer, chainId, privateKey, apiKeyIndex, accountIndex) {
         const url = this.implodeHostname(this.urls['api']['public']);
         const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
         this.checkLighterSignedError(res);
-        return {}; // empty object we will read it from globalThis
+        return signer;
     }
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders(signer, request) {
@@ -1637,13 +1646,15 @@ export default class Exchange {
                 'OrderExpiry': order['order_expiry'],
             });
         }
-        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder(signer, request) {
-        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
@@ -1653,38 +1664,45 @@ export default class Exchange {
         }
     }
     lighterSignCancelOrder(signer, request) {
-        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignWithdraw(signer, request) {
-        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount(signer, request) {
-        const res = (globalThis.SignCreateSubAccount(request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCreateSubAccount(1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignCancelAllOrders(signer, request) {
-        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignModifyOrder(signer, request) {
-        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignTransfer(signer, request) {
-        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
     lighterSignUpdateLeverage(signer, request) {
-        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], request['nonce'], request['api_key_index'], request['account_index']));
+        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']));
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
     }
@@ -1694,9 +1712,30 @@ export default class Exchange {
         return res.authToken;
     }
     lighterSignUpdateMargin(signer, request) {
-        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], request['nonce'], request['api_key_index'], request['account_index']);
+        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignApproveIntegrator(signer, request) {
+        const res = globalThis.SignApproveIntegrator(request['integrator_account_index'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['integrator_taker_fee'], request['integrator_maker_fee'], request['approval_expiry'], 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo, res.messageToSign];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterGenerateApiKey(signer) {
+        const res = globalThis.GenerateAPIKey();
+        this.checkLighterSignedError(res);
+        return [res.privateKey, res.publicKey];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignChangePubkey(signer, request) {
+        const res = globalThis.SignChangePubKey(Buffer.from(request['pubkey']).toString(), 1, // skip nonce
+        request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo, res.messageToSign];
     }
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1740,15 +1779,16 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000,
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit,
+            'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
             'timeout': this.timeout,
-            'certified': false,
-            'pro': false,
-            'alias': false,
+            'certified': this.certified,
+            'pro': this.pro,
+            'alias': this.alias,
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -1994,9 +2034,12 @@ export default class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -2033,6 +2076,7 @@ export default class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
@@ -2123,7 +2167,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         return defaultValue;
@@ -2139,7 +2183,7 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray(value)) {
+        if (this.isDictionary(value)) {
             return value;
         }
         return defaultValue;
@@ -2168,6 +2212,9 @@ export default class Exchange {
             return value;
         }
         return defaultValue;
+    }
+    isDictionary(value) {
+        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
     }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
@@ -3012,7 +3059,7 @@ export default class Exchange {
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3027,7 +3074,7 @@ export default class Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -4517,6 +4564,35 @@ export default class Exchange {
         }
         return ohlcv;
     }
+    safeNetwork(network) {
+        const withdrawEnabled = this.safeBool(network, 'withdraw');
+        const depositEnabled = this.safeBool(network, 'deposit');
+        const limits = this.safeDict(network, 'limits');
+        const withdraw = this.safeDict(limits, 'withdraw');
+        const deposit = this.safeDict(limits, 'deposit');
+        const isEnabled = (withdrawEnabled && depositEnabled);
+        return {
+            'info': network['info'],
+            'id': this.safeString(network, 'id'),
+            'name': this.safeString(network, 'name'),
+            'network': this.safeString(network, 'network'),
+            'active': this.safeBool(network, 'active', isEnabled),
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': this.safeNumber(network, 'fee'),
+            'precision': this.safeNumber(network, 'precision'),
+            'limits': {
+                'withdraw': {
+                    'min': this.safeNumber(withdraw, 'min'),
+                    'max': this.safeNumber(withdraw, 'max'),
+                },
+                'deposit': {
+                    'min': this.safeNumber(deposit, 'min'),
+                    'max': this.safeNumber(deposit, 'max'),
+                },
+            },
+        };
+    }
     networkCodeToId(networkCode, currencyCode = undefined) {
         /**
          * @ignore
@@ -4751,7 +4827,7 @@ export default class Exchange {
         //
         const percentage = this.safeValue(position, 'percentage');
         if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             const percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber(percentageString);
         }
@@ -5012,6 +5088,30 @@ export default class Exchange {
         }
         return results;
     }
+    filterOutByArray(objects, key, values = undefined, indexed = true) {
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (values === undefined || !values) {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (indexed) {
+                return this.indexBy(objects, key);
+            }
+            else {
+                return objects;
+            }
+        }
+        const results = [];
+        for (let i = 0; i < objects.length; i++) {
+            if (!this.inArray(objects[i][key], values)) {
+                results.push(objects[i]);
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (indexed) {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
     async fetch2(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost(api, method, path, params, config);
@@ -5021,13 +5121,13 @@ export default class Exchange {
         [retries, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [retryDelay, params] = this.handleOptionAndParams(params, path, 'maxRetriesOnFailureDelay', 0);
-        this.lastRestRequestTimestamp = this.milliseconds();
-        const request = this.sign(path, api, method, params, headers, body);
-        this.last_request_headers = request['headers'];
-        this.last_request_body = request['body'];
-        this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
+                this.lastRestRequestTimestamp = this.milliseconds();
+                const request = this.sign(path, api, method, params, headers, body);
+                this.last_request_headers = request['headers'];
+                this.last_request_body = request['body'];
+                this.last_request_url = request['url'];
                 return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
             }
             catch (e) {
@@ -5897,7 +5997,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5920,7 +6020,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend(params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5943,7 +6043,7 @@ export default class Exchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -5966,7 +6066,7 @@ export default class Exchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend(params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -5989,7 +6089,7 @@ export default class Exchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder']) {
             return await this.createOrder(symbol, type, side, amount, price, params);
         }
@@ -6012,7 +6112,7 @@ export default class Exchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired(this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend(params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs']) {
             return await this.createOrderWs(symbol, type, side, amount, price, params);
         }
@@ -6437,7 +6537,7 @@ export default class Exchange {
         return false;
     }
     handleWithdrawTagAndParams(tag, params) {
-        if ((tag !== undefined) && (typeof tag === 'object')) {
+        if (this.isDictionary(tag)) {
             params = this.extend(tag, params);
             tag = undefined;
         }
@@ -6490,7 +6590,7 @@ export default class Exchange {
             return undefined;
         }
         const market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
     priceToPrecision(symbol, price) {
         if (price === undefined) {
@@ -8292,6 +8392,9 @@ export default class Exchange {
             return (ms / second) + 's';
         }
         return '';
+    }
+    async isUTAEnabled(params = {}) {
+        return false; // stub
     }
 }
 export { Exchange, };

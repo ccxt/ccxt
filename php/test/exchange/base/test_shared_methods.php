@@ -13,7 +13,7 @@ function log_template($exchange, $method, $entry) {
     // there are cases when exchange is undefined (eg. base tests)
     $id = ($exchange !== null) ? $exchange->id : 'undefined';
     $method_string = ($method !== null) ? $method : 'undefined';
-    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    $entry_string = ($exchange !== null && $entry !== null) ? $exchange->json($entry) : '';
     return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 
@@ -650,4 +650,15 @@ function deep_equal($exchange, $a, $b) {
 function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
     $log_text = log_template($exchange, $method, array());
     assert(deep_equal($exchange, $a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
+}
+
+
+function exchange_prop($exchange, $key, $default_value = null) {
+    $value = $exchange->get_property($exchange, ((string) $key));
+    if ($value !== null) {
+        return $value;
+    }
+    // try UpperCase key also, for other langs
+    $key_upper = $exchange->capitalize(((string) $key));
+    return $exchange->get_property($exchange, $key_upper, $default_value);
 }

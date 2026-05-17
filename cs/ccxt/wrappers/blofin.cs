@@ -537,6 +537,18 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.instId</term>
+    /// <description>
+    /// string : *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT')
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -798,6 +810,52 @@ public partial class blofin
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetches historical positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#get-positions-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=20, max=100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.productType</term>
+    /// <description>
+    /// string : USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>

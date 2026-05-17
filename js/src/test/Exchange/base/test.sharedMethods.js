@@ -12,7 +12,7 @@ function logTemplate(exchange, method, entry) {
     // there are cases when exchange is undefined (eg. base tests)
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
-    const entryString = (exchange !== undefined) ? exchange.json(entry) : '';
+    const entryString = (exchange !== undefined && entry !== undefined) ? exchange.json(entry) : '';
     return ' <<< ' + id + ' ' + methodString + ' ::: ' + entryString + ' >>> ';
 }
 function isTemporaryFailure(e) {
@@ -599,7 +599,17 @@ function assertDeepEqual(exchange, skippedProperties, method, a, b) {
     const logText = logTemplate(exchange, method, {});
     assert(deepEqual(exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull(a) + ' != ' + exchange.jsonStringifyWithNull(b) + logText);
 }
+function exchangeProp(exchange, key, defaultValue = undefined) {
+    const value = exchange.getProperty(exchange, key.toString());
+    if (value !== undefined) {
+        return value;
+    }
+    // try UpperCase key also, for other langs
+    const keyUpper = exchange.capitalize(key.toString());
+    return exchange.getProperty(exchange, keyUpper, defaultValue);
+}
 export default {
+    exchangeProp,
     deepEqual,
     assertDeepEqual,
     logTemplate,

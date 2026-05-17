@@ -6,7 +6,7 @@ type Coinbaseadvanced struct {
 	exchangeTyped *Coinbase
 }
 
-func NewCoinbaseadvanced(userConfig map[string]interface{}) *Coinbaseadvanced {
+func NewCoinbaseadvanced(userConfig map[string]any) *Coinbaseadvanced {
 	p := NewCoinbaseadvancedCore()
 	p.Init(userConfig)
 	return &Coinbaseadvanced{
@@ -28,7 +28,7 @@ func NewCoinbaseadvancedFromCore(core *CoinbaseCore) *Coinbase {
 
 // missing typed methods from base
 // nolint
-func (this *Coinbaseadvanced) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Coinbaseadvanced) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Coinbaseadvanced) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -40,7 +40,7 @@ func (this *Coinbaseadvanced) CancelOrdersWithClientOrderIds(clientOrderIds []st
 func (this *Coinbaseadvanced) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Coinbaseadvanced) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Coinbaseadvanced) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -142,13 +142,13 @@ func (this *Coinbaseadvanced) EditOrderWithClientOrderId(clientOrderId string, s
 func (this *Coinbaseadvanced) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Coinbaseadvanced) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Coinbaseadvanced) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Coinbaseadvanced) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
-func (this *Coinbaseadvanced) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinbaseadvanced) FetchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalance(params...)
 }
 func (this *Coinbaseadvanced) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -157,7 +157,7 @@ func (this *Coinbaseadvanced) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ti
 func (this *Coinbaseadvanced) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Coinbaseadvanced) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Coinbaseadvanced) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -166,7 +166,7 @@ func (this *Coinbaseadvanced) FetchCanceledAndClosedOrders(options ...FetchCance
 func (this *Coinbaseadvanced) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Coinbaseadvanced) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinbaseadvanced) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Coinbaseadvanced) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -181,10 +181,10 @@ func (this *Coinbaseadvanced) FetchConvertTradeHistory(options ...FetchConvertTr
 func (this *Coinbaseadvanced) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Coinbaseadvanced) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Coinbaseadvanced) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
-func (this *Coinbaseadvanced) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinbaseadvanced) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Coinbaseadvanced) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -202,13 +202,13 @@ func (this *Coinbaseadvanced) FetchDeposits(options ...FetchDepositsOptions) ([]
 func (this *Coinbaseadvanced) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Coinbaseadvanced) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coinbaseadvanced) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Coinbaseadvanced) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Coinbaseadvanced) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Coinbaseadvanced) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -238,7 +238,7 @@ func (this *Coinbaseadvanced) FetchIndexOHLCV(symbol string, options ...FetchInd
 func (this *Coinbaseadvanced) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Coinbaseadvanced) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Coinbaseadvanced) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Coinbaseadvanced) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -280,7 +280,7 @@ func (this *Coinbaseadvanced) FetchMarginModes(options ...FetchMarginModesOption
 func (this *Coinbaseadvanced) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 	return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)
 }
-func (this *Coinbaseadvanced) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Coinbaseadvanced) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	return this.exchangeTyped.FetchMarkets(params...)
 }
 func (this *Coinbaseadvanced) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
@@ -340,7 +340,7 @@ func (this *Coinbaseadvanced) FetchOrderStatus(id string, options ...FetchOrderS
 func (this *Coinbaseadvanced) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinbaseadvanced) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Coinbaseadvanced) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -349,7 +349,7 @@ func (this *Coinbaseadvanced) FetchPosition(symbol string, options ...FetchPosit
 func (this *Coinbaseadvanced) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Coinbaseadvanced) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinbaseadvanced) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -367,7 +367,7 @@ func (this *Coinbaseadvanced) FetchPositionsRisk(options ...FetchPositionsRiskOp
 func (this *Coinbaseadvanced) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinbaseadvanced) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Coinbaseadvanced) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -376,7 +376,7 @@ func (this *Coinbaseadvanced) FetchTicker(symbol string, options ...FetchTickerO
 func (this *Coinbaseadvanced) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Coinbaseadvanced) FetchTime(params ...interface{}) (int64, error) {
+func (this *Coinbaseadvanced) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Coinbaseadvanced) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -385,16 +385,16 @@ func (this *Coinbaseadvanced) FetchTrades(symbol string, options ...FetchTradesO
 func (this *Coinbaseadvanced) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Coinbaseadvanced) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Coinbaseadvanced) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Coinbaseadvanced) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Coinbaseadvanced) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Coinbaseadvanced) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Coinbaseadvanced) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -412,10 +412,10 @@ func (this *Coinbaseadvanced) FetchWithdrawals(options ...FetchWithdrawalsOption
 func (this *Coinbaseadvanced) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Coinbaseadvanced) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Coinbaseadvanced) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Coinbaseadvanced) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -496,13 +496,13 @@ func (this *Coinbaseadvanced) CreateTriggerOrderWs(symbol string, typeVar string
 func (this *Coinbaseadvanced) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Coinbaseadvanced) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Coinbaseadvanced) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Coinbaseadvanced) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinbaseadvanced) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinbaseadvanced) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -544,46 +544,46 @@ func (this *Coinbaseadvanced) FetchTickerWs(symbol string, options ...FetchTicke
 func (this *Coinbaseadvanced) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Coinbaseadvanced) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Coinbaseadvanced) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinbaseadvanced) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Coinbaseadvanced) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Coinbaseadvanced) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Coinbaseadvanced) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Coinbaseadvanced) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Coinbaseadvanced) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Coinbaseadvanced) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Coinbaseadvanced) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Coinbaseadvanced) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Coinbaseadvanced) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Coinbaseadvanced) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Coinbaseadvanced) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Coinbaseadvanced) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Coinbaseadvanced) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Coinbaseadvanced) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinbaseadvanced) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Coinbaseadvanced) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
