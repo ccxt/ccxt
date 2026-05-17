@@ -442,6 +442,7 @@ public partial class cryptocom : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "213", typeof(InvalidOrder) },
                     { "219", typeof(InvalidOrder) },
                     { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },

@@ -752,7 +752,7 @@ export default class modetrade extends modetradeRest {
         //         "orderTag": "default",
         //         "totalFee": 0,
         //         "visible": 0.01,
-        //         "timestamp": 1657515556799,
+        //         "timestamp": 1657515556798,
         //         "reduceOnly": false,
         //         "maker": false
         //     }

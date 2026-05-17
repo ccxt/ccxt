@@ -481,6 +481,7 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': InvalidOrder,
                     '219': InvalidOrder,
                     '306': InsufficientFunds,
                     '314': InvalidOrder,

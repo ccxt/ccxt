@@ -1569,7 +1569,7 @@ class krakenfutures extends Exchange {
             $request['count'] = $limit;
         }
         if ($since !== null) {
-            $request['from'] = $since;
+            $request['since'] = $since;
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $response = null;
@@ -1585,12 +1585,20 @@ class krakenfutures extends Exchange {
             $order = $allOrders[$i];
             $event = $this->safe_dict($order, 'event', array());
             $orderPlaced = $this->safe_dict_2($event, 'OrderPlaced', 'OrderTriggerActivated');
+            $orderUpdated = $this->safe_dict($event, 'OrderUpdated');
             if ($orderPlaced !== null) {
                 $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
                 $filled = $this->safe_string($innerOrder, 'filled');
                 if ($filled !== '0') {
                     $innerOrder['status'] = 'closed'; // status not available in the $response
                     $closedOrders[] = $innerOrder;
+                }
+            } elseif ($orderUpdated !== null) {
+                $reason = $this->safe_string($orderUpdated, 'reason');
+                if ($reason === 'full_fill') {
+                    $newOrder = $this->safe_dict($orderUpdated, 'newOrder', array());
+                    $newOrder['status'] = 'closed';
+                    $closedOrders[] = $newOrder;
                 }
             }
         }

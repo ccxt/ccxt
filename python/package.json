@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.45",
+  "version": "4.5.54",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -11,7 +11,7 @@
         "default": "./js/ccxt.js"
       },
       "require": {
-        "types": "./index.d.ts",
+        "types": "./index.d.cts",
         "default": "./dist/ccxt.cjs"
       }
     }
@@ -20,7 +20,9 @@
     "node": ">=15.0.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.com"
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "provenance": true
   },
   "repository": {
     "type": "git",
@@ -107,6 +109,7 @@
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint",
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
+    "check-python-ruff": "ruff check ./python/ccxt",
     "check-python-types": "cd python && tox -e type && cd ..",
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/custom/syntax.php",
@@ -211,7 +214,7 @@
     "as-table": "^1.0.55",
     "asciichart": "^1.5.25",
     "assert": "^2.0.0",
-    "ast-transpiler": "^0.0.71",
+    "ast-transpiler": "^0.0.85",
     "blessed": "^0.1.81",
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",

@@ -1603,7 +1603,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         #     {
         #         "success": True,
-        #         "timestamp": 1702989203989,
+        #         "timestamp": 1702989203988,
         #         "data": {
         #             "rows": [{
         #                 "order_id": 13,

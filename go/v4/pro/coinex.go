@@ -18,9 +18,9 @@ func NewCoinexCore() *CoinexCore {
     return p
 }
 
-func  (this *CoinexCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *CoinexCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "watchBalance": true,
             "watchBidsAsks": true,
@@ -35,19 +35,19 @@ func  (this *CoinexCore) Describe() interface{}  {
             "watchOHLCV": false,
             "fetchOHLCVWs": false,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
-                "ws": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
+                "ws": map[string]any {
                     "spot": "wss://socket.coinex.com/v2/spot/",
                     "swap": "wss://socket.coinex.com/v2/futures/",
                 },
             },
         },
-        "options": map[string]interface{} {
-            "ws": map[string]interface{} {
+        "options": map[string]any {
+            "ws": map[string]any {
                 "gunzip": true,
             },
-            "timeframes": map[string]interface{} {
+            "timeframes": map[string]any {
                 "1m": 60,
                 "3m": 180,
                 "5m": 300,
@@ -63,16 +63,16 @@ func  (this *CoinexCore) Describe() interface{}  {
                 "1w": 604800,
             },
             "account": "spot",
-            "watchOrderBook": map[string]interface{} {
-                "limits": []interface{}{5, 10, 20, 50},
+            "watchOrderBook": map[string]any {
+                "limits": []any{5, 10, 20, 50},
                 "defaultLimit": 50,
-                "aggregations": []interface{}{"1000", "100", "10", "1", "0", "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001", "0.00000001", "0.000000001", "0.0000000001", "0.00000000001"},
+                "aggregations": []any{"1000", "100", "10", "1", "0", "0.1", "0.01", "0.001", "0.0001", "0.00001", "0.000001", "0.0000001", "0.00000001", "0.000000001", "0.0000000001", "0.00000000001"},
                 "defaultAggregation": "0",
             },
         },
-        "streaming": map[string]interface{} {},
-        "exceptions": map[string]interface{} {
-            "exact": map[string]interface{} {
+        "streaming": map[string]any {},
+        "exceptions": map[string]any {
+            "exact": map[string]any {
                 "20001": ccxt.BadRequest,
                 "20002": ccxt.NotSupported,
                 "21001": ccxt.AuthenticationError,
@@ -90,18 +90,18 @@ func  (this *CoinexCore) Describe() interface{}  {
                 "34001": ccxt.ExchangeError,
                 "34002": ccxt.ExchangeNotAvailable,
             },
-            "broad": map[string]interface{} {},
+            "broad": map[string]any {},
         },
     })
 }
-func  (this *CoinexCore) RequestId() interface{}  {
+func  (this *CoinexCore) RequestId() any  {
     this.LockId()
-    var requestId interface{} = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
+    var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
     ccxt.AddElementToObject(this.Options, "requestId", requestId)
     this.UnlockId()
     return requestId
 }
-func  (this *CoinexCore) HandleTicker(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleTicker(client any, message any)  {
     //
     //  spot
     //
@@ -157,35 +157,35 @@ func  (this *CoinexCore) HandleTicker(client interface{}, message interface{})  
     //         "id": null
     //     }
     //
-    var defaultType interface{} = this.SafeString(this.Options, "defaultType")
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var rawTickers interface{} = this.SafeList(data, "state_list", []interface{}{})
-    var newTickers interface{} = map[string]interface{} {}
+    var defaultType any = this.SafeString(this.Options, "defaultType")
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var rawTickers any = this.SafeList(data, "state_list", []any{})
+    var newTickers any = map[string]any {}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTickers)); i++ {
-        var entry interface{} = ccxt.GetValue(rawTickers, i)
-        var marketId interface{} = this.SafeString(entry, "market")
-        var symbol interface{} = this.SafeSymbol(marketId, nil, nil, defaultType)
-        var market interface{} = this.SafeMarket(marketId, nil, nil, defaultType)
-        var parsedTicker interface{} = this.ParseWSTicker(entry, market)
+        var entry any = ccxt.GetValue(rawTickers, i)
+        var marketId any = this.SafeString(entry, "market")
+        var symbol any = this.SafeSymbol(marketId, nil, nil, defaultType)
+        var market any = this.SafeMarket(marketId, nil, nil, defaultType)
+        var parsedTicker any = this.ParseWSTicker(entry, market)
         ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
         ccxt.AddElementToObject(newTickers, symbol, parsedTicker)
     }
-    var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), "tickers::")
+    var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "tickers::")
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
-        var messageHash interface{} = ccxt.GetValue(messageHashes, i)
-        var parts interface{} = ccxt.Split(messageHash, "::")
-        var symbolsString interface{} = ccxt.GetValue(parts, 1)
-        var symbols interface{} = ccxt.Split(symbolsString, ",")
-        var tickers interface{} = this.FilterByArray(newTickers, "symbol", symbols)
-        var tickersSymbols interface{} = ccxt.ObjectKeys(tickers)
-        var numTickers interface{} =         ccxt.GetArrayLength(tickersSymbols)
+        var messageHash any = ccxt.GetValue(messageHashes, i)
+        var parts any = ccxt.Split(messageHash, "::")
+        var symbolsString any = ccxt.GetValue(parts, 1)
+        var symbols any = ccxt.Split(symbolsString, ",")
+        var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
+        var tickersSymbols any = ccxt.ObjectKeys(tickers)
+        var numTickers any =         ccxt.GetArrayLength(tickersSymbols)
         if ccxt.IsTrue(ccxt.IsGreaterThan(numTickers, 0)) {
             client.(ccxt.ClientInterface).Resolve(tickers, messageHash)
         }
     }
     client.(ccxt.ClientInterface).Resolve(newTickers, "tickers")
 }
-func  (this *CoinexCore) ParseWSTicker(ticker interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoinexCore) ParseWSTicker(ticker any, optionalArgs ...any) any  {
     //
     //  spot
     //
@@ -227,9 +227,9 @@ func  (this *CoinexCore) ParseWSTicker(ticker interface{}, optionalArgs ...inter
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var defaultType interface{} = this.SafeString(this.Options, "defaultType")
-    var marketId interface{} = this.SafeString(ticker, "market")
-    return this.SafeTicker(map[string]interface{} {
+    var defaultType any = this.SafeString(this.Options, "defaultType")
+    var marketId any = this.SafeString(ticker, "market")
+    return this.SafeTicker(map[string]any {
         "symbol": this.SafeSymbol(marketId, market, nil, defaultType),
         "timestamp": nil,
         "datetime": nil,
@@ -261,45 +261,45 @@ func  (this *CoinexCore) ParseWSTicker(ticker interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *CoinexCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchBalance(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
             retRes2608 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2608)
-            var typeVar interface{} = nil
+            var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, "spot")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
             retRes2638 := (<-this.Authenticate(typeVar))
             ccxt.PanicOnError(retRes2638)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
-            var activeCurrencies interface{} = this.FilterBy(this.Currencies_by_id, "active", true)
-            var activeCurrenciesById interface{} = this.IndexBy(activeCurrencies, "id")
-            var currencies interface{} = ccxt.ObjectKeys(activeCurrenciesById)
+            var activeCurrencies any = this.FilterBy(this.Currencies_by_id, "active", true)
+            var activeCurrenciesById any = this.IndexBy(activeCurrencies, "id")
+            var currencies any = ccxt.ObjectKeys(activeCurrenciesById)
             if ccxt.IsTrue(ccxt.IsEqual(currencies, nil)) {
-                currencies = []interface{}{}
+                currencies = []any{}
             }
-            var messageHash interface{} = "balances"
+            var messageHash any = "balances"
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 messageHash = ccxt.Add(messageHash, ":spot")
             } else {
                 messageHash = ccxt.Add(messageHash, ":swap")
             }
-            var subscribe interface{} = map[string]interface{} {
+            var subscribe any = map[string]any {
                 "method": "balance.subscribe",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "ccy_list": currencies,
                 },
                 "id": this.RequestId(),
             }
-            var request interface{} = this.DeepExtend(subscribe, params)
+            var request any = this.DeepExtend(subscribe, params)
         
                 retRes28415 :=  (<-this.Watch(url, messageHash, request, messageHash))
                 ccxt.PanicOnError(retRes28415)
@@ -309,7 +309,7 @@ func  (this *CoinexCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             }()
             return ch
         }
-func  (this *CoinexCore) HandleBalance(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleBalance(client any, message any)  {
     //
     // spot
     //
@@ -350,18 +350,18 @@ func  (this *CoinexCore) HandleBalance(client interface{}, message interface{}) 
     //     }
     //
     if ccxt.IsTrue(ccxt.IsEqual(this.Balance, nil)) {
-        this.Balance = map[string]interface{} {}
+        this.Balance = map[string]any {}
     }
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var balances interface{} = this.SafeList(data, "balance_list", []interface{}{})
-    var firstEntry interface{} = ccxt.GetValue(balances, 0)
-    var updated interface{} = this.SafeInteger(firstEntry, "updated_at")
-    var unrealizedPnl interface{} = this.SafeString(firstEntry, "unrealized_pnl")
-    var isSpot interface{} =     (!ccxt.IsEqual(updated, nil))
-    var isSwap interface{} =     (!ccxt.IsEqual(unrealizedPnl, nil))
-    var info interface{} = nil
-    var account interface{} = nil
-    var rawBalances interface{} = []interface{}{}
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var balances any = this.SafeList(data, "balance_list", []any{})
+    var firstEntry any = ccxt.GetValue(balances, 0)
+    var updated any = this.SafeInteger(firstEntry, "updated_at")
+    var unrealizedPnl any = this.SafeString(firstEntry, "unrealized_pnl")
+    var isSpot any =     (!ccxt.IsEqual(updated, nil))
+    var isSwap any =     (!ccxt.IsEqual(unrealizedPnl, nil))
+    var info any = nil
+    var account any = nil
+    var rawBalances any = []any{}
     if ccxt.IsTrue(isSpot) {
         account = "spot"
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(balances)); i++ {
@@ -377,13 +377,13 @@ func  (this *CoinexCore) HandleBalance(client interface{}, message interface{}) 
         info = rawBalances
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawBalances)); i++ {
-        var entry interface{} = ccxt.GetValue(rawBalances, i)
+        var entry any = ccxt.GetValue(rawBalances, i)
         this.ParseWsBalance(entry, account)
     }
-    var messageHash interface{} = nil
+    var messageHash any = nil
     if ccxt.IsTrue(!ccxt.IsEqual(account, nil)) {
         if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Balance, account), nil)) {
-            ccxt.AddElementToObject(this.Balance, account, map[string]interface{} {})
+            ccxt.AddElementToObject(this.Balance, account, map[string]any {})
         }
         ccxt.AddElementToObject(ccxt.GetValue(this.Balance, account), "info", info)
         ccxt.AddElementToObject(this.Balance, account, this.SafeBalance(ccxt.GetValue(this.Balance, account)))
@@ -391,7 +391,7 @@ func  (this *CoinexCore) HandleBalance(client interface{}, message interface{}) 
         client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, account), messageHash)
     }
 }
-func  (this *CoinexCore) ParseWsBalance(balance interface{}, optionalArgs ...interface{})  {
+func  (this *CoinexCore) ParseWsBalance(balance any, optionalArgs ...any)  {
     //
     // spot
     //
@@ -417,14 +417,14 @@ func  (this *CoinexCore) ParseWsBalance(balance interface{}, optionalArgs ...int
     //
     accountType := ccxt.GetArg(optionalArgs, 0, nil)
     _ = accountType
-    var account interface{} = this.Account()
-    var currencyId interface{} = this.SafeString(balance, "ccy")
-    var code interface{} = this.SafeCurrencyCode(currencyId)
+    var account any = this.Account()
+    var currencyId any = this.SafeString(balance, "ccy")
+    var code any = this.SafeCurrencyCode(currencyId)
     ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
     ccxt.AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
     if ccxt.IsTrue(!ccxt.IsEqual(accountType, nil)) {
         if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Balance, accountType), nil)) {
-            ccxt.AddElementToObject(this.Balance, accountType, map[string]interface{} {})
+            ccxt.AddElementToObject(this.Balance, accountType, map[string]any {})
         }
         ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), code, account)
     } else {
@@ -443,9 +443,9 @@ func  (this *CoinexCore) ParseWsBalance(balance interface{}, optionalArgs ...int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *CoinexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchMyTrades(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbol := ccxt.GetArg(optionalArgs, 0, nil)
@@ -454,26 +454,26 @@ func  (this *CoinexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             _ = since
             limit := ccxt.GetArg(optionalArgs, 2, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
             retRes4228 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes4228)
-            var market interface{} = nil
+            var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
             }
-            var typeVar interface{} = nil
+            var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
             retRes4308 := (<-this.Authenticate(typeVar))
             ccxt.PanicOnError(retRes4308)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var subscribedSymbols interface{} = []interface{}{}
-            var messageHash interface{} = "myTrades"
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var subscribedSymbols any = []any{}
+            var messageHash any = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
                 ccxt.AppendToArray(&subscribedSymbols, ccxt.GetValue(market, "id"))
@@ -484,14 +484,14 @@ func  (this *CoinexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
                     messageHash = ccxt.Add(messageHash, ":swap")
                 }
             }
-            var message interface{} = map[string]interface{} {
+            var message any = map[string]any {
                 "method": "user_deals.subscribe",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "market_list": subscribedSymbols,
                 },
                 "id": this.RequestId(),
             }
-            var request interface{} = this.DeepExtend(message, params)
+            var request any = this.DeepExtend(message, params)
         
             trades:= (<-this.Watch(url, messageHash, request, messageHash))
             ccxt.PanicOnError(trades)
@@ -505,7 +505,7 @@ func  (this *CoinexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             }()
             return ch
         }
-func  (this *CoinexCore) HandleMyTrades(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleMyTrades(client any, message any)  {
     //
     //     {
     //         "method": "user_deals.update",
@@ -525,27 +525,27 @@ func  (this *CoinexCore) HandleMyTrades(client interface{}, message interface{})
     //         "id": null
     //     }
     //
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var marketId interface{} = this.SafeString(data, "market")
-    var isSpot interface{} = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
-    var defaultType interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
-    var market interface{} = this.SafeMarket(marketId, nil, nil, defaultType)
-    var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var messageHash interface{} = ccxt.Add("myTrades:", symbol)
-    var messageWithType interface{} = ccxt.Add("myTrades:", ccxt.GetValue(market, "type"))
-    var stored interface{} = this.SafeValue(this.Trades, symbol)
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var marketId any = this.SafeString(data, "market")
+    var isSpot any = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
+    var defaultType any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
+    var market any = this.SafeMarket(marketId, nil, nil, defaultType)
+    var symbol any = ccxt.GetValue(market, "symbol")
+    var messageHash any = ccxt.Add("myTrades:", symbol)
+    var messageWithType any = ccxt.Add("myTrades:", ccxt.GetValue(market, "type"))
+    var stored any = this.SafeValue(this.Trades, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
         stored = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
-    var parsed interface{} = this.ParseWsTrade(data, market)
+    var parsed any = this.ParseWsTrade(data, market)
     stored.(ccxt.Appender).Append(parsed)
     ccxt.AddElementToObject(this.Trades, symbol, stored)
     client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageWithType)
     client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
-func  (this *CoinexCore) HandleTrades(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleTrades(client any, message any)  {
     //
     // spot
     //
@@ -585,29 +585,29 @@ func  (this *CoinexCore) HandleTrades(client interface{}, message interface{})  
     //         "id": null
     //     }
     //
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var trades interface{} = this.SafeList(data, "deal_list", []interface{}{})
-    var marketId interface{} = this.SafeString(data, "market")
-    var isSpot interface{} = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
-    var defaultType interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
-    var market interface{} = this.SafeMarket(marketId, nil, nil, defaultType)
-    var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var messageHash interface{} = ccxt.Add("trades:", symbol)
-    var stored interface{} = this.SafeValue(this.Trades, symbol)
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var trades any = this.SafeList(data, "deal_list", []any{})
+    var marketId any = this.SafeString(data, "market")
+    var isSpot any = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
+    var defaultType any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
+    var market any = this.SafeMarket(marketId, nil, nil, defaultType)
+    var symbol any = ccxt.GetValue(market, "symbol")
+    var messageHash any = ccxt.Add("trades:", symbol)
+    var stored any = this.SafeValue(this.Trades, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
         stored = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
-        var trade interface{} = ccxt.GetValue(trades, i)
-        var parsed interface{} = this.ParseWsTrade(trade, market)
+        var trade any = ccxt.GetValue(trades, i)
+        var parsed any = this.ParseWsTrade(trade, market)
         stored.(ccxt.Appender).Append(parsed)
     }
     ccxt.AddElementToObject(this.Trades, symbol, stored)
     client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
-func  (this *CoinexCore) ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoinexCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     //
     // spot watchTrades
     //
@@ -647,21 +647,21 @@ func  (this *CoinexCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp interface{} = this.SafeInteger(trade, "created_at")
-    var isSpot interface{} =     (ccxt.InOp(trade, "margin_market"))
-    var defaultType interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
-    var marketId interface{} = this.SafeString(trade, "market")
+    var timestamp any = this.SafeInteger(trade, "created_at")
+    var isSpot any =     (ccxt.InOp(trade, "margin_market"))
+    var defaultType any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
+    var marketId any = this.SafeString(trade, "market")
     market = this.SafeMarket(marketId, market, nil, defaultType)
-    var fee interface{} = map[string]interface{} {}
-    var feeCost interface{} = this.OmitZero(this.SafeString(trade, "fee"))
+    var fee any = map[string]any {}
+    var feeCost any = this.OmitZero(this.SafeString(trade, "fee"))
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
-        var feeCurrencyId interface{} = this.SafeString(trade, "fee_ccy", ccxt.GetValue(market, "quote"))
-        fee = map[string]interface{} {
+        var feeCurrencyId any = this.SafeString(trade, "fee_ccy", ccxt.GetValue(market, "quote"))
+        fee = map[string]any {
             "currency": this.SafeCurrencyCode(feeCurrencyId),
             "cost": feeCost,
         }
     }
-    return this.SafeTrade(map[string]interface{} {
+    return this.SafeTrade(map[string]any {
         "id": this.SafeString(trade, "deal_id"),
         "info": trade,
         "timestamp": timestamp,
@@ -687,19 +687,19 @@ func  (this *CoinexCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *CoinexCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
             retRes6418 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6418)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
         
-            tickers:= (<-this.WatchTickers([]interface{}{symbol}, params))
+            tickers:= (<-this.WatchTickers([]any{symbol}, params))
             ccxt.PanicOnError(tickers)
         
             ch <- ccxt.GetValue(tickers, ccxt.GetValue(market, "symbol"))
@@ -718,41 +718,41 @@ func  (this *CoinexCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *CoinexCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchTickers(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbols := ccxt.GetArg(optionalArgs, 0, nil)
             _ = symbols
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes6588 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6588)
-            var marketIds interface{} = this.MarketIds(symbols)
-            var market interface{} = nil
-            var messageHashes interface{} = []interface{}{}
-            var symbolsDefined interface{} =     (!ccxt.IsEqual(symbols, nil))
+            var marketIds any = this.MarketIds(symbols)
+            var market any = nil
+            var messageHashes any = []any{}
+            var symbolsDefined any =     (!ccxt.IsEqual(symbols, nil))
             if ccxt.IsTrue(symbolsDefined) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                    var symbol interface{} = ccxt.GetValue(symbols, i)
+                    var symbol any = ccxt.GetValue(symbols, i)
                     market = this.Market(symbol)
                     ccxt.AppendToArray(&messageHashes, ccxt.Add("tickers::", ccxt.GetValue(market, "symbol")))
                 }
             } else {
-                marketIds = []interface{}{}
+                marketIds = []any{}
                 ccxt.AppendToArray(&messageHashes, "tickers")
             }
-            var typeVar interface{} = nil
+            var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchTickers", market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var subscriptionHashes interface{} = []interface{}{"all@ticker"}
-            var subscribe interface{} = map[string]interface{} {
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var subscriptionHashes any = []any{"all@ticker"}
+            var subscribe any = map[string]any {
                 "method": "state.subscribe",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "market_list": marketIds,
                 },
                 "id": this.RequestId(),
@@ -784,20 +784,20 @@ func  (this *CoinexCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *CoinexCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
         
-                retRes70315 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                retRes70315 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
                 ccxt.PanicOnError(retRes70315)
                 ch <- retRes70315
                 return nil
@@ -817,31 +817,31 @@ func  (this *CoinexCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *CoinexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
             retRes7198 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes7198)
-            var subscribedSymbols interface{} = []interface{}{}
-            var messageHashes interface{} = []interface{}{}
-            var market interface{} = nil
-            var callerMethodName interface{} = nil
+            var subscribedSymbols any = []any{}
+            var messageHashes any = []any{}
+            var market any = nil
+            var callerMethodName any = nil
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
-            var symbolsDefined interface{} =     (!ccxt.IsEqual(symbols, nil))
+            var symbolsDefined any =     (!ccxt.IsEqual(symbols, nil))
             if ccxt.IsTrue(symbolsDefined) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                    var symbol interface{} = ccxt.GetValue(symbols, i)
+                    var symbol any = ccxt.GetValue(symbols, i)
                     market = this.Market(symbol)
                     ccxt.AppendToArray(&subscribedSymbols, ccxt.GetValue(market, "id"))
                     ccxt.AppendToArray(&messageHashes, ccxt.Add("trades:", ccxt.GetValue(market, "symbol")))
@@ -849,15 +849,15 @@ func  (this *CoinexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
             } else {
                 ccxt.AppendToArray(&messageHashes, "trades")
             }
-            var typeVar interface{} = nil
+            var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
             // const subscriptionHashes = [ 'trades' ]
-            var subscribe interface{} = map[string]interface{} {
+            var subscribe any = map[string]any {
                 "method": "deals.subscribe",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "market_list": subscribedSymbols,
                 },
                 "id": this.RequestId(),
@@ -888,64 +888,64 @@ func  (this *CoinexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func  (this *CoinexCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes7648 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes7648)
-            var watchOrderBookSubscriptions interface{} = map[string]interface{} {}
-            var messageHashes interface{} = []interface{}{}
-            var market interface{} = nil
-            var typeVar interface{} = nil
-            var callerMethodName interface{} = nil
+            var watchOrderBookSubscriptions any = map[string]any {}
+            var messageHashes any = []any{}
+            var market any = nil
+            var typeVar any = nil
+            var callerMethodName any = nil
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
-            var options interface{} = this.SafeDict(this.Options, "watchOrderBook", map[string]interface{} {})
-            var limits interface{} = this.SafeList(options, "limits", []interface{}{})
+            var options any = this.SafeDict(this.Options, "watchOrderBook", map[string]any {})
+            var limits any = this.SafeList(options, "limits", []any{})
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 limit = this.SafeInteger(options, "defaultLimit", 50)
             }
             if !ccxt.IsTrue(this.InArray(limit, limits)) {
                 panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id, " watchOrderBookForSymbols() limit must be one of "), ccxt.Join(limits, ", "))))
             }
-            var defaultAggregation interface{} = this.SafeString(options, "defaultAggregation", "0")
-            var aggregations interface{} = this.SafeList(options, "aggregations", []interface{}{})
-            var aggregation interface{} = this.SafeString(params, "aggregation", defaultAggregation)
+            var defaultAggregation any = this.SafeString(options, "defaultAggregation", "0")
+            var aggregations any = this.SafeList(options, "aggregations", []any{})
+            var aggregation any = this.SafeString(params, "aggregation", defaultAggregation)
             if !ccxt.IsTrue(this.InArray(aggregation, aggregations)) {
                 panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id, " watchOrderBookForSymbols() aggregation must be one of "), ccxt.Join(aggregations, ", "))))
             }
             params = this.Omit(params, "aggregation")
-            var symbolsDefined interface{} =     (!ccxt.IsEqual(symbols, nil))
+            var symbolsDefined any =     (!ccxt.IsEqual(symbols, nil))
             if !ccxt.IsTrue(symbolsDefined) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() requires a symbol argument")))
             }
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                var symbol interface{} = ccxt.GetValue(symbols, i)
+                var symbol any = ccxt.GetValue(symbols, i)
                 market = this.Market(symbol)
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
-                ccxt.AddElementToObject(watchOrderBookSubscriptions, symbol, []interface{}{ccxt.GetValue(market, "id"), limit, aggregation, true})
+                ccxt.AddElementToObject(watchOrderBookSubscriptions, symbol, []any{ccxt.GetValue(market, "id"), limit, aggregation, true})
             }
             typeVarparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var marketList interface{} = ccxt.ObjectValues(watchOrderBookSubscriptions)
-            var subscribe interface{} = map[string]interface{} {
+            var marketList any = ccxt.ObjectValues(watchOrderBookSubscriptions)
+            var subscribe any = map[string]any {
                 "method": "depth.subscribe",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "market_list": marketList,
                 },
                 "id": this.RequestId(),
             }
             // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), ccxt.Sha256)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
         
             orderbooks:= (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(subscribe, params), messageHashes))
             ccxt.PanicOnError(orderbooks)
@@ -972,18 +972,18 @@ func  (this *CoinexCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func  (this *CoinexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "watchOrderBook")
         
-                retRes82515 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                retRes82515 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
                 ccxt.PanicOnError(retRes82515)
                 ch <- retRes82515
                 return nil
@@ -991,16 +991,16 @@ func  (this *CoinexCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
             }()
             return ch
         }
-func  (this *CoinexCore) HandleDelta(bookside interface{}, delta interface{})  {
-    var bidAsk interface{} = this.ParseBidAsk(delta, 0, 1)
+func  (this *CoinexCore) HandleDelta(bookside any, delta any)  {
+    var bidAsk any = this.ParseBidAsk(delta, 0, 1)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
-func  (this *CoinexCore) HandleDeltas(bookside interface{}, deltas interface{})  {
+func  (this *CoinexCore) HandleDeltas(bookside any, deltas any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(deltas)); i++ {
         this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
     }
 }
-func  (this *CoinexCore) HandleOrderBook(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleOrderBook(client any, message any)  {
     //
     //     {
     //         "method": "depth.update",
@@ -1028,29 +1028,29 @@ func  (this *CoinexCore) HandleOrderBook(client interface{}, message interface{}
     //         "id": null
     //     }
     //
-    var isSpot interface{} = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
-    var defaultType interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var depth interface{} = this.SafeDict(data, "depth", map[string]interface{} {})
-    var marketId interface{} = this.SafeString(data, "market")
-    var market interface{} = this.SafeMarket(marketId, nil, nil, defaultType)
-    var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var name interface{} = "orderbook"
-    var messageHash interface{} = ccxt.Add(ccxt.Add(name, ":"), symbol)
-    var timestamp interface{} = this.SafeInteger(depth, "updated_at")
-    var currentOrderBook interface{} = this.SafeValue(this.Orderbooks, symbol)
-    var fullOrderBook interface{} = this.SafeBool(data, "is_full", false)
+    var isSpot any = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
+    var defaultType any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var depth any = this.SafeDict(data, "depth", map[string]any {})
+    var marketId any = this.SafeString(data, "market")
+    var market any = this.SafeMarket(marketId, nil, nil, defaultType)
+    var symbol any = ccxt.GetValue(market, "symbol")
+    var name any = "orderbook"
+    var messageHash any = ccxt.Add(ccxt.Add(name, ":"), symbol)
+    var timestamp any = this.SafeInteger(depth, "updated_at")
+    var currentOrderBook any = this.SafeValue(this.Orderbooks, symbol)
+    var fullOrderBook any = this.SafeBool(data, "is_full", false)
     if ccxt.IsTrue(fullOrderBook) {
-        var snapshot interface{} = this.ParseOrderBook(depth, symbol, timestamp)
+        var snapshot any = this.ParseOrderBook(depth, symbol, timestamp)
         if ccxt.IsTrue(ccxt.IsEqual(currentOrderBook, nil)) {
             ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(snapshot))
         } else {
-            var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
+            var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
             orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
         }
     } else {
-        var asks interface{} = this.SafeList(depth, "asks", []interface{}{})
-        var bids interface{} = this.SafeList(depth, "bids", []interface{}{})
+        var asks any = this.SafeList(depth, "asks", []any{})
+        var bids any = this.SafeList(depth, "bids", []any{})
         this.HandleDeltas(ccxt.GetValue(currentOrderBook, "asks"), asks)
         this.HandleDeltas(ccxt.GetValue(currentOrderBook, "bids"), bids)
         ccxt.AddElementToObject(currentOrderBook, "nonce", timestamp)
@@ -1074,9 +1074,9 @@ func  (this *CoinexCore) HandleOrderBook(client interface{}, message interface{}
  * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func  (this *CoinexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchOrders(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbol := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1085,21 +1085,21 @@ func  (this *CoinexCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             _ = since
             limit := ccxt.GetArg(optionalArgs, 2, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
             retRes9158 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9158)
-            var trigger interface{} = this.SafeBool2(params, "trigger", "stop")
-            params = this.Omit(params, []interface{}{"trigger", "stop"})
-            var messageHash interface{} = "orders"
-            var market interface{} = nil
-            var marketList interface{} = nil
+            var trigger any = this.SafeBool2(params, "trigger", "stop")
+            params = this.Omit(params, []any{"trigger", "stop"})
+            var messageHash any = "orders"
+            var market any = nil
+            var marketList any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
             }
-            var typeVar interface{} = nil
+            var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params, "spot")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -1107,31 +1107,31 @@ func  (this *CoinexCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             retRes9278 := (<-this.Authenticate(typeVar))
             ccxt.PanicOnError(retRes9278)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-                marketList = []interface{}{ccxt.GetValue(market, "id")}
+                marketList = []any{ccxt.GetValue(market, "id")}
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
             } else {
-                marketList = []interface{}{}
+                marketList = []any{}
                 if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                     messageHash = ccxt.Add(messageHash, ":spot")
                 } else {
                     messageHash = ccxt.Add(messageHash, ":swap")
                 }
             }
-            var method interface{} = nil
+            var method any = nil
             if ccxt.IsTrue(trigger) {
                 method = "stop.subscribe"
             } else {
                 method = "order.subscribe"
             }
-            var message interface{} = map[string]interface{} {
+            var message any = map[string]any {
                 "method": method,
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "market_list": marketList,
                 },
                 "id": this.RequestId(),
             }
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var request interface{} = this.DeepExtend(message, params)
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var request any = this.DeepExtend(message, params)
         
             orders:= (<-this.Watch(url, messageHash, request, messageHash, request))
             ccxt.PanicOnError(orders)
@@ -1145,7 +1145,7 @@ func  (this *CoinexCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             }()
             return ch
         }
-func  (this *CoinexCore) HandleOrders(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleOrders(client any, message any)  {
     //
     // spot
     //
@@ -1262,24 +1262,24 @@ func  (this *CoinexCore) HandleOrders(client interface{}, message interface{})  
     //         "id": null
     //     }
     //
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var order interface{} = this.SafeDict2(data, "order", "stop", map[string]interface{} {})
-    var parsedOrder interface{} = this.ParseWsOrder(order)
-    var symbol interface{} = ccxt.GetValue(parsedOrder, "symbol")
-    var market interface{} = this.Market(symbol)
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var order any = this.SafeDict2(data, "order", "stop", map[string]any {})
+    var parsedOrder any = this.ParseWsOrder(order)
+    var symbol any = ccxt.GetValue(parsedOrder, "symbol")
+    var market any = this.Market(symbol)
     if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
-    var orders interface{} = this.Orders
+    var orders any = this.Orders
     orders.(ccxt.Appender).Append(parsedOrder)
-    var messageHash interface{} = "orders"
-    var messageWithType interface{} = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "type"))
+    var messageHash any = "orders"
+    var messageWithType any = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "type"))
     client.(ccxt.ClientInterface).Resolve(this.Orders, messageWithType)
     messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
     client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func  (this *CoinexCore) ParseWsOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoinexCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //
     // spot
     //
@@ -1370,22 +1370,22 @@ func  (this *CoinexCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp interface{} = this.SafeInteger(order, "created_at")
-    var marketId interface{} = this.SafeString(order, "market")
-    var status interface{} = this.SafeString(order, "status")
-    var isSpot interface{} =     (ccxt.InOp(order, "margin_market"))
-    var defaultType interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
+    var timestamp any = this.SafeInteger(order, "created_at")
+    var marketId any = this.SafeString(order, "market")
+    var status any = this.SafeString(order, "status")
+    var isSpot any =     (ccxt.InOp(order, "margin_market"))
+    var defaultType any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
     market = this.SafeMarket(marketId, market, nil, defaultType)
-    var fee interface{} = nil
-    var feeCost interface{} = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
+    var fee any = nil
+    var feeCost any = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
-        var feeCurrencyId interface{} = this.SafeString(order, "fee_ccy", ccxt.GetValue(market, "quote"))
-        fee = map[string]interface{} {
+        var feeCurrencyId any = this.SafeString(order, "fee_ccy", ccxt.GetValue(market, "quote"))
+        fee = map[string]any {
             "currency": this.SafeCurrencyCode(feeCurrencyId),
             "cost": feeCost,
         }
     }
-    return this.SafeOrder(map[string]interface{} {
+    return this.SafeOrder(map[string]any {
         "info": order,
         "id": this.SafeString2(order, "order_id", "stop_id"),
         "clientOrderId": this.SafeString(order, "client_id"),
@@ -1410,8 +1410,8 @@ func  (this *CoinexCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
         "trades": nil,
     }, market)
 }
-func  (this *CoinexCore) ParseWsOrderStatus(status interface{}) interface{}  {
-    var statuses interface{} = map[string]interface{} {
+func  (this *CoinexCore) ParseWsOrderStatus(status any) any  {
+    var statuses any = map[string]any {
         "active_success": "open",
         "active_fail": "canceled",
         "cancel": "canceled",
@@ -1428,40 +1428,40 @@ func  (this *CoinexCore) ParseWsOrderStatus(status interface{}) interface{}  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *CoinexCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbols := ccxt.GetArg(optionalArgs, 0, nil)
             _ = symbols
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes12448 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes12448)
-            var marketIds interface{} = this.MarketIds(symbols)
-            var messageHashes interface{} = []interface{}{}
-            var market interface{} = nil
-            var symbolsDefined interface{} =     (!ccxt.IsEqual(symbols, nil))
+            var marketIds any = this.MarketIds(symbols)
+            var messageHashes any = []any{}
+            var market any = nil
+            var symbolsDefined any =     (!ccxt.IsEqual(symbols, nil))
             if ccxt.IsTrue(symbolsDefined) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                    var symbol interface{} = ccxt.GetValue(symbols, i)
+                    var symbol any = ccxt.GetValue(symbols, i)
                     market = this.Market(symbol)
                     ccxt.AppendToArray(&messageHashes, ccxt.Add("bidsasks:", ccxt.GetValue(market, "symbol")))
                 }
             } else {
                 ccxt.AppendToArray(&messageHashes, "bidsasks")
             }
-            var typeVar interface{} = nil
+            var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var subscriptionHashes interface{} = []interface{}{"all@bidsasks"}
-            var subscribe interface{} = map[string]interface{} {
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var subscriptionHashes any = []any{"all@bidsasks"}
+            var subscribe any = map[string]any {
                 "method": "bbo.subscribe",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "market_list": marketIds,
                 },
                 "id": this.RequestId(),
@@ -1481,7 +1481,7 @@ func  (this *CoinexCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             }()
             return ch
         }
-func  (this *CoinexCore) HandleBidAsk(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleBidAsk(client any, message any)  {
     //
     //     {
     //         "method": "bbo.update",
@@ -1496,14 +1496,14 @@ func  (this *CoinexCore) HandleBidAsk(client interface{}, message interface{})  
     //         "id": null
     //     }
     //
-    var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var parsedTicker interface{} = this.ParseWsBidAsk(data)
-    var symbol interface{} = ccxt.GetValue(parsedTicker, "symbol")
+    var data any = this.SafeDict(message, "data", map[string]any {})
+    var parsedTicker any = this.ParseWsBidAsk(data)
+    var symbol any = ccxt.GetValue(parsedTicker, "symbol")
     ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
-    var messageHash interface{} = ccxt.Add("bidsasks:", symbol)
+    var messageHash any = ccxt.Add("bidsasks:", symbol)
     client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func  (this *CoinexCore) ParseWsBidAsk(ticker interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoinexCore) ParseWsBidAsk(ticker any, optionalArgs ...any) any  {
     //
     //     {
     //         "market": "BTCUSDT",
@@ -1516,11 +1516,11 @@ func  (this *CoinexCore) ParseWsBidAsk(ticker interface{}, optionalArgs ...inter
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var defaultType interface{} = this.SafeString(this.Options, "defaultType")
-    var marketId interface{} = this.SafeString(ticker, "market")
+    var defaultType any = this.SafeString(this.Options, "defaultType")
+    var marketId any = this.SafeString(ticker, "market")
     market = this.SafeMarket(marketId, market, nil, defaultType)
-    var timestamp interface{} = this.SafeInteger(ticker, "updated_at")
-    return this.SafeTicker(map[string]interface{} {
+    var timestamp any = this.SafeInteger(ticker, "updated_at")
+    return this.SafeTicker(map[string]any {
         "symbol": this.SafeSymbol(marketId, market, nil, defaultType),
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
@@ -1531,13 +1531,13 @@ func  (this *CoinexCore) ParseWsBidAsk(ticker interface{}, optionalArgs ...inter
         "info": ticker,
     }, market)
 }
-func  (this *CoinexCore) HandleMessage(client interface{}, message interface{})  {
-    var method interface{} = this.SafeString(message, "method")
-    var error interface{} = this.SafeString(message, "message")
+func  (this *CoinexCore) HandleMessage(client any, message any)  {
+    var method any = this.SafeString(message, "method")
+    var error any = this.SafeString(message, "message")
     if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
-        this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]interface{} {}, this.Json(error), message, map[string]interface{} {}, map[string]interface{} {})
+        this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any {}, this.Json(error), message, map[string]any {}, map[string]any {})
     }
-    var handlers interface{} = map[string]interface{} {
+    var handlers any = map[string]any {
         "state.update": this.HandleTicker,
         "balance.update": this.HandleBalance,
         "deals.update": this.HandleTrades,
@@ -1547,14 +1547,14 @@ func  (this *CoinexCore) HandleMessage(client interface{}, message interface{}) 
         "stop.update": this.HandleOrders,
         "bbo.update": this.HandleBidAsk,
     }
-    var handler interface{} = this.SafeValue(handlers, method)
+    var handler any = this.SafeValue(handlers, method)
     if ccxt.IsTrue(!ccxt.IsEqual(handler, nil)) {
         ccxt.CallDynamically(handler, client, message)
         return
     }
     this.HandleSubscriptionStatus(client, message)
 }
-func  (this *CoinexCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}  {
+func  (this *CoinexCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any  {
     if ccxt.IsTrue(ccxt.IsEqual(response, nil)) {
         return nil
     }
@@ -1563,19 +1563,19 @@ func  (this *CoinexCore) HandleErrors(code interface{}, reason interface{}, url 
     //     { "id": 2, "code": 21001, "message": "require auth" }
     //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
     //
-    var message interface{} = this.SafeStringLower(response, "message")
-    var isErrorMessage interface{} = ccxt.IsTrue((!ccxt.IsEqual(message, nil))) && ccxt.IsTrue((!ccxt.IsEqual(message, "ok")))
-    var errorCode interface{} = this.SafeString(response, "code")
-    var isErrorCode interface{} = ccxt.IsTrue((!ccxt.IsEqual(errorCode, nil))) && ccxt.IsTrue((!ccxt.IsEqual(errorCode, "0")))
+    var message any = this.SafeStringLower(response, "message")
+    var isErrorMessage any = ccxt.IsTrue((!ccxt.IsEqual(message, nil))) && ccxt.IsTrue((!ccxt.IsEqual(message, "ok")))
+    var errorCode any = this.SafeString(response, "code")
+    var isErrorCode any = ccxt.IsTrue((!ccxt.IsEqual(errorCode, nil))) && ccxt.IsTrue((!ccxt.IsEqual(errorCode, "0")))
     if ccxt.IsTrue(ccxt.IsTrue(isErrorCode) || ccxt.IsTrue(isErrorMessage)) {
-        var feedback interface{} = ccxt.Add(ccxt.Add(this.Id, " "), body)
+        var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), body)
         this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions, "exact"), errorCode, feedback)
         this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), message, feedback)
         panic(ccxt.ExchangeError(feedback))
     }
     return nil
 }
-func  (this *CoinexCore) HandleAuthenticationMessage(client interface{}, message interface{})  {
+func  (this *CoinexCore) HandleAuthenticationMessage(client any, message any)  {
     //
     // success
     //
@@ -1593,11 +1593,11 @@ func  (this *CoinexCore) HandleAuthenticationMessage(client interface{}, message
     //         "message": ""
     //     }
     //
-    var status interface{} = this.SafeStringLower(message, "message")
-    var errorCode interface{} = this.SafeString(message, "code")
-    var messageHash interface{} = "authenticated"
+    var status any = this.SafeStringLower(message, "message")
+    var errorCode any = this.SafeString(message, "code")
+    var messageHash any = "authenticated"
     if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(status, "ok"))) || ccxt.IsTrue((ccxt.IsEqual(errorCode, "0")))) {
-        var future interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+        var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
         future.(*ccxt.Future).Resolve(true)
     } else {
         error := ccxt.AuthenticationError(this.Json(message))
@@ -1607,30 +1607,30 @@ func  (this *CoinexCore) HandleAuthenticationMessage(client interface{}, message
         }
     }
 }
-func  (this *CoinexCore) HandleSubscriptionStatus(client interface{}, message interface{})  {
-    var id interface{} = this.SafeInteger(message, "id")
-    var subscription interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
+func  (this *CoinexCore) HandleSubscriptionStatus(client any, message any)  {
+    var id any = this.SafeInteger(message, "id")
+    var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
     if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
-        var futureIndex interface{} = this.SafeString(subscription, "future")
-        var future interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), futureIndex)
+        var futureIndex any = this.SafeString(subscription, "future")
+        var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), futureIndex)
         if ccxt.IsTrue(!ccxt.IsEqual(future, nil)) {
             future.(*ccxt.Future).Resolve(true)
         }
         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
     }
 }
-func  (this *CoinexCore) Authenticate(typeVar interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinexCore) Authenticate(typeVar any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var client interface{} = this.Client(url)
-            var time interface{} = this.Milliseconds()
-            var timestamp interface{} = ccxt.ToString(time)
-            var messageHash interface{} = "authenticated"
-            var future interface{} = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-            var authenticated interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+                    var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
+            var client any = this.Client(url)
+            var time any = this.Milliseconds()
+            var timestamp any = ccxt.ToString(time)
+            var messageHash any = "authenticated"
+            var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+            var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(!ccxt.IsEqual(authenticated, nil)) {
         
                     retRes142519 := <- future.(*ccxt.Future).Await()
@@ -1638,16 +1638,16 @@ func  (this *CoinexCore) Authenticate(typeVar interface{}) <- chan interface{} {
                     ch <- retRes142519
                     return nil
             }
-            var requestId interface{} = this.RequestId()
-            var subscribe interface{} = map[string]interface{} {
+            var requestId any = this.RequestId()
+            var subscribe any = map[string]any {
                 "id": requestId,
                 "future": messageHash,
             }
-            var hmac interface{} = this.Hmac(this.Encode(timestamp), this.Encode(this.Secret), ccxt.Sha256, "hex")
-            var request interface{} = map[string]interface{} {
+            var hmac any = this.Hmac(this.Encode(timestamp), this.Encode(this.Secret), ccxt.Sha256, "hex")
+            var request any = map[string]any {
                 "id": requestId,
                 "method": "server.sign",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "access_id": this.ApiKey,
                     "signed_str": ccxt.ToLower(hmac),
                     "timestamp": time,
@@ -1666,7 +1666,7 @@ func  (this *CoinexCore) Authenticate(typeVar interface{}) <- chan interface{} {
         }
 
 
-func (this *CoinexCore) Init(userConfig map[string]interface{}) {
+func (this *CoinexCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

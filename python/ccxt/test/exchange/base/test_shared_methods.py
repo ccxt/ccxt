@@ -23,7 +23,7 @@ def log_template(exchange, method, entry):
     # there are cases when exchange is undefined (eg. base tests)
     id = exchange.id if (exchange is not None) else 'undefined'
     method_string = method if (method is not None) else 'undefined'
-    entry_string = exchange.json(entry) if (exchange is not None) else ''
+    entry_string = exchange.json(entry) if (exchange is not None and entry is not None) else ''
     return ' <<< ' + id + ' ' + method_string + ' ::: ' + entry_string + ' >>> '
 
 
@@ -550,3 +550,12 @@ def deep_equal(exchange, a, b):
 def assert_deep_equal(exchange, skipped_properties, method, a, b):
     log_text = log_template(exchange, method, {})
     assert deep_equal(exchange, a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+
+
+def exchange_prop(exchange, key, default_value=None):
+    value = exchange.get_property(exchange, str(key))
+    if value is not None:
+        return value
+    # try UpperCase key also, for other langs
+    key_upper = exchange.capitalize(str(key))
+    return exchange.get_property(exchange, key_upper, default_value)

@@ -546,7 +546,9 @@ class paradex(Exchange, ImplicitAPI):
         #  }
         #
         assetKind = self.safe_string(market, 'asset_kind')
-        isOption = (assetKind == 'PERP_OPTION')
+        isOptionPerpetual = (assetKind == 'PERP_OPTION')
+        isOptionDelivery = (assetKind == 'OPTION')
+        isOption = isOptionPerpetual or isOptionDelivery
         type = 'option' if (isOption) else 'swap'
         isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
@@ -564,7 +566,8 @@ class paradex(Exchange, ImplicitAPI):
         makerFee = self.parse_number('-0.00005')
         if isOption:
             optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
-            symbol = symbol + '-' + strikePrice + '-' + optionTypeSuffix
+            deliveryValue = '' if (expiry == 0) else self.yymmdd(expiry) + '-'
+            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
             makerFee = self.parse_number('0.0003')
         else:
             expiry = None
@@ -894,7 +897,7 @@ class paradex(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if limit is not None:
-            request['page_size'] = limit
+            request['page_size'] = min(limit, 1000)
         if since is not None:
             request['start_at'] = since
         request, params = self.handle_until_option('end_at', request, params)

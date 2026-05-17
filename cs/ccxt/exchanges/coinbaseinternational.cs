@@ -2432,48 +2432,6 @@ public partial class coinbaseinternational : Exchange
         return this.parseTransaction(response, currency);
     }
 
-    public virtual object safeNetwork(object network)
-    {
-        object withdrawEnabled = this.safeBool(network, "withdraw");
-        object depositEnabled = this.safeBool(network, "deposit");
-        object limits = this.safeDict(network, "limits");
-        object withdraw = this.safeDict(limits, "withdraw");
-        object withdrawMax = this.safeNumber(withdraw, "max");
-        object deposit = this.safeDict(limits, "deposit");
-        object depositMax = this.safeNumber(deposit, "max");
-        if (isTrue(isTrue(isEqual(withdrawEnabled, null)) && isTrue(!isEqual(withdrawMax, null))))
-        {
-            withdrawEnabled = (isGreaterThan(withdrawMax, 0));
-        }
-        if (isTrue(isTrue(isEqual(depositEnabled, null)) && isTrue(!isEqual(depositMax, null))))
-        {
-            depositEnabled = (isGreaterThan(depositMax, 0));
-        }
-        object networkId = this.safeString(network, "id");
-        object isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
-        return new Dictionary<string, object>() {
-            { "info", getValue(network, "info") },
-            { "id", networkId },
-            { "name", this.safeString(network, "name") },
-            { "network", this.safeString(network, "network") },
-            { "active", this.safeBool(network, "active", isEnabled) },
-            { "deposit", depositEnabled },
-            { "withdraw", withdrawEnabled },
-            { "fee", this.safeNumber(network, "fee") },
-            { "precision", this.safeNumber(network, "precision") },
-            { "limits", new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(withdraw, "min") },
-                    { "max", withdrawMax },
-                } },
-                { "deposit", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(deposit, "min") },
-                    { "max", depositMax },
-                } },
-            } },
-        };
-    }
-
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();

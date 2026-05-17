@@ -645,7 +645,7 @@ export default class hollaex extends Exchange {
         //         "low": 8607,
         //         "last": 8841.05,
         //         "volume": 20.2802,
-        //         "timestamp": "2020-03-03T03:11:18.964Z"
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
         return this.parseTicker (response, market);
@@ -936,12 +936,10 @@ export default class hollaex extends Exchange {
         const timeDelta = this.parseTimeframe (timeframe) * maxLimit * 1000;
         let start = since;
         const now = this.milliseconds ();
-        if (until === undefined && start === undefined) {
-            until = now;
-            start = until - timeDelta;
-        } else if (until === undefined) {
+        if (until === undefined) {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        } else if (start === undefined) {
+        }
+        if (start === undefined) {
             start = until - timeDelta;
         }
         request['from'] = this.parseToInt (start / 1000); // convert to seconds

@@ -2482,7 +2482,7 @@ class bybit extends \ccxt\async\bybit {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
-                $messageHash = $this->safe_string($message, 'reqId');
+                $messageHash = $this->safe_string_2($message, 'req_id', 'reqId');
                 $client->reject ($error, $messageHash);
             }
             return true;

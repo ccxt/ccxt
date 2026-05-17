@@ -379,6 +379,7 @@ create a trade order
 **See**
 
 - https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+- https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
 - https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
 - https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
 

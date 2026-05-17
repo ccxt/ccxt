@@ -12,7 +12,6 @@ export default class binance extends Exchange {
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    costToPrecision(symbol: any, cost: any): string;
     nonce(): number;
     /**
      * @method
@@ -328,7 +327,7 @@ export default class binance extends Exchange {
      */
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseOrderTypeByMarket(type: Str, marketType: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method

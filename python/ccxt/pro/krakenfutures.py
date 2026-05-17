@@ -527,6 +527,21 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "price": 34893
         #    }
         #
+        # order update
+        #     {
+        #         "instrument": "PF_DOGEUSD",
+        #         "time": 1778610421471,
+        #         "last_update_time": 1778610444402,
+        #         "qty": 0,
+        #         "filled": 10,
+        #         "limit_price": 0.10912,
+        #         "stop_price": 0,
+        #         "type": "limit",
+        #         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        #         "direction": 0,
+        #         "reduce_only": False
+        #     }
+        #
         marketId = self.safe_string(trade, 'product_id')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 'time')
@@ -540,8 +555,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'type': self.safe_string(trade, 'type'),
             'side': self.safe_string(trade, 'side'),
             'takerOrMaker': 'taker',
-            'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string(trade, 'qty'),
+            'price': self.safe_string_2(trade, 'price', 'limit_price'),
+            'amount': self.safe_string_2(trade, 'filled', 'qty'),
             'cost': None,
             'fee': {
                 'rate': None,
@@ -591,7 +606,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'type': self.safe_string_lower(trade, 'type'),
             'side': self.safe_string(trade, 'side'),
             'takerOrMaker': self.safe_string(trade, 'matchRole'),
-            'price': self.safe_string(trade, 'price'),
+            'price': self.safe_string_2(trade, 'price', 'limit_price'),
             'amount': self.safe_string(trade, 'tradeAmount'),  # ? tradeQty?
             'cost': None,
             'fee': {
@@ -705,11 +720,13 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if Precise.string_gt(totalAmount, '0'):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
-                if previousOrder['filled'] is not None:
-                    stringOrderFilled = self.number_to_string(previousOrder['filled'])
-                    previousOrder['filled'] = Precise.string_add(stringOrderFilled, self.number_to_string(trade['amount']))
-                    if previousOrder['amount'] is not None:
-                        previousOrder['remaining'] = Precise.string_sub(self.number_to_string(previousOrder['amount']), stringOrderFilled)
+                filledString = self.number_to_string(trade['amount'])
+                stringOrderFilled = self.safe_string(previousOrder, 'filled', '0')
+                totalFilled = Precise.string_add(stringOrderFilled, filledString)
+                previousOrder['filled'] = totalFilled
+                prevAmountString = self.safe_string(previousOrder, 'amount')
+                remaining = Precise.string_sub(prevAmountString, totalFilled)
+                previousOrder['remaining'] = remaining
                 if previousOrder['fee'] is None:
                     previousOrder['fee'] = {
                         'rate': None,
@@ -871,11 +888,11 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'price': self.safe_string(unparsedOrder, 'limit_price'),
             'stopPrice': self.safe_string(unparsedOrder, 'stop_price'),
             'triggerPrice': self.safe_string(unparsedOrder, 'stop_price'),
-            'amount': self.safe_string(unparsedOrder, 'qty'),
+            'amount': None,
             'cost': None,
             'average': None,
             'filled': self.safe_string(unparsedOrder, 'filled'),
-            'remaining': None,
+            'remaining': self.safe_string(unparsedOrder, 'qty'),
             'status': status,
             'fee': {
                 'rate': None,
@@ -1420,19 +1437,30 @@ class krakenfutures(ccxt.async_support.krakenfutures):
 
     async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs=None, params={}):
         await self.load_markets()
+        url = self.urls['api']['ws']
         # symbols are required
         symbols = self.market_symbols(symbols, None, False, True, False)
         messageHashes = []
+        rawSubs = []
         for i in range(0, len(symbols)):
-            messageHashes.append(self.get_message_hash(unifiedName, None, self.symbol(symbols[i])))
-        marketIds = self.market_ids(symbols)
-        request: dict = {
-            'event': 'subscribe',
-            'feed': channelName,
-            'product_ids': marketIds,
-        }
-        url = self.urls['api']['ws']
+            messageHash = self.get_message_hash(unifiedName, None, self.symbol(symbols[i]))
+            messageHashes.append(messageHash)
+            market = self.market(symbols[i])
+            if not self.subscription_exists_for_hash(url, messageHash):
+                rawSubs.append(market['id'])
+        request: dict = {}
+        length = len(rawSubs)
+        if length > 0:
+            request = {
+                'event': 'subscribe',
+                'feed': channelName,
+                'product_ids': rawSubs,
+            }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
+
+    def subscription_exists_for_hash(self, url: str, hash: str):
+        client = self.client(url)
+        return(hash in client.subscriptions)
 
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...

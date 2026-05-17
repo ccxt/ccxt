@@ -6,7 +6,6 @@ var deepcoin$1 = require('./abstract/deepcoin.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
-require('../ccxt.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
@@ -815,7 +814,7 @@ class deepcoin extends deepcoin$1["default"] {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 500
+            request['limit'] = Math.min(limit, 2000);
         }
         const productGroup = this.getProductGroupFromMarket(market);
         request['productGroup'] = productGroup;

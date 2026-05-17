@@ -9,15 +9,16 @@ public partial class Exchange
     public virtual object describe()
     {
         return new Dictionary<string, object>() {
-            { "id", null },
-            { "name", null },
-            { "countries", null },
-            { "enableRateLimit", true },
-            { "rateLimit", 2000 },
+            { "id", this.id },
+            { "name", this.name },
+            { "countries", this.countries },
+            { "enableRateLimit", this.enableRateLimit },
+            { "rateLimit", this.rateLimit },
+            { "rateLimiterAlgorithm", this.rateLimiterAlgorithm },
             { "timeout", this.timeout },
-            { "certified", false },
-            { "pro", false },
-            { "alias", false },
+            { "certified", this.certified },
+            { "pro", this.pro },
+            { "alias", this.alias },
             { "dex", false },
             { "has", new Dictionary<string, object>() {
                 { "publicAPI", true },
@@ -263,9 +264,12 @@ public partial class Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", null },
                 { "api", null },
+                { "test", null },
                 { "www", null },
                 { "doc", null },
+                { "api_management", null },
                 { "fees", null },
+                { "referral", null },
             } },
             { "api", null },
             { "requiredCredentials", new Dictionary<string, object>() {
@@ -302,6 +306,7 @@ public partial class Exchange
                 { "updated", null },
                 { "eta", null },
                 { "url", null },
+                { "info", null },
             } },
             { "exceptions", null },
             { "httpExceptions", new Dictionary<string, object>() {
@@ -415,7 +420,7 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -435,7 +440,7 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(this.isDictionary(value)))
         {
             return value;
         }
@@ -471,6 +476,11 @@ public partial class Exchange
             return value;
         }
         return defaultValue;
+    }
+
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object safeList2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
@@ -1689,7 +1699,7 @@ public partial class Exchange
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -1706,7 +1716,7 @@ public partial class Exchange
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3538,6 +3548,37 @@ public partial class Exchange
         return ohlcv;
     }
 
+    public virtual object safeNetwork(object network)
+    {
+        object withdrawEnabled = this.safeBool(network, "withdraw");
+        object depositEnabled = this.safeBool(network, "deposit");
+        object limits = this.safeDict(network, "limits");
+        object withdraw = this.safeDict(limits, "withdraw");
+        object deposit = this.safeDict(limits, "deposit");
+        object isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
+        return new Dictionary<string, object>() {
+            { "info", getValue(network, "info") },
+            { "id", this.safeString(network, "id") },
+            { "name", this.safeString(network, "name") },
+            { "network", this.safeString(network, "network") },
+            { "active", this.safeBool(network, "active", isEnabled) },
+            { "deposit", depositEnabled },
+            { "withdraw", withdrawEnabled },
+            { "fee", this.safeNumber(network, "fee") },
+            { "precision", this.safeNumber(network, "precision") },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(withdraw, "min") },
+                    { "max", this.safeNumber(withdraw, "max") },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(deposit, "min") },
+                    { "max", this.safeNumber(deposit, "max") },
+                } },
+            } },
+        };
+    }
+
     public virtual object networkCodeToId(object networkCode, object currencyCode = null)
     {
         /**
@@ -3838,7 +3879,7 @@ public partial class Exchange
         object percentage = this.safeValue(position, "percentage");
         if (isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(unrealizedPnlString, null)))) && isTrue((!isEqual(initialMarginString, null)))))
         {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
             ((IDictionary<string,object>)position)["percentage"] = this.parseNumber(percentageString);
         }
@@ -4197,6 +4238,38 @@ public partial class Exchange
         return results;
     }
 
+    public virtual object filterOutByArray(object objects, object key, object values = null, object indexed = null)
+    {
+        indexed ??= true;
+        objects = this.toArray(objects);
+        // return all of them if no values were passed
+        if (isTrue(isTrue(isEqual(values, null)) || !isTrue(values)))
+        {
+            // return indexed ? this.indexBy (objects, key) : objects;
+            if (isTrue(indexed))
+            {
+                return this.indexBy(objects, key);
+            } else
+            {
+                return objects;
+            }
+        }
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
+        {
+            if (!isTrue(this.inArray(getValue(getValue(objects, i), key), values)))
+            {
+                ((IList<object>)results).Add(getValue(objects, i));
+            }
+        }
+        // return indexed ? this.indexBy (results, key) : results;
+        if (isTrue(indexed))
+        {
+            return this.indexBy(results, key);
+        }
+        return results;
+    }
+
     public async virtual Task<object> fetch2(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
     {
         api ??= "public";
@@ -4216,15 +4289,15 @@ public partial class Exchange
         var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
-        this.lastRestRequestTimestamp = this.milliseconds();
-        object request = this.sign(path, api, method, parameters, headers, body);
-        this.last_request_headers = getValue(request, "headers");
-        this.last_request_body = getValue(request, "body");
-        this.last_request_url = getValue(request, "url");
         for (object i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
         {
             try
             {
+                this.lastRestRequestTimestamp = this.milliseconds();
+                object request = this.sign(path, api, method, parameters, headers, body);
+                this.last_request_headers = getValue(request, "headers");
+                this.last_request_body = getValue(request, "body");
+                this.last_request_url = getValue(request, "url");
                 return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
             } catch(Exception e)
             {
@@ -5442,7 +5515,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrder() requires a triggerPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
         if (isTrue(getValue(this.has, "createTriggerOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5470,7 +5545,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["triggerPrice"] = triggerPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
         if (isTrue(getValue(this.has, "createTriggerOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -5498,7 +5575,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrder() requires a stopLossPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
         if (isTrue(getValue(this.has, "createStopLossOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5526,7 +5605,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["stopLossPrice"] = stopLossPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
         if (isTrue(getValue(this.has, "createStopLossOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -5554,7 +5635,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrder() requires a takeProfitPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
         if (isTrue(getValue(this.has, "createTakeProfitOrder")))
         {
             return await this.createOrder(symbol, type, side, amount, price, parameters);
@@ -5582,7 +5665,9 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
         }
-        ((IDictionary<string,object>)parameters)["takeProfitPrice"] = takeProfitPrice;
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
         if (isTrue(getValue(this.has, "createTakeProfitOrderWs")))
         {
             return await this.createOrderWs(symbol, type, side, amount, price, parameters);
@@ -6213,7 +6298,7 @@ public partial class Exchange
 
     public virtual object handleWithdrawTagAndParams(object tag, object parameters)
     {
-        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue(((tag is IDictionary<string, object>)))))
+        if (isTrue(this.isDictionary(tag)))
         {
             parameters = this.extend(tag, parameters);
             tag = null;
@@ -6308,7 +6393,7 @@ public partial class Exchange
             return null;
         }
         object market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(getValue(market, "precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
     public virtual object priceToPrecision(object symbol, object price)
@@ -8581,6 +8666,12 @@ public partial class Exchange
             return add((divide(ms, second)), "s");
         }
         return "";
+    }
+
+    public async virtual Task<object> isUTAEnabled(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return false;  // stub
     }
 }
 

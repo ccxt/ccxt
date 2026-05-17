@@ -2380,7 +2380,7 @@ export default class bybit extends bybitRest {
                 }
             }
             else {
-                const messageHash = this.safeString(message, 'reqId');
+                const messageHash = this.safeString2(message, 'req_id', 'reqId');
                 client.reject(error, messageHash);
             }
             return true;

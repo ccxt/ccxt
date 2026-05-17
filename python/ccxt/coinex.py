@@ -1426,7 +1426,7 @@ class coinex(Exchange, ImplicitAPI):
             # 'last_id': 0,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = None
         if market['swap']:
             response = self.v2PublicGetFuturesDeals(self.extend(request, params))

@@ -3,11 +3,10 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var bydfi$1 = require('./abstract/bydfi.js');
-require('../ccxt.js');
+var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
-var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -637,7 +636,7 @@ class bydfi extends bydfi$1["default"] {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.publicGetV1FapiMarketTrades(this.extend(request, params));
         //

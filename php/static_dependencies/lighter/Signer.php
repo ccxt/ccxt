@@ -19,57 +19,61 @@ class Signer
     private static ?Signer $instance = null;
 
     private const C_DEFINITIONS = <<<'CDEF'
-typedef struct {
-    char* str;
-    char* err;
-} StrOrErr;
+        typedef struct {
+            char* str;
+            char* err;
+        } StrOrErr;
 
-typedef struct {
-    uint8_t txType;
-    char* txInfo;
-    char* txHash;
-    char* messageToSign;
-    char* err;
-} SignedTxResponse;
+        typedef struct {
+            uint8_t txType;
+            char* txInfo;
+            char* txHash;
+            char* messageToSign;
+            char* err;
+        } SignedTxResponse;
 
-typedef struct {
-    char* privateKey;
-    char* publicKey;
-    char* err;
-} ApiKeyResponse;
+        typedef struct {
+            char* privateKey;
+            char* publicKey;
+            char* err;
+        } ApiKeyResponse;
 
-typedef struct {
-    uint8_t MarketIndex;
-    int64_t ClientOrderIndex;
-    int64_t BaseAmount;
-    uint32_t Price;
-    uint8_t IsAsk;
-    uint8_t Type;
-    uint8_t TimeInForce;
-    uint8_t ReduceOnly;
-    uint32_t TriggerPrice;
-    int64_t OrderExpiry;
-} CreateOrderTxReq;
+        typedef struct {
+            int16_t MarketIndex;
+            int64_t ClientOrderIndex;
+            int64_t BaseAmount;
+            uint32_t Price;
+            uint8_t IsAsk;
+            uint8_t Type;
+            uint8_t TimeInForce;
+            uint8_t ReduceOnly;
+            uint32_t TriggerPrice;
+            int64_t OrderExpiry;
+        } CreateOrderTxReq;
 
-ApiKeyResponse GenerateAPIKey();
-char* CreateClient(char* url, char* privateKey, int chainId, int apiKeyIndex, long long accountIndex);
-char* CheckClient(int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignChangePubKey(char* pubKey, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignCreateOrder(int marketIndex, long long clientOrderIndex, long long baseAmount, int price, int isAsk, int orderType, int timeInForce, int reduceOnly, int triggerPrice, long long orderExpiry, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignCreateGroupedOrders(uint8_t groupingType, CreateOrderTxReq* orders, int len, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignCancelOrder(int marketIndex, long long orderIndex, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignWithdraw(int assetIndex, int routeType, unsigned long long amount, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignCreateSubAccount(long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignCancelAllOrders(int timeInForce, long long time, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignModifyOrder(int marketIndex, long long index, long long baseAmount, long long price, long long triggerPrice, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignTransfer(long long toAccountIndex, int16_t assetIndex, uint8_t fromRouteType, uint8_t toRouteType, long long amount, long long usdcFee, char* memo, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignCreatePublicPool(long long operatorFee, int initialTotalShares, long long minOperatorShareRate, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignUpdatePublicPool(long long publicPoolIndex, int status, long long operatorFee, int minOperatorShareRate, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignMintShares(long long publicPoolIndex, long long shareAmount, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignBurnShares(long long publicPoolIndex, long long shareAmount, long long nonce, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignUpdateLeverage(int marketIndex, int initialMarginFraction, int marginMode, long long nonce, int apiKeyIndex, long long accountIndex);
-StrOrErr CreateAuthToken(long long deadline, int apiKeyIndex, long long accountIndex);
-SignedTxResponse SignUpdateMargin(int marketIndex, long long usdcAmount, int direction, long long nonce, int apiKeyIndex, long long accountIndex);
+        ApiKeyResponse GenerateAPIKey(void);
+        char* CreateClient(char* cUrl, char* cPrivateKey, int cChainId, int cApiKeyIndex, long long cAccountIndex);
+        char* CheckClient(int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignChangePubKey(char* cPubKey, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCreateOrder(int cMarketIndex, long long cClientOrderIndex, long long cBaseAmount, int cPrice, int cIsAsk, int cOrderType, int cTimeInForce, int cReduceOnly, int cTriggerPrice, long long cOrderExpiry, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCreateGroupedOrders(uint8_t cGroupingType, CreateOrderTxReq* cOrders, int cLen, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCancelOrder(int cMarketIndex, long long cOrderIndex, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignWithdraw(int cAssetIndex, int cRouteType, unsigned long long cAmount, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCreateSubAccount(uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCancelAllOrders(int cTimeInForce, long long cTime, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignModifyOrder(int cMarketIndex, long long cIndex, long long cBaseAmount, long long cPrice, long long cTriggerPrice, long long cIntegratorAccountIndex, int cIntegratorTakerFee, int cIntegratorMakerFee, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignTransfer(long long cToAccountIndex, int16_t cAssetIndex, uint8_t cFromRouteType, uint8_t cToRouteType, long long cAmount, long long cUsdcFee, char* cMemo, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignCreatePublicPool(long long cOperatorFee, int cInitialTotalShares, long long cMinOperatorShareRate, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignUpdatePublicPool(long long cPublicPoolIndex, int cStatus, long long cOperatorFee, int cMinOperatorShareRate, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignMintShares(long long cPublicPoolIndex, long long cShareAmount, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignBurnShares(long long cPublicPoolIndex, long long cShareAmount, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignUpdateLeverage(int cMarketIndex, int cInitialMarginFraction, int cMarginMode, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        StrOrErr CreateAuthToken(long long cDeadline, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignUpdateMargin(int cMarketIndex, long long cUSDCAmount, int cDirection, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignStakeAssets(long long cStakingPoolIndex, long long cShareAmount, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignUnstakeAssets(long long cStakingPoolIndex, long long cShareAmount, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        SignedTxResponse SignApproveIntegrator(long long cIntegratorIndex, uint32_t cMaxPerpsTakerFee, uint32_t cMaxPerpsMakerFee, uint32_t cMaxSpotTakerFee, uint32_t cMaxSpotMakerFee, long long cApprovalExpiry, uint8_t cSkipNonce, long long cNonce, int cApiKeyIndex, long long cAccountIndex);
+        void Free(void* ptr);
 CDEF;
 
     /**
@@ -140,105 +144,143 @@ CDEF;
         );
     }
 
-    /**
-     * Generate a new API key pair
-     * 
-     * @return array{privateKey: string, publicKey: string}
-     * @throws RuntimeException If key generation fails
-     */
-    public function generateAPIKey(): array
+    private function cStr(?\FFI\CData $ptr): ?string
     {
-        $result = $this->ffi->GenerateAPIKey();
-        
-        if ($result->err !== null) {
-            throw new RuntimeException("GenerateAPIKey failed: " . \FFI::string($result->err));
+        if ($ptr === null) {
+            return null;
         }
-        
-        return [
-            'privateKey' => \FFI::string($result->privateKey),
-            'publicKey' => \FFI::string($result->publicKey),
-        ];
+
+        $addr = $this->ffi->cast('uintptr_t', $ptr);
+        if ($addr->cdata === 0) {
+            return null;
+        }
+
+        return \FFI::string($ptr);
     }
 
-    /**
-     * Create a client for signing transactions
-     * 
-     * @param string $url The API URL
-     * @param string $privateKey The private key for signing
-     * @param int $chainId The chain ID
-     * @param int $apiKeyIndex The API key index (0-254)
-     * @param int $accountIndex The account index
-     * @throws RuntimeException If client creation fails
-     */
+    private function freeIfNotNull(?\FFI\CData $ptr): void
+    {
+        if ($ptr === null) {
+            return;
+        }
+
+        $addr = $this->ffi->cast('uintptr_t', $ptr);
+        if ($addr->cdata !== 0) {
+            $this->ffi->Free($this->ffi->cast('void*', $ptr));
+        }
+    }
+
+    private function normalizeSignedTxResponse(\FFI\CData $res): array
+    {
+        $out = [
+            'txType' => (int)$res->txType,
+            'txInfo' => $this->cStr($res->txInfo),
+            'txHash' => $this->cStr($res->txHash),
+            'messageToSign' => $this->cStr($res->messageToSign),
+            'err' => $this->cStr($res->err),
+        ];
+
+        // Assumes returned char* fields are heap-allocated by Go and should be freed via Free().
+        $this->freeIfNotNull($res->txInfo);
+        $this->freeIfNotNull($res->txHash);
+        $this->freeIfNotNull($res->messageToSign);
+        $this->freeIfNotNull($res->err);
+
+        return $out;
+    }
+
+    private function normalizeStrOrErr(\FFI\CData $res): array
+    {
+        $out = [
+            'str' => $this->cStr($res->str),
+            'err' => $this->cStr($res->err),
+        ];
+
+        $this->freeIfNotNull($res->str);
+        $this->freeIfNotNull($res->err);
+
+        return $out;
+    }
+
+    private function normalizeApiKeyResponse(\FFI\CData $res): array
+    {
+        $out = [
+            'privateKey' => $this->cStr($res->privateKey),
+            'publicKey' => $this->cStr($res->publicKey),
+            'err' => $this->cStr($res->err),
+        ];
+
+        $this->freeIfNotNull($res->privateKey);
+        $this->freeIfNotNull($res->publicKey);
+        $this->freeIfNotNull($res->err);
+
+        return $out;
+    }
+
+    public function generateAPIKey(): array
+    {
+        $res = $this->ffi->GenerateAPIKey();
+        return $this->normalizeApiKeyResponse($res);
+    }
+
     public function createClient(
         string $url,
         string $privateKey,
         int $chainId,
         int $apiKeyIndex,
         int $accountIndex
-    ): void {
-        $result = $this->ffi->CreateClient($url, $privateKey, $chainId, $apiKeyIndex, $accountIndex);
-        
-        if ($result !== null) {
-            throw new RuntimeException("CreateClient failed: " . \FFI::string($result));
-        }
+    ): ?string {
+        $ptr = $this->ffi->CreateClient(
+            $url,
+            $privateKey,
+            $chainId,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        $out = $this->cStr($ptr);
+        $this->freeIfNotNull($ptr);
+
+        return $out;
     }
 
-    /**
-     * Check if a client exists and is valid
-     * 
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @throws RuntimeException If the client check fails
-     */
-    public function checkClient(int $apiKeyIndex, int $accountIndex): void
+    public function checkClient(int $apiKeyIndex, int $accountIndex): ?string
     {
-        $result = $this->ffi->CheckClient($apiKeyIndex, $accountIndex);
-        
-        if ($result !== null) {
-            throw new RuntimeException("CheckClient failed: " . \FFI::string($result));
-        }
+        $ptr = $this->ffi->CheckClient($apiKeyIndex, $accountIndex);
+
+        $out = $this->cStr($ptr);
+        $this->freeIfNotNull($ptr);
+
+        return $out;
     }
 
-    /**
-     * Sign a change public key transaction
-     * 
-     * @param string $pubKey The new public key (hex encoded)
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signChangePubKey(
         string $pubKey,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignChangePubKey($pubKey, $nonce, $apiKeyIndex, $accountIndex);
-        return $this->parseSignedTxResponse($result);
+        $res = $this->ffi->SignChangePubKey(
+            $pubKey,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a create order transaction
-     * 
-     * @param int $marketIndex Market index
-     * @param int $clientOrderIndex Client-defined order index
-     * @param int $baseAmount Base amount
-     * @param int $price Price
-     * @param int $isAsk 1 for ask (sell), 0 for bid (buy)
-     * @param int $orderType Order type
-     * @param int $timeInForce Time in force
-     * @param int $reduceOnly 1 for reduce only, 0 otherwise
-     * @param int $triggerPrice Trigger price for stop/TP orders
-     * @param int $orderExpiry Order expiry timestamp (-1 for default 28 days)
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
+    public function createAuthToken(
+        int $deadline,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->CreateAuthToken($deadline, $apiKeyIndex, $accountIndex);
+        return $this->normalizeStrOrErr($res);
+    }
+
     public function signCreateOrder(
         int $marketIndex,
         int $clientOrderIndex,
@@ -250,11 +292,15 @@ CDEF;
         int $reduceOnly,
         int $triggerPrice,
         int $orderExpiry,
+        int $integratorAccountIndex,
+        int $integratorTakerFee,
+        int $integratorMakerFee,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignCreateOrder(
+        $res = $this->ffi->SignCreateOrder(
             $marketIndex,
             $clientOrderIndex,
             $baseAmount,
@@ -265,216 +311,345 @@ CDEF;
             $reduceOnly,
             $triggerPrice,
             $orderExpiry,
+            $integratorAccountIndex,
+            $integratorTakerFee,
+            $integratorMakerFee,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a grouped orders transaction (OCO, OTO, OTOCO)
-     * 
-     * @param int $groupingType Grouping type
-     * @param array $orders Array of order data
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signCreateGroupedOrders(
         int $groupingType,
         array $orders,
+        int $integratorAccountIndex,
+        int $integratorTakerFee,
+        int $integratorMakerFee,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $count = count($orders);
-        $ordersArray = $this->ffi->new("CreateOrderTxReq[{$count}]");
-        
-        foreach ($orders as $i => $order) {
-            $ordersArray[$i]->MarketIndex = $order['marketIndex'];
-            $ordersArray[$i]->ClientOrderIndex = $order['clientOrderIndex'];
-            $ordersArray[$i]->BaseAmount = $order['baseAmount'];
-            $ordersArray[$i]->Price = $order['price'];
-            $ordersArray[$i]->IsAsk = $order['isAsk'];
-            $ordersArray[$i]->Type = $order['type'];
-            $ordersArray[$i]->TimeInForce = $order['timeInForce'];
-            $ordersArray[$i]->ReduceOnly = $order['reduceOnly'];
-            $ordersArray[$i]->TriggerPrice = $order['triggerPrice'];
-            $ordersArray[$i]->OrderExpiry = $order['orderExpiry'];
+        $len = count($orders);
+        if ($len === 0) {
+            throw new \InvalidArgumentException('orders must not be empty');
         }
-        
-        $result = $this->ffi->SignCreateGroupedOrders(
+
+        $cOrders = \FFI::new("CreateOrderTxReq[$len]", false);
+
+        foreach ($orders as $i => $order) {
+            $cOrders[$i]->MarketIndex      = (int)$order['MarketIndex'];
+            $cOrders[$i]->ClientOrderIndex = (int)$order['ClientOrderIndex'];
+            $cOrders[$i]->BaseAmount       = (int)$order['BaseAmount'];
+            $cOrders[$i]->Price            = (int)$order['Price'];
+            $cOrders[$i]->IsAsk            = (int)$order['IsAsk'];
+            $cOrders[$i]->Type             = (int)$order['Type'];
+            $cOrders[$i]->TimeInForce      = (int)$order['TimeInForce'];
+            $cOrders[$i]->ReduceOnly       = (int)$order['ReduceOnly'];
+            $cOrders[$i]->TriggerPrice     = (int)$order['TriggerPrice'];
+            $cOrders[$i]->OrderExpiry      = (int)$order['OrderExpiry'];
+        }
+
+        $res = $this->ffi->SignCreateGroupedOrders(
             $groupingType,
-            \FFI::addr($ordersArray[0]),
-            $count,
+            \FFI::addr($cOrders[0]),
+            $len,
+            $integratorAccountIndex,
+            $integratorTakerFee,
+            $integratorMakerFee,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a cancel order transaction
-     * 
-     * @param int $marketIndex Market index
-     * @param int $orderIndex Order index to cancel
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signCancelOrder(
         int $marketIndex,
         int $orderIndex,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignCancelOrder(
+        $res = $this->ffi->SignCancelOrder(
             $marketIndex,
             $orderIndex,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a withdraw transaction
-     * 
-     * @param int $assetIndex Asset index
-     * @param int $routeType Route type (0 = Perps, 1 = Spot)
-     * @param int $amount Amount to withdraw
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signWithdraw(
         int $assetIndex,
         int $routeType,
         int $amount,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignWithdraw(
+        $res = $this->ffi->SignWithdraw(
             $assetIndex,
             $routeType,
             $amount,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a create sub-account transaction
-     * 
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signCreateSubAccount(
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignCreateSubAccount($nonce, $apiKeyIndex, $accountIndex);
-        return $this->parseSignedTxResponse($result);
+        $res = $this->ffi->SignCreateSubAccount(
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a cancel all orders transaction
-     * 
-     * @param int $timeInForce Time in force
-     * @param int $time Time parameter
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signCancelAllOrders(
         int $timeInForce,
         int $time,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignCancelAllOrders(
+        $res = $this->ffi->SignCancelAllOrders(
             $timeInForce,
             $time,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a modify order transaction
-     * 
-     * @param int $marketIndex Market index
-     * @param int $index Order index
-     * @param int $baseAmount New base amount
-     * @param int $price New price
-     * @param int $triggerPrice New trigger price
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
     public function signModifyOrder(
         int $marketIndex,
         int $index,
         int $baseAmount,
         int $price,
         int $triggerPrice,
+        int $integratorAccountIndex,
+        int $integratorTakerFee,
+        int $integratorMakerFee,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignModifyOrder(
+        $res = $this->ffi->SignModifyOrder(
             $marketIndex,
             $index,
             $baseAmount,
             $price,
             $triggerPrice,
+            $integratorAccountIndex,
+            $integratorTakerFee,
+            $integratorMakerFee,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a transfer transaction
-     * 
-     * @param int $toAccountIndex Destination account index
-     * @param int $assetIndex Asset index
-     * @param int $fromRouteType Source route type
-     * @param int $toRouteType Destination route type
-     * @param int $amount Amount to transfer
-     * @param int $usdcFee USDC fee
-     * @param string $memo Memo (32 bytes or 64/66 hex chars)
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
+    public function signCreatePublicPool(
+        int $operatorFee,
+        int $initialTotalShares,
+        int $minOperatorShareRate,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignCreatePublicPool(
+            $operatorFee,
+            $initialTotalShares,
+            $minOperatorShareRate,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signUpdatePublicPool(
+        int $publicPoolIndex,
+        int $status,
+        int $operatorFee,
+        int $minOperatorShareRate,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignUpdatePublicPool(
+            $publicPoolIndex,
+            $status,
+            $operatorFee,
+            $minOperatorShareRate,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signMintShares(
+        int $publicPoolIndex,
+        int $shareAmount,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignMintShares(
+            $publicPoolIndex,
+            $shareAmount,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signBurnShares(
+        int $publicPoolIndex,
+        int $shareAmount,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignBurnShares(
+            $publicPoolIndex,
+            $shareAmount,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signUpdateLeverage(
+        int $marketIndex,
+        int $initialMarginFraction,
+        int $marginMode,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignUpdateLeverage(
+            $marketIndex,
+            $initialMarginFraction,
+            $marginMode,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signUpdateMargin(
+        int $marketIndex,
+        int $usdcAmount,
+        int $direction,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignUpdateMargin(
+            $marketIndex,
+            $usdcAmount,
+            $direction,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signStakeAssets(
+        int $stakingPoolIndex,
+        int $shareAmount,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignStakeAssets(
+            $stakingPoolIndex,
+            $shareAmount,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
+    public function signUnstakeAssets(
+        int $stakingPoolIndex,
+        int $shareAmount,
+        int $skipNonce,
+        int $nonce,
+        int $apiKeyIndex,
+        int $accountIndex
+    ): array {
+        $res = $this->ffi->SignUnstakeAssets(
+            $stakingPoolIndex,
+            $shareAmount,
+            $skipNonce,
+            $nonce,
+            $apiKeyIndex,
+            $accountIndex
+        );
+
+        return $this->normalizeSignedTxResponse($res);
+    }
+
     public function signTransfer(
         int $toAccountIndex,
         int $assetIndex,
@@ -483,11 +658,12 @@ CDEF;
         int $amount,
         int $usdcFee,
         string $memo,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignTransfer(
+        $res = $this->ffi->SignTransfer(
             $toAccountIndex,
             $assetIndex,
             $fromRouteType,
@@ -495,239 +671,40 @@ CDEF;
             $amount,
             $usdcFee,
             $memo,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
+
+        return $this->normalizeSignedTxResponse($res);
     }
 
-    /**
-     * Sign a create public pool transaction
-     * 
-     * @param int $operatorFee Operator fee
-     * @param int $initialTotalShares Initial total shares
-     * @param int $minOperatorShareRate Minimum operator share rate
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
-    public function signCreatePublicPool(
-        int $operatorFee,
-        int $initialTotalShares,
-        int $minOperatorShareRate,
+    public function signApproveIntegrator(
+        int $integratorIndex,
+        int $maxPerpsTakerFee,
+        int $maxPerpsMakerFee,
+        int $maxSpotTakerFee,
+        int $maxSpotMakerFee,
+        int $approvalExpiry,
+        int $skipNonce,
         int $nonce,
         int $apiKeyIndex,
         int $accountIndex
     ): array {
-        $result = $this->ffi->SignCreatePublicPool(
-            $operatorFee,
-            $initialTotalShares,
-            $minOperatorShareRate,
+        $res = $this->ffi->SignApproveIntegrator(
+            $integratorIndex,
+            $maxPerpsTakerFee,
+            $maxPerpsMakerFee,
+            $maxSpotTakerFee,
+            $maxSpotMakerFee,
+            $approvalExpiry,
+            $skipNonce,
             $nonce,
             $apiKeyIndex,
             $accountIndex
         );
-        return $this->parseSignedTxResponse($result);
-    }
 
-    /**
-     * Sign an update public pool transaction
-     * 
-     * @param int $publicPoolIndex Public pool index
-     * @param int $status Pool status
-     * @param int $operatorFee Operator fee
-     * @param int $minOperatorShareRate Minimum operator share rate
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
-    public function signUpdatePublicPool(
-        int $publicPoolIndex,
-        int $status,
-        int $operatorFee,
-        int $minOperatorShareRate,
-        int $nonce,
-        int $apiKeyIndex,
-        int $accountIndex
-    ): array {
-        $result = $this->ffi->SignUpdatePublicPool(
-            $publicPoolIndex,
-            $status,
-            $operatorFee,
-            $minOperatorShareRate,
-            $nonce,
-            $apiKeyIndex,
-            $accountIndex
-        );
-        return $this->parseSignedTxResponse($result);
-    }
-
-    /**
-     * Sign a mint shares transaction
-     * 
-     * @param int $publicPoolIndex Public pool index
-     * @param int $shareAmount Share amount to mint
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
-    public function signMintShares(
-        int $publicPoolIndex,
-        int $shareAmount,
-        int $nonce,
-        int $apiKeyIndex,
-        int $accountIndex
-    ): array {
-        $result = $this->ffi->SignMintShares(
-            $publicPoolIndex,
-            $shareAmount,
-            $nonce,
-            $apiKeyIndex,
-            $accountIndex
-        );
-        return $this->parseSignedTxResponse($result);
-    }
-
-    /**
-     * Sign a burn shares transaction
-     * 
-     * @param int $publicPoolIndex Public pool index
-     * @param int $shareAmount Share amount to burn
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
-    public function signBurnShares(
-        int $publicPoolIndex,
-        int $shareAmount,
-        int $nonce,
-        int $apiKeyIndex,
-        int $accountIndex
-    ): array {
-        $result = $this->ffi->SignBurnShares(
-            $publicPoolIndex,
-            $shareAmount,
-            $nonce,
-            $apiKeyIndex,
-            $accountIndex
-        );
-        return $this->parseSignedTxResponse($result);
-    }
-
-    /**
-     * Sign an update leverage transaction
-     * 
-     * @param int $marketIndex Market index
-     * @param int $initialMarginFraction Initial margin fraction
-     * @param int $marginMode Margin mode (0 = Cross, 1 = Isolated)
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
-    public function signUpdateLeverage(
-        int $marketIndex,
-        int $initialMarginFraction,
-        int $marginMode,
-        int $nonce,
-        int $apiKeyIndex,
-        int $accountIndex
-    ): array {
-        $result = $this->ffi->SignUpdateLeverage(
-            $marketIndex,
-            $initialMarginFraction,
-            $marginMode,
-            $nonce,
-            $apiKeyIndex,
-            $accountIndex
-        );
-        return $this->parseSignedTxResponse($result);
-    }
-
-    /**
-     * Create an authentication token
-     * 
-     * @param int $deadline Token deadline timestamp (0 for default 7 hours)
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return string The authentication token
-     * @throws RuntimeException If token creation fails
-     */
-    public function createAuthToken(
-        int $deadline,
-        int $apiKeyIndex,
-        int $accountIndex
-    ): string {
-        $result = $this->ffi->CreateAuthToken($deadline, $apiKeyIndex, $accountIndex);
-        
-        if ($result->err !== null) {
-            throw new RuntimeException("CreateAuthToken failed: " . \FFI::string($result->err));
-        }
-        
-        return \FFI::string($result->str);
-    }
-
-    /**
-     * Sign an update margin transaction
-     * 
-     * @param int $marketIndex Market index
-     * @param int $usdcAmount USDC amount
-     * @param int $direction Direction (0 = Remove, 1 = Add)
-     * @param int $nonce Transaction nonce
-     * @param int $apiKeyIndex The API key index
-     * @param int $accountIndex The account index
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If signing fails
-     */
-    public function signUpdateMargin(
-        int $marketIndex,
-        int $usdcAmount,
-        int $direction,
-        int $nonce,
-        int $apiKeyIndex,
-        int $accountIndex
-    ): array {
-        $result = $this->ffi->SignUpdateMargin(
-            $marketIndex,
-            $usdcAmount,
-            $direction,
-            $nonce,
-            $apiKeyIndex,
-            $accountIndex
-        );
-        return $this->parseSignedTxResponse($result);
-    }
-
-    /**
-     * Parse a SignedTxResponse from FFI into a PHP array
-     * 
-     * @param \FFI\CData $result The FFI result
-     * @return array{txType: int, txInfo: string, txHash: string, messageToSign: string|null}
-     * @throws RuntimeException If the response contains an error
-     */
-    private function parseSignedTxResponse(\FFI\CData $result): array
-    {
-        if ($result->err !== null) {
-            throw new RuntimeException("Signing failed: " . \FFI::string($result->err));
-        }
-        
-        return [
-            'txType' => $result->txType,
-            'txInfo' => \FFI::string($result->txInfo),
-            'txHash' => \FFI::string($result->txHash),
-            'messageToSign' => $result->messageToSign !== null 
-                ? \FFI::string($result->messageToSign) 
-                : null,
-        ];
+        return $this->normalizeSignedTxResponse($res);
     }
 }

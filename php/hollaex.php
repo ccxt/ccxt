@@ -640,7 +640,7 @@ class hollaex extends Exchange {
         //         "low" => 8607,
         //         "last" => 8841.05,
         //         "volume" => 20.2802,
-        //         "timestamp" => "2020-03-03T03:11:18.964Z"
+        //         "timestamp" => "2020-03-03T03:11:18.965Z"
         //     }
         //
         return $this->parse_ticker($response, $market);
@@ -931,12 +931,10 @@ class hollaex extends Exchange {
         $timeDelta = $this->parse_timeframe($timeframe) * $maxLimit * 1000;
         $start = $since;
         $now = $this->milliseconds();
-        if ($until === null && $start === null) {
-            $until = $now;
-            $start = $until - $timeDelta;
-        } elseif ($until === null) {
+        if ($until === null) {
             $until = $now; // the exchange has not a lot of trades, so if we count $until by $limit and $limit is small, it may return empty result
-        } elseif ($start === null) {
+        }
+        if ($start === null) {
             $start = $until - $timeDelta;
         }
         $request['from'] = $this->parse_to_int($start / 1000); // convert to seconds

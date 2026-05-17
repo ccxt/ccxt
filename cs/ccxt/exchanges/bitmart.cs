@@ -2745,7 +2745,7 @@ public partial class bitmart : Exchange
             object spotRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
             if (isTrue(isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)) || isTrue(isTriggerOrder)))
             {
-                response = await ((Task<object>)callDynamically(this, "privatePostSpotV4AlgoSubmitOrder", new object[] { spotRequest }));
+                response = await this.privatePostSpotV4AlgoSubmitOrder(spotRequest);
             } else if (isTrue(isEqual(marginMode, "isolated")))
             {
                 response = await this.privatePostSpotV1MarginSubmitOrder(spotRequest);
@@ -3244,7 +3244,7 @@ public partial class bitmart : Exchange
                 {
                     ((IDictionary<string,object>)request)["type"] = "trigger";
                 }
-                response = await ((Task<object>)callDynamically(this, "privatePostSpotV4AlgoCancelOrder", new object[] { this.extend(request, parameters) }));
+                response = await this.privatePostSpotV4AlgoCancelOrder(this.extend(request, parameters));
             } else
             {
                 response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
@@ -3442,7 +3442,7 @@ public partial class bitmart : Exchange
                 {
                     ((IDictionary<string,object>)request)["type"] = "trigger";
                 }
-                response = await ((Task<object>)callDynamically(this, "privatePostSpotV4AlgoCancelAll", new object[] { this.extend(request, parameters) }));
+                response = await this.privatePostSpotV4AlgoCancelAll(this.extend(request, parameters));
             } else
             {
                 response = await this.privatePostSpotV4CancelAll(this.extend(request, parameters));
@@ -3618,7 +3618,7 @@ public partial class bitmart : Exchange
                 {
                     ((IDictionary<string,object>)request)["orderMode"] = "tp/sl";
                 }
-                response = await ((Task<object>)callDynamically(this, "privatePostSpotV4QueryAlgoOpenOrders", new object[] { this.extend(request, parameters) }));
+                response = await this.privatePostSpotV4QueryAlgoOpenOrders(this.extend(request, parameters));
             } else
             {
                 response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, parameters));
@@ -3784,7 +3784,7 @@ public partial class bitmart : Exchange
                 {
                     ((IDictionary<string,object>)request)["orderMode"] = "tp/sl";
                 }
-                response = await ((Task<object>)callDynamically(this, "privatePostSpotV4QueryAlgoHistoryOrders", new object[] { this.extend(request, parameters) }));
+                response = await this.privatePostSpotV4QueryAlgoHistoryOrders(this.extend(request, parameters));
             } else
             {
                 response = await this.privatePostSpotV4QueryHistoryOrders(this.extend(request, parameters));
@@ -3860,10 +3860,10 @@ public partial class bitmart : Exchange
             {
                 if (isTrue(!isEqual(clientOrderId, null)))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privatePostSpotV4QueryAlgoClientOrder", new object[] { this.extend(request, parameters) }));
+                    response = await this.privatePostSpotV4QueryAlgoClientOrder(this.extend(request, parameters));
                 } else
                 {
-                    response = await ((Task<object>)callDynamically(this, "privatePostSpotV4QueryAlgoOrder", new object[] { this.extend(request, parameters) }));
+                    response = await this.privatePostSpotV4QueryAlgoOrder(this.extend(request, parameters));
                 }
             } else
             {

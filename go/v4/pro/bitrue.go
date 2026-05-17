@@ -18,9 +18,9 @@ func NewBitrueCore() *BitrueCore {
     return p
 }
 
-func  (this *BitrueCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *BitrueCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "watchBalance": true,
             "watchTicker": false,
@@ -31,35 +31,35 @@ func  (this *BitrueCore) Describe() interface{}  {
             "watchOrderBook": true,
             "watchOHLCV": false,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "open": "https://open.bitrue.com",
-                "ws": map[string]interface{} {
+                "ws": map[string]any {
                     "public": "wss://ws.bitrue.com/market/ws",
                     "private": "wss://wsapi.bitrue.com",
                 },
             },
         },
-        "api": map[string]interface{} {
-            "open": map[string]interface{} {
-                "v1": map[string]interface{} {
-                    "private": map[string]interface{} {
-                        "post": map[string]interface{} {
+        "api": map[string]any {
+            "open": map[string]any {
+                "v1": map[string]any {
+                    "private": map[string]any {
+                        "post": map[string]any {
                             "poseidon/api/v1/listenKey": 1,
                         },
-                        "put": map[string]interface{} {
+                        "put": map[string]any {
                             "poseidon/api/v1/listenKey/{listenKey}": 1,
                         },
-                        "delete": map[string]interface{} {
+                        "delete": map[string]any {
                             "poseidon/api/v1/listenKey/{listenKey}": 1,
                         },
                     },
                 },
             },
         },
-        "options": map[string]interface{} {
+        "options": map[string]any {
             "listenKeyRefreshRate": 1800000,
-            "ws": map[string]interface{} {
+            "ws": map[string]any {
                 "gunzip": true,
             },
         },
@@ -73,24 +73,24 @@ func  (this *BitrueCore) Describe() interface{}  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func  (this *BitrueCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *BitrueCore) WatchBalance(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
             url:= (<-this.Authenticate())
             ccxt.PanicOnError(url)
-            var messageHash interface{} = "balance"
-            var message interface{} = map[string]interface{} {
+            var messageHash any = "balance"
+            var message any = map[string]any {
                 "event": "sub",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "channel": "user_balance_update",
                 },
             }
-            var request interface{} = this.DeepExtend(message, params)
+            var request any = this.DeepExtend(message, params)
         
                 retRes7615 :=  (<-this.Watch(url, messageHash, request, messageHash))
                 ccxt.PanicOnError(retRes7615)
@@ -100,7 +100,7 @@ func  (this *BitrueCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             }()
             return ch
         }
-func  (this *BitrueCore) HandleBalance(client interface{}, message interface{})  {
+func  (this *BitrueCore) HandleBalance(client any, message any)  {
     //
     //     {
     //         "e": "BALANCE",
@@ -146,12 +146,12 @@ func  (this *BitrueCore) HandleBalance(client interface{}, message interface{}) 
     //      "u": 2285311
     //    }
     //
-    var balances interface{} = this.SafeValue(message, "B", []interface{}{})
+    var balances any = this.SafeValue(message, "B", []any{})
     this.ParseWSBalances(balances)
-    var messageHash interface{} = "balance"
+    var messageHash any = "balance"
     client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func  (this *BitrueCore) ParseWSBalances(balances interface{})  {
+func  (this *BitrueCore) ParseWSBalances(balances any)  {
     //
     //    [{
     //         "a": "btc",
@@ -170,16 +170,16 @@ func  (this *BitrueCore) ParseWSBalances(balances interface{})  {
     //
     ccxt.AddElementToObject(this.Balance, "info", balances)
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(balances)); i++ {
-        var balance interface{} = ccxt.GetValue(balances, i)
-        var currencyId interface{} = this.SafeString(balance, "a")
-        var code interface{} = this.SafeCurrencyCode(currencyId)
-        var account interface{} = this.Account()
-        var free interface{} = this.SafeString(balance, "F")
-        var used interface{} = this.SafeString(balance, "L")
-        var balanceUpdateTime interface{} = this.SafeInteger(balance, "T", 0)
-        var lockBalanceUpdateTime interface{} = this.SafeInteger(balance, "t", 0)
-        var updateFree interface{} = !ccxt.IsEqual(balanceUpdateTime, 0)
-        var updateUsed interface{} = !ccxt.IsEqual(lockBalanceUpdateTime, 0)
+        var balance any = ccxt.GetValue(balances, i)
+        var currencyId any = this.SafeString(balance, "a")
+        var code any = this.SafeCurrencyCode(currencyId)
+        var account any = this.Account()
+        var free any = this.SafeString(balance, "F")
+        var used any = this.SafeString(balance, "L")
+        var balanceUpdateTime any = this.SafeInteger(balance, "T", 0)
+        var lockBalanceUpdateTime any = this.SafeInteger(balance, "t", 0)
+        var updateFree any = !ccxt.IsEqual(balanceUpdateTime, 0)
+        var updateUsed any = !ccxt.IsEqual(lockBalanceUpdateTime, 0)
         if ccxt.IsTrue(ccxt.IsTrue(updateFree) || ccxt.IsTrue(updateUsed)) {
             if ccxt.IsTrue(updateFree) {
                 ccxt.AddElementToObject(account, "free", free)
@@ -203,9 +203,9 @@ func  (this *BitrueCore) ParseWSBalances(balances interface{})  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols
  */
-func  (this *BitrueCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *BitrueCore) WatchOrders(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbol := ccxt.GetArg(optionalArgs, 0, nil)
@@ -214,26 +214,26 @@ func  (this *BitrueCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             _ = since
             limit := ccxt.GetArg(optionalArgs, 2, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
             retRes1858 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1858)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-                var market interface{} = this.Market(symbol)
+                var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
             }
         
             url:= (<-this.Authenticate())
             ccxt.PanicOnError(url)
-            var messageHash interface{} = "orders"
-            var message interface{} = map[string]interface{} {
+            var messageHash any = "orders"
+            var message any = map[string]any {
                 "event": "sub",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "channel": "user_order_update",
                 },
             }
-            var request interface{} = this.DeepExtend(message, params)
+            var request any = this.DeepExtend(message, params)
         
             orders:= (<-this.Watch(url, messageHash, request, messageHash))
             ccxt.PanicOnError(orders)
@@ -247,7 +247,7 @@ func  (this *BitrueCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             }()
             return ch
         }
-func  (this *BitrueCore) HandleOrder(client interface{}, message interface{})  {
+func  (this *BitrueCore) HandleOrder(client any, message any)  {
     //
     //    {
     //        "e": "ORDER",
@@ -271,17 +271,17 @@ func  (this *BitrueCore) HandleOrder(client interface{}, message interface{})  {
     //        "Y": "0"
     //    }
     //
-    var parsed interface{} = this.ParseWsOrder(message)
+    var parsed any = this.ParseWsOrder(message)
     if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
-    var orders interface{} = this.Orders
+    var orders any = this.Orders
     orders.(ccxt.Appender).Append(parsed)
-    var messageHash interface{} = "orders"
+    var messageHash any = "orders"
     client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func  (this *BitrueCore) ParseWsOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *BitrueCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //
     //    {
     //        "e": "ORDER",
@@ -307,16 +307,16 @@ func  (this *BitrueCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp interface{} = this.SafeInteger(order, "E")
-    var marketId interface{} = this.SafeStringUpper(order, "s")
-    var typeId interface{} = this.SafeString(order, "o")
-    var sideId interface{} = this.SafeInteger(order, "S")
+    var timestamp any = this.SafeInteger(order, "E")
+    var marketId any = this.SafeStringUpper(order, "s")
+    var typeId any = this.SafeString(order, "o")
+    var sideId any = this.SafeInteger(order, "S")
     // 1: buy
     // 2: sell
-    var side interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(sideId, 1))), "buy", "sell")
-    var statusId interface{} = this.SafeString(order, "X")
-    var feeCurrencyId interface{} = this.SafeString(order, "N")
-    return this.SafeOrder(map[string]interface{} {
+    var side any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(sideId, 1))), "buy", "sell")
+    var statusId any = this.SafeString(order, "X")
+    var feeCurrencyId any = this.SafeString(order, "N")
+    return this.SafeOrder(map[string]any {
         "info": order,
         "id": this.SafeString(order, "i"),
         "clientOrderId": this.SafeString(order, "c"),
@@ -336,38 +336,38 @@ func  (this *BitrueCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
         "filled": this.SafeString(order, "z"),
         "remaining": nil,
         "status": this.ParseWsOrderStatus(statusId),
-        "fee": map[string]interface{} {
+        "fee": map[string]any {
             "currency": this.SafeCurrencyCode(feeCurrencyId),
             "cost": this.SafeNumber(order, "n"),
         },
     }, market)
 }
-func  (this *BitrueCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *BitrueCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes3028 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes3028)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var messageHash interface{} = ccxt.Add("orderbook:", symbol)
-            var marketIdLowercase interface{} = ccxt.ToLower(ccxt.GetValue(market, "id"))
-            var channel interface{} = ccxt.Add(ccxt.Add("market_", marketIdLowercase), "_simple_depth_step0")
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-            var message interface{} = map[string]interface{} {
+            var messageHash any = ccxt.Add("orderbook:", symbol)
+            var marketIdLowercase any = ccxt.ToLower(ccxt.GetValue(market, "id"))
+            var channel any = ccxt.Add(ccxt.Add("market_", marketIdLowercase), "_simple_depth_step0")
+            var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+            var message any = map[string]any {
                 "event": "sub",
-                "params": map[string]interface{} {
+                "params": map[string]any {
                     "cb_id": marketIdLowercase,
                     "channel": channel,
                 },
             }
-            var request interface{} = this.DeepExtend(message, params)
+            var request any = this.DeepExtend(message, params)
         
                 retRes31715 :=  (<-this.Watch(url, messageHash, request, messageHash))
                 ccxt.PanicOnError(retRes31715)
@@ -377,7 +377,7 @@ func  (this *BitrueCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
             }()
             return ch
         }
-func  (this *BitrueCore) HandleOrderBook(client interface{}, message interface{})  {
+func  (this *BitrueCore) HandleOrderBook(client any, message any)  {
     //
     //     {
     //         "channel": "market_ethbtc_simple_depth_step0",
@@ -410,32 +410,32 @@ func  (this *BitrueCore) HandleOrderBook(client interface{}, message interface{}
     //         }
     //     }
     //
-    var channel interface{} = this.SafeString(message, "channel")
-    var parts interface{} = ccxt.Split(channel, "_")
-    var marketId interface{} = this.SafeStringUpper(parts, 1)
-    var market interface{} = this.SafeMarket(marketId)
-    var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var timestamp interface{} = this.SafeInteger(message, "ts")
-    var tick interface{} = this.SafeValue(message, "tick", map[string]interface{} {})
+    var channel any = this.SafeString(message, "channel")
+    var parts any = ccxt.Split(channel, "_")
+    var marketId any = this.SafeStringUpper(parts, 1)
+    var market any = this.SafeMarket(marketId)
+    var symbol any = ccxt.GetValue(market, "symbol")
+    var timestamp any = this.SafeInteger(message, "ts")
+    var tick any = this.SafeValue(message, "tick", map[string]any {})
     if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
         ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
     }
-    var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
-    var snapshot interface{} = this.ParseOrderBook(tick, symbol, timestamp, "buys", "asks")
+    var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+    var snapshot any = this.ParseOrderBook(tick, symbol, timestamp, "buys", "asks")
     orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-    var messageHash interface{} = ccxt.Add("orderbook:", symbol)
+    var messageHash any = ccxt.Add("orderbook:", symbol)
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func  (this *BitrueCore) ParseWsOrderType(typeId interface{}) interface{}  {
-    var types interface{} = map[string]interface{} {
+func  (this *BitrueCore) ParseWsOrderType(typeId any) any  {
+    var types any = map[string]any {
         "1": "limit",
         "2": "market",
         "3": "limit",
     }
     return this.SafeString(types, typeId, typeId)
 }
-func  (this *BitrueCore) ParseWsOrderStatus(status interface{}) interface{}  {
-    var statuses interface{} = map[string]interface{} {
+func  (this *BitrueCore) ParseWsOrderStatus(status any) any  {
+    var statuses any = map[string]any {
         "0": "open",
         "1": "open",
         "2": "closed",
@@ -445,12 +445,12 @@ func  (this *BitrueCore) ParseWsOrderStatus(status interface{}) interface{}  {
     }
     return this.SafeString(statuses, status, status)
 }
-func  (this *BitrueCore) HandlePing(client interface{}, message interface{})  {
+func  (this *BitrueCore) HandlePing(client any, message any)  {
     this.Spawn(this.Pong, client, message)
 }
-func  (this *BitrueCore) Pong(client interface{}, message interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *BitrueCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     //
@@ -458,8 +458,8 @@ func  (this *BitrueCore) Pong(client interface{}, message interface{}) <- chan i
             //         "ping": 1670057540627
             //     }
             //
-            var time interface{} = this.SafeInteger(message, "ping")
-            var pong interface{} = map[string]interface{} {
+            var time any = this.SafeInteger(message, "ping")
+            var pong any = map[string]any {
                 "pong": time,
             }
         
@@ -469,31 +469,31 @@ func  (this *BitrueCore) Pong(client interface{}, message interface{}) <- chan i
             }()
             return ch
         }
-func  (this *BitrueCore) HandleMessage(client interface{}, message interface{})  {
+func  (this *BitrueCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(ccxt.InOp(message, "channel")) {
         this.HandleOrderBook(client, message)
     } else if ccxt.IsTrue(ccxt.InOp(message, "ping")) {
         this.HandlePing(client, message)
     } else {
-        var event interface{} = this.SafeString(message, "e")
-        var handlers interface{} = map[string]interface{} {
+        var event any = this.SafeString(message, "e")
+        var handlers any = map[string]any {
             "BALANCE": this.HandleBalance,
             "ORDER": this.HandleOrder,
         }
-        var handler interface{} = this.SafeValue(handlers, event)
+        var handler any = this.SafeValue(handlers, event)
         if ccxt.IsTrue(!ccxt.IsEqual(handler, nil)) {
             ccxt.CallDynamically(handler, client, message)
         }
     }
 }
-func  (this *BitrueCore) Authenticate(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *BitrueCore) Authenticate(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var listenKey interface{} = this.SafeValue(this.Options, "listenKey")
+            var listenKey any = this.SafeValue(this.Options, "listenKey")
             if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
         
                 response:= (<-this.OpenV1PrivatePostPoseidonApiV1ListenKey(params))
@@ -507,11 +507,11 @@ func  (this *BitrueCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                 //         }
                 //     }
                 //
-                var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
-                var key interface{} = this.SafeString(data, "listenKey")
+                var data any = this.SafeValue(response, "data", map[string]any {})
+                var key any = this.SafeString(data, "listenKey")
                 ccxt.AddElementToObject(this.Options, "listenKey", key)
                 ccxt.AddElementToObject(this.Options, "listenKeyUrl", ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/stream?listenKey="), key))
-                var refreshTimeout interface{} = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1800000)
+                var refreshTimeout any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1800000)
                 this.Delay(refreshTimeout, this.KeepAliveListenKey)
             }
         
@@ -521,26 +521,26 @@ func  (this *BitrueCore) Authenticate(optionalArgs ...interface{}) <- chan inter
             }()
             return ch
         }
-func  (this *BitrueCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *BitrueCore) KeepAliveListenKey(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var listenKey interface{} = this.SafeString(this.Options, "listenKey")
-            var request interface{} = map[string]interface{} {
+            var listenKey any = this.SafeString(this.Options, "listenKey")
+            var request any = map[string]any {
                 "listenKey": listenKey,
             }
             
                 {
-                     func(this *BitrueCore) (ret_ interface{}) {
+                     func(this *BitrueCore) (ret_ any) {
             		    defer func() {
                             if error := recover(); error != nil {
                                 if error == "break" {
                                     return
                                 }
-                                ret_ = func(this *BitrueCore) interface{} {
+                                ret_ = func(this *BitrueCore) any {
                                     // catch block:
                                             ccxt.AddElementToObject(this.Options, "listenKey", nil)
                     ccxt.AddElementToObject(this.Options, "listenKeyUrl", nil)
@@ -558,7 +558,7 @@ func  (this *BitrueCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan
             	    }(this)
                 
                     }
-            var refreshTimeout interface{} = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1800000)
+            var refreshTimeout any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1800000)
             this.Delay(refreshTimeout, this.KeepAliveListenKey)
                 return nil
             }()
@@ -566,7 +566,7 @@ func  (this *BitrueCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan
         }
 
 
-func (this *BitrueCore) Init(userConfig map[string]interface{}) {
+func (this *BitrueCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

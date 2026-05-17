@@ -1269,6 +1269,7 @@ public partial class binance : Exchange
                         { "asset-collection", 6 },
                         { "margin/repay-debt", 3000 },
                         { "um/feeBurn", 1 },
+                        { "um/stock/contract", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 0.2 },
@@ -1495,6 +1496,7 @@ public partial class binance : Exchange
                     { "BUSD", "USD" },
                 } },
                 { "defaultWithdrawPrecision", 1e-8 },
+                { "defaultFiatWithdrawPrecision", 0.01 },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -2780,11 +2782,6 @@ public partial class binance : Exchange
         return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
-    public override object costToPrecision(object symbol, object cost)
-    {
-        return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "quote"), this.precisionMode, this.paddingMode);
-    }
-
     public override object nonce()
     {
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
@@ -3000,30 +2997,34 @@ public partial class binance : Exchange
             //        ]
             //    }
             //
+            //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under network entry
+            //
+            //                "specialTips": "",
+            //                "specialWithdrawTips": "",
+            //                "withdrawInternalMin": "0",
+            //                "contractAddressUrl": "https://etherscan.io/address/",
+            //                "contractAddress": "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+            //
             object entry = getValue(responseCurrencies, i);
             object id = this.safeString(entry, "coin");
             object name = this.safeString(entry, "name");
             object code = this.safeCurrencyCode(id);
             object isFiat = this.safeBool(entry, "isLegalMoney");
-            object minPrecision = null;
-            object isWithdrawEnabled = true;
-            object isDepositEnabled = true;
             object networkList = this.safeList(entry, "networkList", new List<object>() {});
             object fees = new Dictionary<string, object>() {};
             object fee = null;
             object networks = new Dictionary<string, object>() {};
+            object isETF = false;
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object networkItem = getValue(networkList, j);
                 object network = this.safeString(networkItem, "network");
-                object networkCode = this.networkIdToCode(network);
-                object isETF = (isEqual(network, "ETF")); // e.g. BTCUP, ETHDOWN
+                object networkCode = this.networkIdToCode(network, code);
+                isETF = (isEqual(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
                 // const name = this.safeString (networkItem, 'name');
                 object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
                 object depositEnable = this.safeBool(networkItem, "depositEnable");
                 object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
-                isDepositEnabled = isTrue(isDepositEnabled) || isTrue(depositEnable);
-                isWithdrawEnabled = isTrue(isWithdrawEnabled) || isTrue(withdrawEnable);
                 ((IDictionary<string,object>)fees)[(string)network] = withdrawFee;
                 object isDefault = this.safeBool(networkItem, "isDefault");
                 if (isTrue(isTrue(isDefault) || isTrue((isEqual(fee, null)))))
@@ -3034,30 +3035,17 @@ public partial class binance : Exchange
                 // if (isDefault) {
                 //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
                 // }
-                object precisionTick = this.safeString(networkItem, "withdrawIntegerMultiple");
-                object withdrawPrecision = precisionTick;
-                // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                if (!isTrue(Precise.stringEq(precisionTick, "0")))
+                object withdrawPrecision = this.omitZero(this.safeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"));
+                // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
+                if (isTrue(isTrue(isEqual(withdrawPrecision, null)) && isTrue(isFiat)))
                 {
-                    minPrecision = ((bool) isTrue((isEqual(minPrecision, null)))) ? precisionTick : Precise.stringMin(minPrecision, precisionTick);
-                } else
-                {
-                    if (isTrue(!isTrue(isFiat) && !isTrue(isETF)))
-                    {
-                        // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
-                        // in such cases, we can set default precision of 8 (which is in UI for such coins)
-                        withdrawPrecision = this.omitZero(this.safeString(networkItem, "withdrawInternalMin"));
-                        if (isTrue(isEqual(withdrawPrecision, null)))
-                        {
-                            withdrawPrecision = this.safeString(this.options, "defaultWithdrawPrecision");
-                        }
-                    }
+                    withdrawPrecision = this.safeString(this.options, "defaultFiatWithdrawPrecision");
                 }
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", networkItem },
                     { "id", network },
                     { "network", networkCode },
-                    { "active", isTrue(depositEnable) && isTrue(withdrawEnable) },
+                    { "active", null },
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
                     { "fee", withdrawFee },
@@ -3074,8 +3062,18 @@ public partial class binance : Exchange
                     } },
                 };
             }
+            object type = null;
+            if (isTrue(isETF))
+            {
+                type = "other";
+            } else if (isTrue(isFiat))
+            {
+                type = "fiat";
+            } else
+            {
+                type = "crypto";
+            }
             object trading = this.safeBool(entry, "trading");
-            object active = (isTrue(isTrue(isWithdrawEnabled) && isTrue(isDepositEnabled)) && isTrue(trading));
             object marginEntry = this.safeDict(marginablesById, id, new Dictionary<string, object>() {});
             //
             //     {
@@ -3087,22 +3085,22 @@ public partial class binance : Exchange
             //         userMinRepay: "0",
             //     }
             //
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", name },
                 { "code", code },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "precision", this.parseNumber(minPrecision) },
+                { "type", type },
+                { "precision", null },
                 { "info", entry },
-                { "active", active },
-                { "deposit", isDepositEnabled },
-                { "withdraw", isWithdrawEnabled },
+                { "active", trading },
+                { "deposit", null },
+                { "withdraw", null },
                 { "networks", networks },
-                { "fee", fee },
+                { "fee", null },
                 { "fees", fees },
-                { "limits", this.limits },
+                { "limits", null },
                 { "margin", this.safeBool(marginEntry, "isBorrowable") },
-            };
+            });
         }
         return result;
     }
@@ -5882,16 +5880,29 @@ public partial class binance : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseOrderType(object type)
+    public virtual object parseOrderTypeByMarket(object type, object marketType)
     {
-        object types = new Dictionary<string, object>() {
-            { "limit_maker", "limit" },
-            { "stop", "limit" },
-            { "stop_market", "market" },
-            { "take_profit", "limit" },
-            { "take_profit_market", "market" },
-            { "trailing_stop_market", "market" },
-        };
+        object types = new Dictionary<string, object>() {};
+        if (isTrue(isTrue((!isEqual(marketType, null))) && isTrue(isEqual(marketType, "spot"))))
+        {
+            types = new Dictionary<string, object>() {
+                { "limit_maker", "limit" },
+                { "stop_loss_limit", "limit" },
+                { "stop_loss", "market" },
+                { "take_profit_limit", "limit" },
+                { "take_profit", "market" },
+            };
+        } else
+        {
+            types = new Dictionary<string, object>() {
+                { "limit_maker", "limit" },
+                { "stop", "limit" },
+                { "stop_market", "market" },
+                { "take_profit", "limit" },
+                { "take_profit_market", "market" },
+                { "trailing_stop_market", "market" },
+            };
+        }
         return this.safeString(types, type, type);
     }
 
@@ -6491,7 +6502,7 @@ public partial class binance : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "lastUpdateTimestamp", lastUpdateTimestamp },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", this.parseOrderTypeByMarket(type, marketType) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "reduceOnly", this.safeBool(order, "reduceOnly") },
@@ -9624,13 +9635,13 @@ public partial class binance : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
         };
-        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (isTrue(!isEqual(network, null)))
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = network;
-            parameters = this.omit(parameters, "network");
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         // has support for the 'network' parameter
         object response = await this.sapiGetCapitalDepositAddress(this.extend(request, parameters));
@@ -9903,13 +9914,14 @@ public partial class binance : Exchange
         //        ]
         //    }
         //
+        object code = this.safeString(currency, "code");
         object networkList = this.safeList(fee, "networkList", new List<object>() {});
         object result = this.depositWithdrawFee(fee);
         for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
             object networkId = this.safeString(networkEntry, "network");
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             object isDefault = this.safeBool(networkEntry, "isDefault");
             if (isTrue(isEqual(isDefault, true)))
@@ -9962,15 +9974,15 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["addressTag"] = tag;
         }
-        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeStringUpper(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (isTrue(!isEqual(network, null)))
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["network"] = network;
-            parameters = this.omit(parameters, "network");
+            ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
-        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount, network);
+        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(getValue(currency, "code"), amount, networkCode);
         object response = await this.sapiPostCapitalWithdrawApply(this.extend(request, parameters));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction(response, currency);

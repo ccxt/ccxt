@@ -169,8 +169,8 @@ public partial class bitvavo : Exchange
                         { "order", 1 },
                         { "orders", 5 },
                         { "ordersOpen", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                            { "noMarket", 25 },
+                            { "cost", 5 },
+                            { "noMarket", 100 },
                         } },
                         { "trades", 5 },
                         { "balance", 5 },
@@ -198,9 +198,15 @@ public partial class bitvavo : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "order", 1 },
-                        { "orders", 1 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                            { "noMarket", 100 },
+                        } },
                         { "institutional/subaccounts/order", 1 },
-                        { "institutional/subaccounts/orders", 1 },
+                        { "institutional/subaccounts/orders", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                            { "noMarket", 100 },
+                        } },
                     } },
                 } },
             } },

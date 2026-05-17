@@ -1394,6 +1394,7 @@ export default class bitget extends Exchange {
                     '43115': OnMaintenance,
                     '45110': InvalidOrder,
                     '40774': InvalidOrder,
+                    '40917': InvalidOrder,
                     '45122': InvalidOrder,
                     // spot
                     'invalid sign': AuthenticationError,
@@ -3596,9 +3597,11 @@ export default class bitget extends Exchange {
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'fetchTickers', 'uta', false);
         if (uta) {
-            const symbolsLength = symbols.length;
-            if ((symbols !== undefined) && (symbolsLength === 1)) {
-                request['symbol'] = market['id'];
+            if (symbols !== undefined) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength === 1) {
+                    request['symbol'] = market['id'];
+                }
             }
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketTickers(this.extend(request, params));
@@ -5110,7 +5113,7 @@ export default class bitget extends Exchange {
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much you want to trade in units of the base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -5441,8 +5444,11 @@ export default class bitget extends Exchange {
                 }
             }
             else if (isStopLossOrTakeProfitTrigger) {
-                if (!isMarketOrder) {
-                    throw new ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                    if ('price' in request) {
+                        delete request['price'];
+                    }
                 }
                 if (hedged) {
                     request['holdSide'] = (side === 'sell') ? 'long' : 'short';

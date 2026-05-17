@@ -1616,7 +1616,7 @@ public partial class krakenfutures : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["from"] = since;
+            ((IDictionary<string,object>)request)["since"] = since;
         }
         object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         object response = null;
@@ -1635,6 +1635,7 @@ public partial class krakenfutures : Exchange
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
             object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
+            object orderUpdated = this.safeDict(eventVar, "OrderUpdated");
             if (isTrue(!isEqual(orderPlaced, null)))
             {
                 object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
@@ -1643,6 +1644,15 @@ public partial class krakenfutures : Exchange
                 {
                     ((IDictionary<string,object>)innerOrder)["status"] = "closed"; // status not available in the response
                     ((IList<object>)closedOrders).Add(innerOrder);
+                }
+            } else if (isTrue(!isEqual(orderUpdated, null)))
+            {
+                object reason = this.safeString(orderUpdated, "reason");
+                if (isTrue(isEqual(reason, "full_fill")))
+                {
+                    object newOrder = this.safeDict(orderUpdated, "newOrder", new Dictionary<string, object>() {});
+                    ((IDictionary<string,object>)newOrder)["status"] = "closed";
+                    ((IList<object>)closedOrders).Add(newOrder);
                 }
             }
         }

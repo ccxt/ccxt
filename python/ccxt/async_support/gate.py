@@ -735,7 +735,6 @@ class gate(Exchange, ImplicitAPI):
                 'MPH': 'MORPHER',  # conflict with 88MPH
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX',  # conflict with RAI Finance
-                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
@@ -1725,6 +1724,9 @@ class gate(Exchange, ImplicitAPI):
                 maxMultiplier = Precise.string_add('1', priceDeviate)
                 minPrice = Precise.string_mul(minMultiplier, markPrice)
                 maxPrice = Precise.string_mul(maxMultiplier, markPrice)
+                createdTs = self.safe_timestamp(market, 'create_time')
+                if createdTs == 0:
+                    createdTs = None
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -1773,7 +1775,7 @@ class gate(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
-                    'created': self.safe_timestamp(market, 'create_time'),
+                    'created': createdTs,
                     'info': market,
                 })
         return result
