@@ -104,12 +104,12 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    const defaultNetworkCodeReplacements = {
-        'ETH': { 'ERC20': 'ETH' },
-        'TRX': { 'TRC20': 'TRX' },
-        'CRO': { 'CRC20': 'CRONOS' },
-        'BRC20': { 'BRC20': 'BTC' },
-    };
+    const defaultNetworkCodeReplacements = [
+        { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+        { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+        { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+        { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    ];
     testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //

@@ -135,7 +135,7 @@ function helperBatchNetworkTests () {
     // check batch
     //
     const exchangeDefaultOpts = exchange.getDefaultOptions ();
-    const chainMappings = exchangeDefaultOpts['chainMappings'];
+    const defaultNetworkCodeReplacements = exchangeDefaultOpts['defaultNetworkCodeReplacements'];
 
     const allNetworkCodes = helperSampleNetworkCodes ();
     const allCurrencyCodes = helperSampleCurrencyCodes ();
@@ -144,8 +144,8 @@ function helperBatchNetworkTests () {
         for (let j = 0; j < allCurrencyCodes.length; j++) {
             const randomCurrencyCode = allCurrencyCodes[j];
             const result = exchange.networkIdToCode (randomNetworkCode, randomCurrencyCode);
-            for (let k = 0; k < chainMappings.length; k++) {
-                const chainMapping = chainMappings[k];
+            for (let k = 0; k < defaultNetworkCodeReplacements.length; k++) {
+                const chainMapping = defaultNetworkCodeReplacements[k];
                 const baseCoin = chainMapping['baseCoin'];
                 const primaryNetworkCode = chainMapping['primary'];
                 const secondaryNetworkCode = chainMapping['secondary'];

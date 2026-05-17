@@ -3750,7 +3750,7 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
-            'chainMappings': [
+            'defaultNetworkCodeReplacements': [
                 { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
                 { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
                 { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
@@ -3776,9 +3776,9 @@ export default class Exchange {
          * @param {string} networkCode unified network-code
          * @returns {string} networkCode
          */
-        const chainMappings = this.safeList (this.options, 'chainMappings', []);
-        for (let i = 0; i < chainMappings.length; i++) {
-            const entry = chainMappings[i];
+        const defaultNetworkCodeReplacements = this.safeList (this.options, 'defaultNetworkCodeReplacements', []);
+        for (let i = 0; i < defaultNetworkCodeReplacements.length; i++) {
+            const entry = defaultNetworkCodeReplacements[i];
             // if passed networkCode matches either primary (eg. ETH) or secondary (eg. ERC20) networkcode
             if (networkCode === entry['primary'] || networkCode === entry['secondary']) {
                 // return the primary networkCode only if mainnet baseCoin was provided
@@ -5263,9 +5263,9 @@ export default class Exchange {
                 // check if user incorrectly passed mainnet-vs-protocol networkCode, eg:
                 // - for ETH coin passed `ERC20` networkCode
                 // - for USDT coin passed `ETH` networkCode
-                const chainMappings = this.safeList (this.options, 'chainMappings', []);
-                for (let i = 0; i < chainMappings.length; i++) {
-                    const entry = chainMappings[i];
+                const defaultNetworkCodeReplacements = this.safeList (this.options, 'defaultNetworkCodeReplacements', []);
+                for (let i = 0; i < defaultNetworkCodeReplacements.length; i++) {
+                    const entry = defaultNetworkCodeReplacements[i];
                     if (networkCode === entry['secondary'] || networkCode === entry['primary']) {
                         networkId = this.safeString2 (networkIdsByCodes, entry['primary'], entry['secondary']);
                     }
