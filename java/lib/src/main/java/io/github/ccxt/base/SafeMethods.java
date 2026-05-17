@@ -244,14 +244,14 @@ public final class SafeMethods {
 
         // Map<String,Object> directly
         if (obj instanceof Map<?, ?> m) {
-            Map<String, Object> dict = (Map<String, Object>) m;
+            Map<?, ?> dict = m;
 
-            // If it's not String-keyed, coerce keys to String
-            boolean allStringKeys = dict.keySet().stream().allMatch(k -> k instanceof String);
-            if (!allStringKeys) {
-                dict = ConvertToDictionaryOfStringObject(obj);
-            }
-
+            // Fast path: direct String-keyed lookups. containsKey/get on
+            // HashMap don't iterate the keySet so they're safe even when a
+            // concurrent WS handler thread is mutating the dict — unlike
+            // any keySet stream which throws CME (HashMap$KeySpliterator
+            // .tryAdvance) under concurrent mutation. This is the hot path:
+            // every safeXxx call lands here for JSON-parsed dicts.
             for (Object k2 : keys) {
                 if (k2 == null) continue;
                 String k = String.valueOf(k2);
@@ -260,6 +260,41 @@ public final class SafeMethods {
                     if (returnValue == null || (returnValue instanceof String s && s.isEmpty())) continue;
                     return returnValue;
                 }
+            }
+            // Slow path: dict may be non-String-keyed (e.g. an Integer-keyed
+            // map produced by a transpiled `dict[0]` literal). Coerce by
+            // walking entrySet once and retry. Tolerate CME from concurrent
+            // mutation by treating it as a miss — caller will look up again.
+            //
+            // Note: do NOT use `keySet().stream().allMatch(k -> k instanceof
+            // String)` here — combined with the unchecked Map<String,Object>
+            // cast above, the lambda's auto-cast throws ClassCastException
+            // for non-String keys, defeating the purpose of the slow path.
+            try {
+                Map<String, Object> coerced = null;
+                for (Object k2 : keys) {
+                    if (k2 == null) continue;
+                    String wanted = String.valueOf(k2);
+                    if (coerced == null) {
+                        coerced = new java.util.HashMap<>();
+                        boolean anyNonStringKey = false;
+                        for (Map.Entry<?, ?> entry : dict.entrySet()) {
+                            Object rawKey = entry.getKey();
+                            if (!(rawKey instanceof String)) anyNonStringKey = true;
+                            coerced.put(String.valueOf(rawKey), entry.getValue());
+                        }
+                        // All-String-keyed: fast path already covered every
+                        // String lookup. No point retrying.
+                        if (!anyNonStringKey) return defaultValue;
+                    }
+                    if (coerced.containsKey(wanted)) {
+                        Object returnValue = coerced.get(wanted);
+                        if (returnValue == null || (returnValue instanceof String s && s.isEmpty())) continue;
+                        return returnValue;
+                    }
+                }
+            } catch (java.util.ConcurrentModificationException ignored) {
+                // concurrent writer beat us — fall through to default
             }
             return defaultValue;
         }
