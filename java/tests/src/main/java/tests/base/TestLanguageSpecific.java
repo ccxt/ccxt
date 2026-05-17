@@ -174,6 +174,7 @@ public class TestLanguageSpecific extends BaseTest
         dict.put("side", "buy");
 
         List<Object> keys = new ArrayList<>(Arrays.asList("missing1", "missing2", "price"));
+        List<Object> allMissKeys = new ArrayList<>(Arrays.asList("nope1", "nope2", "nope3"));
 
         int warmup = 50_000;
         int iters = 500_000;
@@ -183,6 +184,8 @@ public class TestLanguageSpecific extends BaseTest
             ex.safeValue(dict, "side");
             ex.safeString(dict, "price");
             ex.safeValueN(dict, keys);
+            ex.safeValue(dict, "totally_missing");
+            ex.safeValueN(dict, allMissKeys);
         }
 
         long t0 = System.nanoTime();
@@ -194,6 +197,22 @@ public class TestLanguageSpecific extends BaseTest
         long elapsedNs = System.nanoTime() - t0;
         double nsPerOp = (double) elapsedNs / (iters * 3);
         long opsPerSecond = (long) (1_000_000_000.0 / nsPerOp);
+
+        // All-miss workload: every key returns the default. Exercises whichever
+        // miss-handling path is on (pre-fix: keySet().stream() precheck; post-fix:
+        // slow-path entrySet walk + HashMap alloc). Same big-O, different constants.
+        long t1 = System.nanoTime();
+        for (int i = 0; i < iters; i++) {
+            ex.safeValue(dict, "totally_missing");
+            ex.safeValueN(dict, allMissKeys);
+            ex.safeString(dict, "also_missing");
+        }
+        long elapsedMissNs = System.nanoTime() - t1;
+        double nsPerOpMiss = (double) elapsedMissNs / (iters * 3);
+
+        System.out.println("[perf] SafeMethods miss-only: "
+                + String.format("%.0f", nsPerOpMiss) + " ns/op ("
+                + (iters * 3) + " calls in " + (elapsedMissNs / 1_000_000) + " ms)");
 
         System.out.println("[perf] SafeMethods: "
                 + String.format("%.0f", nsPerOp) + " ns/op, "

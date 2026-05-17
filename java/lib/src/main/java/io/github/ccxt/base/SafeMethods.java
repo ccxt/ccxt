@@ -262,31 +262,39 @@ public final class SafeMethods {
                 }
             }
             // Slow path: dict may be non-String-keyed (e.g. an Integer-keyed
-            // map produced by a transpiled `dict[0]` literal). Coerce by
-            // walking entrySet once and retry. Tolerate CME from concurrent
-            // mutation by treating it as a miss — caller will look up again.
+            // map produced by a transpiled `dict[0]` literal). First, probe
+            // a single entry to decide whether full coercion is needed —
+            // ccxt dicts come from JSON parsing 99%+ of the time, so the
+            // probe lets us skip the entrySet walk + HashMap allocation on
+            // the all-miss case (the dominant cost for params/optional-key
+            // lookups). Tolerate CME from concurrent mutation by treating
+            // it as a miss; caller will look up again on the next message.
             //
             // Note: do NOT use `keySet().stream().allMatch(k -> k instanceof
             // String)` here — combined with the unchecked Map<String,Object>
             // cast above, the lambda's auto-cast throws ClassCastException
             // for non-String keys, defeating the purpose of the slow path.
             try {
-                Map<String, Object> coerced = null;
+                java.util.Iterator<? extends Map.Entry<?, ?>> it = dict.entrySet().iterator();
+                if (!it.hasNext()) return defaultValue;
+                Map.Entry<?, ?> first = it.next();
+                if (first.getKey() instanceof String) {
+                    // Almost certainly all-String-keyed (the rare mixed-key
+                    // case is handled by JSON parsers producing String keys
+                    // exclusively). Fast path already covered every String
+                    // lookup, so no point retrying.
+                    return defaultValue;
+                }
+                // First key is non-String — full coercion warranted.
+                Map<String, Object> coerced = new java.util.HashMap<>();
+                coerced.put(String.valueOf(first.getKey()), first.getValue());
+                while (it.hasNext()) {
+                    Map.Entry<?, ?> entry = it.next();
+                    coerced.put(String.valueOf(entry.getKey()), entry.getValue());
+                }
                 for (Object k2 : keys) {
                     if (k2 == null) continue;
                     String wanted = String.valueOf(k2);
-                    if (coerced == null) {
-                        coerced = new java.util.HashMap<>();
-                        boolean anyNonStringKey = false;
-                        for (Map.Entry<?, ?> entry : dict.entrySet()) {
-                            Object rawKey = entry.getKey();
-                            if (!(rawKey instanceof String)) anyNonStringKey = true;
-                            coerced.put(String.valueOf(rawKey), entry.getValue());
-                        }
-                        // All-String-keyed: fast path already covered every
-                        // String lookup. No point retrying.
-                        if (!anyNonStringKey) return defaultValue;
-                    }
                     if (coerced.containsKey(wanted)) {
                         Object returnValue = coerced.get(wanted);
                         if (returnValue == null || (returnValue instanceof String s && s.isEmpty())) continue;
