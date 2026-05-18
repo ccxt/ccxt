@@ -3750,20 +3750,20 @@ export default class Exchange {
 
     getDefaultOptions () {
         return {
-            'defaultNetworkCodeReplacements': [
-                { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-                { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-                { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-                { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-            ],
+            'defaultNetworkCodeReplacements': {
+                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20' },
+                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20' },
+                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20' },
+                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20' },
+            },
         };
     }
 
-    networkCodeProtocolCorrector (currencyCode: string, networkCode: string) {
+    networkCodeChainSwitcher (currencyCode: string, networkCode: string) {
         /**
          * @method
-         * @name Exchange#networkCodeProtocolCorrector
-         * @description this method ensures that returned networkCode is in sutiable for given coin, e.g:
+         * @name Exchange#networkCodeChainSwitcher
+         * @description this method ensures that returned networkCode is suitable for a given coin, e.g:
          *   ----------------------------
          *   | input          | returns |
          *   ----------------------------
@@ -3776,13 +3776,15 @@ export default class Exchange {
          * @param {string} networkCode unified network-code
          * @returns {string} networkCode
          */
-        const defaultNetworkCodeReplacements = this.safeList (this.options, 'defaultNetworkCodeReplacements', []);
-        for (let i = 0; i < defaultNetworkCodeReplacements.length; i++) {
-            const entry = defaultNetworkCodeReplacements[i];
+        const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
+        const keys = Object.keys (defaultNetworkCodeReplacements);
+        for (let i = 0; i < keys.length; i++) {
+            const chainBaseCoin = keys[i];
+            const chainProtocols = defaultNetworkCodeReplacements[chainBaseCoin];
             // if passed networkCode matches either primary (eg. ETH) or secondary (eg. ERC20) networkcode
-            if (networkCode === entry['primary'] || networkCode === entry['secondary']) {
+            if (networkCode === chainProtocols['primary'] || networkCode === chainProtocols['secondary']) {
                 // return the primary networkCode only if mainnet baseCoin was provided
-                return (currencyCode === entry['baseCoin']) ? entry['primary'] : entry['secondary'];
+                return (currencyCode === chainBaseCoin) ? chainProtocols['primary'] : chainProtocols['secondary'];
             }
         }
         // otherwise, return input as is
@@ -5304,7 +5306,7 @@ export default class Exchange {
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            networkCode = this.networkCodeProtocolCorrector (currencyCode, networkCode);
+            networkCode = this.networkCodeChainSwitcher (currencyCode, networkCode);
         }
         return networkCode;
     }
