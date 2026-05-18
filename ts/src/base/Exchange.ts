@@ -5270,7 +5270,7 @@ export default class Exchange {
         const [ selectedChain, alternativeChain ] = this.sortedChainsForNetwork (networkCode, currencyCode, false);
         // when user calls: networkCodeToId ('ETH', 'MYTOKEN')
         // we need to get sorted (by priority) chains: ERC20 and ETH
-        // (such way, we handle all cases, when eg only `ETH` is defined in exchange implementation, or only `ERC20`)
+        // (such way, we handle all cases, when eg only `ETH` or `ERC20` is defined in exchange implementation)
         const networkId = this.safeString2 (networkIdsByCodes, selectedChain, alternativeChain);
         if (networkId !== undefined) {
             return networkId;
