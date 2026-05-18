@@ -3759,10 +3759,10 @@ export default class Exchange {
         };
     }
 
-    networkCodeChainSwitcher (currencyCode: string, networkCode: string) {
+    networkCodeChainConverter (currencyCode: string, networkCode: string) {
         /**
          * @method
-         * @name Exchange#networkCodeChainSwitcher
+         * @name Exchange#networkCodeChainConverter
          * @description this method ensures that returned networkCode is suitable for a given coin, e.g:
          *   ----------------------------
          *   | input          | returns |
@@ -5306,7 +5306,7 @@ export default class Exchange {
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
-            networkCode = this.networkCodeChainSwitcher (currencyCode, networkCode);
+            networkCode = this.networkCodeChainConverter (currencyCode, networkCode);
         }
         return networkCode;
     }

@@ -176,28 +176,28 @@ function helperTestNetworkProtocolCorrector () {
     });
 
     // for ETH
-    assert (exchange.networkCodeChainSwitcher ('USDC', 'ERC20') === 'ERC20');
-    assert (exchange.networkCodeChainSwitcher ('USDC', 'ETH') === 'ERC20');
-    assert (exchange.networkCodeChainSwitcher ('ETH', 'ERC20') === 'ETH');
-    assert (exchange.networkCodeChainSwitcher ('ETH', 'ETH') === 'ETH');
+    assert (exchange.networkCodeChainConverter ('USDC', 'ERC20') === 'ERC20');
+    assert (exchange.networkCodeChainConverter ('USDC', 'ETH') === 'ERC20');
+    assert (exchange.networkCodeChainConverter ('ETH', 'ERC20') === 'ETH');
+    assert (exchange.networkCodeChainConverter ('ETH', 'ETH') === 'ETH');
 
     // for TRX
-    assert (exchange.networkCodeChainSwitcher ('USDC', 'TRC20') === 'TRC20');
-    assert (exchange.networkCodeChainSwitcher ('USDC', 'TRX') === 'TRC20');
-    assert (exchange.networkCodeChainSwitcher ('TRX', 'TRC20') === 'TRX');
-    assert (exchange.networkCodeChainSwitcher ('TRX', 'TRX') === 'TRX');
+    assert (exchange.networkCodeChainConverter ('USDC', 'TRC20') === 'TRC20');
+    assert (exchange.networkCodeChainConverter ('USDC', 'TRX') === 'TRC20');
+    assert (exchange.networkCodeChainConverter ('TRX', 'TRC20') === 'TRX');
+    assert (exchange.networkCodeChainConverter ('TRX', 'TRX') === 'TRX');
 
     // for CRONOS
-    assert (exchange.networkCodeChainSwitcher ('USDC', 'CRC20') === 'CRC20');
-    assert (exchange.networkCodeChainSwitcher ('USDC', 'CRONOS') === 'CRC20');
-    assert (exchange.networkCodeChainSwitcher ('CRO', 'CRC20') === 'CRONOS');
-    assert (exchange.networkCodeChainSwitcher ('CRO', 'CRONOS') === 'CRONOS');
+    assert (exchange.networkCodeChainConverter ('USDC', 'CRC20') === 'CRC20');
+    assert (exchange.networkCodeChainConverter ('USDC', 'CRONOS') === 'CRC20');
+    assert (exchange.networkCodeChainConverter ('CRO', 'CRC20') === 'CRONOS');
+    assert (exchange.networkCodeChainConverter ('CRO', 'CRONOS') === 'CRONOS');
 
     // for BTC
-    assert (exchange.networkCodeChainSwitcher ('MEMECOIN', 'BRC20') === 'BRC20');
-    assert (exchange.networkCodeChainSwitcher ('MEMECOIN', 'BTC') === 'BRC20');
-    assert (exchange.networkCodeChainSwitcher ('BTC', 'BRC20') === 'BTC');
-    assert (exchange.networkCodeChainSwitcher ('BTC', 'BTC') === 'BTC');
+    assert (exchange.networkCodeChainConverter ('MEMECOIN', 'BRC20') === 'BRC20');
+    assert (exchange.networkCodeChainConverter ('MEMECOIN', 'BTC') === 'BRC20');
+    assert (exchange.networkCodeChainConverter ('BTC', 'BRC20') === 'BTC');
+    assert (exchange.networkCodeChainConverter ('BTC', 'BTC') === 'BTC');
 }
 
 function testNetworkMethods () {
