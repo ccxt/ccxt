@@ -321,6 +321,7 @@
         }
     },
     "bitflyer": {
+        "preferredSpotSymbol": "BTC/JPY",
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "not defined when contract",
