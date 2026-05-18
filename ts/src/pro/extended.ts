@@ -2,9 +2,9 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Bool, Dict, FundingRate, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 // ----------------------------------------------------------------------------
 
@@ -19,7 +19,10 @@ export default class extended extends extendedRest {
                 'watchIndexPrice': true,
                 'watchMarkPrice': true,
                 'watchTrades': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
                 'watchOrders': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -148,14 +151,17 @@ export default class extended extends extendedRest {
                 },
             };
             this.extendExchangeOptions (defaultOptions);
-            const originalHeaders = this.options['ws']['options']['headers'];
-            this.options['ws']['options']['headers'] = this.extend ({
-                'User-Agent': this.userAgents['chrome'],
-            }, originalHeaders, {
-                'X-Api-Key': this.apiKey,
+            const originalOptions = this.options['ws']['options'];
+            const originalHeaders = this.safeDict (originalOptions, 'headers', {});
+            this.options['ws']['options'] = this.extend ({}, originalOptions, {
+                'headers': this.extend ({
+                    'User-Agent': this.userAgents['chrome'],
+                }, originalHeaders, {
+                    'X-Api-Key': this.apiKey,
+                }),
             });
             this.client (url);
-            this.options['ws']['options']['headers'] = originalHeaders;
+            this.options['ws']['options'] = originalOptions;
         }
         return this.watch (url, messageHash, undefined, messageHash, subscription);
     }
@@ -187,6 +193,249 @@ export default class extended extends extendedRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name extended#watchBalance
+     * @description watches balance updates
+     * @see https://api.docs.extended.exchange/#account-updates-stream
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        return await this.watchPrivate ('balance', params);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         "type": "BALANCE",
+        //         "data": {
+        //             "balance": {
+        //                 "collateralName": "BTC",
+        //                 "balance": "100.000000",
+        //                 "equity": "20.000000",
+        //                 "availableForTrade": "3.000000",
+        //                 "availableForWithdrawal": "4.000000",
+        //                 "updatedTime": 1699976104901
+        //             },
+        //             "spotBalances": [
+        //                 {
+        //                     "asset": "BTC",
+        //                     "balance": "0.5",
+        //                     "availableToWithdraw": "0.5",
+        //                     "updatedAt": 1701563440
+        //                 }
+        //             ]
+        //         },
+        //         "ts": 1715885952304,
+        //         "seq": 1
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const result: Dict = {
+            'info': data,
+        };
+        const balance = this.safeDict (data, 'balance');
+        if (balance !== undefined) {
+            const currencyId = this.safeString (balance, 'collateralName');
+            const code = this.safeCurrencyCode (currencyId);
+            if (code !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableForWithdrawal');
+                account['total'] = this.safeString (balance, 'balance');
+                result[code] = account;
+            }
+        }
+        const spotBalances = this.safeList (data, 'spotBalances', []);
+        for (let i = 0; i < spotBalances.length; i++) {
+            const spotBalance = this.safeDict (spotBalances, i, {});
+            const currencyId = this.safeString (spotBalance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            if (code !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeString (spotBalance, 'availableToWithdraw');
+                account['total'] = this.safeString (spotBalance, 'balance');
+                result[code] = account;
+            }
+        }
+        const timestamp = this.safeInteger (message, 'ts');
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        this.balance = this.safeBalance (this.deepExtend (this.balance, result));
+        client.resolve (this.balance, 'balance');
+    }
+
+    /**
+     * @method
+     * @name extended#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://api.docs.extended.exchange/#account-updates-stream
+     * @param {string} [symbol] unified market symbol of the trades
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        const trades = await this.watchPrivate (messageHash, {
+            'symbol': symbol,
+            'limit': limit,
+        });
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrades (client: Client, message) {
+        //
+        //     {
+        //         "type": "TRADE",
+        //         "data": {
+        //             "trades": [
+        //                 {
+        //                     "id": 1784963886257016832,
+        //                     "accountId": 3017,
+        //                     "market": "BTC-USD",
+        //                     "orderId": 9223372036854775808,
+        //                     "externalOrderId": "ext-1",
+        //                     "side": "BUY",
+        //                     "price": "58853.4000000000000000",
+        //                     "qty": "0.0900000000000000",
+        //                     "value": "5296.8060000000000000",
+        //                     "fee": "0.0000000000000000",
+        //                     "tradeType": "DELEVERAGE",
+        //                     "createdTime": 1701563440000,
+        //                     "isTaker": true
+        //                 }
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
+        //     }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.myTrades;
+        const data = this.safeDict (message, 'data', {});
+        const rawTrades = this.safeList (data, 'trades', []);
+        const symbols: Dict = {};
+        for (let i = 0; i < rawTrades.length; i++) {
+            const trade = this.parseTrade (rawTrades[i]);
+            const symbol = this.safeString (trade, 'symbol');
+            symbols[symbol] = true;
+            stored.append (trade);
+        }
+        const keys = Object.keys (symbols);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = 'myTrades:' + keys[i];
+            client.resolve (stored, messageHash);
+        }
+        client.resolve (stored, 'myTrades');
+        if (rawTrades.length === 0) {
+            const subscriptions = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptions.length; i++) {
+                const messageHash = subscriptions[i];
+                if (messageHash.indexOf ('myTrades:') === 0) {
+                    client.resolve (stored, messageHash);
+                }
+            }
+        }
+    }
+
+    /**
+     * @method
+     * @name extended#watchPositions
+     * @description watches information on multiple positions
+     * @see https://api.docs.extended.exchange/#account-updates-stream
+     * @param {string[]} [symbols] unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let messageHash = 'positions';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const positions = await this.watchPrivate (messageHash, {
+            'symbols': symbols,
+            'limit': limit,
+        });
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client: Client, message) {
+        //
+        //     {
+        //         "type": "POSITION",
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "id": 1,
+        //                     "accountId": 1,
+        //                     "market": "BTC-USD",
+        //                     "side": "LONG",
+        //                     "leverage": "10",
+        //                     "size": "0.1",
+        //                     "value": "4000",
+        //                     "openPrice": "39000",
+        //                     "markPrice": "40000",
+        //                     "updatedAt": 1701563440000
+        //                 }
+        //             ]
+        //         },
+        //         "ts": 1715886400000,
+        //         "seq": 1
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const stored = this.positions;
+        const data = this.safeDict (message, 'data', {});
+        const rawPositions = this.safeList (data, 'positions', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const marketId = this.safeString (rawPosition, 'market');
+            if (marketId === undefined) {
+                continue;
+            }
+            const position = this.parsePosition (rawPosition);
+            newPositions.push (position);
+            stored.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const filtered = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (filtered)) {
+                client.resolve (filtered, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions');
     }
 
     handleOrders (client: Client, message) {
@@ -650,11 +899,29 @@ export default class extended extends extendedRest {
             return;
         }
         const type = this.safeString (message, 'type');
-        if (type === 'ORDER') {
-            this.handleOrders (client, message);
-            return;
-        }
         const data = this.safeValue (message, 'data');
+        if (!Array.isArray (data) && (data !== undefined) && (data !== null) && (typeof data === 'object')) {
+            let handled = false;
+            if ((type === 'ORDER') || ('orders' in data)) {
+                this.handleOrders (client, message);
+                handled = true;
+            }
+            if ((type === 'TRADE') || ('trades' in data)) {
+                this.handleMyTrades (client, message);
+                handled = true;
+            }
+            if ((type === 'POSITION') || ('positions' in data)) {
+                this.handlePositions (client, message);
+                handled = true;
+            }
+            if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
+                this.handleBalance (client, message);
+                handled = true;
+            }
+            if (handled) {
+                return;
+            }
+        }
         if (Array.isArray (data)) {
             const first = this.safeDict (data, 0, {});
             const side = this.safeString (first, 'S');
