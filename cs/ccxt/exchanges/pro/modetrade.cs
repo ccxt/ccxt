@@ -1456,11 +1456,16 @@ public partial class modetrade : ccxt.modetrade
         };
     }
 
-    public virtual object handlePing(WebSocketClient client, object message)
+    public async virtual Task pong(WebSocketClient client, object message)
     {
-        return new Dictionary<string, object>() {
+        await client.send(new Dictionary<string, object>() {
             { "event", "pong" },
-        };
+        });
+    }
+
+    public virtual void handlePing(WebSocketClient client, object message)
+    {
+        this.spawn(this.pong, new object[] { client, message});
     }
 
     public virtual object handlePong(WebSocketClient client, object message)

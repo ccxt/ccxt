@@ -2105,7 +2105,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileExchangeTests () {
+    async transpileExchangeTests () {
 
         this.transpileMainTests ({
             'tsFile': './ts/src/test/tests.ts',
@@ -2157,10 +2157,10 @@ class Transpiler {
             };
             tests.push(test);
         }
-        this.transpileAndSaveExchangeTests (tests);
+        await this.transpileAndSaveExchangeTests (tests);
     }
 
-    baseFunctionalitiesTests () {
+    async baseFunctionalitiesTests () {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -2194,7 +2194,7 @@ class Transpiler {
             }
             tests.push(test);
         }
-        this.transpileAndSaveExchangeTests (tests);
+        await this.transpileAndSaveExchangeTests (tests);
     }
 
 
@@ -2664,18 +2664,18 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileTests () {
+    async transpileTests () {
 
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
 
-        this.baseFunctionalitiesTests ();
+        await this.baseFunctionalitiesTests ();
 
         this.transpileCryptoTests ()
 
-        this.transpileExchangeTests ()
+        await this.transpileExchangeTests ()
     }
 
     // ============================================================================
@@ -3056,7 +3056,7 @@ class Transpiler {
 
             this.transpileErrorHierarchy ()
 
-            this.transpileTests ()
+            await this.transpileTests ()
 
             this.transpileExamples ()
 
@@ -3135,7 +3135,9 @@ if (isMainEntry(metaFileUrl)) {
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ()
     } else if (test) {
-        transpiler.transpileTests ()
+        (async () => {
+            await transpiler.transpileTests ()
+        })()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
