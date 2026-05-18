@@ -5270,6 +5270,7 @@ export default class Exchange {
                     const entry = defaultNetworkCodeReplacements[i];
                     if (networkCode === entry['secondary'] || networkCode === entry['primary']) {
                         networkId = this.safeString2 (networkIdsByCodes, entry['primary'], entry['secondary']);
+                        break;
                     }
                 }
                 // if networkId wasn't found yet, then check inside currency.networks
