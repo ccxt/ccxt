@@ -1,5 +1,5 @@
 import Exchange from './abstract/matrixport.js';
-import type { Balances, Currencies, Currency, Dict, Int, int, Market, Num, Order, OrderSide, OrderType, Str, Ticker, Transaction, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Transaction, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class matrixport
  * @augments Exchange
@@ -36,6 +36,7 @@ export default class matrixport extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseBalance(response: any): Balances;
     parseBalancePlusBalance(response: any): Balances;

@@ -39,6 +39,7 @@ export default class matrixport extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -629,6 +630,23 @@ export default class matrixport extends Exchange {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
+    }
+    /**
+     * @method
+     * @name matrixport#fetchTickers
+     * @description fetches price tickers for multiple markets — calls fetchTicker per symbol since the exchange has no bulk endpoint
+     * @param {string[]} [symbols] unified symbols to fetch; if omitted, loads all markets first
+     * @param {object} [params] extra parameters passed to each fetchTicker call
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        let marketSymbols = symbols;
+        if (marketSymbols === undefined || marketSymbols.length === 0) {
+            marketSymbols = Object.keys(this.markets);
+        }
+        const tickers = await Promise.all(marketSymbols.map((s) => this.fetchTicker(s, params)));
+        return this.indexBy(tickers, 'symbol');
     }
     parseTicker(ticker, market = undefined) {
         //
