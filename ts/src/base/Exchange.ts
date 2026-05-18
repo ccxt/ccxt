@@ -5265,7 +5265,7 @@ export default class Exchange {
             return undefined;
         }
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-        const [ selectedChain, alternativeChain ] = this.sortedNetworkChains (networkCode, currencyCode);
+        const [ selectedChain, alternativeChain ] = this.sortedNetworkChains (networkCode, currencyCode, false);
         // when user calls: networkCodeToId ('ETH', 'MYTOKEN')
         // we need to get sorted (by priority) chains: ERC20 and ETH
         // (this way, we handle all cases, when eg only `ETH` is defined in exchange implementation, or only `ERC20`)
@@ -5306,20 +5306,16 @@ export default class Exchange {
         }
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
-        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         const [ selectedChain, alternativeChain ] = this.sortedNetworkChains (networkCode, currencyCode, true);
         if (currencyCode !== undefined) {
             // if currencyCode is provided, then we certainly know the target chain
             return selectedChain;
         } else {
             // if currencyCode not provided
-            if (selectedChain in networkIdsByCodes && alternativeChain in networkIdsByCodes) {
-                // if both chains are defined in "networks", then no need to guess
-                return networkCode;
-            } else {
-                // otherwise, by guess, return the priority chain
-                return selectedChain;
-            }
+            const twoChainsDefined = (selectedChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes);
+            // if both chains are defined in "networks", then no need to guess. otherwise, return the "guessed" one
+            return twoChainsDefined ? networkCode : selectedChain;
         }
     }
 
