@@ -1909,12 +1909,9 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
-                "withdraw": "undefined",
-                "deposit": "undefined",
-                "networks": "networks key is missing",
-                "precision": "not provided",
                 "type": "todo",
-                "maxInactiveCurrenciesPercentage": 70
+                "maxInactiveCurrenciesPercentage": 70,
+                "limits":"tmp"
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
