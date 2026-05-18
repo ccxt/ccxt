@@ -1595,13 +1595,13 @@ class kucoin(ccxt.async_support.kucoin):
     def get_cache_index(self, orderbook, cache):
         firstDelta = self.safe_value(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
-        firstDeltaStart = self.safe_integer_2(firstDelta, 'sequenceStart', 'sequence')
+        firstDeltaStart = self.safe_integer_n(firstDelta, ['sequenceStart', 'sequence', 'O'])
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaStart = self.safe_integer_2(delta, 'sequenceStart', 'sequence')
-            deltaEnd = self.safe_integer_2(delta, 'sequenceEnd', 'timestamp')  # todo check
+            deltaStart = self.safe_integer_n(delta, ['sequenceStart', 'sequence', 'O'])
+            deltaEnd = self.safe_integer_n(delta, ['sequenceEnd', 'sequence', 'C'])  # todo check
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)

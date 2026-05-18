@@ -3879,7 +3879,7 @@ public partial class Exchange
         object percentage = this.safeValue(position, "percentage");
         if (isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(unrealizedPnlString, null)))) && isTrue((!isEqual(initialMarginString, null)))))
         {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
             ((IDictionary<string,object>)position)["percentage"] = this.parseNumber(percentageString);
         }

@@ -1776,14 +1776,14 @@ class kucoin extends \ccxt\async\kucoin {
     public function get_cache_index($orderbook, $cache) {
         $firstDelta = $this->safe_value($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        $firstDeltaStart = $this->safe_integer_2($firstDelta, 'sequenceStart', 'sequence');
+        $firstDeltaStart = $this->safe_integer_n($firstDelta, array( 'sequenceStart', 'sequence', 'O' ));
         if ($nonce < $firstDeltaStart - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
-            $deltaStart = $this->safe_integer_2($delta, 'sequenceStart', 'sequence');
-            $deltaEnd = $this->safe_integer_2($delta, 'sequenceEnd', 'timestamp'); // todo check
+            $deltaStart = $this->safe_integer_n($delta, array( 'sequenceStart', 'sequence', 'O' ));
+            $deltaEnd = $this->safe_integer_n($delta, array( 'sequenceEnd', 'sequence', 'C' )); // todo check
             if (($nonce >= $deltaStart - 1) && ($nonce < $deltaEnd)) {
                 return $i;
             }

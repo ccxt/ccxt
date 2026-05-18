@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.53';
+$version = '4.5.54';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.53';
+    const VERSION = '4.5.54';
 
     public $browser;
     public $marketsLoading = null;
@@ -66,6 +66,8 @@ class Exchange extends \ccxt\Exchange {
         'maxPingPongMisses' => 2.0,
     );
 
+    public $response_buffer_max_size = 24 * 1024 * 1024; // React default is 16 MiB
+
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
 
     use ClientTrait;
@@ -77,7 +79,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function set_request_browser($connector) {
-        $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
+        $this->browser = (new React\Http\Browser($connector, Loop::get()))
+            ->withRejectErrorResponse(false)
+            ->withResponseBuffer($this->response_buffer_max_size);
     }
 
     public function create_connector ($connector_options = array()){
@@ -3583,7 +3587,7 @@ class Exchange extends \ccxt\Exchange {
         //
         $percentage = $this->safe_value($position, 'percentage');
         if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
-            // was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
             $position['percentage'] = $this->parse_number($percentageString);
         }

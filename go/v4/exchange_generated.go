@@ -4206,7 +4206,7 @@ func (this *Exchange) SafePosition(position any) any {
 	//
 	var percentage any = this.SafeValue(position, "percentage")
 	if IsTrue(IsTrue(IsTrue((IsEqual(percentage, nil))) && IsTrue((!IsEqual(unrealizedPnlString, nil)))) && IsTrue((!IsEqual(initialMarginString, nil)))) {
-		// as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+		// as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
 		var percentageString any = Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")
 		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
 	}

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.53",
+  "version": "4.5.54",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -20,7 +20,9 @@
     "node": ">=15.0.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.com"
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "provenance": true
   },
   "repository": {
     "type": "git",

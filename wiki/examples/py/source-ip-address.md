@@ -26,7 +26,7 @@ for prefix in ('http://', 'https://'):
     )
 
 
-exchange = ccxt.ftx({
+exchange = ccxt.okx({
     'session': session,
     # ... other config properties here if necessary ...
 })

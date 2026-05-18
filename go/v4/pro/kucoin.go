@@ -2223,14 +2223,14 @@ func  (this *KucoinCore) HandleUtaOrderBook(client any, message any)  {
 func  (this *KucoinCore) GetCacheIndex(orderbook any, cache any) any  {
     var firstDelta any = this.SafeValue(cache, 0)
     var nonce any = this.SafeInteger(orderbook, "nonce")
-    var firstDeltaStart any = this.SafeInteger2(firstDelta, "sequenceStart", "sequence")
+    var firstDeltaStart any = this.SafeIntegerN(firstDelta, []any{"sequenceStart", "sequence", "O"})
     if ccxt.IsTrue(ccxt.IsLessThan(nonce, ccxt.Subtract(firstDeltaStart, 1))) {
         return ccxt.OpNeg(1)
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(cache)); i++ {
         var delta any = ccxt.GetValue(cache, i)
-        var deltaStart any = this.SafeInteger2(delta, "sequenceStart", "sequence")
-        var deltaEnd any = this.SafeInteger2(delta, "sequenceEnd", "timestamp") // todo check
+        var deltaStart any = this.SafeIntegerN(delta, []any{"sequenceStart", "sequence", "O"})
+        var deltaEnd any = this.SafeIntegerN(delta, []any{"sequenceEnd", "sequence", "C"}) // todo check
         if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1)))) && ccxt.IsTrue((ccxt.IsLessThan(nonce, deltaEnd)))) {
             return i
         }

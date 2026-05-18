@@ -969,7 +969,7 @@ An example of `keys.local.json` file:
 
 ```json
 {
-    "ftx": {
+    "okx": {
         "apiKey": "XXX",
         "secret": "YYY"
     },

@@ -1312,8 +1312,11 @@ class modetrade extends modetrade$1["default"] {
     ping(client) {
         return { 'event': 'ping' };
     }
+    async pong(client, message) {
+        await client.send({ 'event': 'pong' });
+    }
     handlePing(client, message) {
-        return { 'event': 'pong' };
+        this.spawn(this.pong, client, message);
     }
     handlePong(client, message) {
         //
