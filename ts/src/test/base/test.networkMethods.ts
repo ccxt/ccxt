@@ -210,7 +210,7 @@ function testNetworkMethods () {
     helperTestNetworkCodeToId (dict2);
     helperTestNetworkIdToCode (dict1);
     helperTestNetworkIdToCode (dict2);
-    // helperBatchNetworkTests ();
+    helperBatchNetworkTests ();
 }
 
 export default testNetworkMethods;
