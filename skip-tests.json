@@ -1685,6 +1685,7 @@
         }
     },
     "mexc": {
+        "skipJava": "tmp until we fix protobuf",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
