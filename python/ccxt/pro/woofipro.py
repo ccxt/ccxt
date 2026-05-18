@@ -1250,8 +1250,11 @@ class woofipro(ccxt.async_support.woofipro):
     def ping(self, client: Client):
         return {'event': 'ping'}
 
+    async def pong(self, client: Client, message):
+        await client.send({'event': 'pong'})
+
     def handle_ping(self, client: Client, message):
-        return {'event': 'pong'}
+        self.spawn(self.pong, client, message)
 
     def handle_pong(self, client: Client, message):
         #
