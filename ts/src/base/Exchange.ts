@@ -3763,7 +3763,7 @@ export default class Exchange {
         /**
          * @method
          * @name Exchange#networkCodeProtocolCorrector
-         * @description this method ensures that returned networkCode is in sutiable for given coin, e.g:
+         * @description this method ensures that returned networkCode is in suitable for given coin, e.g:
          *   ----------------------------
          *   | input          | returns |
          *   ----------------------------
