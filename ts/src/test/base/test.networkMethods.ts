@@ -160,36 +160,36 @@ function helperBatchNetworkTests () {
 }
 
 
-function helperTestNetworkProtocolCorrector () {
-    return;
-    const exchange = new ccxt.Exchange ({
-        'id': 'sampleexchange',
-    });
+// function helperTestNetworkProtocolCorrector () {
+//     return;
+//     const exchange = new ccxt.Exchange ({
+//         'id': 'sampleexchange',
+//     });
 
-    // for ethereum
-    assert (exchange.sortedNetworkChains ('ERC20', 'MYTOKEN') === 'ERC20');
-    assert (exchange.sortedNetworkChains ('ETH', 'MYTOKEN') === 'ERC20');
-    assert (exchange.sortedNetworkChains ('ERC20', 'ETH') === 'ETH');
-    assert (exchange.sortedNetworkChains ('ETH', 'ETH') === 'ETH');
+//     // for ethereum
+//     assert (exchange.sortedNetworkChains ('ERC20', 'MYTOKEN') === 'ERC20');
+//     assert (exchange.sortedNetworkChains ('ETH', 'MYTOKEN') === 'ERC20');
+//     assert (exchange.sortedNetworkChains ('ERC20', 'ETH') === 'ETH');
+//     assert (exchange.sortedNetworkChains ('ETH', 'ETH') === 'ETH');
 
-    // for tron
-    assert (exchange.sortedNetworkChains ('TRC20', 'MYTOKEN') === 'TRC20');
-    assert (exchange.sortedNetworkChains ('TRX', 'MYTOKEN') === 'TRC20');
-    assert (exchange.sortedNetworkChains ('TRC20', 'TRX') === 'TRX');
-    assert (exchange.sortedNetworkChains ('TRX', 'TRX') === 'TRX');
+//     // for tron
+//     assert (exchange.sortedNetworkChains ('TRC20', 'MYTOKEN') === 'TRC20');
+//     assert (exchange.sortedNetworkChains ('TRX', 'MYTOKEN') === 'TRC20');
+//     assert (exchange.sortedNetworkChains ('TRC20', 'TRX') === 'TRX');
+//     assert (exchange.sortedNetworkChains ('TRX', 'TRX') === 'TRX');
 
-    // for cronos
-    assert (exchange.sortedNetworkChains ('CRC20', 'MYTOKEN') === 'CRC20');
-    assert (exchange.sortedNetworkChains ('CRONOS', 'MYTOKEN') === 'CRC20');
-    assert (exchange.sortedNetworkChains ('CRC20', 'CRO') === 'CRONOS');
-    assert (exchange.sortedNetworkChains ('CRONOS', 'CRO') === 'CRONOS');
+//     // for cronos
+//     assert (exchange.sortedNetworkChains ('CRC20', 'MYTOKEN') === 'CRC20');
+//     assert (exchange.sortedNetworkChains ('CRONOS', 'MYTOKEN') === 'CRC20');
+//     assert (exchange.sortedNetworkChains ('CRC20', 'CRO') === 'CRONOS');
+//     assert (exchange.sortedNetworkChains ('CRONOS', 'CRO') === 'CRONOS');
 
-    // for bitcoin
-    assert (exchange.sortedNetworkChains ('BRC20', 'MYTOKEN') === 'BRC20');
-    assert (exchange.sortedNetworkChains ('BTC', 'MYTOKEN') === 'BRC20');
-    assert (exchange.sortedNetworkChains ('BRC20', 'BTC') === 'BTC');
-    assert (exchange.sortedNetworkChains ('BTC', 'BTC') === 'BTC');
-}
+//     // for bitcoin
+//     assert (exchange.sortedNetworkChains ('BRC20', 'MYTOKEN') === 'BRC20');
+//     assert (exchange.sortedNetworkChains ('BTC', 'MYTOKEN') === 'BRC20');
+//     assert (exchange.sortedNetworkChains ('BRC20', 'BTC') === 'BTC');
+//     assert (exchange.sortedNetworkChains ('BTC', 'BTC') === 'BTC');
+// }
 
 function testNetworkMethods () {
     // both below dicts should end with "same" results
@@ -205,7 +205,7 @@ function testNetworkMethods () {
         'TRC20': 'Tron',
         'ERC20': 'Ether', // if only 'protocol' defined
     };
-    helperTestNetworkProtocolCorrector ();
+    // helperTestNetworkProtocolCorrector ();
     helperTestNetworkCodeToId (dict1);
     helperTestNetworkCodeToId (dict2);
     helperTestNetworkIdToCode (dict1);
