@@ -1597,10 +1597,22 @@ func  (this *WoofiproCore) Ping(client any) any  {
         "event": "ping",
     }
 }
-func  (this *WoofiproCore) HandlePing(client any, message any) any  {
-    return map[string]any {
-        "event": "pong",
-    }
+func  (this *WoofiproCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                
+            retRes13468 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                "event": "pong",
+            }))
+            ccxt.PanicOnError(retRes13468)
+                return nil
+            }()
+            return ch
+        }
+func  (this *WoofiproCore) HandlePing(client any, message any)  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *WoofiproCore) HandlePong(client any, message any) any  {
     //
