@@ -5205,15 +5205,17 @@ export default class Exchange {
         /**
          * @method
          * @name Exchange#sortedNetworkChains
-         * @description this method ensures that returned networkCode is suitable for a given coin, e.g:
-         *   ----------------------------
-         *   | input          | returns |
-         *   ----------------------------
-         *   | USDC & ETH     | ERC20   |
-         *   | USDC & ERC20   | ERC20   |
-         *   | ETH & ETH      | ETH     |
-         *   | ETH & ERC20    | ETH     |
-         *   ----------------------------
+         * @description this method tries to return the sorted networkCodes for an inputed networkCode & coin, e.g:
+         *   ---------------------------------
+         *   | input          | output       |
+         *   --------------------------------|
+         *   | ETH & USDC     | ERC20, ETH   |
+         *   | ERC20 & USDC   | ERC20, ETH   |
+         *   | ETH & ETH      | ETH, ERC20   |
+         *   | ERC20 & ETH    | ETH, ERC20   |
+         *   | ERC20          | ERC20, ETH   |
+         *   | ETH            | ERC20, ETH   |
+         *   ---------------------------------
          * @param {string} networkCode unified network-code
          * @param {string} currencyCode unified currency-code
          * @returns {string[]} networkCode matched, networkCode alternative
