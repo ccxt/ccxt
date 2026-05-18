@@ -149,9 +149,9 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
-                "url": "https://api.poloniex.com/currencies?includeMultiChainCurrencies=true",
+                "url": "https://api.poloniex.com/v2/currencies",
                 "input": [],
                 "output": null
             }
