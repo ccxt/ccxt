@@ -3751,9 +3751,9 @@ export default class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary'  },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary'  },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'  },
+                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
+                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
+                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
                 'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
         };
@@ -5241,7 +5241,7 @@ export default class Exchange {
                         return [ networkCode, alternativeNetworkCode ];
                     }
                 } else if (currencyCode === chainBaseCoin) {
-                    // if currency was mainnet currency (eg. ETH), return:   ETH & ERC20 
+                    // if currency was mainnet currency (eg. ETH), return:   ETH & ERC20
                     return [ chainProtocols['primary'], chainProtocols['secondary'] ];
                 } else {
                     // if currency was token currency (eg. MYTOKEN), return: ERC20 & ETH
@@ -5271,7 +5271,7 @@ export default class Exchange {
         // when user calls: networkCodeToId ('ETH', 'MYTOKEN')
         // we need to get sorted (by priority) chains: ERC20 and ETH
         // (this way, we handle all cases, when eg only `ETH` is defined in exchange implementation, or only `ERC20`)
-        let networkId = this.safeString2 (networkIdsByCodes, selectedChain, alternativeChain);
+        const networkId = this.safeString2 (networkIdsByCodes, selectedChain, alternativeChain);
         if (networkId !== undefined) {
             return networkId;
         }
