@@ -3751,10 +3751,10 @@ export default class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'defaultPrimary': false  },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'defaultPrimary': false  },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'defaultPrimary': false  },
-                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'defaultPrimary': true },
+                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary'  },
+                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary'  },
+                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'  },
+                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
         };
     }
@@ -5236,15 +5236,15 @@ export default class Exchange {
                 if (currencyCode === undefined) {
                     // if currency was undefined, just add alternative network
                     if (allowDefault) {
-                        return chainProtocols['defaultPrimary'] ? [ chainProtocols['primary'], chainProtocols['secondary'] ] : [ chainProtocols['secondary'], chainProtocols['primary'] ];
+                        return (chainProtocols['default'] === 'primary') ? [ chainProtocols['primary'], chainProtocols['secondary'] ] : [ chainProtocols['secondary'], chainProtocols['primary'] ];
                     } else {
                         return [ networkCode, alternativeNetworkCode ];
                     }
                 } else if (currencyCode === chainBaseCoin) {
-                    // if currency was mainnet currency (eg. ETH), return:          ETH & ERC20 
+                    // if currency was mainnet currency (eg. ETH), return:   ETH & ERC20 
                     return [ chainProtocols['primary'], chainProtocols['secondary'] ];
                 } else {
-                    // if currency was NOT mainnet currency (eg. MYTOKEN), return:  ERC20 & ETH
+                    // if currency was token currency (eg. MYTOKEN), return: ERC20 & ETH
                     return [ chainProtocols['secondary'], chainProtocols['primary'] ];
                 }
             }
@@ -5315,9 +5315,17 @@ export default class Exchange {
             return selectedChain;
         } else {
             // if currencyCode not provided
-            const twoChainsDefined = (selectedChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes);
-            // if both chains are defined in "networks", then no need to guess. otherwise, return the "guessed" one
-            return twoChainsDefined ? networkCode : selectedChain;
+            if ((selectedChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
+                // if both chains are defined in "networks", eg:
+                //    {
+                //       'BTC': 'Bitcoin',
+                //       'BRC20': 'Brc-20',
+                //    }
+                // then no need to guess, and return the "matched" one
+                return networkCode;
+            }
+            // otherwise, return the "guessed" one
+            return selectedChain;
         }
     }
 
