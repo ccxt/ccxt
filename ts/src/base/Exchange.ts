@@ -3751,44 +3751,12 @@ export default class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
-                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20' },
-                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20' },
-                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20' },
-                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20' },
+                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'defaultPrimary': false  },
+                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'defaultPrimary': false  },
+                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'defaultPrimary': false  },
+                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'defaultPrimary': true },
             },
         };
-    }
-
-    networkCodeChainConverter (currencyCode: string, networkCode: string) {
-        /**
-         * @method
-         * @name Exchange#networkCodeChainConverter
-         * @description this method ensures that returned networkCode is suitable for a given coin, e.g:
-         *   ----------------------------
-         *   | input          | returns |
-         *   ----------------------------
-         *   | USDC & ETH     | ERC20   |
-         *   | USDC & ERC20   | ERC20   |
-         *   | ETH & ETH      | ETH     |
-         *   | ETH & ERC20    | ETH     |
-         *   ----------------------------
-         * @param {string} currencyCode unified currency-code
-         * @param {string} networkCode unified network-code
-         * @returns {string} networkCode
-         */
-        const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-        const keys = Object.keys (defaultNetworkCodeReplacements);
-        for (let i = 0; i < keys.length; i++) {
-            const chainBaseCoin = keys[i];
-            const chainProtocols = defaultNetworkCodeReplacements[chainBaseCoin];
-            // if passed networkCode matches either primary (eg. ETH) or secondary (eg. ERC20) networkcode
-            if (networkCode === chainProtocols['primary'] || networkCode === chainProtocols['secondary']) {
-                // return the primary networkCode only if mainnet baseCoin was provided
-                return (currencyCode === chainBaseCoin) ? chainProtocols['primary'] : chainProtocols['secondary'];
-            }
-        }
-        // otherwise, return input as is
-        return networkCode;
     }
 
     safeLedgerEntry (entry: object, currency: Currency = undefined) {
@@ -5233,6 +5201,56 @@ export default class Exchange {
         };
     }
 
+    sortedNetworkChains (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
+        /**
+         * @method
+         * @name Exchange#sortedNetworkChains
+         * @description this method ensures that returned networkCode is suitable for a given coin, e.g:
+         *   ----------------------------
+         *   | input          | returns |
+         *   ----------------------------
+         *   | USDC & ETH     | ERC20   |
+         *   | USDC & ERC20   | ERC20   |
+         *   | ETH & ETH      | ETH     |
+         *   | ETH & ERC20    | ETH     |
+         *   ----------------------------
+         * @param {string} networkCode unified network-code
+         * @param {string} currencyCode unified currency-code
+         * @returns {string[]} networkCode matched, networkCode alternative
+         */
+        if (networkCode === undefined) {
+            return undefined;
+        }
+        const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
+        const keys = Object.keys (defaultNetworkCodeReplacements);
+        for (let i = 0; i < keys.length; i++) {
+            const chainBaseCoin = keys[i];
+            const chainProtocols = defaultNetworkCodeReplacements[chainBaseCoin];
+            const isPrimaryChain = networkCode === chainProtocols['primary'];
+            const isSecondaryChain = networkCode === chainProtocols['secondary'];
+            // if passed networkCode matches either primary (eg. ETH) or secondary (eg. ERC20) networkcode
+            if (isPrimaryChain || isSecondaryChain) {
+                const alternativeNetworkCode = isPrimaryChain ? chainProtocols['secondary'] : chainProtocols['primary'];
+                if (currencyCode === undefined) {
+                    // if currency was undefined, just add alternative network
+                    if (allowDefault) {
+                        return chainProtocols['defaultPrimary'] ? [ chainProtocols['primary'], chainProtocols['secondary'] ] : [ chainProtocols['secondary'], chainProtocols['primary'] ];
+                    } else {
+                        return [ networkCode, alternativeNetworkCode ];
+                    }
+                } else if (currencyCode === chainBaseCoin) {
+                    // if currency was mainnet currency (eg. ETH), return:          ETH & ERC20 
+                    return [ chainProtocols['primary'], chainProtocols['secondary'] ];
+                } else {
+                    // if currency was NOT mainnet currency (eg. MYTOKEN), return:  ERC20 & ETH
+                    return [ chainProtocols['secondary'], chainProtocols['primary'] ];
+                }
+            }
+        }
+        // otherwise, return input as is
+        return [ networkCode, networkCode ];
+    }
+
     networkCodeToId (networkCode: string, currencyCode: Str = undefined): string {
         /**
          * @ignore
@@ -5246,48 +5264,31 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkIdsByCodes, networkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if (networkId === undefined) {
-            if (currencyCode === undefined) {
-                const currencies = Object.values (this.currencies);
-                for (let i = 0; i < currencies.length; i++) {
-                    const currency = currencies[i];
-                    const networks = this.safeDict (currency, 'networks');
-                    const network = this.safeDict (networks, networkCode);
-                    networkId = this.safeString (network, 'id');
-                    if (networkId !== undefined) {
-                        break;
-                    }
-                }
-            } else {
-                // check if user incorrectly passed mainnet-vs-protocol networkCode, eg:
-                // - for ETH coin passed `ERC20` networkCode
-                // - for USDT coin passed `ETH` networkCode
-                const defaultNetworkCodeReplacements = this.safeList (this.options, 'defaultNetworkCodeReplacements', []);
-                for (let i = 0; i < defaultNetworkCodeReplacements.length; i++) {
-                    const entry = defaultNetworkCodeReplacements[i];
-                    if (networkCode === entry['secondary'] || networkCode === entry['primary']) {
-                        networkId = this.safeString2 (networkIdsByCodes, entry['primary'], entry['secondary']);
-                        break;
-                    }
-                }
-                // if networkId wasn't found yet, then check inside currency.networks
-                if (networkId === undefined) {
-                    // serach for network inside currency
-                    const currency = this.safeDict (this.currencies, currencyCode);
-                    const networks = this.safeDict (currency, 'networks');
-                    const network = this.safeDict (networks, networkCode);
-                    networkId = this.safeString (network, 'id');
-                }
-            }
-            // if it wasn't found, we just set the provided value to network-id
-            if (networkId === undefined) {
-                networkId = networkCode;
+        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
+        const [ selectedChain, alternativeChain ] = this.sortedNetworkChains (networkCode, currencyCode);
+        // when user calls: networkCodeToId ('ETH', 'MYTOKEN')
+        // we need to get sorted (by priority) chains: ERC20 and ETH
+        // (this way, we handle all cases, when eg only `ETH` is defined in exchange implementation, or only `ERC20`)
+        let networkId = this.safeString2 (networkIdsByCodes, selectedChain, alternativeChain);
+        if (networkId !== undefined) {
+            return networkId;
+        }
+        // if not found, try to locate in the fetched currencies
+        let currenciesToCheck = [];
+        if (currencyCode === undefined) {
+            currenciesToCheck = Object.values (this.currencies);
+        } else {
+            currenciesToCheck = [ this.safeDict (this.currencies, currencyCode) ];
+        }
+        for (let i = 0; i < currenciesToCheck.length; i++) {
+            const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
+            // if network found, return its 'id'
+            if (networkCode in networks) {
+                return this.safeString (networks[networkCode], 'id');
             }
         }
-        return networkId;
+        // if matching 'id' wasn't selected, just return as-is
+        return networkCode;
     }
 
     networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): string {
@@ -5303,13 +5304,23 @@ export default class Exchange {
         if (networkId === undefined) {
             return undefined;
         }
+        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        // replace mainnet network-codes (i.e. ERC20->ETH)
+        const [ selectedChain, alternativeChain ] = this.sortedNetworkChains (networkCode, currencyCode, true);
         if (currencyCode !== undefined) {
-            networkCode = this.networkCodeChainConverter (currencyCode, networkCode);
+            // if currencyCode is provided, then we certainly know the target chain
+            return selectedChain;
+        } else {
+            // if currencyCode not provided
+            if (selectedChain in networkIdsByCodes && alternativeChain in networkIdsByCodes) {
+                // if both chains are defined in "networks", then no need to guess
+                return networkCode;
+            } else {
+                // otherwise, by guess, return the priority chain
+                return selectedChain;
+            }
         }
-        return networkCode;
     }
 
     handleNetworkCodeAndParams (params) {
