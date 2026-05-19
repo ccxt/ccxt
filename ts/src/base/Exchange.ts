@@ -5201,10 +5201,10 @@ export default class Exchange {
         };
     }
 
-    twoChainsForNetwork (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
+    twoNetworksFromNetwork (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
         /**
          * @method
-         * @name Exchange#twoChainsForNetwork
+         * @name Exchange#twoNetworksFromNetwork
          * @description this method tries to return the sorted networkCodes for an inputed networkCode & coin, e.g:
          *   ---------------------------------
          *   | input          | output       |
@@ -5267,10 +5267,10 @@ export default class Exchange {
             return undefined;
         }
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-        const [ preferredChain, alternativeChain ] = this.twoChainsForNetwork (networkCode, currencyCode, false);
+        const [ preferredChain, alternativeChain ] = this.twoNetworksFromNetwork (networkCode, currencyCode, false);
         // when user calls: networkCodeToId ('ETH', 'MYTOKEN')
         // we need to get sorted (by priority) chains: ERC20 and ETH
-        // (such way, we handle all cases, when eg only `ETH` or `ERC20` is defined in exchange implementation)
+        // (such way, we handle all cases, when eg. only `ETH` or only `ERC20` is defined in exchange 'networks' map)
         const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
         if (networkId !== undefined) {
             return networkId;
@@ -5306,15 +5306,15 @@ export default class Exchange {
         if (networkId === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        const [ preferredChain, alternativeChain ] = this.twoChainsForNetwork (networkCode, currencyCode, true);
+        const [ preferredChain, alternativeChain ] = this.twoNetworksFromNetwork (networkCode, currencyCode, true);
         if (currencyCode !== undefined) {
             // if currencyCode is provided, then we certainly know the target chain
             return preferredChain;
         } else {
-            // if currencyCode not provided
+            // if currencyCode is NOT provided, then we check if it's real entry, otherwise return preferred one
+            const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
             if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
                 // if both chains are defined in "networks", eg:
                 //    {
