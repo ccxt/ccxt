@@ -5271,7 +5271,12 @@ export default class Exchange {
             return networkId;
         }
         // fall back to scanning loaded currencies
-        const currenciesToCheck = (currencyCode === undefined) ? Object.values (this.currencies) : [ this.safeDict (this.currencies, currencyCode) ];
+        let currenciesToCheck = [];
+        if (currencyCode === undefined) {
+            const currencyKeys = Object.keys (this.currencies);
+        } else {
+            currenciesToCheck = [ this.safeDict (this.currencies, currencyCode) ];
+        }
         for (let i = 0; i < currenciesToCheck.length; i++) {
             const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
             if (networkCode in networks) {
