@@ -5273,7 +5273,7 @@ export default class Exchange {
         // fall back to scanning loaded currencies
         let currenciesToCheck = [];
         if (currencyCode === undefined) {
-            const currencyKeys = Object.keys (this.currencies);
+            currenciesToCheck = Object.keys (this.currencies);
         } else {
             currenciesToCheck = [ this.safeDict (this.currencies, currencyCode) ];
         }
