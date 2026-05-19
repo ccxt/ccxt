@@ -5151,7 +5151,7 @@ func (this *ExchangeTyped) FetchTradingFee(symbol string, options ...FetchTradin
 	}
 	res := <-this.Exchange.FetchTradingFee(symbol, params)
 	if IsError(res) {
-		return TradingFeeany, CreateReturnError(res)
+		return TradingFeeInterface{}, CreateReturnError(res)
 	}
 	return NewTradingFeeInterface(res), nil
 }
