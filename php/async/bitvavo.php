@@ -320,7 +320,7 @@ class bitvavo extends Exchange {
                     '102' => '\\ccxt\\BadRequest', // Invalid JSON.
                     '103' => '\\ccxt\\RateLimitExceeded', // You have been rate limited. Please observe the Bitvavo-Ratelimit-AllowAt header to see when you can send requests again. Failure to respect this limit will result in an IP ban. The default value is 1000 weighted requests per minute. Please contact support if you wish to increase this limit.
                     '104' => '\\ccxt\\RateLimitExceeded', // You have been rate limited by the number of new orders. The default value is 100 new orders per second or 100.000 new orders per day. Please update existing orders instead of cancelling and creating orders. Please contact support if you wish to increase this limit.
-                    '105' => '\\ccxt\\PermissionDenied', // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
+                    '105' => '\\ccxt\\RateLimitExceeded', // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
                     '107' => '\\ccxt\\ExchangeNotAvailable', // The matching engine is overloaded. Please wait 500ms and resubmit your order.
                     '108' => '\\ccxt\\ExchangeNotAvailable', // The matching engine could not process your order in time. Please consider increasing the access window or resubmit your order.
                     '109' => '\\ccxt\\ExchangeNotAvailable', // The matching engine did not respond in time. Operation may or may not have succeeded.
