@@ -306,7 +306,7 @@ public partial class bitvavo : Exchange
                     { "102", typeof(BadRequest) },
                     { "103", typeof(RateLimitExceeded) },
                     { "104", typeof(RateLimitExceeded) },
-                    { "105", typeof(PermissionDenied) },
+                    { "105", typeof(RateLimitExceeded) },
                     { "107", typeof(ExchangeNotAvailable) },
                     { "108", typeof(ExchangeNotAvailable) },
                     { "109", typeof(ExchangeNotAvailable) },

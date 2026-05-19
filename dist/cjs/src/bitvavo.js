@@ -320,7 +320,7 @@ class bitvavo extends bitvavo$1["default"] {
                     '102': errors.BadRequest,
                     '103': errors.RateLimitExceeded,
                     '104': errors.RateLimitExceeded,
-                    '105': errors.PermissionDenied,
+                    '105': errors.RateLimitExceeded,
                     '107': errors.ExchangeNotAvailable,
                     '108': errors.ExchangeNotAvailable,
                     '109': errors.ExchangeNotAvailable,

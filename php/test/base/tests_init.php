@@ -24,6 +24,7 @@ include_once __DIR__ . '/test_cryptography.php';
 include_once __DIR__ . '/test_to_array.php';
 include_once __DIR__ . '/test_extend.php';
 include_once __DIR__ . '/test_deep_extend.php';
+include_once __DIR__ . '/test_network_methods.php';
 include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
@@ -107,6 +108,7 @@ function base_tests_init() {
         test_in_array();
         test_filter_by();
         test_handle_methods();
+        test_network_methods();
         test_remove_repeated_elements_from_array();
         test_is_empty();
         test_binary_concat();

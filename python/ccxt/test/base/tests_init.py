@@ -29,6 +29,7 @@ from ccxt.test.base.test_cryptography import test_cryptography  # noqa E402
 from ccxt.test.base.test_to_array import test_to_array  # noqa E402
 from ccxt.test.base.test_extend import test_extend  # noqa E402
 from ccxt.test.base.test_deep_extend import test_deep_extend  # noqa E402
+from ccxt.test.base.test_network_methods import test_network_methods  # noqa E402
 from ccxt.test.base.language_specific.test_language_specific import test_language_specific  # noqa E402
 from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
 from ccxt.test.base.test_safe_ticker import test_safe_ticker  # noqa E402
@@ -111,6 +112,7 @@ async def base_tests_init():
     test_in_array()
     test_filter_by()
     test_handle_methods()
+    test_network_methods()
     test_remove_repeated_elements_from_array()
     test_is_empty()
     test_binary_concat()
