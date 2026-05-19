@@ -321,7 +321,7 @@ export default class bitvavo extends Exchange {
                     '102': BadRequest,
                     '103': RateLimitExceeded,
                     '104': RateLimitExceeded,
-                    '105': PermissionDenied,
+                    '105': RateLimitExceeded,
                     '107': ExchangeNotAvailable,
                     '108': ExchangeNotAvailable,
                     '109': ExchangeNotAvailable,
