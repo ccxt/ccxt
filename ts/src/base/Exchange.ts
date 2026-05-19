@@ -5201,10 +5201,10 @@ export default class Exchange {
         };
     }
 
-    sortedChainsForNetwork (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
+    twoChainsForNetwork (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
         /**
          * @method
-         * @name Exchange#sortedChainsForNetwork
+         * @name Exchange#twoChainsForNetwork
          * @description this method tries to return the sorted networkCodes for an inputed networkCode & coin, e.g:
          *   ---------------------------------
          *   | input          | output       |
@@ -5267,11 +5267,11 @@ export default class Exchange {
             return undefined;
         }
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
-        const [ selectedChain, alternativeChain ] = this.sortedChainsForNetwork (networkCode, currencyCode, false);
+        const [ preferredChain, alternativeChain ] = this.twoChainsForNetwork (networkCode, currencyCode, false);
         // when user calls: networkCodeToId ('ETH', 'MYTOKEN')
         // we need to get sorted (by priority) chains: ERC20 and ETH
         // (such way, we handle all cases, when eg only `ETH` or `ERC20` is defined in exchange implementation)
-        const networkId = this.safeString2 (networkIdsByCodes, selectedChain, alternativeChain);
+        const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
         if (networkId !== undefined) {
             return networkId;
         }
@@ -5309,13 +5309,13 @@ export default class Exchange {
         const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
         const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        const [ selectedChain, alternativeChain ] = this.sortedChainsForNetwork (networkCode, currencyCode, true);
+        const [ preferredChain, alternativeChain ] = this.twoChainsForNetwork (networkCode, currencyCode, true);
         if (currencyCode !== undefined) {
             // if currencyCode is provided, then we certainly know the target chain
-            return selectedChain;
+            return preferredChain;
         } else {
             // if currencyCode not provided
-            if ((selectedChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
+            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
                 // if both chains are defined in "networks", eg:
                 //    {
                 //       'BTC': 'Bitcoin',
@@ -5325,7 +5325,7 @@ export default class Exchange {
                 return networkCode;
             }
             // otherwise, return the "guessed" one
-            return selectedChain;
+            return preferredChain;
         }
     }
 
