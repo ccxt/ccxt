@@ -44,7 +44,7 @@ export default class binanceus extends binance {
                 },
                 'defaultType': 'spot',
                 'fetchMargins': false,
-                'quoteOrderQty': false,
+                'quoteOrderQty': true,
             },
             'has': {
                 'CORS': undefined,
