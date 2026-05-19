@@ -16,7 +16,7 @@ export default class matrixport extends Exchange {
             'id': 'matrixport',
             'name': 'MatrixPort',
             'countries': ['SG'],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'certified': false,
             'pro': false,
             'has': {
@@ -645,7 +645,10 @@ export default class matrixport extends Exchange {
         if (marketSymbols === undefined || marketSymbols.length === 0) {
             marketSymbols = Object.keys(this.markets);
         }
-        const tickers = await Promise.all(marketSymbols.map((s) => this.fetchTicker(s, params)));
+        const results = await Promise.allSettled(marketSymbols.map((s) => this.fetchTicker(s, params)));
+        const tickers = results
+            .filter((r) => r.status === 'fulfilled')
+            .map((r) => r.value);
         return this.indexBy(tickers, 'symbol');
     }
     parseTicker(ticker, market = undefined) {
