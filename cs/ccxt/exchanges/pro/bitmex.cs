@@ -1689,7 +1689,7 @@ public partial class bitmex : ccxt.bitmex
                 {
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;
                 }
-                ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = this.sum(getValue(numUpdatesByMarketId, marketId), 1);
+                ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = this.sum(numUpdatesByMarketId, 1);
                 object market = this.safeMarket(marketId);
                 object symbol = getValue(market, "symbol");
                 object orderbook = getValue(this.orderbooks, symbol);

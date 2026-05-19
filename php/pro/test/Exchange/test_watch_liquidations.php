@@ -18,13 +18,11 @@ function test_watch_liquidations($exchange, $skipped_properties, $symbol) {
         // we have to skip some exchanges here due to the frequency of trading
         $skipped_exchanges = [];
         if ($exchange->in_array($exchange->id, $skipped_exchanges)) {
-            $m1 = ($exchange->id . ' ' . $method . '() test skipped');
-            var_dump($m1);
+            var_dump($exchange->id, $method . '() test skipped');
             return false;
         }
         if (!$exchange->has[$method]) {
-            $m2 = ($exchange->id . ' does not support ' . $method . '() method');
-            var_dump($m2);
+            var_dump($exchange->id, 'does not support', $method . '() method');
             return false;
         }
         $response = null;
@@ -36,8 +34,7 @@ function test_watch_liquidations($exchange, $skipped_properties, $symbol) {
                 $now = round(microtime(true) * 1000);
                 $is_array = gettype($response) === 'array' && array_is_list($response);
                 assert($is_array, 'response must be an array');
-                $m3 = ($exchange->id . ' ' . $method . '() returned ' . count($response) . ' liquidations');
-                var_dump($m3);
+                var_dump($exchange->iso8601($now), $exchange->id, $symbol, $method, count(is_array($response) ? array_values($response) : array()), 'liquidations');
                 // log.noLocate (asTable (response))
                 for ($i = 0; $i < count($response); $i++) {
                     test_liquidation($exchange, $skipped_properties, $method, $response[$i], $symbol);

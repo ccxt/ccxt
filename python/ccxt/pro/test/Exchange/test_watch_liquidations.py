@@ -22,12 +22,10 @@ async def test_watch_liquidations(exchange, skipped_properties, symbol):
     # we have to skip some exchanges here due to the frequency of trading
     skipped_exchanges = []
     if exchange.in_array(exchange.id, skipped_exchanges):
-        m1 = (exchange.id + ' ' + method + '() test skipped')
-        print(m1)
+        print(exchange.id, method + '() test skipped')
         return False
     if not exchange.has[method]:
-        m2 = (exchange.id + ' does not support ' + method + '() method')
-        print(m2)
+        print(exchange.id, 'does not support', method + '() method')
         return False
     response = None
     now = int(time.time() * 1000)
@@ -38,8 +36,7 @@ async def test_watch_liquidations(exchange, skipped_properties, symbol):
             now = int(time.time() * 1000)
             is_array = isinstance(response, list)
             assert is_array, 'response must be an array'
-            m3 = (exchange.id + ' ' + method + '() returned ' + len(response) + ' liquidations')
-            print(m3)
+            print(exchange.iso8601(now), exchange.id, symbol, method, len(list(response.values())), 'liquidations')
             # log.noLocate (asTable (response))
             for i in range(0, len(response)):
                 test_liquidation(exchange, skipped_properties, method, response[i], symbol)

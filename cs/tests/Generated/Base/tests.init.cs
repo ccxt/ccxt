@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        async public Task<object> baseTestsInit()
+        async public Task baseTestsInit()
         {
             await testLanguageSpecific();
             testConstants();
@@ -68,6 +68,5 @@ public partial class BaseTest
             testIo();
             testIsJsonEncodedObject();
             testEncodeDecode();
-            return true;
         }
 }

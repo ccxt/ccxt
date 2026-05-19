@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                object code = exchange.safeString(currency, "code");
+                object code = exchange.safeString(currency, "code", null);
                 object withdraw = exchange.safeBool(currency, "withdraw");
                 object deposit = exchange.safeBool(currency, "deposit");
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))

@@ -16,14 +16,12 @@ public partial class testMainClass : BaseTest
         object skippedExchanges = new List<object>() {};
         if (isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
-            object m1 = (add(add(add(exchange.id, " "), method), "() test skipped"));
-            Console.WriteLine(m1);
+            Console.WriteLine(exchange.id, add(method, "() test skipped"));
             return false;
         }
         if (!isTrue(getValue(exchange.has, method)))
         {
-            object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
-            Console.WriteLine(m2);
+            Console.WriteLine(exchange.id, "does not support", add(method, "() method"));
             return false;
         }
         object response = null;
@@ -37,8 +35,7 @@ public partial class testMainClass : BaseTest
                 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
                 object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
                 assert(isArray, "response must be an array");
-                object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
-                Console.WriteLine(m3);
+                Console.WriteLine(exchange.iso8601(now), exchange.id, symbol, method, getArrayLength(new List<object>(((IDictionary<string,object>)response).Values)), "liquidations");
                 // log.noLocate (asTable (response))
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {

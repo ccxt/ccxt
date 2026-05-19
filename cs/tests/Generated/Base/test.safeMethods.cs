@@ -276,7 +276,6 @@ public partial class BaseTest
             Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatString"), null));
             // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
             // tbd Assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
-            // init array cache tests
             // Test cache types - ArrayCache
             var arrayCache = new ArrayCache(100);
             arrayCache.append(new Dictionary<string, object>() {
