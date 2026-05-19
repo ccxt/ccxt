@@ -1,0 +1,58 @@
+[package]
+name = "ccxt"
+version = "0.1.0"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust)"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+
+[lib]
+name = "ccxt"
+path = "src/lib.rs"
+
+[features]
+default = []
+# Includes the transpiled-from-Exchange.ts methods. Currently a work in
+# progress — the transpiler produces syntactically-valid Rust but most
+# method bodies don't yet typecheck against the typed Exchange base.
+transpiled-base = []
+
+[dependencies]
+# HTTP client (async)
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+# JSON serialisation / deserialisation
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# HMAC / SHA / MD5 / crypto primitives
+hmac = "0.12"
+sha2 = "0.10"
+sha1 = "0.10"
+md-5 = "0.10"
+# Base64
+base64 = "0.22"
+# URL encoding
+urlencoding = "2"
+form_urlencoded = "1"
+# URL parsing
+url = "2"
+# Precise decimal arithmetic (mirrors CCXT's Precise class)
+rust_decimal = { version = "1", features = ["serde-str"] }
+# Cryptographic RNG
+rand = "0.8"
+# Hex encoding / decoding
+hex = "0.4"
+# Time utilities
+chrono = { version = "0.4", features = ["serde"] }
+# Async trait support
+async-trait = "0.1"
+# Futures utilities
+futures = "0.3"
+# Error handling
+thiserror = "1"
+# Thread-safe reference counted pointers (used for derived_describe callback)
+parking_lot = "0.12"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }

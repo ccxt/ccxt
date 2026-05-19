@@ -1,0 +1,22 @@
+[package]
+name = "ccxt_tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ti-rust"
+path = "src/main.rs"
+
+[features]
+default = []
+# Enable the per-helper transpiled base tests (rust/tests/base/*.rs).
+# Currently incomplete — they reference Rust API surface (file I/O,
+# more crypto helpers, sleep, etc.) we haven't fully shimmed.
+transpiled-tests = []
+
+[dependencies]
+ccxt = { path = "../ccxt", features = ["transpiled-base"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"

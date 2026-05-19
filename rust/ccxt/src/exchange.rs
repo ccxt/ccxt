@@ -1,0 +1,1113 @@
+// Native Rust – Exchange base class.
+//
+// Methods BELOW the `METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT`
+// marker in `ts/src/base/Exchange.ts` are transpiled into
+// `exchange_generated.rs` (opt-in behind the `transpiled-base` feature
+// while the transpiler-port is in progress).
+//
+// Methods ABOVE the marker are hand-written here — they are the
+// language-specific pieces that can't be transpiled:
+//   • HTTP client (reqwest)
+//   • Cryptographic primitives (HMAC-SHA256/512, SHA256/512, MD5)
+//   • Base64/hex encoding, URL-encoding, JSON
+//   • String utilities mirroring CCXT's `js/src/base/functions.ts`
+//
+// **Field layout.** The transpiler treats every field on Exchange as
+// `Value` (Python/PHP-style dynamic typing). To stay compatible without
+// fighting Rust's type system, every public field on `Exchange` is
+// `crate::Value` — transpiled code can read/write them directly.
+// Rust-typed runtime state (the HTTP client, the verbose flag, etc.)
+// lives on the private `Internals` sub-struct.
+
+#![allow(non_snake_case)]
+
+use std::collections::HashMap;
+use std::sync::Arc;
+use hmac::{Hmac, Mac};
+use sha2::{Sha256, Sha512, Digest as Sha2Digest};
+use sha1::Sha1;
+use md5::Md5;
+use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
+use crate::{Value, ExchangeError, Result};
+
+type HmacSha256 = Hmac<Sha256>;
+type HmacSha512 = Hmac<Sha512>;
+type HmacSha1   = Hmac<Sha1>;
+type HmacMd5    = Hmac<Md5>;
+
+/// Callback type used by derived exchanges to provide their `describe()` data.
+pub type DescribeCallback = Arc<dyn Fn() -> Value + Send + Sync>;
+
+// ── Internals (Rust-typed runtime state, not exposed to transpiled code) ─────
+
+pub struct Internals {
+    pub http_client:    Option<reqwest::Client>,
+    pub describe_cb:    Option<DescribeCallback>,
+    pub last_rest_ts:   i64,
+    pub headers:        HashMap<String, String>,
+    /// Cached dispatch table built from `self.api`. Maps the snake-case
+    /// implicit API name (e.g. `public_get_exchange_info`) to
+    /// `(path, api_scope, http_verb)`.
+    pub implicit_api:   HashMap<String, (String, Vec<String>, String)>,
+    /// Raw pointer back to the derived exchange (as a `&dyn DerivedExchange`
+    /// trait object). Used by virtual methods called from Exchange.ts so
+    /// they dispatch to the derived override. The trait object is the
+    /// Rust analogue of Go's `IDerivedExchange` interface.
+    pub derived_ptr: *const (dyn DerivedExchange + 'static),
+    /// Raw pointer to the derived `Core`'s `call_dynamic` method, type-
+    /// erased as `*const ()`. Lets base Exchange.ts methods dispatch
+    /// async-by-name to the derived exchange (the trait can't carry
+    /// async methods easily — fn pointer side-steps the object-safety
+    /// constraint). Set by each Core's `bind()` via `bind_call_async`.
+    pub call_async_fn:        Option<DynCallFn>,
+    pub derived_core_ptr:     *mut (),
+    /// Method names currently being dispatched to the derived
+    /// exchange. Lets `dispatch_to_derived` block recursion on a single
+    /// method while allowing sibling dispatches.
+    pub dispatch_stack:       Vec<String>,
+}
+
+/// Function pointer signature for an exchange's `call_dynamic`. Takes
+/// a `*mut ()` (the derived Core, cast back inside the function), the
+/// method name, and args; returns a boxed future of `Value`.
+pub type DynCallFn = for<'a> fn(*mut (), &'a str, Vec<Value>) -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + 'a>>;
+
+/// The Go-style "interface" that every derived exchange implements. When
+/// Exchange.ts calls `this.parseTicker(...)` (and similar), the transpiler
+/// rewrites it to `self.derived().parse_ticker(...)`; that goes through
+/// this trait's vtable to the derived exchange's override.
+///
+/// Default impls return `Value::Null` so an unbound Exchange still
+/// compiles and runs (it just gives back empty results).
+pub trait DerivedExchange: Send + Sync {
+    // ── parsers (the dominant override surface) ──────────────────────────
+    fn parse_ticker(&self, _ticker: Value, _market: Value) -> Value { Value::Null }
+    fn parse_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
+    fn parse_order(&self, _order: Value, _market: Value) -> Value { Value::Null }
+    fn parse_market(&self, _market: Value) -> Value { Value::Null }
+    fn parse_ohlcv(&self, _ohlcv: Value, _market: Value) -> Value { Value::Null }
+    fn parse_order_book(&self, _ob: Value, _symbol: Value, _ts: Value, _bk: Value, _ak: Value, _pk: Value, _ak2: Value, _ck: Value) -> Value { Value::Null }
+    fn parse_balance(&self, _response: Value) -> Value { Value::Null }
+    fn parse_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
+    fn parse_funding_rate(&self, _rate: Value, _market: Value) -> Value { Value::Null }
+    fn parse_deposit(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_withdrawal(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_ledger_entry(&self, _entry: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_transfer(&self, _transfer: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_currency(&self, _currency: Value) -> Value { Value::Null }
+    fn parse_bid_ask(&self, _bidask: Value, _price_key: Value, _amount_key: Value, _market: Value) -> Value { Value::Null }
+    fn parse_open_interest(&self, _interest: Value, _market: Value) -> Value { Value::Null }
+    fn parse_liquidation(&self, _liquidation: Value, _market: Value) -> Value { Value::Null }
+    fn parse_funding_rate_history(&self, _entry: Value, _market: Value) -> Value { Value::Null }
+    fn parse_margin_modification(&self, _data: Value, _market: Value) -> Value { Value::Null }
+    fn parse_account(&self, _account: Value) -> Value { Value::Null }
+    fn parse_my_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
+    // ── signers / error handlers ─────────────────────────────────────────
+    fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
+    fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
+}
+
+/// Empty placeholder used when no derived exchange is bound. Returns the
+/// trait's default `Value::Null` from every method.
+pub struct DefaultDerived;
+impl DerivedExchange for DefaultDerived {}
+
+/// Static singleton used by `Exchange::derived()` when no derived is bound.
+static DEFAULT_DERIVED: DefaultDerived = DefaultDerived;
+
+// SAFETY: raw pointer is used only while the owning derived struct is
+// alive; Exchange never outlives it because Exchange is a field inside.
+unsafe impl Send for Internals {}
+unsafe impl Sync for Internals {}
+
+impl Default for Internals {
+    fn default() -> Self {
+        Self {
+            http_client:      None,
+            describe_cb:      None,
+            last_rest_ts:     0,
+            headers:          HashMap::new(),
+            implicit_api:     HashMap::new(),
+            derived_ptr:      &DEFAULT_DERIVED as &dyn DerivedExchange as *const _,
+            call_async_fn:       None,
+            derived_core_ptr:    std::ptr::null_mut(),
+            dispatch_stack:      Vec::new(),
+        }
+    }
+}
+
+// ── Exchange struct ─────────────────────────────────────────────────────────
+//
+// Every transpiler-visible field is `Value`. Both camelCase and snake_case
+// names appear because the TS source uses both interchangeably.
+
+pub struct Exchange {
+    // identity
+    pub id:          Value,
+    pub name:        Value,
+    pub countries:   Value,
+    pub version:     Value,
+    pub alias:       Value,
+    pub certified:   Value,
+    pub pro:         Value,
+    pub hostname:    Value,
+
+    // credentials
+    pub apiKey:        Value,
+    pub secret:        Value,
+    pub password:      Value,
+    pub uid:           Value,
+    pub walletAddress: Value,
+    pub privateKey:    Value,
+    pub twofa:         Value,
+    pub token:         Value,
+    pub login:         Value,
+    pub accountId:     Value,
+    pub requiredCredentials: Value,
+
+    // rate limiting / connection
+    pub timeout:                Value,
+    pub rateLimit:              Value,
+    pub enableRateLimit:        Value,
+    pub rateLimiterAlgorithm:   Value,
+    pub rollingWindowSize:      Value,
+    pub tokenBucket:            Value,
+    pub verbose:                Value,
+    pub isSandboxModeEnabled:   Value,
+
+    // proxy
+    pub proxy:               Value,
+    pub proxyUrl:            Value,
+    pub proxy_url:           Value,
+    pub proxyUrlCallback:    Value,
+    pub proxy_url_callback:  Value,
+    pub httpProxy:           Value,
+    pub http_proxy:          Value,
+    pub httpProxyCallback:   Value,
+    pub http_proxy_callback: Value,
+    pub httpsProxy:          Value,
+    pub https_proxy:         Value,
+    pub httpsProxyCallback:  Value,
+    pub https_proxy_callback: Value,
+    pub socksProxy:          Value,
+    pub socks_proxy:         Value,
+    pub socksProxyCallback:  Value,
+    pub socks_proxy_callback: Value,
+    pub wsProxy:             Value,
+    pub ws_proxy:            Value,
+    pub wssProxy:            Value,
+    pub wss_proxy:           Value,
+    pub wsSocksProxy:        Value,
+    pub ws_socks_proxy:      Value,
+
+    // market data caches
+    pub markets:           Value,
+    pub markets_by_id:     Value,
+    pub currencies:        Value,
+    pub currencies_by_id:  Value,
+    pub commonCurrencies:  Value,
+    pub baseCurrencies:    Value,
+    pub quoteCurrencies:   Value,
+    pub symbols:           Value,
+    pub ids:               Value,
+    pub codes:             Value,
+    pub timeframes:        Value,
+    pub precision:         Value,
+    pub limits:            Value,
+    pub fees:              Value,
+    pub features:          Value,
+    pub has:               Value,
+    pub exceptions:        Value,
+    pub urls:              Value,
+    pub api:               Value,
+    pub options:           Value,
+    pub headers:           Value,
+    pub accounts:          Value,
+    pub accountsById:      Value,
+
+    // runtime state
+    pub orderbooks:        Value,
+    pub orders:            Value,
+    pub trades:            Value,
+    pub myTrades:          Value,
+    pub positions:         Value,
+    pub tickers:           Value,
+    pub bidsasks:          Value,
+    pub ohlcvs:            Value,
+    pub clients:           Value,
+
+    // last-* tracking
+    pub last_request_url:        Value,
+    pub last_request_headers:    Value,
+    pub last_request_body:       Value,
+    /// When `Bool(true)`, `fetch_typed` records the request and returns
+    /// `Err(OfflineMode)` without hitting the network. Used by static
+    /// request tests to assert URL/body without needing a live exchange.
+    pub offline_mode:            Value,
+    pub last_json_response:      Value,
+    pub lastRestRequestTimestamp: Value,
+
+    // misc
+    pub paddingMode:               Value,
+    pub precisionMode:             Value,
+    pub substituteCommonCurrencyCodes: Value,
+    pub reduceFees:                Value,
+    pub minFundingAddressLength:   Value,
+    pub MAX_VALUE:                 Value,
+
+    // user-agent / fetch behavior
+    pub userAgent:                 Value,
+    pub user_agent:                Value,
+
+    // describe() output (legacy)
+    pub describe_data:             Value,
+    pub derived_describe:          Option<DescribeCallback>,
+
+    // private runtime state (typed)
+    pub internals: Internals,
+}
+
+impl Default for Exchange {
+    fn default() -> Self { Self::new(None) }
+}
+
+impl Exchange {
+    pub fn new(config: Option<Value>) -> Self {
+        let mut ex = Exchange {
+            id:        Value::Str(String::new()),
+            name:      Value::Str(String::new()),
+            countries: Value::Array(vec![]),
+            version:   Value::Null,
+            alias:     Value::Bool(false),
+            certified: Value::Bool(false),
+            pro:       Value::Bool(false),
+            hostname:  Value::Null,
+
+            apiKey:        Value::Null,
+            secret:        Value::Null,
+            password:      Value::Null,
+            uid:           Value::Null,
+            walletAddress: Value::Null,
+            privateKey:    Value::Null,
+            twofa:         Value::Null,
+            token:         Value::Null,
+            login:         Value::Null,
+            accountId:     Value::Null,
+            requiredCredentials: Value::Map(HashMap::new()),
+
+            timeout:              Value::Int(10_000),
+            rateLimit:            Value::Int(2_000),
+            enableRateLimit:      Value::Bool(true),
+            rateLimiterAlgorithm: Value::Null,
+            rollingWindowSize:    Value::Null,
+            tokenBucket:          Value::Map(HashMap::new()),
+            verbose:              Value::Bool(false),
+            isSandboxModeEnabled: Value::Bool(false),
+
+            proxy:               Value::Null,
+            proxyUrl:            Value::Null,
+            proxy_url:           Value::Null,
+            proxyUrlCallback:    Value::Null,
+            proxy_url_callback:  Value::Null,
+            httpProxy:           Value::Null,
+            http_proxy:          Value::Null,
+            httpProxyCallback:   Value::Null,
+            http_proxy_callback: Value::Null,
+            httpsProxy:          Value::Null,
+            https_proxy:         Value::Null,
+            httpsProxyCallback:  Value::Null,
+            https_proxy_callback: Value::Null,
+            socksProxy:          Value::Null,
+            socks_proxy:         Value::Null,
+            socksProxyCallback:  Value::Null,
+            socks_proxy_callback: Value::Null,
+            wsProxy:             Value::Null,
+            ws_proxy:            Value::Null,
+            wssProxy:            Value::Null,
+            wss_proxy:           Value::Null,
+            wsSocksProxy:        Value::Null,
+            ws_socks_proxy:      Value::Null,
+
+            markets:           Value::Null,
+            markets_by_id:     Value::Null,
+            currencies:        Value::Null,
+            currencies_by_id:  Value::Null,
+            commonCurrencies:  Value::Map(HashMap::new()),
+            baseCurrencies:    Value::Map(HashMap::new()),
+            quoteCurrencies:   Value::Map(HashMap::new()),
+            symbols:           Value::Array(vec![]),
+            ids:               Value::Array(vec![]),
+            codes:             Value::Array(vec![]),
+            timeframes:        Value::Map(HashMap::new()),
+            precision:         Value::Map(HashMap::new()),
+            limits:            Value::Map(HashMap::new()),
+            fees:              Value::Map(HashMap::new()),
+            features:          Value::Map(HashMap::new()),
+            has:               Value::Map(HashMap::new()),
+            exceptions:        Value::Map(HashMap::new()),
+            urls:              Value::Map(HashMap::new()),
+            api:               Value::Map(HashMap::new()),
+            options:           Value::Map(HashMap::new()),
+            headers:           Value::Map(HashMap::new()),
+            accounts:          Value::Array(vec![]),
+            accountsById:      Value::Map(HashMap::new()),
+
+            orderbooks:    Value::Map(HashMap::new()),
+            orders:        Value::Map(HashMap::new()),
+            trades:        Value::Map(HashMap::new()),
+            myTrades:      Value::Map(HashMap::new()),
+            positions:     Value::Map(HashMap::new()),
+            tickers:       Value::Map(HashMap::new()),
+            bidsasks:      Value::Map(HashMap::new()),
+            ohlcvs:        Value::Map(HashMap::new()),
+            clients:       Value::Map(HashMap::new()),
+
+            last_request_url:           Value::Null,
+            last_request_headers:       Value::Null,
+            last_request_body:          Value::Null,
+            offline_mode:               Value::Bool(false),
+            last_json_response:         Value::Null,
+            lastRestRequestTimestamp:   Value::Int(0),
+
+            paddingMode:                       Value::Null,
+            precisionMode:                     Value::Null,
+            substituteCommonCurrencyCodes:     Value::Bool(true),
+            reduceFees:                        Value::Bool(true),
+            minFundingAddressLength:           Value::Int(1),
+            MAX_VALUE:                         Value::Float(f64::MAX),
+
+            userAgent:   Value::Null,
+            user_agent:  Value::Null,
+
+            describe_data:     Value::Null,
+            derived_describe:  None,
+
+            internals: Internals::default(),
+        };
+        if let Some(cfg) = config { ex.apply_config(&cfg); }
+        ex
+    }
+
+    fn apply_config(&mut self, cfg: &Value) {
+        use crate::value::safe_string;
+        if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "uid",           None) { self.uid           = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "walletAddress", None) { self.walletAddress = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "privateKey",    None) { self.privateKey    = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "token",         None) { self.token         = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "login",         None) { self.login         = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "accountId",     None) { self.accountId     = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "httpProxy",     None) { self.httpProxy     = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "httpsProxy",    None) { self.httpsProxy    = Value::Str(v); }
+        if let Some(b) = crate::value::safe_bool(cfg, "verbose",         None) { self.verbose         = Value::Bool(b); }
+        if let Some(b) = crate::value::safe_bool(cfg, "enableRateLimit", None) { self.enableRateLimit = Value::Bool(b); }
+        if let Some(b) = crate::value::safe_bool(cfg, "offline",         None) { self.offline_mode    = Value::Bool(b); }
+        // Pre-populated state (mirrors CCXT TS Exchange constructor):
+        // markets/currencies/options arrive ready to use from offline
+        // tests, the CLI, or library users seeding state. `setMarkets`
+        // also derives markets_by_id and symbols.
+        let markets    = crate::get_value(cfg, &Value::Str("markets".to_string()));
+        let currencies = crate::get_value(cfg, &Value::Str("currencies".to_string()));
+        if !matches!(markets,    Value::Null) { self.set_markets_inline(markets); }
+        if !matches!(currencies, Value::Null) { self.currencies = currencies; }
+        let opts = crate::get_value(cfg, &Value::Str("options".to_string()));
+        if let Value::Map(extra) = opts {
+            let mut merged = match &self.options {
+                Value::Map(m) => m.clone(),
+                _ => HashMap::new(),
+            };
+            for (k, v) in extra { merged.insert(k, v); }
+            self.options = Value::Map(merged);
+        }
+        let accounts = crate::get_value(cfg, &Value::Str("accounts".to_string()));
+        if !matches!(accounts, Value::Null) { self.accounts = accounts; }
+    }
+
+    /// `markets`-from-config → derives `markets_by_id` + `symbols`.
+    /// Accepts either Map<symbol, market> or Array<market>.
+    fn set_markets_inline(&mut self, markets: Value) {
+        let arr: Vec<Value> = match &markets {
+            Value::Map(m)   => m.values().cloned().collect(),
+            Value::Array(a) => a.clone(),
+            _ => return,
+        };
+        let mut by_symbol = HashMap::new();
+        let mut by_id     = HashMap::new();
+        let mut symbols   = Vec::new();
+        for m in &arr {
+            if let Some(s) = crate::value::safe_string(m, "symbol", None) {
+                by_symbol.insert(s.clone(), m.clone());
+                symbols.push(Value::Str(s));
+            }
+            if let Some(i) = crate::value::safe_string(m, "id", None) {
+                by_id.insert(i, m.clone());
+            }
+        }
+        self.markets       = if by_symbol.is_empty() { markets } else { Value::Map(by_symbol) };
+        self.markets_by_id = Value::Map(by_id);
+        self.symbols       = Value::Array(symbols);
+    }
+
+    // ── http client ─────────────────────────────────────────────────────────
+
+    fn http_client(&mut self) -> &reqwest::Client {
+        if self.internals.http_client.is_none() {
+            let mut b = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_millis(self.timeout_ms()));
+            if let Some(ua) = self.user_agent_str() { b = b.user_agent(ua); }
+            if let Some(p)  = self.proxy_str() {
+                if let Ok(proxy) = reqwest::Proxy::all(p) { b = b.proxy(proxy); }
+            }
+            self.internals.http_client = Some(b.build().expect("reqwest client"));
+        }
+        self.internals.http_client.as_ref().unwrap()
+    }
+
+    fn timeout_ms(&self) -> u64 {
+        match &self.timeout {
+            Value::Int(n)   => *n as u64,
+            Value::Float(f) => *f as u64,
+            _ => 10_000,
+        }
+    }
+
+    fn user_agent_str(&self) -> Option<&str> {
+        match &self.userAgent { Value::Str(s) => Some(s.as_str()), _ => match &self.user_agent {
+            Value::Str(s) => Some(s.as_str()), _ => None
+        }}
+    }
+
+    fn proxy_str(&self) -> Option<&str> {
+        match &self.proxy { Value::Str(s) if !s.is_empty() => Some(s.as_str()), _ => None }
+    }
+
+    fn is_verbose(&self) -> bool {
+        matches!(self.verbose, Value::Bool(true))
+    }
+
+    pub async fn fetch(
+        &mut self,
+        url: Value,
+        optional_args: &[Value],
+    ) -> Value {
+        let url_str = match &url { Value::Str(s) => s.clone(), _ => crate::runtime::stringify_param(&url) };
+        let method = optional_args.get(0).cloned().unwrap_or(Value::Str("GET".to_string()));
+        let headers = optional_args.get(1).cloned().unwrap_or(Value::Null);
+        let body = optional_args.get(2).cloned().unwrap_or(Value::Null);
+        let method_str = match &method { Value::Str(s) => s.clone(), _ => "GET".to_string() };
+        let body_str = match &body { Value::Str(s) => Some(s.clone()), _ => None };
+        let headers_map: HashMap<String, String> = match &headers {
+            Value::Map(m) => m.iter().filter_map(|(k, v)| match v {
+                Value::Str(s) => Some((k.clone(), s.clone())),
+                _ => None,
+            }).collect(),
+            _ => HashMap::new(),
+        };
+        match self.fetch_typed(&url_str, &method_str, headers_map, body_str).await {
+            Ok(v) => v,
+            Err(_) => Value::Null,
+        }
+    }
+
+    pub async fn fetch_typed(
+        &mut self,
+        url:     &str,
+        method:  &str,
+        headers: HashMap<String, String>,
+        body:    Option<String>,
+    ) -> Result<Value> {
+        // Always record what was *about* to be sent. Lets the static
+        // request tests read `last_request_url` / `last_request_body`
+        // after triggering a no-op call.
+        self.last_request_url     = Value::Str(url.to_string());
+        self.last_request_headers = Value::Map(headers.iter()
+            .map(|(k, v)| (k.clone(), Value::Str(v.clone())))
+            .collect());
+        self.last_request_body    = match &body {
+            Some(b) => Value::Str(b.clone()),
+            None    => Value::Null,
+        };
+        // Offline mode: short-circuit before any network I/O. Test
+        // runners flip this via `set_offline_mode(true)`.
+        if matches!(self.offline_mode, Value::Bool(true)) {
+            return Err(ExchangeError::new(
+                "OfflineMode",
+                format!("offline mode active — no network call made for {method} {url}"),
+            ));
+        }
+        let client = self.http_client().clone();
+        let method_parsed = reqwest::Method::from_bytes(method.as_bytes())
+            .map_err(|_| ExchangeError::new("BadRequest", format!("invalid HTTP method: {method}")))?;
+        let mut req = client.request(method_parsed, url);
+        for (k, v) in &self.internals.headers { req = req.header(k, v); }
+        for (k, v) in &headers                { req = req.header(k, v); }
+        if let Some(b) = body                 { req = req.body(b); }
+        if self.is_verbose() {
+            eprintln!("[ccxt] {method} {url}");
+        }
+        let resp = req.send().await?;
+        let status = resp.status().as_u16();
+        let text   = resp.text().await?;
+        if self.is_verbose() {
+            eprintln!("[ccxt] ← {status} {} bytes", text.len());
+        }
+        if status >= 400 {
+            return Err(ExchangeError::new(
+                if status == 429 { "RateLimitExceeded" }
+                else if status >= 500 { "ExchangeNotAvailable" }
+                else { "ExchangeError" },
+                format!("HTTP {status}: {text}"),
+            ));
+        }
+        match serde_json::from_str::<serde_json::Value>(&text) {
+            Ok(j)  => Ok(Value::from_json(&j)),
+            Err(_) => Ok(Value::Str(text)),
+        }
+    }
+
+    // ── encoding / URL helpers ──────────────────────────────────────────────
+
+    pub fn urlencode_kv(&self, params: &Value) -> String {
+        let m = match params { Value::Map(m) => m, _ => return String::new() };
+        m.iter().map(|(k, v)| format!(
+            "{}={}",
+            url_pct(k),
+            url_pct(&crate::runtime::stringify_param(v)),
+        )).collect::<Vec<_>>().join("&")
+    }
+
+    pub fn implode_params(&self, path: Value, params: Value) -> Value {
+        let path_str = match &path { Value::Str(s) => s.clone(), _ => return path };
+        let m = match &params { Value::Map(m) => m, _ => return Value::Str(path_str) };
+        let mut out = path_str;
+        for (k, v) in m {
+            let needle = format!("{{{k}}}");
+            if out.contains(&needle) {
+                out = out.replace(&needle, &crate::runtime::stringify_param(v));
+            }
+        }
+        Value::Str(out)
+    }
+
+    pub fn json_str(&self, v: &Value) -> String {
+        serde_json::to_string(&v.to_json()).unwrap_or_default()
+    }
+
+    // ── crypto ──────────────────────────────────────────────────────────────
+
+    pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> Value {
+        let d = match &data { Value::Str(s) => s.clone(), _ => return Value::Null };
+        let s = match &secret { Value::Str(s) => s.clone(), _ => return Value::Null };
+        let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string() };
+        let digest = match optional_args.get(0) {
+            Some(Value::Str(d)) => d.clone(),
+            _ => "hex".to_string(),
+        };
+        match self.hmac_typed(&d, &s, &h, &digest) {
+            Ok(v) => Value::Str(v),
+            Err(_) => Value::Null,
+        }
+    }
+
+    pub fn hmac_typed(&self, data: &str, secret: &str, hash: &str, digest: &str) -> Result<String> {
+        let dbytes = data.as_bytes();
+        let sbytes = secret.as_bytes();
+        let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
+            "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
+            "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
+            "sha1"   => { let mut m = HmacSha1::new_from_slice(sbytes).unwrap();   m.update(dbytes); m.finalize().into_bytes().to_vec() }
+            "md5"    => { let mut m = HmacMd5::new_from_slice(sbytes).unwrap();    m.update(dbytes); m.finalize().into_bytes().to_vec() }
+            other    => return Err(ExchangeError::new("BadRequest", format!("unknown hmac: {other}"))),
+        };
+        Ok(match digest {
+            "base64" => B64.encode(&raw),
+            _        => hex::encode(&raw),
+        })
+    }
+
+    pub fn hash(&self, data: Value, algo: Value, optional_args: &[Value]) -> Value {
+        let d = match &data { Value::Str(s) => s.clone(), _ => return Value::Null };
+        let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string() };
+        let digest = match optional_args.get(0) {
+            Some(Value::Str(d)) => d.clone(),
+            _ => "hex".to_string(),
+        };
+        Value::Str(self.hash_typed(&d, &a, &digest))
+    }
+
+    pub fn hash_typed(&self, data: &str, algo: &str, digest: &str) -> String {
+        let raw: Vec<u8> = match algo.to_ascii_lowercase().as_str() {
+            "sha256" => { let mut h = Sha256::new(); h.update(data.as_bytes()); h.finalize().to_vec() }
+            "sha512" => { let mut h = Sha512::new(); h.update(data.as_bytes()); h.finalize().to_vec() }
+            "sha1"   => { let mut h = Sha1::new();   h.update(data.as_bytes()); h.finalize().to_vec() }
+            "md5"    => { let mut h = Md5::new();    h.update(data.as_bytes()); h.finalize().to_vec() }
+            _ => return String::new(),
+        };
+        match digest {
+            "base64" => B64.encode(&raw),
+            _        => hex::encode(&raw),
+        }
+    }
+
+    pub fn binary_to_base64(&self, data: Value) -> Value {
+        let bytes = value_to_bytes(&data);
+        Value::Str(B64.encode(&bytes))
+    }
+    pub fn base64_to_binary(&self, s: Value) -> Value {
+        let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
+        match B64.decode(&str_val) {
+            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            Err(_) => Value::Null,
+        }
+    }
+    pub fn binary_to_base16(&self, data: Value) -> Value {
+        let bytes = value_to_bytes(&data);
+        Value::Str(hex::encode(&bytes))
+    }
+    pub fn base16_to_binary(&self, s: Value) -> Value {
+        let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
+        match hex::decode(&str_val) {
+            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            Err(_) => Value::Null,
+        }
+    }
+
+    // ── time ────────────────────────────────────────────────────────────────
+
+    pub fn milliseconds(&self) -> Value {
+        let n = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64).unwrap_or(0);
+        Value::Int(n)
+    }
+    pub fn seconds(&self) -> Value {
+        match self.milliseconds() { Value::Int(n) => Value::Int(n / 1000), v => v }
+    }
+    pub fn microseconds(&self) -> Value {
+        match self.milliseconds() { Value::Int(n) => Value::Int(n * 1000), v => v }
+    }
+    /// Typed i64 access for hand-written code that needs a raw timestamp.
+    fn milliseconds_i64(&self) -> i64 {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_millis() as i64).unwrap_or(0)
+    }
+
+    pub fn iso8601(&self, ts: Value) -> Value {
+        let n = match ts {
+            Value::Int(n)   => n,
+            Value::Float(f) => f as i64,
+            _ => return Value::Null,
+        };
+        chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n)
+            .map(|t| Value::Str(t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)))
+            .unwrap_or(Value::Null)
+    }
+
+    pub fn parse8601(&self, s: Value) -> Value {
+        let str_val = match s { Value::Str(s) => s, _ => return Value::Null };
+        chrono::DateTime::parse_from_rfc3339(&str_val)
+            .ok()
+            .map(|t| Value::Int(t.timestamp_millis()))
+            .unwrap_or(Value::Null)
+    }
+
+    // safe_string/safe_number/safe_integer/safe_bool live on the transpiled
+    // side (`exchange_generated.rs`) when the `transpiled-base` feature is
+    // enabled. The free-functions in `crate::value` are the typed
+    // equivalents — used internally by hand-written code below.
+
+
+}
+
+// ── small helper used by url-encoding above ─────────────────────────────────
+
+// ── derived (Go-style "Itf") dispatch ───────────────────────────────────────
+
+impl Exchange {
+    /// Installs the derived-exchange trait pointer. Called by each
+    /// derived exchange's `bind()` once the parent struct is at a stable
+    /// address (typically inside a `Box`). The pointer must outlive every
+    /// `derived()` call that follows.
+    pub fn bind_derived(&mut self, ptr: *const (dyn DerivedExchange + 'static)) {
+        self.internals.derived_ptr = ptr;
+    }
+
+    /// Installs an async dispatch hook for the derived exchange. Called
+    /// from each Core's `bind()` to register its `call_dynamic` so base
+    /// methods can fan out to overridden async methods (e.g.
+    /// `Exchange::cancel_order_with_client_order_id` calls
+    /// `self.cancel_order(...)` — this hook routes that to BinanceCore's
+    /// `cancel_order` instead of Exchange's stub).
+    pub fn bind_call_async(&mut self, core_ptr: *mut (), call_fn: DynCallFn) {
+        self.internals.derived_core_ptr = core_ptr;
+        self.internals.call_async_fn    = Some(call_fn);
+    }
+
+    /// Routes `method(args)` to the derived exchange's `call_dynamic`
+    /// when one is bound. Returns `None` when no derived is bound (the
+    /// caller can fall back to the base impl).
+    pub async fn dispatch_to_derived(&mut self, method: &str, args: Vec<Value>) -> Option<Value> {
+        // Re-entry guard PER METHOD: if we're already dispatching
+        // method X and X's base impl calls X again, that's the loop we
+        // need to break. But if base X calls a different method Y, Y's
+        // preamble should still fire (so e.g. base `fetch_leverage`
+        // calls `fetch_leverages` which CAN dispatch to derived).
+        if self.internals.dispatch_stack.iter().any(|m| m == method) { return None; }
+        let (call_fn, core_ptr) = match (self.internals.call_async_fn, self.internals.derived_core_ptr) {
+            (Some(f), p) if !p.is_null() => (f, p),
+            _ => return None,
+        };
+        self.internals.dispatch_stack.push(method.to_string());
+        let result = call_fn(core_ptr, method, args).await;
+        self.internals.dispatch_stack.pop();
+        Some(result)
+    }
+
+    /// Returns the derived exchange trait object. Falls back to the
+    /// `DefaultDerived` singleton when nothing is bound.
+    pub fn derived(&self) -> &(dyn DerivedExchange + 'static) {
+        // SAFETY: derived_ptr is either &DEFAULT_DERIVED (always valid) or
+        // a pointer installed by `bind_derived` whose lifetime is the
+        // owning derived struct (Exchange lives inside it, so it can't
+        // outlive the trait object).
+        unsafe { &*self.internals.derived_ptr }
+    }
+}
+
+// ── implicit API dispatch ───────────────────────────────────────────────────
+
+impl Exchange {
+    /// Builds the `name → (path, scope, verb)` dispatch table by walking
+    /// the `self.api` Value::Map. Called lazily on first dynamic call.
+    ///
+    /// The `api` block layout is:
+    ///   { <scope>: { <verb>: [path, path, ...] } }
+    ///   { <scope>: { <subscope>: { <verb>: [path, ...] } } }
+    /// — arbitrary nesting before the verb level. The verb is one of
+    /// `get`/`post`/`put`/`delete`/`patch` (any case). All path components
+    /// before the verb concatenate into the scope (joined by `_`).
+    pub fn build_implicit_api(&mut self) {
+        let mut map: HashMap<String, (String, Vec<String>, String)> = HashMap::new();
+        Self::walk_api_node(&self.api, &[], &mut map);
+        self.internals.implicit_api = map;
+    }
+
+    fn walk_api_node(
+        node: &Value,
+        crumbs: &[String],
+        out: &mut HashMap<String, (String, Vec<String>, String)>,
+    ) {
+        let known_verbs = ["get", "post", "put", "delete", "patch"];
+        let last_is_verb = crumbs.last()
+            .map(|c| known_verbs.iter().any(|v| *v == c.to_lowercase().as_str()))
+            .unwrap_or(false);
+        match node {
+            // If the current level is a verb (`get`/`post`/…) and its child
+            // is a Map, the keys ARE the paths (and values are rate-limit
+            // costs — exchange-specific).
+            Value::Map(m) if last_is_verb => {
+                let verb = crumbs.last().unwrap().to_lowercase();
+                // Method name uses snake-cased scope (`fapi_public_get_X`).
+                let scope_snake = Self::api_scope_from_crumbs(&crumbs[..crumbs.len() - 1]);
+                // But sign()/urls.api lookup uses the original segments
+                // (camelCase, e.g. `["fapiPublic"]` for binance,
+                //  `["public","common"]` for bitget, `["public","spot"]`
+                //  for gate). Preserve as Vec<String> so the dispatcher
+                //  can choose Value::Str (single) vs Value::Array (multi).
+                let scope_segments: Vec<String> = crumbs[..crumbs.len() - 1].to_vec();
+                for path_key in m.keys() {
+                    Self::register_implicit(&verb, &scope_snake, &scope_segments, path_key, out);
+                }
+            }
+            Value::Map(m) => {
+                for (key, child) in m {
+                    let mut next = crumbs.to_vec();
+                    next.push(key.clone());
+                    Self::walk_api_node(child, &next, out);
+                }
+            }
+            // Some exchanges use `Array<path-string>` at the verb level.
+            Value::Array(a) if last_is_verb => {
+                let verb = crumbs.last().unwrap().to_lowercase();
+                let scope_snake = Self::api_scope_from_crumbs(&crumbs[..crumbs.len() - 1]);
+                let scope_segments: Vec<String> = crumbs[..crumbs.len() - 1].to_vec();
+                for path in a {
+                    let path_str = match path {
+                        Value::Str(s) => s.clone(),
+                        Value::Map(pm) => match pm.get("method").or_else(|| pm.get("path")) {
+                            Some(Value::Str(s)) => s.clone(),
+                            _ => continue,
+                        },
+                        _ => continue,
+                    };
+                    Self::register_implicit(&verb, &scope_snake, &scope_segments, &path_str, out);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn api_scope_from_crumbs(crumbs: &[String]) -> String {
+        // The scope identifier in TS is camelCase (e.g. `fapiPrivate`),
+        // but transpiled call sites are snake_case (`fapi_private_get_X`).
+        // Convert each crumb camelCase → snake_case and join with `_`.
+        crumbs.iter()
+            .map(|s| s
+                .chars()
+                .enumerate()
+                .flat_map(|(i, c)| {
+                    if c.is_ascii_uppercase() && i > 0 {
+                        vec!['_', c.to_ascii_lowercase()]
+                    } else {
+                        vec![c.to_ascii_lowercase()]
+                    }
+                })
+                .collect::<String>())
+            .collect::<Vec<_>>()
+            .join("_")
+    }
+
+    fn register_implicit(
+        verb: &str,
+        scope_snake: &str,
+        scope_segments: &[String],
+        path: &str,
+        out: &mut HashMap<String, (String, Vec<String>, String)>,
+    ) {
+        // CCXT's TS defineImplicitMethods converts the path to camelCase by
+        // splitting on `/` and capitalizing each segment. Then the Rust
+        // transpiler snake_cases the method name. We replicate both steps:
+        //   `ticker/24hr`     → camel `Ticker24hr` → snake `ticker24hr`
+        //   `exchangeInfo`    → camel `ExchangeInfo` → snake `exchange_info`
+        //   `lending/auto-invest` → camel `LendingAutoInvest` → snake `lending_auto_invest`
+        let camel: String = path
+            .split('/')
+            .filter(|s| !s.is_empty())
+            .map(|seg| {
+                let cleaned: String = seg.replace('{', "").replace('}', "")
+                    .replace('-', "_").replace('.', "_");
+                // capitalize first letter of the segment
+                let mut chars = cleaned.chars();
+                match chars.next() {
+                    None => String::new(),
+                    Some(c) => c.to_ascii_uppercase().to_string() + chars.as_str(),
+                }
+            })
+            .collect();
+        // snake_case from camel: insert `_` between [a-z\d] and [A-Z],
+        // and between [A-Z]+ and [A-Z][a-z]. Mirrors the transpiler's
+        // toSnakeCase exactly.
+        let snake = Self::to_snake_case(&camel);
+        let name = format!("{scope_snake}_{verb}_{snake}");
+        out.insert(name, (path.to_string(), scope_segments.to_vec(), verb.to_uppercase()));
+    }
+
+    fn to_snake_case(s: &str) -> String {
+        // 1st pass: `[A-Z]+([A-Z][a-z])` → `$1_$2`
+        let bytes: Vec<char> = s.chars().collect();
+        let mut out = String::with_capacity(s.len() + 4);
+        for i in 0..bytes.len() {
+            let c = bytes[i];
+            let prev = if i > 0 { Some(bytes[i - 1]) } else { None };
+            let next = if i + 1 < bytes.len() { Some(bytes[i + 1]) } else { None };
+            if c.is_ascii_uppercase() {
+                let prev_lower_or_digit = prev
+                    .map(|p| p.is_ascii_lowercase() || p.is_ascii_digit())
+                    .unwrap_or(false);
+                let prev_upper = prev.map(|p| p.is_ascii_uppercase()).unwrap_or(false);
+                let next_lower = next.map(|n| n.is_ascii_lowercase()).unwrap_or(false);
+                if prev_lower_or_digit {
+                    out.push('_');
+                } else if prev_upper && next_lower {
+                    out.push('_');
+                }
+            }
+            out.push(c.to_ascii_lowercase());
+        }
+        // Collapse any `__` runs introduced by underscores already in input.
+        while out.contains("__") {
+            out = out.replace("__", "_");
+        }
+        out.trim_matches('_').to_string()
+    }
+
+    /// Resolves the base URL for a given api scope. Looks up
+    /// `urls.api.<scope>`; if that's itself a map, prefers `rest`.
+    fn url_for_scope(&self, scope: &str) -> Option<String> {
+        let api = crate::get_value(&self.urls, &Value::Str("api".to_string()));
+        // Try scoped first (binance-style: urls.api.public, urls.api.private).
+        let scoped = crate::get_value(&api, &Value::Str(scope.to_string()));
+        let raw = match scoped {
+            Value::Str(s) => s,
+            Value::Map(m) => match m.get("rest").or_else(|| m.get("current")) {
+                Some(Value::Str(s)) => s.clone(),
+                _ => return self.fallback_rest_url(&api),
+            },
+            _ => return self.fallback_rest_url(&api),
+        };
+        Some(self.implode_hostname_typed(&raw))
+    }
+
+    /// Many exchanges (okx, kucoin, bitget, gate, hyperliquid, …) use
+    /// a single `urls.api.rest` URL for all scopes. Fall back to it
+    /// when the per-scope lookup misses.
+    fn fallback_rest_url(&self, api: &Value) -> Option<String> {
+        let rest = crate::get_value(api, &Value::Str("rest".to_string()));
+        if let Value::Str(s) = rest {
+            return Some(self.implode_hostname_typed(&s));
+        }
+        // Last resort: if urls.api itself is a string, use it.
+        if let Value::Str(s) = api {
+            return Some(self.implode_hostname_typed(s));
+        }
+        None
+    }
+
+    /// Internal typed `{hostname}` substitution.
+    fn implode_hostname_typed(&self, url: &str) -> String {
+        let host = match &self.hostname {
+            Value::Str(s) => s.clone(),
+            _ => return url.to_string(),
+        };
+        url.replace("{hostname}", &host)
+    }
+
+    /// Dispatches an implicit API call. Looks the method up in the dispatch
+    /// table (building it on first use) and routes through `request`.
+    pub async fn implicit_api_call(&mut self, name: &str, params: Value) -> Result<Value> {
+        if self.internals.implicit_api.is_empty() {
+            self.build_implicit_api();
+        }
+        let entry = self.internals.implicit_api.get(name).cloned();
+        let (path, scope_segments, verb) = match entry {
+            Some(t) => t,
+            None => return Err(ExchangeError::new(
+                "NotSupported",
+                format!("implicit API method {name} not found in api block"),
+            )),
+        };
+        self.request_typed(&path, &scope_segments, &verb, params).await
+    }
+
+    /// Public-endpoint request: imploding params into the path/query and
+    /// hitting `fetch`. Private endpoints need per-exchange signing — for
+    /// now we treat anything outside `public` as a stub that returns Null.
+    pub async fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> Result<Value> {
+        // Each exchange's TS `sign` declares `api` differently:
+        //   binance/hyperliquid/okx/kucoin: a string like "public"
+        //   bitget/gate/htx/...:           an array like ["public","spot"]
+        // Pass the segment list as Value::Str (single) or Value::Array
+        // (multi) so each exchange sees the shape it expects.
+        let api_arg = if scope_segments.len() == 1 {
+            Value::Str(scope_segments[0].clone())
+        } else {
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+        };
+        // Single-string fallback for url_for_scope (uses just the first
+        // segment, which is sufficient for binance-style nested urls).
+        let scope_lookup: String = scope_segments.first().cloned().unwrap_or_default();
+        // Prefer the derived exchange's `sign()` — it knows how to
+        // build the right URL (including prefixes like `/api/v5/` for
+        // okx, `/api/v1/` for kucoin), HMAC-sign private endpoints,
+        // and pick the right base URL per scope.
+        let signed = self.derived().sign(
+            Value::Str(path.to_string()),
+            api_arg,
+            Value::Str(verb.to_string()),
+            params.clone(),
+            Value::Null,
+            Value::Null,
+        );
+        if let Value::Map(m) = &signed {
+            let url = match m.get("url") { Some(Value::Str(s)) => s.clone(), _ => String::new() };
+            let method = match m.get("method") { Some(Value::Str(s)) => s.clone(), _ => verb.to_string() };
+            let body = match m.get("body") { Some(Value::Str(s)) => Some(s.clone()), _ => None };
+            let headers = match m.get("headers") {
+                Some(Value::Map(h)) => h.iter()
+                    .filter_map(|(k, v)| match v { Value::Str(s) => Some((k.clone(), s.clone())), _ => None })
+                    .collect::<HashMap<_, _>>(),
+                _ => HashMap::new(),
+            };
+            if !url.is_empty() {
+                return self.fetch_typed(&url, &method, headers, body).await;
+            }
+        }
+        // Fallback: derived exchange didn't implement sign() — build the
+        // URL ourselves. Works for binance-style apis where the path
+        // already includes the version segment.
+        let base = self.url_for_scope(&scope_lookup).ok_or_else(|| ExchangeError::new(
+            "BadRequest",
+            format!("no URL configured for api scope `{scope_lookup}`"),
+        ))?;
+        let imploded = self.implode_params(Value::Str(path.to_string()), params.clone());
+        let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string() };
+        let consumed_keys = self.extract_path_params(path);
+        let remaining_params = match params {
+            Value::Map(m) => {
+                let mut keep = HashMap::new();
+                for (k, v) in m {
+                    if !consumed_keys.contains(&k) { keep.insert(k, v); }
+                }
+                Value::Map(keep)
+            }
+            other => other,
+        };
+        let mut url = format!("{}/{}", base.trim_end_matches('/'), path_str.trim_start_matches('/'));
+        let mut body: Option<String> = None;
+        let qs = match &remaining_params {
+            Value::Map(m) if !m.is_empty() => self.urlencode_kv(&remaining_params),
+            _ => String::new(),
+        };
+        if verb == "GET" || verb == "DELETE" {
+            if !qs.is_empty() {
+                url = format!("{}?{}", url, qs);
+            }
+        } else if !qs.is_empty() {
+            body = Some(qs);
+        }
+        let mut headers = HashMap::new();
+        if scope_lookup != "public" {
+            if let Value::Str(k) = &self.apiKey {
+                headers.insert("X-MBX-APIKEY".to_string(), k.clone());
+            }
+        }
+        self.fetch_typed(&url, verb, headers, body).await
+    }
+
+    fn extract_path_params(&self, path: &str) -> Vec<String> {
+        let mut out: Vec<String> = vec![];
+        let mut chars = path.chars().peekable();
+        while let Some(c) = chars.next() {
+            if c == '{' {
+                let mut name = String::new();
+                while let Some(&nc) = chars.peek() {
+                    if nc == '}' { chars.next(); break; }
+                    name.push(nc); chars.next();
+                }
+                if !name.is_empty() { out.push(name); }
+            }
+        }
+        out
+    }
+}
+
+fn value_to_bytes(v: &Value) -> Vec<u8> {
+    match v {
+        Value::Str(s) => s.as_bytes().to_vec(),
+        Value::Array(a) => a.iter().filter_map(|x| match x {
+            Value::Int(n) => Some(*n as u8),
+            _ => None,
+        }).collect(),
+        _ => Vec::new(),
+    }
+}
+
+fn url_pct(s: &str) -> String {
+    s.bytes().map(|b| match b {
+        b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
+        _ => format!("%{b:02X}"),
+    }).collect()
+}

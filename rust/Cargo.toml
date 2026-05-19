@@ -1,0 +1,3 @@
+[workspace]
+members = ["ccxt", "tests"]
+resolver = "2"
