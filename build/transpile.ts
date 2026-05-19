@@ -152,6 +152,7 @@ class Transpiler {
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.describeData /g, '.describe_data'],
             [ /\.removeRepeatedElementsFromArray/g, '.remove_repeated_elements_from_array'],
+            [ /\.prioritizedNetworkAliases /g, '.prioritized_network_aliases'],
             [ /\.initThrottler /g, '.init_throttler'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
