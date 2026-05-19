@@ -2079,6 +2079,22 @@ class RustTranspilerBuilder {
             is_json_encoded_object: 0,
             create_safe_dictionary: 0,
             create_safe_list:       0,
+            // camelCase aliases for tests that didn't get snake-cased.
+            safeString2:   3,
+            safeStringN:   2,
+            safeInteger2:  3,
+            safeIntegerN:  2,
+            safeNumber2:   3,
+            safeFloat2:    3,
+            safeBool2:     3,
+            safeDict2:     3,
+            safeListN:     2,
+            handle_market_type_and_params: 1,
+            handle_sub_type_and_params: 1,
+            handle_margin_mode_and_params: 1,
+            handle_option_and_params: 3,
+            handle_option_and_params2: 4,
+            binary_concat: 1,
             hmac:          3,
             ecdsa:         3,
             eddsa:         3,
@@ -3147,6 +3163,9 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteGetValueAssignments(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.splitGetValueMutAdds(content);
+                // Async propagation — mark fns async when their body
+                // contains `.await`.
+                content = this.markMethodsAsyncIfBodyAwaits(content);
                 content = this.appendValueNullToVoidEnds(content);
 
                 // Test-specific rewrites.
@@ -3248,6 +3267,21 @@ impl std::ops::DerefMut for ${coreName} {
                     /\b(exchange\d*)\.clone\(\)/g,
                     '$1.clone_self()',
                 );
+                // Catch-all: zero-arity variadic calls with empty `()`
+                // that the main wrapper missed (e.g. because string-
+                // depth-tracking didn't fire on these).
+                {
+                    const zeroArity = Object.entries(this.handWrittenVariadics())
+                        .filter(([_, v]) => v === 0)
+                        .map(([k]) => k);
+                    if (zeroArity.length > 0) {
+                        const re = new RegExp(
+                            `\\b(exchange\\d*|self)\\.(${zeroArity.join('|')})\\(\\)`,
+                            'g',
+                        );
+                        content = content.replace(re, '$1.$2(&[])');
+                    }
+                }
                 // Same for `exchange2`, `exchange3`, … (used in some
                 // tests to compare two Exchange instances).
                 content = content.replace(
@@ -3295,10 +3329,22 @@ impl std::ops::DerefMut for ${coreName} {
         const runArms = names
             .map(n => {
                 const ident = this.modIdentFor(n);
-                // TS entry: testSomething → in Rust the function is
-                // emitted with the same name. We can call it directly.
                 const fnName = this.testEntryPointFor(n);
-                return `    if let Err(e) = std::panic::catch_unwind(|| ${ident}::${fnName}()) {\n` +
+                // Check whether the test fn is async — if so, await
+                // it inside an in-place tokio runtime so the runner
+                // stays sync.
+                const filePath = `${outDir}/${n}.rs`;
+                let isAsync = false;
+                try {
+                    const src = fs.readFileSync(filePath).toString();
+                    isAsync = new RegExp(`\\bpub\\s+async\\s+fn\\s+${fnName}\\b`).test(src);
+                } catch (_) { /* ignore */ }
+                const call = isAsync
+                    ? `        let _ = tokio::runtime::Runtime::new().unwrap().block_on(${ident}::${fnName}());`
+                    : `        ${ident}::${fnName}();`;
+                return `    if let Err(e) = std::panic::catch_unwind(|| {\n` +
+                       `${call}\n` +
+                       `    }) {\n` +
                        `        return Err(format!("${n}: panicked: {e:?}"));\n` +
                        `    }\n` +
                        `    println!("  ✓ ${n}");`;
