@@ -167,28 +167,28 @@ function helperBatchNetworkTests () {
 //     });
 
 //     // for ethereum
-//     assert (exchange.sortedNetworkChains ('ERC20', 'MYTOKEN') === 'ERC20');
-//     assert (exchange.sortedNetworkChains ('ETH', 'MYTOKEN') === 'ERC20');
-//     assert (exchange.sortedNetworkChains ('ERC20', 'ETH') === 'ETH');
-//     assert (exchange.sortedNetworkChains ('ETH', 'ETH') === 'ETH');
+//     assert (exchange.twoChainsForNetwork ('ERC20', 'MYTOKEN') === 'ERC20');
+//     assert (exchange.twoChainsForNetwork ('ETH', 'MYTOKEN') === 'ERC20');
+//     assert (exchange.twoChainsForNetwork ('ERC20', 'ETH') === 'ETH');
+//     assert (exchange.twoChainsForNetwork ('ETH', 'ETH') === 'ETH');
 
 //     // for tron
-//     assert (exchange.sortedNetworkChains ('TRC20', 'MYTOKEN') === 'TRC20');
-//     assert (exchange.sortedNetworkChains ('TRX', 'MYTOKEN') === 'TRC20');
-//     assert (exchange.sortedNetworkChains ('TRC20', 'TRX') === 'TRX');
-//     assert (exchange.sortedNetworkChains ('TRX', 'TRX') === 'TRX');
+//     assert (exchange.twoChainsForNetwork ('TRC20', 'MYTOKEN') === 'TRC20');
+//     assert (exchange.twoChainsForNetwork ('TRX', 'MYTOKEN') === 'TRC20');
+//     assert (exchange.twoChainsForNetwork ('TRC20', 'TRX') === 'TRX');
+//     assert (exchange.twoChainsForNetwork ('TRX', 'TRX') === 'TRX');
 
 //     // for cronos
-//     assert (exchange.sortedNetworkChains ('CRC20', 'MYTOKEN') === 'CRC20');
-//     assert (exchange.sortedNetworkChains ('CRONOS', 'MYTOKEN') === 'CRC20');
-//     assert (exchange.sortedNetworkChains ('CRC20', 'CRO') === 'CRONOS');
-//     assert (exchange.sortedNetworkChains ('CRONOS', 'CRO') === 'CRONOS');
+//     assert (exchange.twoChainsForNetwork ('CRC20', 'MYTOKEN') === 'CRC20');
+//     assert (exchange.twoChainsForNetwork ('CRONOS', 'MYTOKEN') === 'CRC20');
+//     assert (exchange.twoChainsForNetwork ('CRC20', 'CRO') === 'CRONOS');
+//     assert (exchange.twoChainsForNetwork ('CRONOS', 'CRO') === 'CRONOS');
 
 //     // for bitcoin
-//     assert (exchange.sortedNetworkChains ('BRC20', 'MYTOKEN') === 'BRC20');
-//     assert (exchange.sortedNetworkChains ('BTC', 'MYTOKEN') === 'BRC20');
-//     assert (exchange.sortedNetworkChains ('BRC20', 'BTC') === 'BTC');
-//     assert (exchange.sortedNetworkChains ('BTC', 'BTC') === 'BTC');
+//     assert (exchange.twoChainsForNetwork ('BRC20', 'MYTOKEN') === 'BRC20');
+//     assert (exchange.twoChainsForNetwork ('BTC', 'MYTOKEN') === 'BRC20');
+//     assert (exchange.twoChainsForNetwork ('BRC20', 'BTC') === 'BTC');
+//     assert (exchange.twoChainsForNetwork ('BTC', 'BTC') === 'BTC');
 // }
 
 function testNetworkMethods () {
