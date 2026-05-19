@@ -574,7 +574,9 @@ impl Exchange {
     pub fn safeString2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
         self.safe_string2(obj, k1, k2, optional_args)
     }
-    pub fn binary_concat(&self, _a: Value, _b: Value) -> Value { Value::Array(vec![]) }
+    pub fn binary_concat(&self, _first: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
+    pub fn stringToBase64(&self, _s: Value) -> Value { Value::Str(String::new()) }
+    pub fn base64_to_binary(&self, _s: Value) -> Value { Value::Array(vec![]) }
     pub fn binary_to_string(&self, _b: Value) -> Value { Value::Str(String::new()) }
     pub fn string_to_binary(&self, s: Value) -> Value {
         match s {
