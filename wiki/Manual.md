@@ -7165,17 +7165,29 @@ Some users might want to control how CCXT handles arithmetic operations. Even th
 #### **Javascript**
 ```javascript
 const ex = new ccxt.coinbase ();
-ex.number = String ; // String | Number
+ex.number = String; // String | Number
+
+// other possible values:
+exchange.number = parseFloat; // default
+exchange.number = require ('bignumber.js'); // parse numbers as bignumber objects
 ```
 #### **Python**
 ```python
 ex = ccxt.coinbase()
 ex.number = str  # str | float
+
+// other possible values:
+exchange.number = float  # default
+exchange.number = decimal.Decimal  # parse numbers as decimals
 ```
 #### **PHP**
 ```php
 $ex = new ccxt\\coinbase();
 $ex->number = 'strval'; // 'strval' | 'floatval'
+
+// other possible values:
+$exchange->number = 'floatval'; // default
+$exchange->number = function ($string) { return new Precise($string); }; // parse numbers as Precise objects
 ```
 #### **C#**
 ```csharp
@@ -7183,8 +7195,6 @@ var ex = new ccxt.coinbase();
 ex.number = typeof(String); // typeof(String) | typeof(float)
 ```
 <!-- tabs:end -->
-
-
 
 # Error Handling
 
