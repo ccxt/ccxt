@@ -265,14 +265,11 @@ export default class zex extends Exchange {
      */
     zexSign (message: string): string {
         const msgBytes = this.encode (message);
-        const msgLen = msgBytes.length;
-        const prefix = "\x19Ethereum Signed Message:\n" + msgLen.toString (); // eslint-disable-line quotes
-        const prefixBytes = this.encode (prefix);
-        const combined = new Uint8Array (prefixBytes.length + msgLen);
-        combined.set (prefixBytes);
-        combined.set (msgBytes, prefixBytes.length);
-        const hash = keccak (combined);
-        const hashHex = this.binaryToBase16 (hash);
+        const msgLen = this.binaryLength (msgBytes);
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0a');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (msgLen)));
+        const hashHex = this.hash (this.binaryConcat (prefix, msgBytes), keccak, 'hex');
         const rawKey = this.privateKey;
         let cleanKey = rawKey;
         if (rawKey.indexOf ('0x') === 0) {
@@ -306,16 +303,7 @@ export default class zex extends Exchange {
      * @description derive the Ethereum address from the private key
      */
     zexDeriveAddress (): string {
-        const rawKey = this.privateKey;
-        let cleanKey = rawKey;
-        if (rawKey.indexOf ('0x') === 0) {
-            cleanKey = rawKey.slice (2);
-        }
-        const privateKeyBytes = this.base16ToBinary (cleanKey);
-        const uncompressedPub = secp256k1.getPublicKey (privateKeyBytes, false);
-        const pubBytes = uncompressedPub.slice (1);
-        const hash = keccak (pubBytes);
-        return '0x' + this.binaryToBase16 (hash).slice (-40);
+        return this.ethGetAddressFromPrivateKey (this.privateKey);
     }
 
     /**
@@ -489,9 +477,11 @@ export default class zex extends Exchange {
             }
         }
         if (amountPrecision === undefined) {
-            const volumeStr = this.safeString (ticker, 'volume');
-            if (volumeStr !== undefined) {
-                amountPrecision = this.zexPrecisionFromString (volumeStr);
+            // ticker.volume is a cumulative sum and not safe to derive a quantum from;
+            // fall back to baseAssetPrecision (decimals → tick size) when filters are absent.
+            const baseAssetPrecision = this.safeInteger (market, 'baseAssetPrecision');
+            if (baseAssetPrecision !== undefined) {
+                amountPrecision = this.parseNumber (this.parsePrecision (this.numberToString (baseAssetPrecision)));
             }
         }
         return this.safeMarketStructure ({
@@ -513,8 +503,8 @@ export default class zex extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.safeNumber (this.fees, 'spot.taker'),
-            'maker': this.safeNumber (this.fees, 'spot.maker'),
+            'taker': this.safeNumber (this.safeDict (this.fees, 'trading', {}), 'taker'),
+            'maker': this.safeNumber (this.safeDict (this.fees, 'trading', {}), 'maker'),
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -814,14 +804,10 @@ export default class zex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type !== 'limit') {
-            throw new InvalidOrder (
-                this.id + ' createOrder only supports limit orders'
-            );
+            throw new InvalidOrder (this.id + ' createOrder only supports limit orders');
         }
         if (price === undefined) {
-            throw new ArgumentsRequired (
-                this.id + ' createOrder requires a price for limit orders'
-            );
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price for limit orders');
         }
         const userId = await this.getUserId ();
         const nonceResponse = await this.privateGetUserNonce ({ 'id': userId });
@@ -861,8 +847,19 @@ export default class zex extends Exchange {
             'signature': signature,
         };
         const response = await this.privatePostOrder (this.extend (request, params));
-        const order = this.parseOrder (response, market);
-        // cache the nonce for later cancellation
+        // response is typically { status: 'ok' } (ack, not order status); drop it before merging so parseOrder treats the order as open
+        const merged: Dict = this.extend ({
+            'nonce': nonce,
+            'name': sideStr,
+            'base_token': baseToken,
+            'quote_token': quoteToken,
+            'amount': amountStr,
+            'price': priceStr,
+            'filled_amount': '0',
+            'timestamp': t,
+            'status': 'open',
+        }, this.omit (response, 'status'));
+        const order = this.parseOrder (merged, market);
         const orderId = this.safeString (order, 'id');
         if (orderId !== undefined) {
             this.options['orderNonceCache'][orderId] = nonce;
@@ -892,9 +889,7 @@ export default class zex extends Exchange {
             orderNonce = parseInt (id, 10);
         }
         if (orderNonce === undefined) {
-            throw new OrderNotFound (
-                this.id + ' cancelOrder: could not find order nonce for order id ' + id
-            );
+            throw new OrderNotFound (this.id + ' cancelOrder: could not find order nonce for order id ' + id);
         }
         const nl = "\n"; // eslint-disable-line quotes
         const msgLines = [
@@ -934,14 +929,13 @@ export default class zex extends Exchange {
         const items = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const orderNonce = this.safeInteger (this.options['orderNonceCache'], id);
+            let orderNonce = this.safeInteger (this.options['orderNonceCache'], id);
             if (orderNonce === undefined) {
-                throw new ArgumentsRequired (
-                    this.id
-            + ' cancelOrders: nonce for order '
-            + id
-            + ' not found in cache; use cancelOrder one-by-one'
-                );
+                // fall back to interpreting the id as the nonce (zex order ids ARE nonces in this client)
+                orderNonce = parseInt (id, 10);
+            }
+            if (orderNonce === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders: could not resolve nonce for order ' + id);
             }
             const nl = "\n"; // eslint-disable-line quotes
             const msgLines = [
@@ -953,6 +947,7 @@ export default class zex extends Exchange {
             const msg = msgLines.join (nl) + nl;
             const signature = this.zexSign (msg);
             items.push ({
+                'type': 'cancel',
                 'user_id': userId,
                 'nonce': orderNonce,
                 'signature_type': 'secp256k1',
@@ -960,15 +955,13 @@ export default class zex extends Exchange {
             });
         }
         const request: Dict = {
-            'type': 'cancel',
-            'items': items,
+            'txs': items,
         };
         const response = await this.privatePostBatch (this.extend (request, params));
-        const results = this.safeList (response, 'results', []);
-        for (let i = 0; i < results.length; i++) {
-            const result = this.safeDict (results, i, {});
+        // batch ack is { status: 'ok' } with no per-tx results; assume each cancel was accepted
+        for (let i = 0; i < ids.length; i++) {
             orders.push (
-                this.safeOrder ({ 'id': ids[i], 'info': result, 'status': 'canceled' })
+                this.safeOrder ({ 'id': ids[i], 'info': response, 'status': 'canceled' })
             );
         }
         return orders;
@@ -995,9 +988,7 @@ export default class zex extends Exchange {
             const amount = this.safeNumber (order, 'amount');
             const price = this.safeNumber (order, 'price');
             if (type !== 'limit') {
-                throw new InvalidOrder (
-                    this.id + ' createOrders only supports limit orders'
-                );
+                throw new InvalidOrder (this.id + ' createOrders only supports limit orders');
             }
             const market = this.market (symbol);
             const marketId = market['id'];
@@ -1025,6 +1016,7 @@ export default class zex extends Exchange {
             const msg = msgLines.join (nl) + nl;
             const signature = this.zexSign (msg);
             items.push ({
+                'type': 'order',
                 'operation': sideStr,
                 'base_token': baseToken,
                 'quote_token': quoteToken,
@@ -1038,17 +1030,27 @@ export default class zex extends Exchange {
             });
         }
         const request: Dict = {
-            'type': 'order',
-            'items': items,
+            'txs': items,
         };
-        const response = await this.privatePostBatch (this.extend (request, params));
-        const results = this.safeList (response, 'results', []);
+        await this.privatePostBatch (this.extend (request, params));
+        // batch ack is { status: 'ok' } with no per-tx results; build order structs from submitted items
         const parsedOrders = [];
-        for (let i = 0; i < results.length; i++) {
-            const result = this.safeDict (results, i, {});
-            const parsed = this.parseOrder (result);
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const merged: Dict = {
+                'nonce': this.safeInteger (item, 'nonce'),
+                'name': this.safeString (item, 'operation'),
+                'base_token': this.safeString (item, 'base_token'),
+                'quote_token': this.safeString (item, 'quote_token'),
+                'amount': this.safeString (item, 'amount'),
+                'price': this.safeString (item, 'price'),
+                'filled_amount': '0',
+                'timestamp': this.safeInteger (item, 'timestamp'),
+                'status': 'open',
+            };
+            const parsed = this.parseOrder (merged);
             const orderId = this.safeString (parsed, 'id');
-            const orderNonce = this.safeInteger (result, 'nonce');
+            const orderNonce = this.safeInteger (item, 'nonce');
             if (orderId !== undefined && orderNonce !== undefined) {
                 this.options['orderNonceCache'][orderId] = orderNonce;
             }
@@ -1156,9 +1158,11 @@ export default class zex extends Exchange {
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'amount');
         const filled = this.safeNumber (order, 'filled_amount');
-        const timestamp = this.safeInteger (order, 'timestamp');
-        const filledCost = (price !== undefined && filled !== undefined) ? price * filled : undefined;
-        const feeAmount = filledCost !== undefined ? filledCost * 0.002 : undefined;
+        const timestamp = this.safeTimestamp (order, 'timestamp');
+        const filledStr = this.safeString (order, 'filled_amount');
+        const priceStr = this.safeString (order, 'price');
+        const filledCostStr = Precise.stringMul (priceStr, filledStr);
+        const feeAmount = (filledCostStr !== undefined) ? this.parseNumber (Precise.stringMul (filledCostStr, '0.002')) : undefined;
         return this.safeOrder (
             {
                 'id': id,
@@ -1178,7 +1182,7 @@ export default class zex extends Exchange {
                 'amount': amount,
                 'filled': filled,
                 'remaining': undefined,
-                'cost': filledCost,
+                'cost': this.parseNumber (filledCostStr),
                 'trades': undefined,
                 'fee': {
                     'cost': feeAmount,
@@ -1244,13 +1248,15 @@ export default class zex extends Exchange {
      */
     parseTrade (trade, market: Market = undefined): Trade {
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const baseToken = this.safeString (trade, 'base_token');
         const quoteToken = this.safeString (trade, 'quote_token');
         const symbol = baseToken + '/' + quoteToken;
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        const cost = price !== undefined && amount !== undefined ? price * amount : undefined;
+        const priceStr = this.safeString (trade, 'price');
+        const amountStr = this.safeString (trade, 'amount');
+        const price = this.parseNumber (priceStr);
+        const amount = this.parseNumber (amountStr);
+        const cost = this.parseNumber (Precise.stringMul (priceStr, amountStr));
         const sideRaw = this.safeStringLower (trade, 'name');
         const side = sideRaw === 'buy' ? 'buy' : 'sell';
         const orderId = this.safeString (trade, 'taker_order_id');
@@ -1347,18 +1353,18 @@ export default class zex extends Exchange {
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         const currencyId = this.safeString (transaction, 'token_name');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'nonce'),
+            'id': this.safeString2 (transaction, 'id', 'nonce'),
             'txid': this.safeString (transaction, 'tx_hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': this.safeString (transaction, 'chain'),
-            'address': undefined,
-            'addressTo': this.safeString (transaction, 'to'),
+            'address': this.safeString2 (transaction, 'destination', 'to'),
+            'addressTo': this.safeString2 (transaction, 'destination', 'to'),
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
@@ -1367,10 +1373,13 @@ export default class zex extends Exchange {
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
             'status': status,
-            'updated': undefined,
+            'updated': this.safeInteger (transaction, 'sequence_timestamp'),
             'internal': false,
             'comment': this.safeString (transaction, 'fail_reason'),
-            'fee': undefined,
+            'fee': {
+                'currency': this.safeCurrencyCode (this.safeString (transaction, 'fee_token_name'), currency),
+                'cost': this.safeNumber (transaction, 'fee'),
+            },
         };
     }
 
@@ -1408,32 +1417,14 @@ export default class zex extends Exchange {
         const userId = await this.getUserId ();
         const chain = this.safeString (params, 'chain');
         if (chain === undefined) {
-            throw new ArgumentsRequired (
-                this.id + ' withdraw requires a chain parameter (e.g. EVM, BTC)'
-            );
+            throw new ArgumentsRequired (this.id + ' withdraw requires a chain parameter (e.g. EVM, BTC)');
         }
         const nonceResponse = await this.privateGetUserNonce ({ 'id': userId });
         const nonce = this.safeInteger (nonceResponse, 'nonce');
         const t = this.milliseconds ();
         const amountStr = this.zexFormatDecimal (amount);
         const nl = "\n"; // eslint-disable-line quotes
-        const msg = '1'
-      + nl
-      + 'withdraw'
-      + nl
-      + chain
-      + nl
-      + currency['id']
-      + nl
-      + amountStr
-      + nl
-      + address
-      + nl
-      + t.toString ()
-      + nl
-      + nonce.toString ()
-      + nl
-      + userId.toString ();
+        const msg = '1' + nl + 'withdraw' + nl + chain + nl + currency['id'] + nl + amountStr + nl + address + nl + t.toString () + nl + nonce.toString () + nl + userId.toString ();
         const signature = this.zexSign (msg);
         const request: Dict = {
             'chain': chain,
@@ -1541,10 +1532,7 @@ export default class zex extends Exchange {
         const userId = await this.getUserId ();
         const vm = this.safeString (params, 'vm');
         if (vm === undefined) {
-            throw new ArgumentsRequired (
-                this.id
-          + ' fetchDepositAddress requires a vm parameter (EVM, SVM, TVM, BTC)'
-            );
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a vm parameter (EVM, SVM, TVM, BTC)');
         }
         const request: Dict = {
             'id': userId,
@@ -1575,38 +1563,51 @@ export default class zex extends Exchange {
      */
     async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const chain = this.safeString (params, 'chain');
-        const request: Dict = {
-            'token_name': currency['id'],
-        };
-        if (chain !== undefined) {
-            request['chain'] = chain;
+        if (this.currencies === undefined || Object.keys (this.currencies).length === 0) {
+            await this.fetchCurrencies ();
         }
-        const response = await this.publicGetWithdrawFee (
-            this.extend (request, this.omit (params, 'chain'))
-        );
-        return this.parseDepositWithdrawFee (response, currency);
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @description parse a deposit/withdraw fee response
-     */
-    parseDepositWithdrawFee (fee, currency: Currency = undefined): DepositWithdrawFee {
-        return {
-            'info': fee,
-            'withdraw': {
-                'fee': this.safeNumber (fee, 'fee'),
-                'percentage': false,
-            },
-            'deposit': {
-                'fee': undefined,
-                'percentage': undefined,
-            },
+        const currency = this.currency (code);
+        const chainParam = this.safeString (params, 'chain');
+        params = this.omit (params, 'chain');
+        let chains = undefined;
+        if (chainParam !== undefined) {
+            chains = [ chainParam ];
+        } else {
+            const networks = this.safeDict (currency, 'networks', {});
+            const networkIds = Object.keys (networks);
+            chains = [];
+            for (let i = 0; i < networkIds.length; i++) {
+                const network = this.safeDict (networks, networkIds[i], {});
+                const networkId = this.safeString (network, 'id', networkIds[i]);
+                chains.push (networkId);
+            }
+        }
+        const result: Dict = {
+            'info': {},
+            'withdraw': { 'fee': undefined, 'percentage': false },
+            'deposit': { 'fee': undefined, 'percentage': undefined },
             'networks': {},
         };
+        const infoByChain: Dict = {};
+        for (let i = 0; i < chains.length; i++) {
+            const chain = chains[i];
+            const request: Dict = {
+                'token_name': currency['id'],
+                'chain': chain,
+            };
+            const response = await this.publicGetWithdrawFee (this.extend (request, params));
+            const fee = this.safeNumber (response, 'fee');
+            infoByChain[chain] = response;
+            result['networks'][chain] = {
+                'withdraw': { 'fee': fee, 'percentage': false },
+                'deposit': { 'fee': undefined, 'percentage': undefined },
+            };
+            if (result['withdraw']['fee'] === undefined) {
+                result['withdraw']['fee'] = fee;
+            }
+        }
+        result['info'] = infoByChain;
+        return result as DepositWithdrawFee;
     }
 
     /**
@@ -1655,12 +1656,12 @@ export default class zex extends Exchange {
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length > 0) {
+            if (Object.keys (query).length) {
                 url = url + '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             if (method === 'GET') {
-                if (Object.keys (query).length > 0) {
+                if (Object.keys (query).length) {
                     url = url + '?' + this.urlencode (query);
                 }
             } else {
