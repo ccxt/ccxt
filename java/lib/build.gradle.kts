@@ -5,9 +5,14 @@
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/8.12/userguide/building_java_projects.html in the Gradle documentation.
  */
 
+import com.vanniktech.maven.publish.SonatypeHost
+import org.gradle.external.javadoc.StandardJavadocDocletOptions
+
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+    // Publish the library to Maven Central (sources + javadoc jars, POM, GPG signing).
+    id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
 repositories {
@@ -48,61 +53,59 @@ tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 
-tasks.register<JavaExec>("liveTest") {
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.github.ccxt.types.LiveTest")
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-    if (project.hasProperty("args")) {
-        args = (project.property("args") as String).split(" ").toList()
-    }
+
+// ---------------------------------------------------------------------------
+// Maven Central publishing
+//
+// Publishes the library only (io.github.ccxt:ccxt) — the cli, tests and
+// examples subprojects are intentionally not published. The plugin produces
+// the main jar plus sources and javadoc jars, a complete POM and GPG
+// signatures, then uploads to the Sonatype Central Portal.
+//
+// Required credentials, passed as Gradle properties or ORG_GRADLE_PROJECT_*
+// environment variables:
+//   mavenCentralUsername / mavenCentralPassword   — Central Portal user token
+//   signingInMemoryKey / signingInMemoryKeyPassword [/ signingInMemoryKeyId]
+//
+// Publish:        ./gradlew :lib:publishToMavenCentral
+// Dry-run local:  ./gradlew :lib:publishToMavenLocal   (no signing required)
+// See java/PUBLISHING.md for details.
+// ---------------------------------------------------------------------------
+
+// Transpiled sources carry doc comments that don't satisfy javadoc's strict
+// checks; relax them so the (Central-required) javadoc jar still builds.
+tasks.withType<Javadoc>().configureEach {
+    isFailOnError = false
+    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
 }
 
-tasks.register<JavaExec>("wsTest") {
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.github.ccxt.ws.BinanceDemoWsTest")
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    standardOutput = System.out
-    errorOutput = System.err
-    environment("BINANCE_APIKEY", System.getenv("BINANCE_APIKEY") ?: "")
-    environment("BINANCE_SECRET", System.getenv("BINANCE_SECRET") ?: "")
-}
-
-tasks.register<JavaExec>("restTest") {
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.github.ccxt.ws.BinanceDemoRestTest")
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    standardOutput = System.out
-    errorOutput = System.err
-    environment("BINANCE_APIKEY", System.getenv("BINANCE_APIKEY") ?: "")
-    environment("BINANCE_SECRET", System.getenv("BINANCE_SECRET") ?: "")
-}
-
-tasks.register<JavaExec>("proxyLiveTest") {
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.github.ccxt.ProxyLiveTest")
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    standardOutput = System.out
-    errorOutput = System.err
-    environment("PROXY_HOST", System.getenv("PROXY_HOST") ?: "127.0.0.1")
-    environment("PROXY_PORT", System.getenv("PROXY_PORT") ?: "18911")
-}
-
-tasks.register<JavaExec>("watchOrderBook") {
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.github.ccxt.ws.WatchOrderBookExample")
-    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }
-    standardOutput = System.out
-    errorOutput = System.err
-    environment("BINANCE_APIKEY", System.getenv("BINANCE_APIKEY") ?: "")
-    environment("BINANCE_SECRET", System.getenv("BINANCE_SECRET") ?: "")
-}
-
-tasks.register<JavaExec>("example") {
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.github.ccxt.types.FetchOrderBooksExample")
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
+mavenPublishing {
+    coordinates(project.group.toString(), "ccxt", project.version.toString())
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+    pom {
+        name.set("CCXT")
+        description.set("A cryptocurrency trading library with support for 100+ exchanges")
+        inceptionYear.set("2017")
+        url.set("https://github.com/ccxt/ccxt")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://github.com/ccxt/ccxt/blob/master/LICENSE.txt")
+                distribution.set("repo")
+            }
+        }
+        developers {
+            developer {
+                id.set("ccxt")
+                name.set("CCXT")
+                url.set("https://github.com/ccxt")
+            }
+        }
+        scm {
+            url.set("https://github.com/ccxt/ccxt")
+            connection.set("scm:git:git://github.com/ccxt/ccxt.git")
+            developerConnection.set("scm:git:ssh://git@github.com/ccxt/ccxt.git")
+        }
     }
 }
