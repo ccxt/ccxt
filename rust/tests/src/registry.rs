@@ -56,6 +56,37 @@ pub async fn dispatch(id: &str, method: &str, args: Vec<Value>, fixture_options:
     }
 }
 
+/// Static *response* test dispatch — injects `mock` as the canned HTTP
+/// response and returns whatever the exchange's parser produced.
+pub async fn dispatch_response(
+    id: &str, method: &str, args: Vec<Value>, fixture_options: &Value, mock: Value,
+) -> Value {
+    let cfg = build_offline_config(id, fixture_options);
+    macro_rules! go {
+        ($core:ty) => {{
+            let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
+            ex.bind();
+            ex.exchange.offline_mode  = Value::Bool(true);
+            ex.exchange.mock_response = mock.clone();
+            let m = camel_to_snake(method);
+            match panic::AssertUnwindSafe(ex.call_dynamic(&m, args)).catch_unwind().await {
+                Ok(v)  => v,
+                Err(_) => Value::Null,
+            }
+        }};
+    }
+    match id {
+        "binance"     => go!(BinanceCore),
+        "bybit"       => go!(BybitCore),
+        "okx"         => go!(OkxCore),
+        "kucoin"      => go!(KucoinCore),
+        "bitget"      => go!(BitgetCore),
+        "hyperliquid" => go!(HyperliquidCore),
+        "gate"        => go!(GateCore),
+        _ => Value::Null,
+    }
+}
+
 /// Mirrors Go's `InitOfflineExchange` — fake credentials + sentinel
 /// proxy + markets/currencies pre-loaded from the static fixture files.
 fn build_offline_config(id: &str, fixture_options: &Value) -> Value {

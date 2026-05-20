@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::*;
 
 #[derive(Debug, Clone)]
 pub struct TestMainClass {
@@ -33,7 +34,7 @@ pub struct TestMainClass {
 }
 impl TestMainClass {
     pub fn new() -> Self {
-        testMainClass {
+        TestMainClass {
         idTests: Value::Bool(false),
         requestTestsFailed: Value::Bool(false),
         responseTestsFailed: Value::Bool(false),
@@ -75,10 +76,10 @@ impl TestMainClass {
     }
 }
 impl TestMainClass {
-    pub fn parse_cli_args_and_props(&self) {
-        self.responseTests = is_true(&getCliArgValue(Value::Str("--responseTests".to_string()))) || is_true(&getCliArgValue(Value::Str("--response".to_string())));
+    pub fn parse_cli_args_and_props(&mut self) {
+        self.responseTests = Value::Bool(is_true(&getCliArgValue(Value::Str("--responseTests".to_string()))) || is_true(&getCliArgValue(Value::Str("--response".to_string()))));
         self.idTests = getCliArgValue(Value::Str("--idTests".to_string()));
-        self.requestTests = is_true(&getCliArgValue(Value::Str("--requestTests".to_string()))) || is_true(&getCliArgValue(Value::Str("--request".to_string())));
+        self.requestTests = Value::Bool(is_true(&getCliArgValue(Value::Str("--requestTests".to_string()))) || is_true(&getCliArgValue(Value::Str("--request".to_string()))));
         self.info = getCliArgValue(Value::Str("--info".to_string()));
         self.verbose = getCliArgValue(Value::Str("--verbose".to_string()));
         self.debug = getCliArgValue(Value::Str("--debug".to_string()));
@@ -92,10 +93,8 @@ impl TestMainClass {
 }
 
     pub async fn init(&mut self, mut exchangeId: Value, mut symbolArgv: Value, mut methodArgv: Value) -> Value {
-        {
-            self.init_inner(exchangeId.clone(), symbolArgv.clone(), methodArgv.clone()).await;
-        }
-}
+        self.init_inner(exchangeId.clone(), symbolArgv.clone(), methodArgv.clone()).await
+    }
 
     pub async fn init_inner(&mut self, mut exchangeId: Value, mut symbolArgv: Value, mut methodArgv: Value) -> Value {
         self.parse_cli_args_and_props();
@@ -117,7 +116,7 @@ impl TestMainClass {
             return Value::Bool(true);
         }
         let mut newLine: Value = Value::Str("\n".to_string());
-        dump(add(&add(&add(&add(&newLine, &Value::Str("".to_string())), &newLine), &Value::Str("".to_string())), &Value::Str("[INFO] TESTING ".to_string())), self.ext.clone(), Value::Map({
+        dump(&[add(&add(&add(&add(&newLine, &Value::Str("".to_string())), &newLine), &Value::Str("".to_string())), &Value::Str("[INFO] TESTING ".to_string())), self.ext.clone(), Value::Map({
             let mut m = std::collections::HashMap::new();
                 m.insert("exchange".to_string(), exchangeId.clone());
                 m.insert("symbol".to_string(), symbolArgv.clone());
@@ -125,7 +124,7 @@ impl TestMainClass {
                 m.insert("isWs".to_string(), self.wsTests.clone());
                 m.insert("useProxy".to_string(), getCliArgValue(Value::Str("--useProxy".to_string())));
             m
-        }), newLine);
+        }), newLine.clone()]);
         let mut exchangeArgs: Value = Value::Map({
             let mut m = std::collections::HashMap::new();
                 m.insert("verbose".to_string(), self.verbose.clone());
@@ -134,13 +133,13 @@ impl TestMainClass {
                 m.insert("timeout".to_string(), Value::Int(30000));
             m
         });
-        let mut exchange: Value = initExchange(exchangeId, exchangeArgs, self.wsTests.clone());
+        let mut exchange: Value = initExchange(exchangeId.clone(), &[exchangeArgs.clone(), self.wsTests.clone()]);
         if is_true(&get_value(&exchange, &Value::Str("alias".to_string()))) {
-            dump(self.add_padding(Value::Str("[INFO] skipping alias".to_string()), Value::Int(25)));
+            dump(&[self.add_padding(Value::Str("[INFO] skipping alias".to_string()), Value::Int(25))]);
             exitScript(Value::Int(0));
         }
         self.import_files(exchange.clone()).await;
-        assert(is_greater_than(&get_array_length(&object_keys(&self.testFiles)), &Value::Int(0)), Value::Str("Test files were not loaded".to_string())); // ensure test files are found & filled
+        assert(Value::Bool(is_greater_than(&get_array_length(&object_keys(&self.testFiles)), &Value::Int(0))), &[Value::Str("Test files were not loaded".to_string())]); // ensure test files are found & filled
         self.expand_settings(exchange.clone());
         self.check_if_specific_test_is_chosen(methodArgv.clone());
         self.start_test(exchange.clone(), symbolArgv.clone()).await;
@@ -192,20 +191,20 @@ impl TestMainClass {
 
     pub fn load_credentials_from_env(&self, mut exchange: Value) {
         let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".to_string()));
-        let mut reqCreds: Value = getExchangeProp(exchange, add(&Value::Str("re".to_string()), &Value::Str("quiredCredentials".to_string()))); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+        let mut reqCreds: Value = getExchangeProp(exchange.clone(), add(&Value::Str("re".to_string()), &Value::Str("quiredCredentials".to_string())), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: Value = Value::Int(0);
             while is_less_than(&i, &get_array_length(&objkeys)) {
             let mut credential: Value = get_value(&objkeys, &i);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
-            if is_true(&isRequired) && is_equal(&getExchangeProp(exchange, credential), &Value::Null) {
+            if is_true(&isRequired) && is_equal(&getExchangeProp(exchange.clone(), credential.clone(), &[]), &Value::Null) {
                 let mut fullKey: Value = add(&add(&exchangeId, &Value::Str("_".to_string())), &credential);
                 let mut credentialEnvName: Value = to_upper(&fullKey); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
                 let mut credentialValue: Value = ternary(is_true(&(Value::Bool(in_op(&envVars, &credentialEnvName)))), get_value(&envVars, &credentialEnvName), Value::Null);
                 if is_true(&credentialValue) {
-                    setExchangeProp(exchange, credential, credentialValue);
+                    setExchangeProp(exchange.clone(), credential.clone(), credentialValue.clone());
                 }
             }
             i = add(&i, &Value::Int(1));
@@ -213,25 +212,25 @@ impl TestMainClass {
         }
 }
 
-    pub fn expand_settings(&self, mut exchange: Value) {
+    pub fn expand_settings(&mut self, mut exchange: Value) {
         let mut exchangeId: Value = get_value(&exchange, &Value::Str("id".to_string()));
         let mut keysGlobal: Value = add(&getRootDir(), &Value::Str("keys.json".to_string()));
         let mut keysLocal: Value = add(&getRootDir(), &Value::Str("keys.local.json".to_string()));
-        let mut keysGlobalExists: Value = ioFileExists(keysGlobal);
-        let mut keysLocalExists: Value = ioFileExists(keysLocal);
+        let mut keysGlobalExists: Value = ioFileExists(keysGlobal.clone());
+        let mut keysLocalExists: Value = ioFileExists(keysLocal.clone());
         let mut globalSettings: Value = Value::Map({
             let mut m = std::collections::HashMap::new();
             m
         });
         if is_true(&keysGlobalExists) {
-            globalSettings = ioFileRead(keysGlobal);
+            globalSettings = ioFileRead(keysGlobal.clone(), &[]);
         }
         let mut localSettings: Value = Value::Map({
             let mut m = std::collections::HashMap::new();
             m
         });
         if is_true(&keysLocalExists) {
-            localSettings = ioFileRead(keysLocal);
+            localSettings = ioFileRead(keysLocal.clone(), &[]);
         }
         let mut allSettings: Value = exchange.deep_extend(globalSettings.clone(), &[localSettings.clone()]);
         let mut exchangeSettings: Value = exchange.safe_value(allSettings.clone(), exchangeId.clone(), &[Value::Map({
@@ -247,15 +246,15 @@ impl TestMainClass {
                 if is_true(&get_value(&exchangeSettings, &key)) {
                     let mut finalValue: Value = Value::Null;
                     if is_object(&get_value(&exchangeSettings, &key)) {
-                        let mut existing: Value = getExchangeProp(exchange, key, Value::Map({
+                        let mut existing: Value = getExchangeProp(exchange.clone(), key.clone(), &[Value::Map({
                             let mut m = std::collections::HashMap::new();
                             m
-                        }));
+                        })]);
                         finalValue = exchange.deep_extend(existing.clone(), &[get_value(&exchangeSettings, &key)]);
                     }  else {
                         finalValue = get_value(&exchangeSettings, &key);
                     }
-                    setExchangeProp(exchange, key, finalValue);
+                    setExchangeProp(exchange.clone(), key.clone(), finalValue.clone());
                 }
                 i = add(&i, &Value::Int(1));
             }
@@ -267,7 +266,7 @@ impl TestMainClass {
         }
         // skipped tests
         let mut skippedFile: Value = add(&getRootDir(), &Value::Str("skip-tests.json".to_string()));
-        let mut skippedSettings: Value = ioFileRead(skippedFile);
+        let mut skippedSettings: Value = ioFileRead(skippedFile.clone(), &[]);
         self.skippedSettingsForExchange = exchange.safe_value(skippedSettings.clone(), exchangeId.clone(), &[Value::Map({
             let mut m = std::collections::HashMap::new();
             m
@@ -276,13 +275,13 @@ impl TestMainClass {
         // others
         let mut timeout: Value = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("timeout".to_string()), &[]);
         if !is_equal(&timeout, &Value::Null) {
-            { let __sv_tmp = exchange.parse_to_int(timeout.clone()); crate::set_value(&mut exchange, &Value::Str("timeout".to_string()), __sv_tmp); }
+            { let __sv_tmp = exchange.parse_to_int(timeout.clone()); ccxt::set_value(&mut exchange, &Value::Str("timeout".to_string()), __sv_tmp); }
         }
         if is_true(&getCliArgValue(Value::Str("--useProxy".to_string()))) {
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpProxy".to_string()), &[]); crate::set_value(&mut exchange, &Value::Str("httpProxy".to_string()), __sv_tmp); }
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpsProxy".to_string()), &[]); crate::set_value(&mut exchange, &Value::Str("httpsProxy".to_string()), __sv_tmp); }
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wsProxy".to_string()), &[]); crate::set_value(&mut exchange, &Value::Str("wsProxy".to_string()), __sv_tmp); }
-            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wssProxy".to_string()), &[]); crate::set_value(&mut exchange, &Value::Str("wssProxy".to_string()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpProxy".to_string()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("httpsProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("httpsProxy".to_string()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wsProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("wsProxy".to_string()), __sv_tmp); }
+            { let __sv_tmp = exchange.safe_string(skippedSettingsForExchange.clone(), Value::Str("wssProxy".to_string()), &[]); ccxt::set_value(&mut exchange, &Value::Str("wssProxy".to_string()), __sv_tmp); }
         }
         self.skippedMethods = exchange.safe_value(skippedSettingsForExchange.clone(), Value::Str("skipMethods".to_string()), &[Value::Map({
             let mut m = std::collections::HashMap::new();
@@ -344,26 +343,26 @@ impl TestMainClass {
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if is_true(&isLoadMarkets) {
-            exchange.load_markets(Value::Bool(true)).await;
+            exchange.load_markets(&[Value::Bool(true)]).await;
         }
         let mut name: Value = get_value(&exchange, &Value::Str("id".to_string()));
         if is_true(&skipMessage) {
             if is_true(&self.info) {
-                dump(self.add_padding(skipMessage.clone(), Value::Int(25)), name, methodName);
+                dump(&[self.add_padding(skipMessage.clone(), Value::Int(25)), name.clone(), methodName.clone()]);
             }
             return Value::Bool(true);
         }
         if is_true(&self.info) {
             let mut argsStringified: Value = add(&add(&Value::Str("(".to_string()), &exchange.json(args.clone())), &Value::Str(")".to_string())); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
-            dump(self.add_padding(Value::Str("[INFO] TESTING".to_string()), Value::Int(25)), name, methodName, argsStringified);
+            dump(&[self.add_padding(Value::Str("[INFO] TESTING".to_string()), Value::Int(25)), name.clone(), methodName.clone(), argsStringified.clone()]);
         }
         if is_true(&isSync()) {
-            callMethodSync(self.testFiles.clone(), methodName, exchange, skippedPropertiesForMethod, args);
+            callMethodSync(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone());
         }  else {
-            callMethod(self.testFiles.clone(), methodName, exchange, skippedPropertiesForMethod, args).await;
+            callMethod(self.testFiles.clone(), methodName.clone(), exchange.clone(), skippedPropertiesForMethod.clone(), args.clone()).await;
         }
         if is_true(&self.info) {
-            dump(self.add_padding(Value::Str("[INFO] TESTING DONE".to_string()), Value::Int(25)), name, methodName);
+            dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".to_string()), Value::Int(25)), name.clone(), methodName.clone()]);
         }
         // add to the list of successed tests
         if is_true(&isPublic) {
@@ -517,7 +516,7 @@ impl TestMainClass {
                 add_element_to_object(&mut tests, &Value::Str("fetchPremiumIndexOHLCV".to_string()), Value::List(vec![primarySymbol.clone()]));
             }
         }
-        self.publicTests = tests;
+        self.publicTests = tests.clone();
         self.run_tests(exchange.clone(), tests.clone(), Value::Bool(true)).await;
         return Value::Bool(true);
 
@@ -532,7 +531,7 @@ impl TestMainClass {
             while is_less_than(&i, &get_array_length(&testNames)) {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testArgs: Value = get_value(&tests, &testName);
-            append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]));
+            append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
             i = add(&i, &Value::Int(1));
         }
         }
@@ -555,10 +554,10 @@ impl TestMainClass {
         let mut testPrefixString: Value = ternary(is_true(&isPublicTest), Value::Str("PUBLIC_TESTS".to_string()), Value::Str("PRIVATE_TESTS".to_string()));
         if is_true(&get_array_length(&failedMethods)) {
             let mut errorsString: Value = join(&failedMethods, &Value::Str(", ".to_string()));
-            dump(Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), testPrefixString, add(&Value::Str("Failed methods : ".to_string()), &errorsString));
+            dump(&[Value::Str("[TEST_FAILURE]".to_string()), get_value(&exchange, &Value::Str("id".to_string())), testPrefixString.clone(), add(&Value::Str("Failed methods : ".to_string()), &errorsString)]);
         }
         if is_true(&self.info) {
-            dump(self.add_padding(add(&add(&add(&Value::Str("[INFO] END ".to_string()), &testPrefixString), &Value::Str(" ".to_string())), &get_value(&exchange, &Value::Str("id".to_string()))), Value::Int(25)));
+            dump(&[self.add_padding(add(&add(&add(&Value::Str("[INFO] END ".to_string()), &testPrefixString), &Value::Str(" ".to_string())), &get_value(&exchange, &Value::Str("id".to_string()))), Value::Int(25))]);
         }
         return Value::Bool(true);
 
@@ -571,7 +570,7 @@ impl TestMainClass {
             return Value::Bool(false);
         }
         let mut exchangeSymbolsLength: Value = get_array_length(&get_value(&exchange, &Value::Str("symbols".to_string())));
-        dump(Value::Str("[INFO:MAIN] Exchange loaded".to_string()), exchangeSymbolsLength, Value::Str("symbols".to_string()));
+        dump(&[Value::Str("[INFO:MAIN] Exchange loaded".to_string()), exchangeSymbolsLength.clone(), Value::Str("symbols".to_string())]);
         return Value::Bool(true);
 
     Value::Null
@@ -730,23 +729,23 @@ impl TestMainClass {
             }
         }
         if !is_equal(&spotSymbols, &Value::Null) {
-            dump(Value::Str("[INFO:MAIN] Selected SPOT SYMBOL:".to_string()), exchange.json(spotSymbols.clone()));
+            dump(&[Value::Str("[INFO:MAIN] Selected SPOT SYMBOL:".to_string()), exchange.json(spotSymbols.clone())]);
         }
         if !is_equal(&swapSymbols, &Value::Null) {
-            dump(Value::Str("[INFO:MAIN] Selected SWAP SYMBOL:".to_string()), exchange.json(swapSymbols.clone()));
+            dump(&[Value::Str("[INFO:MAIN] Selected SWAP SYMBOL:".to_string()), exchange.json(swapSymbols.clone())]);
         }
         if !is_true(&self.privateTestOnly) {
             // note, spot & swap tests should run sequentially, because of conflicting `get_value(&exchange, &Value::Str("options".to_string()))['defaultType']` setting
             if is_true(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("spot".to_string()))) && !is_equal(&spotSymbols, &Value::Null) {
                 if is_true(&self.info) {
-                    dump(Value::Str("[INFO] ### SPOT TESTS ###".to_string()));
+                    dump(&[Value::Str("[INFO] ### SPOT TESTS ###".to_string())]);
                 }
                 add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("defaultType".to_string()), Value::Str("spot".to_string()));
                 self.run_public_tests(exchange.clone(), spotSymbols.clone()).await;
             }
             if is_true(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("swap".to_string()))) && !is_equal(&swapSymbols, &Value::Null) {
                 if is_true(&self.info) {
-                    dump(Value::Str("[INFO] ### SWAP TESTS ###".to_string()));
+                    dump(&[Value::Str("[INFO] ### SWAP TESTS ###".to_string())]);
                 }
                 add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("defaultType".to_string()), Value::Str("swap".to_string()));
                 self.run_public_tests(exchange.clone(), swapSymbols.clone()).await;
@@ -768,8 +767,8 @@ impl TestMainClass {
 }
 
     pub async fn run_private_tests(&mut self, mut exchange: Value, mut symbol: Value) -> Value {
-        if !is_true(&exchange.check_required_credentials(Value::Bool(false))) {
-            dump(Value::Str("[INFO] Skipping private tests".to_string()), Value::Str("Keys not found".to_string()));
+        if !is_true(&exchange.check_required_credentials(&[Value::Bool(false)])) {
+            dump(&[Value::Str("[INFO] Skipping private tests".to_string()), Value::Str("Keys not found".to_string())]);
             return Value::Bool(true);
         }
         let mut code: Value = self.get_exchange_code(exchange.clone(), &[]);
@@ -791,7 +790,7 @@ impl TestMainClass {
                 m.insert("fetchOpenOrders".to_string(), Value::List(vec![symbol.clone()]));
                 m.insert("fetchClosedOrders".to_string(), Value::List(vec![symbol.clone()]));
                 m.insert("fetchMyTrades".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchLeverageTiers".to_string(), Value::List(vec![Value::List(vec![symbol])]));
+                m.insert("fetchLeverageTiers".to_string(), Value::List(vec![Value::List(vec![symbol.clone()])]));
                 m.insert("fetchLedger".to_string(), Value::List(vec![code.clone()]));
                 m.insert("fetchTransactions".to_string(), Value::List(vec![code.clone()]));
                 m.insert("fetchDeposits".to_string(), Value::List(vec![code.clone()]));
@@ -870,10 +869,10 @@ impl TestMainClass {
         }
         // if exception was set, then throw it
         if !is_equal(&exception, &Value::Null) {
-            let mut errorMessage: Value = add(&add(&add(&Value::Str("[TEST_FAILURE] Failed ".to_string()), &proxyTestName), &Value::Str(" : ".to_string())), &exceptionMessage(exception));
+            let mut errorMessage: Value = add(&add(&add(&Value::Str("[TEST_FAILURE] Failed ".to_string()), &proxyTestName), &Value::Str(" : ".to_string())), &exceptionMessage(exception.clone()));
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (get_value(&errorMessage, &Value::Str("toString".to_string())) ());
-            dump(add(&Value::Str("[TEST_WARNING]".to_string()), &errorMessage));
+            dump(&[add(&Value::Str("[TEST_WARNING]".to_string()), &errorMessage)]);
         }
         return Value::Bool(true);
 
@@ -883,12 +882,12 @@ impl TestMainClass {
     pub fn check_constructor(&self, mut exchange: Value) {
         // todo: this might be moved in base tests later
         if is_equal(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str("binance".to_string())) {
-            assert(is_equal(&get_value(&exchange, &Value::Str("hostname".to_string())), &Value::Null) || is_equal(&get_value(&exchange, &Value::Str("hostname".to_string())), &Value::Str("".to_string())), Value::Str("binance.com hostname should be empty".to_string()));
-            assert(is_equal(&get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://api.binance.com/api/v3".to_string())), add(&Value::Str("https://api.binance.com/api/v3 does not match: ".to_string()), &get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string()))));
-            assert((Value::Bool(in_op(&get_value(&get_value(&get_value(&exchange, &Value::Str("api".to_string())), &Value::Str("sapi".to_string())), &Value::Str("get".to_string())), &Value::Str("lending/union/account".to_string())))), add(&Value::Str("SAPI should contain the endpoint lending/union/account, ".to_string()), &jsonStringify(get_value(&get_value(&get_value(&exchange, &Value::Str("api".to_string())), &Value::Str("sapi".to_string())), &Value::Str("get".to_string())))));
+            assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("hostname".to_string())), &Value::Null) || is_equal(&get_value(&exchange, &Value::Str("hostname".to_string())), &Value::Str("".to_string()))), &[Value::Str("binance.com hostname should be empty".to_string())]);
+            assert(Value::Bool(is_equal(&get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://api.binance.com/api/v3".to_string()))), &[add(&Value::Str("https://api.binance.com/api/v3 does not match: ".to_string()), &get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())))]);
+            assert((Value::Bool(in_op(&get_value(&get_value(&get_value(&exchange, &Value::Str("api".to_string())), &Value::Str("sapi".to_string())), &Value::Str("get".to_string())), &Value::Str("lending/union/account".to_string())))), &[add(&Value::Str("SAPI should contain the endpoint lending/union/account, ".to_string()), &jsonStringify(get_value(&get_value(&get_value(&exchange, &Value::Str("api".to_string())), &Value::Str("sapi".to_string())), &Value::Str("get".to_string()))))]);
         }  else if is_equal(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str("binanceus".to_string())) {
-            assert(is_equal(&get_value(&exchange, &Value::Str("hostname".to_string())), &Value::Str("binance.us".to_string())), add(&Value::Str("binance.us hostname does not match ".to_string()), &get_value(&exchange, &Value::Str("hostname".to_string()))));
-            assert(is_equal(&get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://api.binance.us/api/v3".to_string())), add(&Value::Str("https://api.binance.us/api/v3 does not match: ".to_string()), &get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string()))));
+            assert(Value::Bool(is_equal(&get_value(&exchange, &Value::Str("hostname".to_string())), &Value::Str("binance.us".to_string()))), &[add(&Value::Str("binance.us hostname does not match ".to_string()), &get_value(&exchange, &Value::Str("hostname".to_string())))]);
+            assert(Value::Bool(is_equal(&get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())), &Value::Str("https://api.binance.us/api/v3".to_string()))), &[add(&Value::Str("https://api.binance.us/api/v3 does not match: ".to_string()), &get_value(&get_value(&get_value(&exchange, &Value::Str("urls".to_string())), &Value::Str("api".to_string())), &Value::Str("public".to_string())))]);
         }
 }
 
@@ -896,15 +895,15 @@ impl TestMainClass {
         if !is_equal(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str("binance".to_string())) {
             return Value::Bool(false);
         }
-        crate::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(true));
-        let mut ticker: Value = exchange.fetch_ticker(Value::Str("BTC/USDT".to_string())).await;
+        ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(true));
+        let mut ticker: Value = exchange.fetch_ticker(Value::Str("BTC/USDT".to_string()), &[]).await;
         let mut info: Value = get_value(&ticker, &Value::Str("info".to_string()));
         let mut headers: Value = get_value(&info, &Value::Str("responseHeaders".to_string()));
         let mut headersKeys: Value = object_keys(&headers);
-        assert(is_greater_than(&get_array_length(&headersKeys), &Value::Int(0)), Value::Str("Response headers should not be empty".to_string()));
+        assert(Value::Bool(is_greater_than(&get_array_length(&headersKeys), &Value::Int(0))), &[Value::Str("Response headers should not be empty".to_string())]);
         let mut headerValues: Value = object_values(&headers);
-        assert(is_greater_than(&get_array_length(&headerValues), &Value::Int(0)), Value::Str("Response headers values should not be empty".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(false));
+        assert(Value::Bool(is_greater_than(&get_array_length(&headerValues), &Value::Int(0))), &[Value::Str("Response headers values should not be empty".to_string())]);
+        ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(false));
         return Value::Bool(true);
 
     Value::Null
@@ -917,14 +916,14 @@ impl TestMainClass {
         }
         self.check_constructor(exchange.clone());
         // await get_value(&this, &Value::Str("testReturnResponseHeaders".to_string())) (exchange);
-        if is_true(&self.sandbox) || is_true(&getExchangeProp(exchange, Value::Str("sandbox".to_string()))) {
+        if is_true(&self.sandbox) || is_true(&getExchangeProp(exchange.clone(), Value::Str("sandbox".to_string()), &[])) {
             exchange.set_sandbox_mode(Value::Bool(true));
         }
         {
             let mut result: Value = self.load_exchange(exchange.clone()).await;
             if !is_true(&result) {
                 if !is_true(&isSync()) {
-                    close(exchange).await;
+                    close(exchange.clone()).await;
                 }
                 return Value::Bool(true);
             }
@@ -934,7 +933,7 @@ impl TestMainClass {
             // }
             self.test_exchange(exchange.clone(), &[symbolArgv.clone()]).await;
             if !is_true(&isSync()) {
-                close(exchange).await;
+                close(exchange.clone()).await;
             }
         }
         return Value::Bool(true);
@@ -947,14 +946,14 @@ impl TestMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
-        let mut calculatedString: Value = jsonStringify(calculatedOutput);
-        let mut storedString: Value = jsonStringify(storedOutput);
+        let mut calculatedString: Value = jsonStringify(calculatedOutput.clone());
+        let mut storedString: Value = jsonStringify(storedOutput.clone());
         let mut errorMessage: Value = message.clone();
         if !is_equal(&key, &Value::Null) {
             errorMessage = add(&add(&Value::Str("[".to_string()), &key), &Value::Str("]".to_string()));
         }
         errorMessage = add(&errorMessage, &add(&add(&add(&Value::Str(" computed: ".to_string()), &storedString), &Value::Str(" stored: ".to_string())), &calculatedString));
-        assert(cond, errorMessage);
+        assert(cond.clone(), &[errorMessage.clone()]);
 }
 
     pub fn load_markets_from_file(&self, mut id: Value) -> Value {
@@ -963,7 +962,7 @@ impl TestMainClass {
         // and basically independent from the exchange
         // so we can run it offline
         let mut filename: Value = add(&add(&add(&getRootDir(), &Value::Str("./ts/src/test/static/markets/".to_string())), &id), &Value::Str(".json".to_string()));
-        let mut content: Value = ioFileRead(filename);
+        let mut content: Value = ioFileRead(filename.clone(), &[]);
         return content;
 
     Value::Null
@@ -971,7 +970,7 @@ impl TestMainClass {
 
     pub fn load_currencies_from_file(&self, mut id: Value) -> Value {
         let mut filename: Value = add(&add(&add(&getRootDir(), &Value::Str("./ts/src/test/static/currencies/".to_string())), &id), &Value::Str(".json".to_string()));
-        let mut content: Value = ioFileRead(filename);
+        let mut content: Value = ioFileRead(filename.clone(), &[]);
         return content;
 
     Value::Null
@@ -986,20 +985,20 @@ impl TestMainClass {
         if is_true(&targetExchange) {
             // read a single exchange
             let mut path: Value = add(&add(&folder, &targetExchange), &Value::Str(".json".to_string()));
-            if !is_true(&ioFileExists(path)) {
-                dump(add(&Value::Str("[WARN] tests not found: ".to_string()), &path));
+            if !is_true(&ioFileExists(path.clone())) {
+                dump(&[add(&Value::Str("[WARN] tests not found: ".to_string()), &path)]);
                 return Value::Null;
             }
-            add_element_to_object(&mut result, &targetExchange, ioFileRead(path));
+            add_element_to_object(&mut result, &targetExchange, ioFileRead(path.clone(), &[]));
             return result;
         }
-        let mut files: Value = ioDirRead(folder);
+        let mut files: Value = ioDirRead(folder.clone());
         {
                         let mut i: Value = Value::Int(0);
             while is_less_than(&i, &get_array_length(&files)) {
             let mut file: Value = get_value(&files, &i);
             let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".to_string()), &Value::Str("".to_string()));
-            let mut content: Value = ioFileRead(add(&folder, &file));
+            let mut content: Value = ioFileRead(add(&folder, &file), &[]);
             add_element_to_object(&mut result, &exchangeName, content.clone());
             i = add(&i, &Value::Int(1));
         }
@@ -1057,7 +1056,7 @@ impl TestMainClass {
             let mut value: Value = get_value(&keyValue, &Value::Int(1));
             if is_true(&(!is_equal(&value, &Value::Null))) && is_true(&(is_true(&(Value::Bool(starts_with(&value, &Value::Str("[".to_string()))))) || is_true(&(Value::Bool(starts_with(&value, &Value::Str("{".to_string()))))))) {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
-                value = jsonParse(value);
+                value = jsonParse(value.clone());
             }
             add_element_to_object(&mut result, &key, value.clone());
             i = add(&i, &Value::Int(1));
@@ -1069,7 +1068,7 @@ impl TestMainClass {
     pub fn assert_new_and_stored_output_inner(&self, mut exchange: Value, mut skipKeys: Value, mut newOutput: Value, mut storedOutput: Value, optional_args: &[Value]) -> Value {
         let mut strictTypeCheck = get_arg(optional_args, 0, Value::Bool(true));
         let mut assertingKey = get_arg(optional_args, 1, Value::Null);
-        if is_true(&isNullValue(newOutput)) && is_true(&isNullValue(storedOutput)) {
+        if is_true(&isNullValue(newOutput.clone())) && is_true(&isNullValue(storedOutput.clone())) {
             return Value::Bool(true);
         }
         if !is_true(&newOutput) && !is_true(&storedOutput) {
@@ -1077,8 +1076,8 @@ impl TestMainClass {
         }
         // if needed convert stringified jsons to objects
         if is_true(&(is_string(&storedOutput))) && is_true(&(is_string(&newOutput))) && is_true(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".to_string())))) && is_true(&Value::Bool(starts_with(&newOutput, &Value::Str("{".to_string())))) {
-            storedOutput = jsonParse(storedOutput);
-            newOutput = jsonParse(newOutput);
+            storedOutput = jsonParse(storedOutput.clone());
+            newOutput = jsonParse(newOutput.clone());
         }
         if is_true(&(is_object(&storedOutput))) && is_true(&(is_object(&newOutput))) {
             let mut storedOutputKeys: Value = object_keys(&storedOutput);
@@ -1089,9 +1088,10 @@ impl TestMainClass {
             {
                                 let mut i: Value = Value::Int(0);
                 while is_less_than(&i, &get_array_length(&storedOutputKeys)) {
+        'cont0: {
                 let mut key: Value = get_value(&storedOutputKeys, &i);
                 if is_true(&exchange.in_array(key.clone(), skipKeys.clone())) {
-                    continue;
+                    break 'cont0;
                 }
                 if !is_true(&(exchange.in_array(key.clone(), newOutputKeys.clone()))) {
                     self.assert_static_error(Value::Bool(false), add(&Value::Str("output key missing: ".to_string()), &key), storedOutput.clone(), newOutput.clone(), &[]);
@@ -1099,6 +1099,7 @@ impl TestMainClass {
                 let mut storedValue: Value = get_value(&storedOutput, &key);
                 let mut newValue: Value = get_value(&newOutput, &key);
                 self.assert_new_and_stored_output(exchange.clone(), skipKeys.clone(), newValue.clone(), storedValue.clone(), &[strictTypeCheck.clone(), key.clone()]);
+        }
                 i = add(&i, &Value::Int(1));
             }
             }
@@ -1117,8 +1118,8 @@ impl TestMainClass {
             }
         }  else {
             // built-in types like strings, numbers, booleans
-            let mut sanitizedNewOutput: Value = ternary(is_true(&(isNullValue(newOutput))), Value::Null, newOutput.clone()); // we store undefined as nulls in the json file so we need to convert it back
-            let mut sanitizedStoredOutput: Value = ternary(is_true(&(isNullValue(storedOutput))), Value::Null, storedOutput.clone());
+            let mut sanitizedNewOutput: Value = ternary(is_true(&(isNullValue(newOutput.clone()))), Value::Null, newOutput.clone()); // we store undefined as nulls in the json file so we need to convert it back
+            let mut sanitizedStoredOutput: Value = ternary(is_true(&(isNullValue(storedOutput.clone()))), Value::Null, storedOutput.clone());
             let mut newOutputString: Value = ternary(is_true(&sanitizedNewOutput), to_string_val(&sanitizedNewOutput), Value::Str("undefined".to_string()));
             let mut storedOutputString: Value = ternary(is_true(&sanitizedStoredOutput), to_string_val(&sanitizedStoredOutput), Value::Str("undefined".to_string()));
             let mut messageError: Value = add(&add(&add(&Value::Str("output value mismatch:".to_string()), &newOutputString), &Value::Str(" != ".to_string())), &storedOutputString);
@@ -1150,11 +1151,11 @@ impl TestMainClass {
                             self.assert_static_error(Value::Bool(is_equal(&exchange.parse_to_numeric(sanitizedNewOutput.clone()), &exchange.parse_to_numeric(sanitizedStoredOutput.clone()))), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                             return Value::Bool(true);
                         }  else {
-                            self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString), &convertAscii(storedOutputString))), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                            self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString.clone()), &convertAscii(storedOutputString.clone()))), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                             return Value::Bool(true);
                         }
                     }  else {
-                        self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString), &convertAscii(storedOutputString))), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
+                        self.assert_static_error(Value::Bool(is_equal(&convertAscii(newOutputString.clone()), &convertAscii(storedOutputString.clone()))), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                         return Value::Bool(true);
                     }
                 }  else {
@@ -1171,6 +1172,8 @@ impl TestMainClass {
             }
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub fn assert_new_and_stored_output(&self, mut exchange: Value, mut skipKeys: Value, mut newOutput: Value, mut storedOutput: Value, optional_args: &[Value]) -> Value {
@@ -1181,6 +1184,8 @@ impl TestMainClass {
             res = self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newOutput.clone(), storedOutput.clone(), &[strictTypeCheck.clone(), assertingKey.clone()]);
         }
         return res;
+
+    Value::Null
 }
 
     pub fn var_to_string(&self, optional_args: &[Value]) -> Value {
@@ -1188,12 +1193,14 @@ impl TestMainClass {
         let mut newString: Value = Value::Null;
         if is_equal(&obj, &Value::Null) {
             newString = Value::Str("undefined".to_string());
-        }  else if is_true(&isNullValue(obj)) {
+        }  else if is_true(&isNullValue(obj.clone())) {
             newString = Value::Str("null".to_string());
         }  else {
-            newString = jsonStringify(obj);
+            newString = jsonStringify(obj.clone());
         }
         return newString;
+
+    Value::Null
 }
 
     pub fn assert_static_request_output(&self, mut exchange: Value, mut type_var: Value, mut skipKeys: Value, mut storedUrl: Value, mut requestUrl: Value, mut storedOutput: Value, mut newOutput: Value) -> Value {
@@ -1222,18 +1229,18 @@ impl TestMainClass {
         }
         if is_equal(&type_var, &Value::Str("json".to_string())) && is_true(&(!is_equal(&storedOutput, &Value::Null))) && is_true(&(!is_equal(&newOutput, &Value::Null))) {
             if is_string(&storedOutput) {
-                storedOutput = jsonParse(storedOutput);
+                storedOutput = jsonParse(storedOutput.clone());
             }
             if is_string(&newOutput) {
-                newOutput = jsonParse(newOutput);
+                newOutput = jsonParse(newOutput.clone());
             }
         }  else if is_equal(&type_var, &Value::Str("urlencoded".to_string())) && is_true(&(!is_equal(&storedOutput, &Value::Null))) && is_true(&(!is_equal(&newOutput, &Value::Null))) {
             storedOutput = self.urlencoded_to_dict(storedOutput.clone());
             newOutput = self.urlencoded_to_dict(newOutput.clone());
         }  else if is_equal(&type_var, &Value::Str("both".to_string())) {
             if is_true(&Value::Bool(starts_with(&storedOutput, &Value::Str("{".to_string())))) || is_true(&Value::Bool(starts_with(&storedOutput, &Value::Str("[".to_string())))) {
-                storedOutput = jsonParse(storedOutput);
-                newOutput = jsonParse(newOutput);
+                storedOutput = jsonParse(storedOutput.clone());
+                newOutput = jsonParse(newOutput.clone());
             }  else {
                 storedOutput = self.urlencoded_to_dict(storedOutput.clone());
                 newOutput = self.urlencoded_to_dict(newOutput.clone());
@@ -1257,7 +1264,7 @@ impl TestMainClass {
                         let mut i: Value = Value::Int(0);
             while is_less_than(&i, &get_array_length(&input)) {
             let mut current: Value = get_value(&input, &i);
-            if is_true(&isNullValue(current)) {
+            if is_true(&isNullValue(current.clone())) {
                 append_to_array(&mut newInput, Value::Null);
             }  else {
                 append_to_array(&mut newInput, current.clone());
@@ -1266,45 +1273,53 @@ impl TestMainClass {
         }
         }
         return newInput;
+
+    Value::Null
 }
 
     pub async fn test_request_statically(&mut self, mut exchange: Value, mut method: Value, mut data: Value, mut type_var: Value, mut skipKeys: Value) -> Value {
         let mut output: Value = Value::Null;
         let mut requestUrl: Value = Value::Null;
         if is_true(&self.info) {
-            dump(Value::Str("[INFO] STATIC REQUEST TEST:".to_string()), method, Value::Str(":".to_string()), get_value(&data, &Value::Str("description".to_string())));
+            dump(&[Value::Str("[INFO] STATIC REQUEST TEST:".to_string()), method.clone(), Value::Str(":".to_string()), get_value(&data, &Value::Str("description".to_string()))]);
         }
         {
             if !is_true(&isSync()) {
-                callExchangeMethodDynamically(exchange, method, self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string())))).await;
+                callExchangeMethodDynamically(&mut exchange, method.clone(), self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string())))).await;
             }  else {
-                callExchangeMethodDynamicallySync(exchange, method, self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string()))));
+                callExchangeMethodDynamicallySync(exchange.clone(), method.clone(), self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string()))));
             }
         }
+        output = ccxt::get_value(&exchange, &Value::Str("last_request_body".to_string()));
+        requestUrl = ccxt::get_value(&exchange, &Value::Str("last_request_url".to_string()));
         {
             let mut callOutput: Value = exchange.safe_value(data.clone(), Value::Str("output".to_string()), &[]);
             self.assert_static_request_output(exchange.clone(), type_var.clone(), skipKeys.clone(), get_value(&data, &Value::Str("url".to_string())), requestUrl.clone(), callOutput.clone(), output.clone());
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_response_statically(&mut self, mut exchange: Value, mut method: Value, mut skipKeys: Value, mut data: Value) -> Value {
         let mut expectedResult: Value = exchange.safe_value(data.clone(), Value::Str("parsedResponse".to_string()), &[]);
-        let mut mockedExchange: Value = setFetchResponse(exchange, get_value(&data, &Value::Str("httpResponse".to_string())));
+        let mut mockedExchange: Value = setFetchResponse(&mut exchange, get_value(&data, &Value::Str("httpResponse".to_string())));
         if is_true(&self.info) {
-            dump(Value::Str("[INFO] STATIC RESPONSE TEST:".to_string()), method, Value::Str(":".to_string()), get_value(&data, &Value::Str("description".to_string())));
+            dump(&[Value::Str("[INFO] STATIC RESPONSE TEST:".to_string()), method.clone(), Value::Str(":".to_string()), get_value(&data, &Value::Str("description".to_string()))]);
         }
         {
             if !is_true(&isSync()) {
-                let mut unifiedResult: Value = callExchangeMethodDynamically(exchange, method, self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string())))).await;
+                let mut unifiedResult: Value = callExchangeMethodDynamically(&mut exchange, method.clone(), self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string())))).await;
                 self.assert_static_response_output(mockedExchange.clone(), skipKeys.clone(), unifiedResult.clone(), expectedResult.clone());
             }  else {
-                let mut unifiedResultSync: Value = callExchangeMethodDynamicallySync(exchange, method, self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string()))));
+                let mut unifiedResultSync: Value = callExchangeMethodDynamicallySync(exchange.clone(), method.clone(), self.sanitize_data_input(get_value(&data, &Value::Str("input".to_string()))));
                 self.assert_static_response_output(mockedExchange.clone(), skipKeys.clone(), unifiedResultSync.clone(), expectedResult.clone());
             }
         }
-        setFetchResponse(exchange, Value::Null); // reset state
+        setFetchResponse(&mut exchange, Value::Null); // reset state
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub fn init_offline_exchange(&self, mut exchangeName: Value) -> Value {
@@ -1388,9 +1403,11 @@ impl TestMainClass {
             add_element_to_object(&mut options, &Value::Str("apiKey".to_string()), Value::Str("".to_string()));
             add_element_to_object(&mut options, &Value::Str("secret".to_string()), Value::Str("".to_string()));
         }
-        let mut exchange: Value = initExchange(exchangeName, options);
-        crate::set_value(&mut exchange, &Value::Str("currencies".to_string()), currencies);
+        let mut exchange: Value = initExchange(exchangeName.clone(), &[options.clone()]);
+        ccxt::set_value(&mut exchange, &Value::Str("currencies".to_string()), currencies);
         return exchange;
+
+    Value::Null
 }
 
     pub async fn test_exchange_request_statically(&mut self, mut exchangeName: Value, mut exchangeData: Value, optional_args: &[Value]) -> Value {
@@ -1405,28 +1422,28 @@ impl TestMainClass {
         let mut apiKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("apiKey".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(apiKey.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("apiKey".to_string()), to_string_val(&apiKey));
+            ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), to_string_val(&apiKey));
         }
         let mut secret: Value = exchange.safe_string(exchangeData.clone(), Value::Str("secret".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(secret.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("secret".to_string()), to_string_val(&secret));
+            ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), to_string_val(&secret));
         }
         let mut privateKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("privateKey".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(privateKey.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("privateKey".to_string()), to_string_val(&privateKey));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), to_string_val(&privateKey));
         }
         let mut walletAddress: Value = exchange.safe_string(exchangeData.clone(), Value::Str("walletAddress".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(walletAddress.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), to_string_val(&walletAddress));
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), to_string_val(&walletAddress));
         }
         let mut accounts: Value = exchange.safe_list(exchangeData.clone(), Value::Str("accounts".to_string()), &[]);
         if is_true(&accounts) {
-            crate::set_value(&mut exchange, &Value::Str("accounts".to_string()), accounts);
+            ccxt::set_value(&mut exchange, &Value::Str("accounts".to_string()), accounts);
         }
-        // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&exchange, &Value::Str("options".to_string())), globalOptions); crate::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+        // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&exchange, &Value::Str("options".to_string())), globalOptions); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
         exchange.extend_exchange_options(globalOptions.clone());
         let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".to_string()), &[Value::Map({
             let mut m = std::collections::HashMap::new();
@@ -1441,42 +1458,45 @@ impl TestMainClass {
             {
                                 let mut j: Value = Value::Int(0);
                 while is_less_than(&j, &get_array_length(&results)) {
+        'cont1: {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
                     let mut m = std::collections::HashMap::new();
                     m
                 })]);
-                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, testExchangeOptions); crate::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
-                exchange.extend_exchange_options(exchange.deepExtend(oldExchangeOptions.clone(), testExchangeOptions.clone()));
+                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, testExchangeOptions); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+                let __eeo0 = exchange.deepExtend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
+                exchange.extend_exchange_options(__eeo0);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 if is_true(&(!is_equal(&testName, &Value::Null))) && is_true(&(!is_equal(&testName, &description))) {
-                    continue;
+                    break 'cont1;
                 }
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabled) {
-                    continue;
+                    break 'cont1;
                 }
                 let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".to_string()), &[Value::Str("".to_string())]);
                 if !is_equal(&disabledString, &Value::Str("".to_string())) {
-                    continue;
+                    break 'cont1;
                 }
                 let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledCSharp) && is_true(&(is_equal(&self.lang, &Value::Str("C#".to_string())))) {
-                    continue;
+                    break 'cont1;
                 }
                 let mut isDisabledGo: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledGo) && is_true(&(is_equal(&self.lang, &Value::Str("GO".to_string())))) {
-                    continue;
+                    break 'cont1;
                 }
                 let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".to_string()), &[]);
                 let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
                 self.test_request_statically(exchange.clone(), method.clone(), result.clone(), type_var.clone(), skipKeys.clone()).await;
                 // reset options
-                { let __sv_tmp = exchange.convert_to_safe_dictionary(exchange.deepExtend(oldExchangeOptions.clone(), Value::Map({
+                { let __sv_tmp = exchange.convert_to_safe_dictionary(exchange.deepExtend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = std::collections::HashMap::new();
                     m
-                }))); crate::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
+                })])); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
+        }
                 j = add(&j, &Value::Int(1));
             }
             }
@@ -1484,9 +1504,11 @@ impl TestMainClass {
         }
         }
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_exchange_response_statically(&mut self, mut exchangeName: Value, mut exchangeData: Value, optional_args: &[Value]) -> Value {
@@ -1496,22 +1518,22 @@ impl TestMainClass {
         let mut apiKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("apiKey".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(apiKey.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("apiKey".to_string()), to_string_val(&apiKey));
+            ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), to_string_val(&apiKey));
         }
         let mut secret: Value = exchange.safe_string(exchangeData.clone(), Value::Str("secret".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(secret.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("secret".to_string()), to_string_val(&secret));
+            ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), to_string_val(&secret));
         }
         let mut privateKey: Value = exchange.safe_string(exchangeData.clone(), Value::Str("privateKey".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(privateKey.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("privateKey".to_string()), to_string_val(&privateKey));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), to_string_val(&privateKey));
         }
         let mut walletAddress: Value = exchange.safe_string(exchangeData.clone(), Value::Str("walletAddress".to_string()), &[]);
         if !is_true(&exchange.is_empty_string(walletAddress.clone())) {
             // c# to string requirement
-            crate::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), to_string_val(&walletAddress));
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), to_string_val(&walletAddress));
         }
         let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".to_string()), &[Value::Map({
             let mut m = std::collections::HashMap::new();
@@ -1521,7 +1543,7 @@ impl TestMainClass {
             let mut m = std::collections::HashMap::new();
             m
         })]);
-        // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&exchange, &Value::Str("options".to_string())), options); crate::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+        // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&exchange, &Value::Str("options".to_string())), options); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
         exchange.extend_exchange_options(options.clone());
         let mut methodsNames: Value = object_keys(&methods);
         {
@@ -1532,6 +1554,7 @@ impl TestMainClass {
             {
                                 let mut j: Value = Value::Int(0);
                 while is_less_than(&j, &get_array_length(&results)) {
+        'cont2: {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
@@ -1539,35 +1562,38 @@ impl TestMainClass {
                     let mut m = std::collections::HashMap::new();
                     m
                 })]);
-                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, testExchangeOptions); crate::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
-                exchange.extend_exchange_options(exchange.deepExtend(oldExchangeOptions.clone(), testExchangeOptions.clone()));
+                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, testExchangeOptions); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+                let __eeo1 = exchange.deepExtend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
+                exchange.extend_exchange_options(__eeo1);
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabled) {
-                    continue;
+                    break 'cont2;
                 }
                 let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledCSharp) && is_true(&(is_equal(&self.lang, &Value::Str("C#".to_string())))) {
-                    continue;
+                    break 'cont2;
                 }
                 let mut isDisabledPHP: Value = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledPHP) && is_true(&(is_equal(&self.lang, &Value::Str("PHP".to_string())))) {
-                    continue;
+                    break 'cont2;
                 }
                 if is_true(&(!is_equal(&testName, &Value::Null))) && is_true(&(!is_equal(&testName, &description))) {
-                    continue;
+                    break 'cont2;
                 }
                 let mut isDisabledGO: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledGO) && is_true(&(is_equal(&self.lang, &Value::Str("GO".to_string())))) {
-                    continue;
+                    break 'cont2;
                 }
                 let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
                 self.test_response_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone()).await;
                 // reset options
-                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, {}); crate::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
-                exchange.extend_exchange_options(exchange.deepExtend(oldExchangeOptions.clone(), Value::Map({
+                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, {}); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
+                let __eeo2 = exchange.deepExtend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = std::collections::HashMap::new();
                     m
-                })));
+                })]);
+                exchange.extend_exchange_options(__eeo2);
+        }
                 j = add(&j, &Value::Int(1));
             }
             }
@@ -1575,9 +1601,11 @@ impl TestMainClass {
         }
         }
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub fn get_number_of_tests_from_exchange(&self, mut exchange: Value, mut exchangeData: Value, optional_args: &[Value]) -> Value {
@@ -1599,34 +1627,38 @@ impl TestMainClass {
         }
         }
         return sum;
+
+    Value::Null
 }
 
     pub fn check_if_exchange_is_disabled(&self, mut exchangeName: Value, mut exchangeData: Value) -> Value {
-        let mut exchange: Value = initExchange(Value::Str("Exchange".to_string()), Value::Map({
+        let mut exchange: Value = initExchange(Value::Str("Exchange".to_string()), &[Value::Map({
             let mut m = std::collections::HashMap::new();
             m
-        }));
+        })]);
         let mut isDisabledPy: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPy".to_string()), &[Value::Bool(false)]);
         if is_true(&isDisabledPy) && is_true(&(is_equal(&self.lang, &Value::Str("PY".to_string())))) {
-            dump(add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in python".to_string())));
+            dump(&[add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in python".to_string()))]);
             return Value::Bool(true);
         }
         let mut isDisabledPHP: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPHP".to_string()), &[Value::Bool(false)]);
         if is_true(&isDisabledPHP) && is_true(&(is_equal(&self.lang, &Value::Str("PHP".to_string())))) {
-            dump(add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in php".to_string())));
+            dump(&[add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in php".to_string()))]);
             return Value::Bool(true);
         }
         let mut isDisabledCSharp: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
         if is_true(&isDisabledCSharp) && is_true(&(is_equal(&self.lang, &Value::Str("C#".to_string())))) {
-            dump(add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in c#".to_string())));
+            dump(&[add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in c#".to_string()))]);
             return Value::Bool(true);
         }
         let mut isDisabledGO: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
         if is_true(&isDisabledGO) && is_true(&(is_equal(&self.lang, &Value::Str("GO".to_string())))) {
-            dump(add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in go".to_string())));
+            dump(&[add(&add(&Value::Str("[TEST_WARNING] Exchange ".to_string()), &exchangeName), &Value::Str(" is disabled in go".to_string()))]);
             return Value::Bool(true);
         }
         return Value::Bool(false);
+
+    Value::Null
 }
 
     pub async fn run_static_request_tests(&mut self, optional_args: &[Value]) -> Value {
@@ -1634,6 +1666,8 @@ impl TestMainClass {
         let mut testName = get_arg(optional_args, 1, Value::Null);
         self.run_static_tests(Value::Str("request".to_string()), &[targetExchange.clone(), testName.clone()]).await;
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn run_static_tests(&mut self, mut type_var: Value, optional_args: &[Value]) -> Value {
@@ -1645,34 +1679,36 @@ impl TestMainClass {
             return Value::Bool(true);
         }
         let mut exchanges: Value = object_keys(&staticData);
-        let mut exchange: Value = initExchange(Value::Str("Exchange".to_string()), Value::Map({
+        let mut exchange: Value = initExchange(Value::Str("Exchange".to_string()), &[Value::Map({
             let mut m = std::collections::HashMap::new();
             m
-        })); // tmp to do the calculations until we have the ast-transpiler transpiling this code
+        })]); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         let mut promises: Value = Value::List(vec![]);
         let mut sum: Value = Value::Int(0);
         if is_true(&targetExchange) {
-            dump(add(&Value::Str("[INFO:MAIN] Exchange to test: ".to_string()), &targetExchange));
+            dump(&[add(&Value::Str("[INFO:MAIN] Exchange to test: ".to_string()), &targetExchange)]);
         }
         if is_true(&testName) {
-            dump(add(&Value::Str("[INFO:MAIN] Testing only: ".to_string()), &testName));
+            dump(&[add(&Value::Str("[INFO:MAIN] Testing only: ".to_string()), &testName)]);
         }
         {
                         let mut i: Value = Value::Int(0);
             while is_less_than(&i, &get_array_length(&exchanges)) {
+        'cont3: {
             let mut exchangeName: Value = get_value(&exchanges, &i);
             let mut exchangeData: Value = get_value(&staticData, &exchangeName);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
             if is_true(&disabled) {
-                continue;
+                break 'cont3;
             }
             let mut numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
             sum = exchange.sum(&[sum.clone(), numberOfTests.clone()]);
             if is_equal(&type_var, &Value::Str("request".to_string())) {
-                append_to_array(&mut promises, self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]));
+                append_to_array(&mut promises, self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }  else {
-                append_to_array(&mut promises, self.test_exchange_response_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]));
+                append_to_array(&mut promises, self.test_exchange_response_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }
+        }
             i = add(&i, &Value::Int(1));
         }
         }
@@ -1684,9 +1720,11 @@ impl TestMainClass {
         }  else {
             let mut prefix: Value = ternary(is_true(&(isSync())), Value::Str("[SYNC]".to_string()), Value::Str("".to_string()));
             let mut successMessage: Value = add(&add(&add(&add(&add(&add(&add(&add(&Value::Str("[".to_string()), &self.lang), &Value::Str("]".to_string())), &prefix), &Value::Str("[TEST_SUCCESS] ".to_string())), &to_string_val(&sum)), &Value::Str(" static ".to_string())), &type_var), &Value::Str(" tests passed.".to_string()));
-            dump(add(&Value::Str("[INFO]".to_string()), &successMessage));
+            dump(&[add(&Value::Str("[INFO]".to_string()), &successMessage)]);
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn run_static_response_tests(&mut self, optional_args: &[Value]) -> Value {
@@ -1697,18 +1735,22 @@ impl TestMainClass {
         //  -----------------------------------------------------------------------------
         self.run_static_tests(Value::Str("response".to_string()), &[exchangeName.clone(), test.clone()]).await;
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn run_broker_id_tests(&mut self) -> Value {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        let mut promises: Value = Value::List(vec![self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]);
+        let mut promises: Value = Value::List(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_bitmart().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_oxfun().await, self.test_xt().await, self.test_paradex().await, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await]);
         promise_all(&promises).await;
         let mut successMessage: Value = add(&add(&Value::Str("[".to_string()), &self.lang), &Value::Str("][TEST_SUCCESS] brokerId tests passed.".to_string()));
-        dump(add(&Value::Str("[INFO]".to_string()), &successMessage));
+        dump(&[add(&Value::Str("[INFO]".to_string()), &successMessage)]);
         exitScript(Value::Int(0));
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_binance(&mut self) -> Value {
@@ -1718,40 +1760,40 @@ impl TestMainClass {
         let mut inverseSwapId: Value = Value::Str("x-xcKtGhcu".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&spotOrderRequest, &Value::Str("newClientOrderId".to_string()));
         let mut spotIdString: Value = to_string_val(&spotId);
-        assert(Value::Bool(starts_with(&clientOrderId, &spotIdString)), add(&add(&add(&Value::Str("binance - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with spotId".to_string())), &spotIdString));
+        assert(Value::Bool(starts_with(&clientOrderId, &spotIdString)), &[add(&add(&add(&Value::Str("binance - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with spotId".to_string())), &spotIdString)]);
         let mut swapOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut swapInverseOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         // linear swap
         let mut clientOrderIdSwap: Value = get_value(&swapOrderRequest, &Value::Str("newClientOrderId".to_string()));
         let mut swapIdString: Value = to_string_val(&swapId);
-        assert(Value::Bool(starts_with(&clientOrderIdSwap, &swapIdString)), add(&add(&add(&Value::Str("binance - swap clientOrderId: ".to_string()), &clientOrderIdSwap), &Value::Str(" does not start with swapId".to_string())), &swapIdString));
+        assert(Value::Bool(starts_with(&clientOrderIdSwap, &swapIdString)), &[add(&add(&add(&Value::Str("binance - swap clientOrderId: ".to_string()), &clientOrderIdSwap), &Value::Str(" does not start with swapId".to_string())), &swapIdString)]);
         // inverse swap
         let mut clientOrderIdInverse: Value = get_value(&swapInverseOrderRequest, &Value::Str("newClientOrderId".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), add(&add(&add(&Value::Str("binance - swap clientOrderIdInverse: ".to_string()), &clientOrderIdInverse), &Value::Str(" does not start with swapId".to_string())), &inverseSwapId));
+        assert(Value::Bool(starts_with(&clientOrderIdInverse, &inverseSwapId)), &[add(&add(&add(&Value::Str("binance - swap clientOrderIdInverse: ".to_string()), &clientOrderIdInverse), &Value::Str(" does not start with swapId".to_string())), &inverseSwapId)]);
         // linear swap conditional order
         let mut swapAlgoOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Float(0.002), Value::Int(102000), Value::Map({
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Float(0.002), &[Value::Int(102000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("triggerPrice".to_string(), Value::Int(101000));
                 m
-            })).await;
+            })]).await;
             let mut checkOrderRequest: Value = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
             let mut algoOrderIdDefined: Value = Value::Bool(!is_equal(&get_value(&checkOrderRequest, &Value::Str("algoOrderId".to_string())), &Value::Null));
-            assert(algoOrderIdDefined, Value::Str("binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined".to_string()));
+            assert(algoOrderIdDefined.clone(), &[Value::Str("binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined".to_string())]);
             let mut clientAlgoIdSwap: Value = get_value(&swapAlgoOrderRequest, &Value::Str("clientAlgoId".to_string()));
             let mut swapAlgoIdString: Value = to_string_val(&swapId);
-            assert(Value::Bool(starts_with(&clientAlgoIdSwap, &swapAlgoIdString)), add(&add(&add(&Value::Str("binance - swap clientOrderId: ".to_string()), &clientAlgoIdSwap), &Value::Str(" does not start with swapId".to_string())), &swapAlgoIdString));
+            assert(Value::Bool(starts_with(&clientAlgoIdSwap, &swapAlgoIdString)), &[add(&add(&add(&Value::Str("binance - swap clientOrderId: ".to_string()), &clientAlgoIdSwap), &Value::Str(" does not start with swapId".to_string())), &swapAlgoIdString)]);
         }
         let mut createOrdersRequest: Value = Value::Null;
         {
@@ -1771,7 +1813,7 @@ impl TestMainClass {
         m.insert("amount".to_string(), Value::Int(1));
     m
 })]);
-            exchange.create_orders(orders.clone()).await;
+            exchange.create_orders(orders.clone(), &[]).await;
         }
         let mut batchOrders: Value = get_value(&createOrdersRequest, &Value::Str("batchOrders".to_string()));
         {
@@ -1779,14 +1821,16 @@ impl TestMainClass {
             while is_less_than(&i, &get_array_length(&batchOrders)) {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
-            assert(Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), add(&add(&add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), &Value::Str(" does not start with swapId".to_string())), &swapIdString));
+            assert(Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &[add(&add(&add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), &Value::Str(" does not start with swapId".to_string())), &swapIdString)]);
             i = add(&i, &Value::Int(1));
         }
         }
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_okx(&mut self) -> Value {
@@ -1794,56 +1838,62 @@ impl TestMainClass {
         let mut id: Value = Value::Str("6b9ad766b55dBCDE".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".to_string())); // returns order inside array
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(starts_with(&clientOrderId, &idString)), add(&add(&add(&Value::Str("okx - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderId, &idString)), &[add(&add(&add(&Value::Str("okx - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         let mut spotTag: Value = get_value(&get_value(&spotOrderRequest, &Value::Int(0)), &Value::Str("tag".to_string()));
-        assert(is_equal(&spotTag, &id), add(&add(&add(&Value::Str("okx - id: ".to_string()), &id), &Value::Str(" different from spot tag: ".to_string())), &spotTag));
+        assert(Value::Bool(is_equal(&spotTag, &id)), &[add(&add(&add(&Value::Str("okx - id: ".to_string()), &id), &Value::Str(" different from spot tag: ".to_string())), &spotTag)]);
         let mut swapOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderIdSwap: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("clOrdId".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderIdSwap, &idString)), add(&add(&add(&Value::Str("okx - swap clientOrderId: ".to_string()), &clientOrderIdSwap), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &[add(&add(&add(&Value::Str("okx - swap clientOrderId: ".to_string()), &clientOrderIdSwap), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         let mut swapTag: Value = get_value(&get_value(&swapOrderRequest, &Value::Int(0)), &Value::Str("tag".to_string()));
-        assert(is_equal(&swapTag, &id), add(&add(&add(&Value::Str("okx - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &swapTag));
+        assert(Value::Bool(is_equal(&swapTag, &id)), &[add(&add(&add(&Value::Str("okx - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &swapTag)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_cryptocom(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptocom".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
-        exchange.load_markets().await;
+        exchange.load_markets(&[]).await;
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut brokerId: Value = get_value(&get_value(&request, &Value::Str("params".to_string())), &Value::Str("broker_id".to_string()));
-        assert(is_equal(&brokerId, &id), add(&add(&add(&Value::Str("cryptocom - id: ".to_string()), &id), &Value::Str(" different from  broker_id: ".to_string())), &brokerId));
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&add(&add(&Value::Str("cryptocom - id: ".to_string()), &id), &Value::Str(" different from  broker_id: ".to_string())), &brokerId)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_bybit(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bybit".to_string()));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXT".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id), Value::Str("id not in options".to_string()));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("Referer".to_string())), &id), add(&add(&Value::Str("bybit - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("Referer".to_string())), &id)), &[add(&add(&Value::Str("bybit - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_kucoin(&mut self) -> Value {
@@ -1852,42 +1902,44 @@ impl TestMainClass {
         let mut reqHeaders: Value = Value::Null;
         let mut spotId: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("spot".to_string())), &Value::Str("id".to_string()));
         let mut spotKey: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("spot".to_string())), &Value::Str("key".to_string()));
-        assert(is_equal(&spotId, &Value::Str("ccxt".to_string())), add(&add(&Value::Str("kucoin - id: ".to_string()), &spotId), &Value::Str(" not in options".to_string())));
-        assert(is_equal(&spotKey, &Value::Str("9e58cc35-5b5e-4133-92ec-166e3f077cb8".to_string())), add(&add(&Value::Str("kucoin - key: ".to_string()), &spotKey), &Value::Str(" not in options.".to_string())));
+        assert(Value::Bool(is_equal(&spotId, &Value::Str("ccxt".to_string()))), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &spotId), &Value::Str(" not in options".to_string()))]);
+        assert(Value::Bool(is_equal(&spotKey, &Value::Str("9e58cc35-5b5e-4133-92ec-166e3f077cb8".to_string()))), &[add(&add(&Value::Str("kucoin - key: ".to_string()), &spotKey), &Value::Str(" not in options.".to_string()))]);
         let mut futureId: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("future".to_string())), &Value::Str("id".to_string()));
         let mut futureKey: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("future".to_string())), &Value::Str("key".to_string()));
-        assert(is_equal(&futureId, &Value::Str("ccxtfutures".to_string())), add(&add(&Value::Str("kucoin - id: ".to_string()), &futureId), &Value::Str(" not in options.".to_string())));
-        assert(is_equal(&futureKey, &Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string())), add(&add(&Value::Str("kucoin - key: ".to_string()), &futureKey), &Value::Str(" not in options.".to_string())));
+        assert(Value::Bool(is_equal(&futureId, &Value::Str("ccxtfutures".to_string()))), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &futureId), &Value::Str(" not in options.".to_string()))]);
+        assert(Value::Bool(is_equal(&futureKey, &Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string()))), &[add(&add(&Value::Str("kucoin - key: ".to_string()), &futureKey), &Value::Str(" not in options.".to_string()))]);
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut id: Value = Value::Str("ccxt".to_string());
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id), add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for spot orders.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for spot orders.".to_string()))]);
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
-            })).await;
+            })]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id), add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for spot uta orders.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for spot uta orders.".to_string()))]);
         id = Value::Str("ccxtfutures".to_string());
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id), add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for swap orders.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for swap orders.".to_string()))]);
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
-            })).await;
+            })]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id), add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for swap uta orders.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for swap uta orders.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_kucoinfutures(&mut self) -> Value {
@@ -1896,53 +1948,59 @@ impl TestMainClass {
         let mut id: Value = Value::Str("ccxtfutures".to_string());
         let mut futureId: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("future".to_string())), &Value::Str("id".to_string()));
         let mut futureKey: Value = get_value(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &Value::Str("future".to_string())), &Value::Str("key".to_string()));
-        assert(is_equal(&futureId, &id), add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &futureId), &Value::Str(" not in options.".to_string())));
-        assert(is_equal(&futureKey, &Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string())), add(&add(&Value::Str("kucoinfutures - key: ".to_string()), &futureKey), &Value::Str(" not in options.".to_string())));
+        assert(Value::Bool(is_equal(&futureId, &id)), &[add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &futureId), &Value::Str(" not in options.".to_string()))]);
+        assert(Value::Bool(is_equal(&futureKey, &Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string()))), &[add(&add(&Value::Str("kucoinfutures - key: ".to_string()), &futureKey), &Value::Str(" not in options.".to_string()))]);
         {
             add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(false));
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id), add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         {
             add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(true));
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id), add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &id), &Value::Str(" not in headers for uta orders.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &id), &Value::Str(" not in headers for uta orders.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_bitget(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bitget".to_string()));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("p4sve".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id), add(&add(&Value::Str("bitget - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("bitget - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("X-CHANNEL-API-CODE".to_string())), &id), add(&add(&Value::Str("bitget - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("X-CHANNEL-API-CODE".to_string())), &id)), &[add(&add(&Value::Str("bitget - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_mexc(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("mexc".to_string()));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXT".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id), add(&add(&Value::Str("mexc - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
-        exchange.load_markets().await;
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("mexc - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
+        exchange.load_markets(&[]).await;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("source".to_string())), &id), add(&add(&Value::Str("mexc - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("source".to_string())), &id)), &[add(&add(&Value::Str("mexc - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_htx(&mut self) -> Value {
@@ -1951,28 +2009,30 @@ impl TestMainClass {
         let mut id: Value = Value::Str("AA03022abc".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&spotOrderRequest, &Value::Str("client-order-id".to_string()));
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(starts_with(&clientOrderId, &idString)), add(&add(&add(&Value::Str("htx - spot clientOrderId ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderId, &idString)), &[add(&add(&add(&Value::Str("htx - spot clientOrderId ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         // swap test
         let mut swapOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut swapInverseOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderIdSwap: Value = get_value(&swapOrderRequest, &Value::Str("channel_code".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderIdSwap, &idString)), add(&add(&add(&Value::Str("htx - swap channel_code ".to_string()), &clientOrderIdSwap), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderIdSwap, &idString)), &[add(&add(&add(&Value::Str("htx - swap channel_code ".to_string()), &clientOrderIdSwap), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         let mut clientOrderIdInverse: Value = get_value(&swapInverseOrderRequest, &Value::Str("channel_code".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderIdInverse, &idString)), add(&add(&add(&Value::Str("htx - swap inverse channel_code ".to_string()), &clientOrderIdInverse), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderIdInverse, &idString)), &[add(&add(&add(&Value::Str("htx - swap inverse channel_code ".to_string()), &clientOrderIdInverse), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_woo(&mut self) -> Value {
@@ -1981,74 +2041,82 @@ impl TestMainClass {
         let mut id: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut brokerId: Value = get_value(&spotOrderRequest, &Value::Str("broker_id".to_string()));
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(starts_with(&brokerId, &idString)), add(&add(&add(&Value::Str("woo - broker_id: ".to_string()), &brokerId), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&brokerId, &idString)), &[add(&add(&add(&Value::Str("woo - broker_id: ".to_string()), &brokerId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         // swap test
         let mut stopOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("stopPrice".to_string(), Value::Int(30000));
                 m
-            })).await;
+            })]).await;
         }
         let mut clientOrderIdStop: Value = get_value(&stopOrderRequest, &Value::Str("brokerId".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderIdStop, &idString)), add(&add(&add(&Value::Str("woo - brokerId: ".to_string()), &clientOrderIdStop), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderIdStop, &idString)), &[add(&add(&add(&Value::Str("woo - brokerId: ".to_string()), &clientOrderIdStop), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_bitmart(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bitmart".to_string()));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXTxBitmart000".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id), add(&add(&Value::Str("bitmart - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
-        exchange.load_markets().await;
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[add(&add(&Value::Str("bitmart - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
+        exchange.load_markets(&[]).await;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("X-BM-BROKER-ID".to_string())), &id), add(&add(&Value::Str("bitmart - id: ".to_string()), &id), &Value::Str(" not in headers".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("X-BM-BROKER-ID".to_string())), &id)), &[add(&add(&Value::Str("bitmart - id: ".to_string()), &id), &Value::Str(" not in headers".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_coinex(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("coinex".to_string()));
         let mut id: Value = Value::Str("x-167673045".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id), add(&add(&Value::Str("coinex - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[add(&add(&Value::Str("coinex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let mut spotOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&spotOrderRequest, &Value::Str("client_id".to_string()));
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(starts_with(&clientOrderId, &idString)), add(&add(&add(&Value::Str("coinex - clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderId, &idString)), &[add(&add(&add(&Value::Str("coinex - clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_bingx(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("bingx".to_string()));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXT".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id), add(&add(&Value::Str("bingx - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("bingx - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("X-SOURCE-KEY".to_string())), &id), add(&add(&Value::Str("bingx - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("X-SOURCE-KEY".to_string())), &id)), &[add(&add(&Value::Str("bingx - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_phemex(&mut self) -> Value {
@@ -2056,15 +2124,17 @@ impl TestMainClass {
         let mut id: Value = Value::Str("CCXT123456".to_string());
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&request, &Value::Str("clOrdID".to_string()));
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(starts_with(&clientOrderId, &idString)), add(&add(&add(&Value::Str("phemex - clOrdID: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&clientOrderId, &idString)), &[add(&add(&add(&Value::Str("phemex - clOrdID: ".to_string()), &clientOrderId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_blofin(&mut self) -> Value {
@@ -2072,15 +2142,17 @@ impl TestMainClass {
         let mut id: Value = Value::Str("ec6dd3a7dd982d0b".to_string());
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("LTC/USDT:USDT".to_string()), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(1)).await;
+            exchange.create_order(Value::Str("LTC/USDT:USDT".to_string()), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[]).await;
         }
         let mut brokerId: Value = get_value(&request, &Value::Str("brokerId".to_string()));
         let mut idString: Value = to_string_val(&id);
-        assert(Value::Bool(starts_with(&brokerId, &idString)), add(&add(&add(&Value::Str("blofin - brokerId: ".to_string()), &brokerId), &Value::Str(" does not start with id: ".to_string())), &idString));
+        assert(Value::Bool(starts_with(&brokerId, &idString)), &[add(&add(&add(&Value::Str("blofin - brokerId: ".to_string()), &brokerId), &Value::Str(" does not start with id: ".to_string())), &idString)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
 // async testHyperliquid () {
@@ -2103,66 +2175,74 @@ impl TestMainClass {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbaseinternational".to_string()));
         add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("portfolio".to_string()), Value::Str("random".to_string()));
         let mut id: Value = Value::Str("nfqkvdjp".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id), Value::Str("id not in options".to_string()));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&request, &Value::Str("client_order_id".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), Value::Str("clientOrderId does not start with id".to_string()));
+        assert(Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), &[Value::Str("clientOrderId does not start with id".to_string())]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_coinbase_advanced(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("coinbase".to_string()));
         let mut id: Value = Value::Str("ccxt".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id), Value::Str("id not in options".to_string()));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&request, &Value::Str("client_order_id".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), Value::Str("clientOrderId does not start with id".to_string()));
+        assert(Value::Bool(starts_with(&clientOrderId, &to_string_val(&id))), &[Value::Str("clientOrderId does not start with id".to_string())]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_woofi_pro(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("woofipro".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
-        exchange.load_markets().await;
+        exchange.load_markets(&[]).await;
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut brokerId: Value = get_value(&request, &Value::Str("order_tag".to_string()));
-        assert(is_equal(&brokerId, &id), add(&add(&add(&Value::Str("woofipro - id: ".to_string()), &id), &Value::Str(" different from  broker_id: ".to_string())), &brokerId));
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&add(&add(&Value::Str("woofipro - id: ".to_string()), &id), &Value::Str(" different from  broker_id: ".to_string())), &brokerId)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_oxfun(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("oxfun".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Int(1000);
-        exchange.load_markets().await;
+        exchange.load_markets(&[]).await;
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USD:OX".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USD:OX".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut orders: Value = get_value(&request, &Value::Str("orders".to_string()));
         let mut first: Value = get_value(&orders, &Value::Int(0));
         let mut brokerId: Value = get_value(&first, &Value::Str("source".to_string()));
-        assert(is_equal(&brokerId, &id), add(&add(&add(&Value::Str("oxfun - id: ".to_string()), &to_string_val(&id)), &Value::Str(" different from  broker_id: ".to_string())), &to_string_val(&brokerId)));
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&add(&add(&Value::Str("oxfun - id: ".to_string()), &to_string_val(&id)), &Value::Str(" different from  broker_id: ".to_string())), &to_string_val(&brokerId))]);
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_xt(&mut self) -> Value {
@@ -2170,26 +2250,28 @@ impl TestMainClass {
         let mut id: Value = Value::Str("CCXT".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut spotMedia: Value = get_value(&spotOrderRequest, &Value::Str("media".to_string()));
-        assert(is_equal(&spotMedia, &id), add(&add(&add(&Value::Str("xt - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &spotMedia));
+        assert(Value::Bool(is_equal(&spotMedia, &id)), &[add(&add(&add(&Value::Str("xt - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &spotMedia)]);
         let mut swapOrderRequest: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut swapMedia: Value = get_value(&swapOrderRequest, &Value::Str("clientMedia".to_string()));
-        assert(is_equal(&swapMedia, &id), add(&add(&add(&Value::Str("xt - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &swapMedia));
+        assert(Value::Bool(is_equal(&swapMedia, &id)), &[add(&add(&add(&Value::Str("xt - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &swapMedia)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_paradex(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("paradex".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0xc751489d24a33172541ea451bc253d7a9e98c781".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0xc751489d24a33172541ea451bc253d7a9e98c781".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b".to_string()));
         add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("authToken".to_string()), Value::Str("token".to_string()));
         add_element_to_object(&mut get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("systemConfig".to_string()), Value::Map({
     let mut m = std::collections::HashMap::new();
@@ -2221,16 +2303,18 @@ impl TestMainClass {
 }));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXT".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id), add(&add(&Value::Str("paradex - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
-        exchange.load_markets().await;
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("paradex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
+        exchange.load_markets(&[]).await;
         {
-            exchange.create_order(Value::Str("BTC/USD:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USD:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("PARADEX-PARTNER".to_string())), &id), add(&add(&Value::Str("paradex - id: ".to_string()), &id), &Value::Str(" not in headers".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("PARADEX-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("paradex - id: ".to_string()), &id), &Value::Str(" not in headers".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_hashkey(&mut self) -> Value {
@@ -2238,33 +2322,37 @@ impl TestMainClass {
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("10000700011".to_string());
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("INPUT-SOURCE".to_string())), &id), add(&add(&Value::Str("hashkey - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("INPUT-SOURCE".to_string())), &id)), &[add(&add(&Value::Str("hashkey - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_cryptomus(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptomus".to_string()));
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut tag: Value = Value::Str("ccxt".to_string());
-        assert(is_equal(&get_value(&request, &Value::Str("tag".to_string())), &tag), add(&add(&Value::Str("cryptomus - tag: ".to_string()), &tag), &Value::Str(" not in request.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&request, &Value::Str("tag".to_string())), &tag)), &[add(&add(&Value::Str("cryptomus - tag: ".to_string()), &tag), &Value::Str(" not in request.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_derive(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("derive".to_string()));
         let mut id: Value = Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("id".to_string())), &id), add(&add(&Value::Str("derive - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("id".to_string())), &id)), &[add(&add(&Value::Str("derive - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let mut request: Value = Value::Null;
         {
             let mut params: Value = Value::Map({
@@ -2274,48 +2362,54 @@ impl TestMainClass {
                     m.insert("deriveWalletAddress".to_string(), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
                 m
             });
-            crate::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
-            crate::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".to_string()));
-            exchange.create_order(Value::Str("LBTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Float(0.01), Value::Int(3000), params.clone()).await;
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".to_string()));
+            exchange.create_order(Value::Str("LBTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Float(0.01), &[Value::Int(3000), params.clone()]).await;
         }
-        assert(is_equal(&get_value(&request, &Value::Str("referral_code".to_string())), &id), add(&add(&Value::Str("derive - referral_code: ".to_string()), &id), &Value::Str(" not in request.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&request, &Value::Str("referral_code".to_string())), &id)), &[add(&add(&Value::Str("derive - referral_code: ".to_string()), &id), &Value::Str(" not in request.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_mode_trade(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("modetrade".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Str("CCXTMODE".to_string());
-        exchange.load_markets().await;
+        exchange.load_markets(&[]).await;
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut brokerId: Value = get_value(&request, &Value::Str("order_tag".to_string()));
-        assert(is_equal(&brokerId, &id), add(&add(&add(&Value::Str("modetrade - id: ".to_string()), &id), &Value::Str(" different from  broker_id: ".to_string())), &brokerId));
+        assert(Value::Bool(is_equal(&brokerId, &id)), &[add(&add(&add(&Value::Str("modetrade - id: ".to_string()), &id), &Value::Str(" different from  broker_id: ".to_string())), &brokerId)]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_backpack(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("backpack".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("apiKey".to_string()), Value::Str("Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=".to_string()));
-        crate::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("apiKey".to_string()), Value::Str("Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=".to_string()));
+        ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=".to_string()));
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("1400".to_string());
         {
-            exchange.create_order(Value::Str("ETH/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(5000)).await;
+            exchange.create_order(Value::Str("ETH/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(5000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("X-Broker-Id".to_string())), &id), add(&add(&Value::Str("backpack - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("X-Broker-Id".to_string())), &id)), &[add(&add(&Value::Str("backpack - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_toobit(&mut self) -> Value {
@@ -2323,29 +2417,33 @@ impl TestMainClass {
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("177321641268789".to_string());
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
-        assert(is_equal(&get_value(&reqHeaders, &Value::Str("X-BB-API-PLATFORM".to_string())), &id), add(&add(&Value::Str("toobit - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("X-BB-API-PLATFORM".to_string())), &id)), &[add(&add(&Value::Str("toobit - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         if !is_true(&isSync()) {
-            close(exchange).await;
+            close(exchange.clone()).await;
         }
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub async fn test_weex(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("weex".to_string()));
         let mut id: Value = Value::Str("b-WEEX111125".to_string());
-        assert(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &id), add(&add(&Value::Str("weex - id: ".to_string()), &id), &Value::Str(" not in options".to_string())));
+        assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &id)), &[add(&add(&Value::Str("weex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let mut request: Value = Value::Null;
         {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         let mut clientOrderId: Value = get_value(&request, &Value::Str("newClientOrderId".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderId, &id)), add(&add(&add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), &Value::Str(" for spot order does not start with id: ".to_string())), &id));
+        assert(Value::Bool(starts_with(&clientOrderId, &id)), &[add(&add(&add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), &Value::Str(" for spot order does not start with id: ".to_string())), &id)]);
         {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)).await;
+            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
         }
         clientOrderId = get_value(&request, &Value::Str("newClientOrderId".to_string()));
-        assert(Value::Bool(starts_with(&clientOrderId, &id)), add(&add(&add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), &Value::Str(" for swap order does not start with id: ".to_string())), &id));
+        assert(Value::Bool(starts_with(&clientOrderId, &id)), &[add(&add(&add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), &Value::Str(" for swap order does not start with id: ".to_string())), &id)]);
+
+    Value::Null
 }
 }

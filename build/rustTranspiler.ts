@@ -879,6 +879,64 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Like `wrapVariadicCalls` but for *free functions* (no receiver) —
+     * folds args beyond the fixed arity into a trailing `&[Value]`
+     * slice. Used for the hand-written test-harness helpers
+     * (`dump`, `assert`, `ioFileRead`, …) which take `&[Value]`.
+     */
+    wrapFreeVariadicCalls(content: string, fixedArities: Record<string, number>): string {
+        const names = Object.keys(fixedArities);
+        if (names.length === 0) return content;
+        // Match `<name>(` not preceded by `.` or `:` (so method calls
+        // and paths like `foo::dump(` are left alone).
+        const pattern = new RegExp(`(^|[^.:\\w])\\b(${names.join('|')})\\(`);
+        let i = 0;
+        let out = '';
+        while (i < content.length) {
+            const rest = content.slice(i);
+            const m = rest.match(pattern);
+            if (!m || m.index === undefined) { out += rest; break; }
+            out += rest.slice(0, m.index);
+            const lead = m[1];
+            const name = m[2];
+            const absStart = i + m.index + lead.length;
+            const callStart = absStart + name.length + 1; // past `name(`
+            let depth = 1, j = callStart, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\') { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += lead + content.slice(absStart); break; }
+            const rawInside = content.slice(callStart, j);
+            const inside = this.wrapFreeVariadicCalls(rawInside, fixedArities); // recurse
+            const args = this.splitArgs(inside);
+            const fixed = fixedArities[name];
+            const alreadyWrapped = args && args.length > 0 &&
+                args[args.length - 1].trim().startsWith('&[');
+            if (alreadyWrapped) {
+                out += `${lead}${name}(${inside})`;
+            } else if (!args || args.length < fixed) {
+                out += lead + content.slice(absStart, j + 1);
+            } else {
+                const fixedArgs = args.slice(0, fixed).join(', ');
+                const tail      = args.slice(fixed);
+                const slice = tail.length === 0 ? '&[]' : `&[${tail.join(', ')}]`;
+                out += `${lead}${name}(${fixedArgs}${fixed > 0 ? ', ' : ''}${slice})`;
+            }
+            i = j + 1;
+        }
+        return out;
+    }
+
+    /**
      * Rewrites `NS.method(args)` calls into `crate::path::method(&args)`
      * with paren-balanced argument parsing (handles nested parens).
      * Used for `Math.X(...)` and `Precise.X(...)` which the transpiler
@@ -1064,7 +1122,14 @@ class RustTranspilerBuilder {
                 if (depth === 0) break;
                 j++;
             }
-            if (depth !== 0) { out += content.slice(i); break; }
+            if (depth !== 0) {
+                // Brace-scan failed for this fn — emit its header and
+                // keep scanning so a single bad fn doesn't poison every
+                // function after it.
+                out += content.slice(i, bodyStart);
+                i = bodyStart;
+                continue;
+            }
             const body = content.slice(bodyStart, j);
             // Check last non-whitespace, non-comment char before `}`.
             // Trailing `// ...` comments would otherwise hide the
@@ -1087,6 +1152,158 @@ class RustTranspilerBuilder {
             i = j + 1;
         }
         return out;
+    }
+
+    /**
+     * Walks every `fn <name>(&self, …)` (brace-balanced) and, if the body
+     * assigns to a `self.<field>`, promotes the receiver to `&mut self`.
+     * The transpiler emits `&self` for methods it thinks are read-only,
+     * but several `TestMainClass` methods mutate instance fields.
+     */
+    promoteSelfMutMethods(content: string): string {
+        const pattern = /\b(?:pub\s+)?(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&self\b/;
+        let i = 0;
+        let out = '';
+        while (i < content.length) {
+            const rest = content.slice(i);
+            const m = rest.match(pattern);
+            if (!m || m.index === undefined) { out += rest; break; }
+            const absStart = i + m.index;
+            // Emit everything up to (but not including) the `&self`.
+            const selfIdx = content.indexOf('&self', absStart);
+            // Find the method body.
+            const braceIdx = content.indexOf('{', selfIdx);
+            if (braceIdx < 0) { out += content.slice(i); break; }
+            let depth = 1, j = braceIdx + 1, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '{') depth++;
+                    else if (c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            const body = content.slice(braceIdx, j);
+            // `self.<field> =` but not `==` / `!=` / `<=` / `>=`.
+            const mutates = /\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=[^=]/.test(body);
+            out += content.slice(i, selfIdx);
+            out += mutates ? '&mut self' : '&self';
+            out += content.slice(selfIdx + '&self'.length, j + 1);
+            i = j + 1;
+        }
+        return out;
+    }
+
+    /**
+     * `exchange.extend_exchange_options(<args>)` — `extend_exchange_options`
+     * borrows `exchange` mutably, so an arg that also reads `exchange`
+     * (e.g. `exchange.deepExtend(...)`) is a borrow conflict. Hoist such
+     * args into a `let` binding evaluated before the call.
+     */
+    hoistExtendExchangeOptionsArg(content: string): string {
+        const marker = '.extend_exchange_options(';
+        let i = 0;
+        let out = '';
+        let tmp = 0;
+        while (i < content.length) {
+            const idx = content.indexOf(marker, i);
+            if (idx < 0) { out += content.slice(i); break; }
+            // Receiver must be a bare identifier ending right before `.`.
+            const recvMatch = content.slice(0, idx).match(/([a-zA-Z_][a-zA-Z0-9_]*)$/);
+            const callStart = idx + marker.length;
+            let depth = 1, j = callStart, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\') { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            const recv = recvMatch ? recvMatch[1] : '';
+            const inside = content.slice(callStart, j);
+            // Only hoist when the arg reads the same receiver.
+            if (recv && inside.includes(`${recv}.`)) {
+                // Find the start of the statement (the receiver ident).
+                const stmtStart = idx - recv.length;
+                const name = `__eeo${tmp++}`;
+                const indentMatch = content.slice(0, stmtStart).match(/\n([ \t]*)$/);
+                const indent = indentMatch ? indentMatch[1] : '        ';
+                out += content.slice(i, stmtStart);
+                out += `let ${name} = ${inside};\n${indent}`;
+                out += `${recv}${marker}${name}`;
+                i = j; // continue from the closing paren
+            } else {
+                out += content.slice(i, j);
+                i = j;
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The transpiler lowers a TS `for (i=0; cond; i++)` to a Rust
+     * `while cond { … i = add(&i, 1); }` with a *manual* trailing
+     * increment. A `continue` inside that `while` jumps straight to the
+     * condition, skipping the increment → infinite loop.
+     *
+     * Fix: for every `while` whose body ends with `<v> = add(&<v>, …);`
+     * and contains a `continue`, wrap the body (minus the increment) in
+     * a labelled block and rewrite `continue` → `break '<label>` so the
+     * increment still runs. Processes innermost loops first so a
+     * `continue` always binds to its own loop.
+     */
+    fixForLoopContinue(content: string): string {
+        let label = 0;
+        const fix = (text: string): string => {
+            let out = '';
+            let i = 0;
+            while (i < text.length) {
+                const m = text.slice(i).match(/\bwhile\b[^{]*\{/);
+                if (!m || m.index === undefined) { out += text.slice(i); break; }
+                const absHeader = i + m.index;
+                const bodyStart = absHeader + m[0].length;
+                let depth = 1, j = bodyStart, inStr = false, escape = false;
+                while (j < text.length && depth > 0) {
+                    const c = text[j];
+                    if (escape) { escape = false; j++; continue; }
+                    if (c === '\\') { escape = true; j++; continue; }
+                    if (c === '"') { inStr = !inStr; j++; continue; }
+                    if (!inStr) {
+                        if (c === '{') depth++;
+                        else if (c === '}') depth--;
+                    }
+                    if (depth === 0) break;
+                    j++;
+                }
+                if (depth !== 0) { out += text.slice(i); break; }
+                out += text.slice(i, bodyStart);
+                // Recurse into this loop's body (innermost first).
+                let body = fix(text.slice(bodyStart, j));
+                // Trailing manual increment `<v> = add(&<v>, …);`?
+                const incRe = /\n?[ \t]*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*add\(&\1\s*,[^;]*\);[ \t]*\n?[ \t]*$/;
+                const incMatch = body.match(incRe);
+                if (incMatch && /\bcontinue\b/.test(body)) {
+                    const inc = incMatch[0];
+                    const main = body.slice(0, body.length - inc.length);
+                    const lbl = `'cont${label++}`;
+                    const wrapped = main.replace(/\bcontinue\b/g, `break ${lbl}`);
+                    body = `\n        ${lbl}: {${wrapped}\n        }${inc}`;
+                }
+                out += body + '}';
+                i = j + 1;
+            }
+            return out;
+        };
+        return fix(content);
     }
 
     /**
@@ -1931,7 +2148,7 @@ class RustTranspilerBuilder {
         // Include known bare-fn calls that take Value args by value too.
         // Also handle `<local>.method(` (e.g. `exchange.method(`) which
         // shows up in transpiled tests.
-        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual))\(/;
+        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead))\(/;
         while (i < content.length) {
             const rest = content.slice(i);
             const m = rest.match(pattern);
@@ -3799,12 +4016,16 @@ impl std::ops::DerefMut for ${coreName} {
             const result = this.transpiler.transpileRustByPath(tsFile);
             let content = result.content ?? '';
             // Reuse the per-exchange pipeline so we get the same
-            // post-processing as the transpiled exchanges.
-            const asyncMethods = new Set<string>(
-                (result.methodsTypes || [])
-                    .filter((m: any) => m.async)
-                    .map((m: any) => m.name)
-            );
+            // post-processing as the transpiled exchanges. `methodsTypes`
+            // carries camelCase names; the transpiled call sites are
+            // snake_case, so index the async set under both forms.
+            const asyncMethods = new Set<string>();
+            for (const m of (result.methodsTypes || [])) {
+                if ((m as any).async) {
+                    asyncMethods.add((m as any).name);
+                    asyncMethods.add(toSnakeCase((m as any).name));
+                }
+            }
             content = this.regexAll(content, this.getRustRegexes(asyncMethods));
             content = this.rewriteBareErrorClassRefs(content);
             content = this.wrapBoolValueArgs(content);
@@ -3817,7 +4038,19 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
             content = this.dropExtraPreciseArgs(content);
             content = this.expandSliceForFixedAritySelfCalls(content);
-            content = this.wrapVariadicCalls(content, this.handWrittenVariadics());
+            // `exchange` is a `Value`; the `ExchangeOps` extension trait
+            // supplies its method surface. A few of those methods have
+            // optional/default params — fold the trailing args of their
+            // call sites into `&[Value]` so they match the trait sigs.
+            content = this.wrapVariadicCalls(content, {
+                ...this.handWrittenVariadics(),
+                create_order:               4,
+                create_orders:              1,
+                fetch_ticker:               1,
+                load_markets:               0,
+                check_required_credentials: 0,
+                deepExtend:                 1,
+            });
             content = this.autoCloneCallArgs(content);
             content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);
@@ -3830,12 +4063,107 @@ impl std::ops::DerefMut for ${coreName} {
             // don't take `mut`, mutability is part of the binding.
             content = content.replace(/(\bpub\s+)mut\s+/g, '$1');
 
+            // ── tests.rs-specific mechanical rewrites ───────────────
+            content = this.regexAll(content, [
+                // The `tests.rs` file lives in the `ccxt_tests` crate,
+                // not `ccxt` — retarget bare `crate::` paths emitted by
+                // the per-exchange pipeline at the `ccxt` crate.
+                [/\bcrate::runtime\b/g,         'ccxt::runtime'],
+                [/\bcrate::Value\b/g,           'ccxt::Value'],
+                [/\bcrate::get_value\b/g,       'ccxt::get_value'],
+                [/\bcrate::set_value\b/g,       'ccxt::set_value'],
+                [/\bcrate::value\b/g,           'ccxt::value'],
+                [/\bcrate::exchange_errors\b/g, 'ccxt::exchange_errors'],
+                [/\bcrate::exchange::/g,        'ccxt::exchange::'],
+                [/\bcrate::precise\b/g,         'ccxt::precise'],
+                // The transpiled `new()` emits the lowercase class name
+                // (`testMainClass`) as the struct literal even though
+                // the struct is declared `TestMainClass`.
+                [/\btestMainClass\b/g,          'TestMainClass'],
+                // `new ccxt.Exchange(...)` → `ccxt::Exchange`.
+                [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
+            ]);
+            // `set_value` / `get_value` are re-exported at the ccxt crate
+            // root — bare references need the `ccxt::` qualifier.
+            content = content.replace(/(^|[^:\w])set_value\(/g, '$1ccxt::set_value(');
+            // Fold trailing args of the hand-written test-harness
+            // helpers into the `&[Value]` slice their Rust signatures
+            // expect.
+            content = this.wrapFreeVariadicCalls(content, {
+                dump:            0,
+                assert:          1,
+                ioFileRead:      1,
+                initExchange:    1,
+                getExchangeProp: 2,
+            });
+            // TS collects test invocations into a promise array
+            // (`promises.push (this.testSafe (...))`) and resolves them
+            // with `Promise.all`. Rust can't store futures in a `Value`
+            // list, so `.await` each async `self.*` call inline — the
+            // tests then run sequentially, which is fine offline.
+            content = this.appendAwaitToAsyncCalls(content, asyncMethods);
+            // `self.<field> = <bare ident>;` moves the RHS — clone it so
+            // the local stays usable afterwards.
+            content = content.replace(
+                /(\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*)([a-zA-Z_][a-zA-Z0-9_]*)(;)/g,
+                '$1$2.clone()$3',
+            );
+            // `self.<field> = <boolean expression>;` — the struct fields
+            // are `Value`; wrap `||` / `&&` / `is_true(...)` results.
+            content = content.replace(
+                /(\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*)([^;\n]*(?:\|\||&&)[^;\n]*)(;)/g,
+                '$1Value::Bool($2)$3',
+            );
+            // `vec![<bare ident>]` — clone the element so the local
+            // isn't moved into the list (covers nested list literals
+            // the array-literal pass doesn't reach).
+            content = content.replace(
+                /\bvec!\[([a-zA-Z_][a-zA-Z0-9_]*)\]/g,
+                'vec![$1.clone()]',
+            );
+            // `continue` inside a transpiled `for`→`while` must still run
+            // the manual loop increment — labelled-block rewrite.
+            content = this.fixForLoopContinue(content);
+            // Methods that assign to `self.<field>` need `&mut self`.
+            content = this.promoteSelfMutMethods(content);
+            // `init` is a thin wrapper around `init_inner` — drop the
+            // statement-block wrapper so it returns `init_inner`'s value.
+            content = content.replace(
+                /(fn init\s*\([^)]*\)\s*->\s*Value\s*\{)\s*\{\s*(self\.init_inner\([^;]*\.await)\s*;\s*\}\s*\}/,
+                '$1\n        $2\n    }',
+            );
+            // `callExchangeMethodDynamically` / `setFetchResponse`
+            // mutate the exchange value in place (store `last_request_*`
+            // / the mock response) — pass `&mut exchange`.
+            content = content.replace(
+                /\bcallExchangeMethodDynamically\(\s*exchange\.clone\(\)/g,
+                'callExchangeMethodDynamically(&mut exchange',
+            );
+            content = content.replace(
+                /\bsetFetchResponse\(\s*exchange\.clone\(\)/g,
+                'setFetchResponse(&mut exchange',
+            );
+            // `extend_exchange_options` takes `&mut self` — hoist any arg
+            // that also reads the receiver out of the call.
+            content = this.hoistExtendExchangeOptionsArg(content);
+            // The try/catch that captured `last_request_*` into
+            // `output` / `requestUrl` is stripped by `stripCatchBlocks`;
+            // `callExchangeMethodDynamically` now stores the request on
+            // the exchange value, so read it back before asserting.
+            content = content.replace(
+                /(\n[ \t]*\{\n[ \t]*let mut callOutput: Value = exchange\.safe_value\(data)/,
+                '\n        output = ccxt::get_value(&exchange, &Value::Str("last_request_body".to_string()));' +
+                '\n        requestUrl = ccxt::get_value(&exchange, &Value::Str("last_request_url".to_string()));' +
+                '$1',
+            );
+
             const file = [
                 ...this.createGeneratedHeader(),
                 '#![allow(unused, non_snake_case, dead_code, clippy::all)]',
                 'use ccxt::Value;',
                 'use ccxt::get_value;',
                 'use ccxt::runtime::*;',
+                'use crate::test_helpers::*;',
                 '',
                 content,
             ].join('\n');
@@ -3899,6 +4227,7 @@ if (isMainEntry(import.meta.url)) {
     const child     = process.argv.includes('--child');
     const baseOnly  = process.argv.includes('--baseClass') || process.argv.includes('--baseOnly');
     const testsOnly = process.argv.includes('--tests') || process.argv.includes('--test');
+    const testsMain = process.argv.includes('--testsMain') || process.argv.includes('--testMain');
 
     const t = new RustTranspilerBuilder();
 
@@ -3909,6 +4238,8 @@ if (isMainEntry(import.meta.url)) {
         await t.transpileWS(force);
     } else if (testsOnly) {
         t.transpileTests();
+    } else if (testsMain) {
+        t.transpileTestsMain('./rust/tests/src');
     } else {
         await t.transpileEverything(force, child, false);
     }

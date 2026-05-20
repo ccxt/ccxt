@@ -244,6 +244,10 @@ pub struct Exchange {
     /// `Err(OfflineMode)` without hitting the network. Used by static
     /// request tests to assert URL/body without needing a live exchange.
     pub offline_mode:            Value,
+    /// Canned HTTP response for static *response* tests — when set,
+    /// `fetch` returns it instead of erroring in offline mode, so the
+    /// exchange's parser runs against fixture data.
+    pub mock_response:           Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
 
@@ -366,6 +370,7 @@ impl Exchange {
             last_request_headers:       Value::Null,
             last_request_body:          Value::Null,
             offline_mode:               Value::Bool(false),
+            mock_response:              Value::Null,
             last_json_response:         Value::Null,
             lastRestRequestTimestamp:   Value::Int(0),
 
@@ -532,6 +537,11 @@ impl Exchange {
         // Offline mode: short-circuit before any network I/O. Test
         // runners flip this via `set_offline_mode(true)`.
         if matches!(self.offline_mode, Value::Bool(true)) {
+            // Static *response* tests inject a canned response — return
+            // it so the exchange's parser runs against fixture data.
+            if !matches!(self.mock_response, Value::Null) {
+                return Ok(self.mock_response.clone());
+            }
             return Err(ExchangeError::new(
                 "OfflineMode",
                 format!("offline mode active — no network call made for {method} {url}"),
