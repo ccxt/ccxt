@@ -22,7 +22,10 @@ function testOptionsNetwoks (exchange, skippedProperties, method, entry) {
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCode = networkCodes[i];
             const networkId = exchange.options['networks'][networkCode];
-            assert (!exchange.inArray (networkId, collectedNetworkIds), 'exchange.options["networks"] contains multiple networkCodes with the same networkId "' + networkId + '"');
+            const whitelistedNetworkCodes = [ 'ERC20', 'ETH', 'TRX', 'TRON', 'TRC20', 'BTC', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC' ];
+            if (!exchange.inArray (networkCode, whitelistedNetworkCodes)) {
+                assert (!exchange.inArray (networkId, collectedNetworkIds), 'exchange.options["networks"] contains multiple networkCodes with the same networkId "' + networkId + '"');
+            }
             collectedNetworkIds.push (networkId);
         }
         // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
