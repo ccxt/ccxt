@@ -2695,6 +2695,12 @@ class RustTranspilerBuilder {
             parse_margin_modification:  ['data', 'market'],
             parse_account:              ['account'],
             parse_my_trade:             ['trade', 'market'],
+            parse_transaction:          ['transaction', 'currency'],
+            parse_borrow_interest:      ['info', 'market'],
+            parse_adl_rank:             ['info', 'market'],
+            parse_income:               ['info', 'market'],
+            parse_greeks:               ['greeks', 'market'],
+            parse_margin_mode:          ['margin_mode', 'market'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };
@@ -3013,6 +3019,27 @@ impl ${coreName} {
             self.exchange.options = crate::Value::Map(merged);
         } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
             self.exchange.options = __described_options;
+        }
+        // Derive options.networksById by inverting options.networks
+        // (CCXT's createNetworksByIdObject) — needed by networkIdToCode.
+        // The transpiled method mutates a clone, so do it here against
+        // the real options map.
+        if let crate::Value::Map(mut opts) = self.exchange.options.clone() {
+            let mut by_id: std::collections::HashMap<String, crate::Value> =
+                match opts.get("networksById") {
+                    Some(crate::Value::Map(m)) => m.clone(),
+                    _ => std::collections::HashMap::new(),
+                };
+            if let Some(crate::Value::Map(networks)) = opts.get("networks") {
+                for (code, id) in networks {
+                    if let crate::Value::Str(id_s) = id {
+                        by_id.entry(id_s.clone())
+                             .or_insert_with(|| crate::Value::Str(code.clone()));
+                    }
+                }
+            }
+            opts.insert("networksById".to_string(), crate::Value::Map(by_id));
+            self.exchange.options = crate::Value::Map(opts);
         }
         self.exchange.hostname = crate::get_value(&described, &crate::Value::Str("hostname".to_string()));
         self.exchange.version  = crate::get_value(&described, &crate::Value::Str("version".to_string()));

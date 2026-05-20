@@ -102,6 +102,12 @@ pub trait DerivedExchange: Send + Sync {
     fn parse_margin_modification(&self, _data: Value, _market: Value) -> Value { Value::Null }
     fn parse_account(&self, _account: Value) -> Value { Value::Null }
     fn parse_my_trade(&self, _trade: Value, _market: Value) -> Value { Value::Null }
+    fn parse_transaction(&self, _transaction: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_borrow_interest(&self, _info: Value, _market: Value) -> Value { Value::Null }
+    fn parse_adl_rank(&self, _info: Value, _market: Value) -> Value { Value::Null }
+    fn parse_income(&self, _info: Value, _market: Value) -> Value { Value::Null }
+    fn parse_greeks(&self, _greeks: Value, _market: Value) -> Value { Value::Null }
+    fn parse_margin_mode(&self, _margin_mode: Value, _market: Value) -> Value { Value::Null }
     // ── signers / error handlers ─────────────────────────────────────────
     fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
     fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
@@ -439,7 +445,10 @@ impl Exchange {
             _ => return,
         };
         let mut by_symbol = HashMap::new();
-        let mut by_id     = HashMap::new();
+        // `markets_by_id` maps an exchange market id → the *list* of
+        // markets sharing that id (e.g. binance spot + swap both have
+        // id `BTCUSDT`); `safeMarket` disambiguates by market type.
+        let mut by_id: HashMap<String, Vec<Value>> = HashMap::new();
         let mut symbols   = Vec::new();
         for m in &arr {
             if let Some(s) = crate::value::safe_string(m, "symbol", None) {
@@ -447,11 +456,13 @@ impl Exchange {
                 symbols.push(Value::Str(s));
             }
             if let Some(i) = crate::value::safe_string(m, "id", None) {
-                by_id.insert(i, m.clone());
+                by_id.entry(i).or_default().push(m.clone());
             }
         }
         self.markets       = if by_symbol.is_empty() { markets } else { Value::Map(by_symbol) };
-        self.markets_by_id = Value::Map(by_id);
+        self.markets_by_id = Value::Map(
+            by_id.into_iter().map(|(k, v)| (k, Value::Array(v))).collect()
+        );
         self.symbols       = Value::Array(symbols);
     }
 
@@ -722,10 +733,29 @@ impl Exchange {
 
     pub fn parse8601(&self, s: Value) -> Value {
         let str_val = match s { Value::Str(s) => s, _ => return Value::Null };
-        chrono::DateTime::parse_from_rfc3339(&str_val)
-            .ok()
-            .map(|t| Value::Int(t.timestamp_millis()))
-            .unwrap_or(Value::Null)
+        if str_val.is_empty() {
+            return Value::Null;
+        }
+        // rfc3339 (`T…Z` / offset forms).
+        if let Ok(t) = chrono::DateTime::parse_from_rfc3339(&str_val) {
+            return Value::Int(t.timestamp_millis());
+        }
+        // Lenient fallbacks — naive forms are interpreted as UTC.
+        for fmt in [
+            "%Y-%m-%d %H:%M:%S%.f", "%Y-%m-%d %H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S%.f", "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M",
+        ] {
+            if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(&str_val, fmt) {
+                return Value::Int(ndt.and_utc().timestamp_millis());
+            }
+        }
+        if let Ok(d) = chrono::NaiveDate::parse_from_str(&str_val, "%Y-%m-%d") {
+            if let Some(ndt) = d.and_hms_opt(0, 0, 0) {
+                return Value::Int(ndt.and_utc().timestamp_millis());
+            }
+        }
+        Value::Null
     }
 
     // safe_string/safe_number/safe_integer/safe_bool live on the transpiled
