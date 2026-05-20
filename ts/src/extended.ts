@@ -2602,6 +2602,12 @@ export default class extended extends Exchange {
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
         }
+        const settlement = this.createOrderSettlementData (isBuy, amountString, priceString, settlementParams);
+        request['settlement'] = {
+            'signature': { 'r': settlement['r'], 's': settlement['s'] },
+            'starkKey': starkKey,
+            'collateralPosition': collateralPosition,
+        };
         let triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
@@ -2612,54 +2618,53 @@ export default class extended extends Exchange {
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (hasStopLoss || hasTakeProfit) {
-            if (!reduceOnly) {
-                throw new InvalidOrder (this.id + ' createOrder() required TPSL order must be reduce-only');
-            }
-            if (postOnly) {
-                throw new InvalidOrder (this.id + ' createOrder() required TPSL order must not be post-only');
-            }
-            request['type'] = 'TPSL';
+            request['tpSlType'] = 'ORDER';
             if (hasStopLoss) {
                 const stopLossTrigger = this.safeString (stopLoss, 'triggerPrice');
+                const stopLossTriggerPriceType = this.safeString (stopLoss, 'triggerPriceType');
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
+                const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString, stopLossExecutionPrice, settlementParams);
                 request['stopLoss'] = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
+                    'triggerPriceType': stopLossTriggerPriceType,
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
                     'priceType': stopLossType,
                     'settlement': {
+                        'signature': { 'r': stopLossSettlement['r'], 's': stopLossSettlement['s'] },
                         'starkKey': starkKey,
+                        'collateralPosition': collateralPosition,
                     },
                 };
             }
             if (hasTakeProfit) {
                 const takeProfitTrigger = this.safeString (takeProfit, 'triggerPrice');
+                const takeProfitTriggerPriceType = this.safeString (takeProfit, 'triggerPriceType');
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
-                request['stopLoss'] = {
+                const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString, takeProfitExecutionPrice, settlementParams);
+                request['takeProfit'] = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
+                    'triggerPriceType': takeProfitTriggerPriceType,
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
                     'priceType': takeProfitType,
                     'settlement': {
+                        'signature': { 'r': takeProfitSettlement['r'], 's': takeProfitSettlement['s'] },
                         'starkKey': starkKey,
+                        'collateralPosition': collateralPosition,
                     },
                 };
             }
         } else {
-            const settlement = this.createOrderSettlementData (isBuy, amountString, priceString, settlementParams);
-            request['settlement'] = {
-                'signature': { 'r': settlement['r'], 's': settlement['s'] },
-                'starkKey': starkKey,
-                'collateralPosition': collateralPosition,
-            };
             if (triggerPriceStr !== undefined) {
                 const triggerDirection = this.safeStringUpper (params, 'triggerDirection');
+                if (triggerDirection === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
+                }
                 const trigger = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };
-                if (triggerDirection !== undefined) {
-                    trigger['direction'] = triggerDirection;
-                }
+                trigger['direction'] = triggerDirection;
                 request['type'] = 'CONDITIONAL';
                 request['trigger'] = trigger;
             } else if (isStopLossOrder || isTakeProfitOrder) {
