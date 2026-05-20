@@ -108,6 +108,7 @@ pub trait DerivedExchange: Send + Sync {
     fn parse_income(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_greeks(&self, _greeks: Value, _market: Value) -> Value { Value::Null }
     fn parse_margin_mode(&self, _margin_mode: Value, _market: Value) -> Value { Value::Null }
+    fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
     // ── signers / error handlers ─────────────────────────────────────────
     fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
     fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
