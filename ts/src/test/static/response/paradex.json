@@ -321,6 +321,65 @@
                 ]
             }
         ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders by ids",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "1748360402930201709192260002"
+                    ]
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "id": "1748360402930201709192260002",
+                            "client_id": "batchBuy",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "status": "QUEUED_FOR_CANCELLATION"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "1748360402930201709192260002",
+                            "client_id": "batchBuy",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "status": "QUEUED_FOR_CANCELLATION"
+                        },
+                        "id": "1748360402930201709192260002",
+                        "clientOrderId": "batchBuy",
+                        "status": "canceled",
+                        "symbol": "SOL/USD:USDC",
+                        "fees": [],
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

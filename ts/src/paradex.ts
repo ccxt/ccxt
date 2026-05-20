@@ -41,7 +41,7 @@ export default class paradex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': false,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'cancelOrdersForSymbols': false,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -1701,6 +1701,85 @@ export default class paradex extends Exchange {
 
     /**
      * @method
+     * @name paradex#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
+        const hasOrderIds = (ids !== undefined) && (ids.length > 0);
+        const hasClientOrderIds = (clientOrderIds !== undefined) && (clientOrderIds.length > 0);
+        if (!hasOrderIds && !hasClientOrderIds) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
+        }
+        const request: Dict = {};
+        if (hasOrderIds) {
+            request['order_ids'] = ids;
+        }
+        if (hasClientOrderIds) {
+            request['client_order_ids'] = clientOrderIds;
+        }
+        const response = await this.privateDeleteOrdersBatch (this.extend (request, params));
+        //
+        // {
+        //     "results": [
+        //         {
+        //             "id": "order-id-1",
+        //             "client_id": "client-id-X",
+        //             "account": "account-1",
+        //             "market": "BTC-USD-PERP",
+        //             "status": "QUEUED_FOR_CANCELLATION"
+        //         },
+        //         {
+        //             "id": "order-id-2",
+        //             "client_id": "client-id-Y",
+        //             "account": "account-1",
+        //             "market": "ETH-USD-PERP",
+        //             "status": "ALREADY_CLOSED"
+        //         },
+        //         {
+        //             "client_id": "client-id-2",
+        //             "status": "NOT_FOUND"
+        //         }
+        //     ]
+        // }
+        //
+        const results = this.safeList (response, 'results', []);
+        const orders = [];
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            const marketId = this.safeString (result, 'market');
+            const market = this.safeMarket (marketId, undefined);
+            const status = this.safeString (result, 'status');
+            let orderStatus = undefined;
+            if (status === 'QUEUED_FOR_CANCELLATION') {
+                orderStatus = 'canceled';
+            } else if (status === 'ALREADY_CLOSED') {
+                orderStatus = 'closed';
+            } else if (status === 'NOT_FOUND') {
+                orderStatus = 'rejected';
+            }
+            orders.push (this.safeOrder ({
+                'info': result,
+                'id': this.safeString (result, 'id'),
+                'clientOrderId': this.safeString (result, 'client_id'),
+                'status': orderStatus,
+                'symbol': market['symbol'],
+            }, market));
+        }
+        return orders as Order[];
+    }
+
+    /**
+     * @method
      * @name paradex#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.paradex.trade/api/prod/orders/cancel-all
@@ -2812,7 +2891,7 @@ export default class paradex extends Exchange {
             } else {
                 const token = this.options['authToken'];
                 headers['Authorization'] = 'Bearer ' + token;
-                if (method === 'POST') {
+                if ((method === 'POST') || ((method === 'DELETE') && (path === 'orders/batch'))) {
                     headers['Content-Type'] = 'application/json';
                     body = this.json (query);
                 } else {

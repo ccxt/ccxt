@@ -335,6 +335,21 @@
                 ]
             }
         ],
+        "cancelOrders": [
+            {
+                "disabledGO": true,
+                "description": "cancel orders by ids",
+                "method": "cancelOrders",
+                "url": "https://api.prod.paradex.trade/v1/orders/batch",
+                "input": [
+                    [
+                        "1748360402930201709192260002",
+                        "1748360402930201709192260003"
+                    ]
+                ],
+                "output": "{\"order_ids\":[\"1748360402930201709192260002\",\"1748360402930201709192260003\"]}"
+            }
+        ],
         "cancelAllOrders": [
             {
                 "disabledGO": true,
