@@ -162,6 +162,7 @@ class testMainClass {
     async importFiles (exchange: Exchange) {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
+        properties.push ('afterConstructor');
         if (isSync ()) {
             this.testFiles = getTestFilesSync (properties, this.wsTests);
         } else {
@@ -470,6 +471,7 @@ class testMainClass {
         const primarySymbol = symbols[0];
         let tests = {
             'features': [],
+            'afterConstructor': [],
             'fetchCurrencies': [],
             'fetchTicker': [ primarySymbol ],
             'fetchTickers': [ primarySymbol ],
