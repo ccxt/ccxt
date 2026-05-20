@@ -4512,6 +4512,8 @@ export default class kucoin extends Exchange {
      */
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'createOrders', 'uta', uta);
         let isSpot = false;
         let isContract = false;
         for (let i = 0; i < orders.length; i++) {
@@ -4524,7 +4526,9 @@ export default class kucoin extends Exchange {
                 isContract = true;
             }
         }
-        if (isSpot && isContract) {
+        if (uta) {
+            return await this.createUtaOrders (orders, params);
+        } else if (isSpot && isContract) {
             throw new BadRequest (this.id + ' createOrders() requires all orders to be either spot or contract');
         } else if (isSpot) {
             return await this.createSpotOrders (orders, params);
@@ -4673,6 +4677,41 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseOrders (data);
+    }
+
+    /**
+     * @method
+     * @name kucoin#createUtaOrders
+     * @description helper method for creating contract orders in batch
+     * @see https://www.kucoin.com/docs-new/rest/ua/batch-place-order-classic
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createUtaOrders (orders: OrderRequest[], params = {}) {
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let uta = await this.isUTAEnabled ();
+        [ uta, params ] = this.handleOptionAndParams (params, 'createUtaOrders', 'uta', uta);
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderRequest = this.createUtaOrderRequest (symbol, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const request: Dict = {
+            'accountMode': uta ? 'unified' : 'classic',
+            'tradeType': ordersRequests[0]['tradeType'],
+            'orderList': ordersRequests,
+        };
+        const response = await this.utaPrivatePostAccountModeOrderPlaceBatch (this.extend (request, params));
+        const ordersList = this.safeList (response, 'orderList', []);
+        return this.parseOrders (ordersList);
     }
 
     /**
