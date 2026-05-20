@@ -22,8 +22,9 @@ function testOptionsNetwoks (exchange, skippedProperties, method, entry) {
         for (let i = 0; i < networkCodes.length; i++) {
             const networkCode = networkCodes[i];
             const networkId = exchange.options['networks'][networkCode];
-            const whitelistedNetworkCodes = [ 'ERC20', 'ETH', 'TRX', 'TRON', 'TRC20', 'BTC', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC' ];
-            if (!exchange.inArray (networkCode, whitelistedNetworkCodes)) {
+            // only allow these whitelisted unified networkCodes to be repeated
+            const unifiedNetworkCodes = [ 'ERC20', 'ETH', 'TRX', 'TRON', 'TRC20', 'BTC', 'BRC20', 'CRONOS', 'CRC20', 'CRO', 'BEP20', 'BSC', 'HECO', 'HRC20', 'HT' ];
+            if (!exchange.inArray (networkCode, unifiedNetworkCodes)) {
                 assert (!exchange.inArray (networkId, collectedNetworkIds), 'exchange.options["networks"] contains multiple networkCodes with the same networkId "' + networkId + '"');
             }
             collectedNetworkIds.push (networkId);
@@ -45,7 +46,7 @@ function testOptionsNetwoks (exchange, skippedProperties, method, entry) {
             // ensure it exists in networksById
             assert (networkId in exchange.options['networksById'], 'exchange.options["networksById"] does not contain networkId "' + networkId + '"');
             // ensure networkCode matches for networksById
-            assert (exchange.options['networksById'][networkId] === networkCode, 'exchange.options["networksById"]["' + networkId + '"] value is not expected "' + networkCode + '"');
+            assert (exchange.options['networksById'][networkId] === networkCode, 'exchange.options["networksById"]["' + networkId + '"] value is not expected "' + networkCode + '", but: "' + exchange.options['networksById'][networkId] + '"');
             // check networkIdToCode conversion back
             const networkCodeConverted = exchange.networkIdToCode (networkId);
             assert (networkCode === networkCodeConverted, 'exchange.networkIdToCode ("' + networkId + '")="' + networkCodeConverted + '" does not match key "' + networkCode + '" of exchange.options["networks"]');
