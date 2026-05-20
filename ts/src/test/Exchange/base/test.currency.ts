@@ -38,6 +38,11 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
     // check network entries
     if (!('networks' in skippedProperties)) {
         const networks = entry['networks'];
+        const networkKeys = Object.keys (networks);
+        const networkKeysLength = networkKeys.length;
+        if (networkKeysLength === 0 && ('skipCurrenciesWithoutNetworks' in skippedProperties)) {
+            return;
+        }
         // check each network entry (they have somewhat similar structure as root currency structure)
         const networksKeys = Object.keys (networks);
         for (let i = 0; i < networksKeys.length; i++) {
@@ -50,7 +55,19 @@ function testCurrency (exchange: Exchange, skippedProperties: object, method: st
 
 function helperTestSharedCurrencyFormat (exchange, skippedProperties, method, entry, format) {
     const emptyAllowedFor = [ 'name', 'fee', 'active' ]; // 'active' key is dynammically checked in the bottom
-    testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    //
+    try {
+        testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+    } catch (e) {
+        const message = exchange.exceptionMessage (e);
+        // check structure if key is numeric, not string
+        if (message.indexOf ('"id" key') >= 0) {
+            format['id'] = 123;
+            testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        } else {
+            assert (message === '', message);
+        }
+    }
     //
     if (!('active' in skippedProperties)) {
         if (entry['deposit'] === undefined && entry['withdraw'] === undefined) {
