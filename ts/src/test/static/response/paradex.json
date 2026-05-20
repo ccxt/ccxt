@@ -123,6 +123,204 @@
                 }
             }
         ],
+        "createOrders": [
+            {
+                "description": "batch limit orders",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "SOL/USD:USDC",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.1,
+                            "price": 100
+                        },
+                        {
+                            "symbol": "SOL/USD:USDC",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 0.2,
+                            "price": 200,
+                            "params": {
+                                "clientOrderId": "batchSell"
+                            }
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "orders": [
+                        {
+                            "id": "1748360402930201709192260002",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "0.1",
+                            "remaining_size": "0.1",
+                            "price": "100",
+                            "status": "NEW",
+                            "created_at": "1748360402936",
+                            "last_updated_at": "1748360402936",
+                            "timestamp": "1748360402000",
+                            "client_id": "batchBuy",
+                            "seq_no": "1748360402936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360402937",
+                            "published_at": "1748360402938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        },
+                        {
+                            "id": "1748360402930201709192260003",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "SELL",
+                            "type": "LIMIT",
+                            "size": "0.2",
+                            "remaining_size": "0.2",
+                            "price": "200",
+                            "status": "NEW",
+                            "created_at": "1748360403936",
+                            "last_updated_at": "1748360403936",
+                            "timestamp": "1748360403000",
+                            "client_id": "batchSell",
+                            "seq_no": "1748360403936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360403937",
+                            "published_at": "1748360403938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        }
+                    ],
+                    "errors": []
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1748360402930201709192260002",
+                        "clientOrderId": "batchBuy",
+                        "timestamp": 1748360402936,
+                        "datetime": "2025-05-27T15:40:02.936Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1748360402936,
+                        "status": "open",
+                        "symbol": "SOL/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "buy",
+                        "price": 100,
+                        "triggerPrice": 0,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 0.1,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "id": "1748360402930201709192260002",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "BUY",
+                            "type": "LIMIT",
+                            "size": "0.1",
+                            "remaining_size": "0.1",
+                            "price": "100",
+                            "status": "NEW",
+                            "created_at": "1748360402936",
+                            "last_updated_at": "1748360402936",
+                            "timestamp": "1748360402000",
+                            "client_id": "batchBuy",
+                            "seq_no": "1748360402936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360402937",
+                            "published_at": "1748360402938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "stopPrice": 0
+                    },
+                    {
+                        "id": "1748360402930201709192260003",
+                        "clientOrderId": "batchSell",
+                        "timestamp": 1748360403936,
+                        "datetime": "2025-05-27T15:40:03.936Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1748360403936,
+                        "status": "open",
+                        "symbol": "SOL/USD:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": null,
+                        "side": "sell",
+                        "price": 200,
+                        "triggerPrice": 0,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "average": null,
+                        "amount": 0.2,
+                        "filled": 0,
+                        "remaining": 0.2,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "id": "1748360402930201709192260003",
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "market": "SOL-USD-PERP",
+                            "side": "SELL",
+                            "type": "LIMIT",
+                            "size": "0.2",
+                            "remaining_size": "0.2",
+                            "price": "200",
+                            "status": "NEW",
+                            "created_at": "1748360403936",
+                            "last_updated_at": "1748360403936",
+                            "timestamp": "1748360403000",
+                            "client_id": "batchSell",
+                            "seq_no": "1748360403936413772",
+                            "instruction": "GTC",
+                            "avg_fill_price": "",
+                            "stp": "EXPIRE_TAKER",
+                            "received_at": "1748360403937",
+                            "published_at": "1748360403938",
+                            "flags": [],
+                            "trigger_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "stopPrice": 0
+                    }
+                ]
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

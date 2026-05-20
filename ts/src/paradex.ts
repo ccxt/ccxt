@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, OrderRequest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -49,7 +49,7 @@ export default class paradex extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': false,
+                'createOrders': true,
                 'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
@@ -385,7 +385,9 @@ export default class paradex extends Exchange {
                         'selfTradePrevention': true, // todo
                         'iceberg': false,
                     },
-                    'createOrders': undefined, // todo
+                    'createOrders': {
+                        'max': 10,
+                    },
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100, // todo
@@ -1431,30 +1433,7 @@ export default class paradex extends Exchange {
         return Precise.stringMul (num, '100000000');
     }
 
-    /**
-     * @method
-     * @name paradex#createOrder
-     * @description create a trade order
-     * @see https://docs.paradex.trade/api/prod/orders/new
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.stopPrice] alias for triggerPrice
-     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
-     * @param {bool} [params.postOnly] true or false
-     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-     * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.authenticateRest ();
-        await this.loadMarkets ();
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
@@ -1463,6 +1442,7 @@ export default class paradex extends Exchange {
             'market': market['id'],
             'side': orderSide,
             'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
+            'instruction': 'GTC',
         };
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
@@ -1476,7 +1456,7 @@ export default class paradex extends Exchange {
         if (!isMarket) {
             if (postOnly) {
                 request['instruction'] = 'POST_ONLY';
-            } else if (timeInForce === 'ioc') {
+            } else if (timeInForce === 'IOC') {
                 request['instruction'] = 'IOC';
             }
         }
@@ -1533,12 +1513,18 @@ export default class paradex extends Exchange {
             ];
         }
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        return this.extend (request, params);
+    }
+
+    async signOrderRequest (request: Dict) {
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
+        const orderType = this.safeString (request, 'type');
+        const isMarket = (orderType.indexOf ('MARKET') >= 0);
         const orderReq = {
             'timestamp': now * 1000,
             'market': this.stringToBase16 (request['market']),
-            'side': (orderSide === 'BUY') ? '1' : '2',
+            'side': (request['side'] === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16 (request['type']),
             'size': this.scaleNumber (request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
@@ -1558,7 +1544,37 @@ export default class paradex extends Exchange {
         const signature = this.starknetSign (msg, account['privateKey']);
         request['signature'] = signature;
         request['signature_timestamp'] = orderReq['timestamp'];
-        const response = await this.privatePostOrders (this.extend (request, params));
+        return request;
+    }
+
+    /**
+     * @method
+     * @name paradex#createOrder
+     * @description create a trade order
+     * @see https://docs.paradex.trade/api/prod/orders/new
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] alias for triggerPrice
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {bool} [params.postOnly] true or false
+     * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        request = await this.signOrderRequest (request);
+        const response = await this.privatePostOrders (request);
         //
         // {
         //     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -1589,6 +1605,67 @@ export default class paradex extends Exchange {
         //
         const order = this.parseOrder (response, market);
         return order;
+    }
+
+    /**
+     * @method
+     * @name paradex#createOrders
+     * @description create a list of trade orders
+     * @see https://docs.paradex.trade/api/prod/orders/batch
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const extendedParams = this.extend (params, orderParams);
+            let orderRequest = this.createOrderRequest (symbol, type, side, amount, price, extendedParams);
+            orderRequest = await this.signOrderRequest (orderRequest);
+            ordersRequests.push (orderRequest);
+        }
+        const response = await this.privatePostOrdersBatch (ordersRequests);
+        //
+        // {
+        //     "errors": [
+        //         {
+        //             "error": "VALIDATION_ERROR",
+        //             "message": "Invalid order"
+        //         }
+        //     ],
+        //     "orders": [
+        //         {
+        //             "id": "123456",
+        //             "market": "BTC-USD-PERP",
+        //             "side": "BUY",
+        //             "type": "LIMIT",
+        //             "price": "26000",
+        //             "size": "0.05",
+        //             "status": "NEW"
+        //         }
+        //     ]
+        // }
+        //
+        const responseOrders = this.safeList (response, 'orders', []);
+        const parsedOrders = this.parseOrders (responseOrders);
+        const errors = this.safeList (response, 'errors', []);
+        for (let i = 0; i < errors.length; i++) {
+            const error = errors[i];
+            parsedOrders.push (this.safeOrder ({
+                'info': error,
+                'status': 'rejected',
+            }));
+        }
+        return parsedOrders as Order[];
     }
 
     /**
