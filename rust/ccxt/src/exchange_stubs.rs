@@ -1361,6 +1361,11 @@ impl Exchange {
     // ── string / number formatting ──────────────────────────────────────────
 
     pub fn number_to_string(&self, n: Value) -> Value {
+        // TS `numberToString(undefined)` returns undefined — don't
+        // stringify a missing value into the literal "null".
+        if matches!(n, Value::Null) {
+            return Value::Null;
+        }
         Value::Str(stringify_param(&n))
     }
 
