@@ -410,9 +410,10 @@ class RustTranspilerBuilder {
                 }],
 
             // `get_value(&self, &key)` when not followed by `(` — dynamic
-            // property access on the exchange (TS `this[key]`). Stub to
-            // Value::Null since we can't reflect on fields.
-            [/get_value\(&self,\s*&[a-zA-Z_][a-zA-Z0-9_]*\)(?!\()/g, 'Value::Null'],
+            // property access on the exchange (TS `this[key]`). Route
+            // through `self.prop(&key)`, which resolves the field by
+            // name (credentials, options, markets, …).
+            [/get_value\(&self,\s*&([a-zA-Z_][a-zA-Z0-9_]*)\)(?!\()/g, 'self.prop(&$1)'],
 
             // (Dynamic method call `get_value(&self, &name)(args)` is
             // handled by a paren-balanced walker after this regex pass —
@@ -3048,6 +3049,8 @@ impl ${coreName} {
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
         self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
+        self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
+        self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
