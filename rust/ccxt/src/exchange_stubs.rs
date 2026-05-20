@@ -284,12 +284,12 @@ impl Exchange {
         }
     }
 
-    /// `isEmpty(value)` — true when an array/dict/string is empty,
-    /// or the value is null/undefined.
+    /// `isEmpty(value)` — true when an array/dict is empty, or the
+    /// value is null/undefined. Scalars (strings, numbers, bools) are
+    /// never considered empty — mirrors `functions/generic.ts`.
     pub fn is_empty(&self, v: Value) -> Value {
         let empty = match &v {
             Value::Null         => true,
-            Value::Str(s)       => s.is_empty(),
             Value::Array(a)     => a.is_empty(),
             Value::Map(m)       => m.is_empty(),
             _ => false,
@@ -468,14 +468,17 @@ impl Exchange {
     /// We disambiguate by name; the transpiler emits `self.clone(x)`.
     pub fn clone_value(&self, v: Value) -> Value { v }
 
-    /// `sum(a, b, ...)` — CCXT helper: returns sum of numeric args, ignoring
-    /// nulls. Variadic in TS; here we accept any trailing args via `&[Value]`.
-    pub fn sum(&self, a: Value, b: Value, optional_args: &[Value]) -> Value {
-        let mut acc = crate::runtime::add(&a, &b);
+    /// `sum(...)` — variadic numeric sum. Pure variadic (0 fixed
+    /// args) so single-arg `sum(x)` (e.g. from test.sum) also works.
+    pub fn sum(&self, optional_args: &[Value]) -> Value {
+        let mut acc: Option<Value> = None;
         for x in optional_args {
-            acc = crate::runtime::add(&acc, x);
+            acc = Some(match acc {
+                None    => x.clone(),
+                Some(a) => crate::runtime::add(&a, x),
+            });
         }
-        acc
+        acc.unwrap_or(Value::Null)
     }
 
     /// `parse_json(text)` — JSON parse.
@@ -496,6 +499,9 @@ impl Exchange {
     pub fn clone_self(&self) -> Exchange { Exchange::new(None) }
 
     /// `clone(v)` — deep-clone a Value. Matches TS `exchange.clone(x)`.
+    /// Note: keep this name even though it shadows the (manual) `clone_self`,
+    /// because the transpiled tests call `exchange.clone(value)`. Empty-arg
+    /// calls `exchange.clone()` get post-processed to `clone_self()`.
     pub fn clone(&self, v: Value) -> Value { v }
 
     /// Dynamic-property lookup for transpiled base tests. The TS code
@@ -543,15 +549,16 @@ impl Exchange {
     }
 
 
-    pub fn base16ToBinary(&self, _hex: Value) -> Value { Value::Array(vec![]) }
-    pub fn base58_to_binary(&self, _s: Value) -> Value { Value::Array(vec![]) }
-    pub fn binary_to_base58(&self, _b: Value) -> Value { Value::Str(String::new()) }
-    pub fn binary_length(&self, b: Value) -> Value {
+    pub fn base16ToBinary(&self, _hex: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
+    pub fn base58_to_binary(&self, _s: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
+    pub fn binary_to_base58(&self, _b: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    pub fn binary_length(&self, b: Value, _optional_args: &[Value]) -> Value {
         match b { Value::Array(a) => Value::Int(a.len() as i64), _ => Value::Int(0) }
     }
-    pub fn is_binary_message(&self, _v: Value) -> Value { Value::Bool(false) }
-    pub fn number_to_be(&self, _n: Value, _byte_count: Value) -> Value { Value::Array(vec![]) }
-    pub fn parse_date(&self, _s: Value) -> Value { Value::Null }
+    pub fn is_binary_message(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Bool(false) }
+    pub fn number_to_be(&self, _n: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
+    pub fn parse_date(&self, _s: Value, _optional_args: &[Value]) -> Value { Value::Null }
+    pub fn is_binary_message_var(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Bool(false) }
     pub fn ymd(&self, ts: Value, optional_args: &[Value]) -> Value { self.yyyymmdd(ts, optional_args) }
     pub fn safe_float_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Array(ks) = keys {
@@ -575,27 +582,26 @@ impl Exchange {
         self.safe_string2(obj, k1, k2, optional_args)
     }
     pub fn binary_concat(&self, _first: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
-    pub fn stringToBase64(&self, _s: Value) -> Value { Value::Str(String::new()) }
-    pub fn base64_to_binary(&self, _s: Value) -> Value { Value::Array(vec![]) }
-    pub fn binary_to_string(&self, _b: Value) -> Value { Value::Str(String::new()) }
-    pub fn string_to_binary(&self, s: Value) -> Value {
+    pub fn stringToBase64(&self, _s: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    pub fn binary_to_string(&self, _b: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         match s {
             Value::Str(s) => Value::Array(s.bytes().map(|b| Value::Int(b as i64)).collect()),
             _ => Value::Array(vec![]),
         }
     }
-    pub fn urlencode_base64(&self, _v: Value) -> Value { Value::Str(String::new()) }
-    pub fn urlencode_nested(&self, _v: Value) -> Value { Value::Str(String::new()) }
+    pub fn urlencode_base64(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    pub fn urlencode_nested(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
     pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> Value {
         match optional_args.get(0) {
             Some(Value::Str(s)) => Value::Bool(s.starts_with('{') || s.starts_with('[')),
             _ => Value::Bool(false),
         }
     }
-    pub fn strip(&self, s: Value) -> Value {
+    pub fn strip(&self, s: Value, _optional_args: &[Value]) -> Value {
         match s { Value::Str(s) => Value::Str(s.trim().to_string()), other => other }
     }
-    pub fn sort(&self, v: Value) -> Value {
+    pub fn sort(&self, v: Value, _optional_args: &[Value]) -> Value {
         if let Value::Array(mut a) = v {
             a.sort_by(|x, y| {
                 let xs = crate::runtime::stringify_param(x);
@@ -606,8 +612,15 @@ impl Exchange {
         } else { v }
     }
     pub fn round_timeframe(&self, _tf: Value, ts: Value, _direction: Value) -> Value { ts }
-    pub fn sleep(&self, _ms: Value) -> Value { Value::Null }
-    pub fn eth_get_address_from_private_key(&self, _pk: Value) -> Value { Value::Str(String::new()) }
+    pub async fn sleep(&self, ms: Value) -> Value {
+        if let Some(n) = match ms { Value::Int(n) => Some(n), Value::Float(f) => Some(f as i64), _ => None } {
+            if n > 0 {
+                tokio::time::sleep(std::time::Duration::from_millis(n as u64)).await;
+            }
+        }
+        Value::Null
+    }
+    pub fn eth_get_address_from_private_key(&self, _pk: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
     pub fn exists_file(&self, _p: Value) -> Value { Value::Bool(false) }
     pub fn read_file(&self, _p: Value) -> Value { Value::Null }
     pub fn write_file(&self, _p: Value, _content: Value) -> Value { Value::Null }
@@ -655,7 +668,7 @@ impl Exchange {
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
-    pub fn int_to_base16(&self, n: Value) -> Value {
+    pub fn int_to_base16(&self, n: Value, _optional_args: &[Value]) -> Value {
         let v = match n {
             Value::Int(n)   => n as u64,
             Value::Float(f) => f as u64,
@@ -668,7 +681,7 @@ impl Exchange {
     /// `packb(action)` — MessagePack pack stub. Hyperliquid signs the
     /// packed bytes of an action. Returning empty bytes here is enough
     /// to make the call compile; live signing won't be correct.
-    pub fn packb(&self, _action: Value) -> Value {
+    pub fn packb(&self, _action: Value, _optional_args: &[Value]) -> Value {
         Value::Array(vec![])
     }
 
@@ -680,9 +693,9 @@ impl Exchange {
     }
 
     /// `uuid22()` — pseudo-random 22-char id. Stub returns a fixed string.
-    pub fn uuid22(&self) -> Value { Value::Str("00000000000000000000".to_string()) }
-    pub fn uuid16(&self) -> Value { Value::Str("0000000000000000".to_string()) }
-    pub fn uuid(&self) -> Value { Value::Str("00000000-0000-0000-0000-000000000000".to_string()) }
+    pub fn uuid22(&self, _optional_args: &[Value]) -> Value { Value::Str("00000000000000000000".to_string()) }
+    pub fn uuid16(&self, _optional_args: &[Value]) -> Value { Value::Str("0000000000000000".to_string()) }
+    pub fn uuid(&self,   _optional_args: &[Value]) -> Value { Value::Str("00000000-0000-0000-0000-000000000000".to_string()) }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
     pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> Value {
@@ -877,8 +890,8 @@ impl Exchange {
         Value::Array(s.chars().map(|c| Value::Str(c.to_string())).collect())
     }
 
-    pub fn string_to_base64(&self, s: Value) -> Value {
-        self.binary_to_base64(s)
+    pub fn string_to_base64(&self, s: Value, _optional_args: &[Value]) -> Value {
+        self.binary_to_base64(s, &[])
     }
 
     /// `extract_params(path)` — pulls `{name}` placeholders from a URL

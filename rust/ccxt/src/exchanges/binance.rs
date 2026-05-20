@@ -5459,7 +5459,7 @@ impl BinanceCore {
             if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
                 if is_greater_than(&since, &Value::Int(0)) {
                     let mut duration: Value = self.parse_timeframe(timeframe.clone());
-                    let mut endTime: Value = self.sum(since.clone(), subtract(&multiply(&multiply(&limit, &duration), &Value::Int(1000)), &Value::Int(1)), &[]);
+                    let mut endTime: Value = self.sum(&[since.clone(), subtract(&multiply(&multiply(&limit, &duration), &Value::Int(1000)), &Value::Int(1))]);
                     let mut now: Value = self.milliseconds();
                     add_element_to_object(&mut request, &Value::Str("endTime".to_string()), crate::runtime::Math::min(&now, &endTime));
                 }
@@ -5858,7 +5858,7 @@ impl BinanceCore {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 // https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6400
                 // https://get_value(&github, &Value::Str("com".to_string()))/binance-exchange/binance-official-api-docs/blob/master/rest-get_value(&api, &Value::Str("md".to_string()))#compressedaggregate-trades-list
-                add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(since.clone(), Value::Int(3600000), &[]));
+                add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), Value::Int(3600000)]));
             }
             let mut until: Value = self.safe_integer(params.clone(), Value::Str("until".to_string()), &[]);
             if !is_equal(&until, &Value::Null) {
@@ -6020,7 +6020,7 @@ impl BinanceCore {
             if !is_equal(&broker, &Value::Null) {
                 let mut brokerId: Value = self.safe_string(broker.clone(), Value::Str("spot".to_string()), &[]);
                 if !is_equal(&brokerId, &Value::Null) {
-                    add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), add(&brokerId, &self.uuid22()));
+                    add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), add(&brokerId, &self.uuid22(&[])));
                 }
             }
         }  else {
@@ -7277,7 +7277,7 @@ impl BinanceCore {
                 idMarketType = ternary(is_true(&(is_true(&get_value(&market, &Value::Str("swap".to_string()))) && is_true(&get_value(&market, &Value::Str("linear".to_string()))))), Value::Str("swap".to_string()), Value::Str("inverse".to_string()));
             }
             let mut brokerId: Value = self.safe_string(broker.clone(), idMarketType.clone(), &[defaultId.clone()]);
-            add_element_to_object(&mut request, &clientOrderIdRequest, add(&brokerId, &self.uuid22()));
+            add_element_to_object(&mut request, &clientOrderIdRequest, add(&brokerId, &self.uuid22(&[])));
         }  else {
             add_element_to_object(&mut request, &clientOrderIdRequest, clientOrderId.clone());
         }
@@ -8430,7 +8430,7 @@ impl BinanceCore {
             let mut oneWeek: Value = multiply(&multiply(&multiply(&multiply(&Value::Int(7), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)), &Value::Int(1000));
             if is_greater_than_or_equal(&(subtract(&currentTimestamp, &startTime)), &oneWeek) {
                 if is_true(&(is_equal(&endTime, &Value::Null))) && is_true(&get_value(&market, &Value::Str("linear".to_string()))) {
-                    endTime = self.sum(startTime.clone(), oneWeek.clone(), &[]);
+                    endTime = self.sum(&[startTime.clone(), oneWeek.clone()]);
                     endTime = crate::runtime::Math::min(&endTime, &currentTimestamp);
                 }
             }
@@ -8518,7 +8518,7 @@ impl BinanceCore {
         });
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(since.clone(), Value::Int(7776000000), &[]));
+            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), Value::Int(7776000000)]));
         }
         let mut accountType: Value = self.safe_string_upper(params.clone(), Value::Str("type".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
@@ -8722,7 +8722,7 @@ impl BinanceCore {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 // max 3 months range https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6495
-                let mut endTime: Value = self.sum(since.clone(), Value::Int(7776000000), &[]);
+                let mut endTime: Value = self.sum(&[since.clone(), Value::Int(7776000000)]);
                 if !is_equal(&until, &Value::Null) {
                     endTime = crate::runtime::Math::min(&endTime, &until);
                 }
@@ -8809,7 +8809,7 @@ impl BinanceCore {
             if !is_equal(&since, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
                 // max 3 months range https://get_value(&github, &Value::Str("com".to_string()))/ccxt/ccxt/issues/6495
-                add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(since.clone(), Value::Int(7776000000), &[]));
+                add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), Value::Int(7776000000)]));
             }
             if !is_equal(&limit, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -12358,7 +12358,7 @@ impl BinanceCore {
     m
 })]);
                     let mut brokerId: Value = self.safe_string(broker.clone(), marketType.clone(), &[defaultId.clone()]);
-                    add_element_to_object(&mut params, &Value::Str("newClientOrderId".to_string()), add(&brokerId, &self.uuid22()));
+                    add_element_to_object(&mut params, &Value::Str("newClientOrderId".to_string()), add(&brokerId, &self.uuid22(&[])));
                 }
             }
             let mut query: Value = Value::Null;
@@ -12381,7 +12381,7 @@ impl BinanceCore {
     m
 })]);
                             let mut brokerId: Value = self.safe_string(broker.clone(), Value::Str("future".to_string()), &[defaultId.clone()]);
-                            newClientOrderId = add(&brokerId, &self.uuid22());
+                            newClientOrderId = add(&brokerId, &self.uuid22(&[]));
                             add_element_to_object(&mut batchOrder, &Value::Str("newClientOrderId".to_string()), newClientOrderId.clone());
                         }
                         append_to_array(&mut checkedBatchOrders, batchOrder.clone());
@@ -12890,7 +12890,7 @@ impl BinanceCore {
         });
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
-            let mut endTime: Value = subtract(&self.sum(since.clone(), multiply(&limit, &Value::Int(86400000)), &[]), &Value::Int(1)); // required when startTime is further than 93 days in the past
+            let mut endTime: Value = subtract(&self.sum(&[since.clone(), multiply(&limit, &Value::Int(86400000))]), &Value::Int(1)); // required when startTime is further than 93 days in the past
             let mut now: Value = self.milliseconds();
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), crate::runtime::Math::min(&endTime, &now)); // cannot have an endTime later than current time
         }
@@ -13410,7 +13410,7 @@ impl BinanceCore {
                 limit = Value::Int(30); // Exchange default
             }
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(since.clone(), multiply(&multiply(&duration, &limit), &Value::Int(1000)), &[]));
+            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), multiply(&multiply(&duration, &limit), &Value::Int(1000))]));
         }
         let mut response: Value = Value::Null;
         if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {

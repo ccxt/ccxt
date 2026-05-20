@@ -63,237 +63,712 @@
 #[path = "test.uuid.rs"] pub mod test_uuid;
 
 pub fn run_all() -> Result<(), String> {
-    if let Err(e) = std::panic::catch_unwind(|| test_afterConstructor::testAfterConstructor()) {
-        return Err(format!("test.afterConstructor: panicked: {e:?}"));
+    // Silence panic backtraces — failures are tallied below.
+    std::panic::set_hook(Box::new(|_| {}));
+    let mut passed = 0;
+    let mut failed: Vec<String> = Vec::new();
+    match std::panic::catch_unwind(|| {
+        test_afterConstructor::testAfterConstructor();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.afterConstructor"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.afterConstructor: {msg}"));
+            println!("  ✗ test.afterConstructor — {msg}");
+        }
     }
-    println!("  ✓ test.afterConstructor");
-    if let Err(e) = std::panic::catch_unwind(|| test_aggregate::testAggregate()) {
-        return Err(format!("test.aggregate: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_aggregate::testAggregate();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.aggregate"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.aggregate: {msg}"));
+            println!("  ✗ test.aggregate — {msg}");
+        }
     }
-    println!("  ✓ test.aggregate");
-    if let Err(e) = std::panic::catch_unwind(|| test_arrayConcat::testArrayConcat()) {
-        return Err(format!("test.arrayConcat: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_arrayConcat::testArrayConcat();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.arrayConcat"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.arrayConcat: {msg}"));
+            println!("  ✗ test.arrayConcat — {msg}");
+        }
     }
-    println!("  ✓ test.arrayConcat");
-    if let Err(e) = std::panic::catch_unwind(|| test_arraysConcat::testArraysConcat()) {
-        return Err(format!("test.arraysConcat: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_arraysConcat::testArraysConcat();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.arraysConcat"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.arraysConcat: {msg}"));
+            println!("  ✗ test.arraysConcat — {msg}");
+        }
     }
-    println!("  ✓ test.arraysConcat");
-    if let Err(e) = std::panic::catch_unwind(|| test_base16ToBinary::testBase16ToBinary()) {
-        return Err(format!("test.base16ToBinary: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_base16ToBinary::testBase16ToBinary();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.base16ToBinary"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.base16ToBinary: {msg}"));
+            println!("  ✗ test.base16ToBinary — {msg}");
+        }
     }
-    println!("  ✓ test.base16ToBinary");
-    if let Err(e) = std::panic::catch_unwind(|| test_base58ToBinary::testBase58ToBinary()) {
-        return Err(format!("test.base58ToBinary: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_base58ToBinary::testBase58ToBinary();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.base58ToBinary"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.base58ToBinary: {msg}"));
+            println!("  ✗ test.base58ToBinary — {msg}");
+        }
     }
-    println!("  ✓ test.base58ToBinary");
-    if let Err(e) = std::panic::catch_unwind(|| test_base64ToBinary::testBase64ToBinary()) {
-        return Err(format!("test.base64ToBinary: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_base64ToBinary::testBase64ToBinary();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.base64ToBinary"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.base64ToBinary: {msg}"));
+            println!("  ✗ test.base64ToBinary — {msg}");
+        }
     }
-    println!("  ✓ test.base64ToBinary");
-    if let Err(e) = std::panic::catch_unwind(|| test_binaryConcat::testBinaryConcat()) {
-        return Err(format!("test.binaryConcat: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_binaryConcat::testBinaryConcat();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.binaryConcat"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.binaryConcat: {msg}"));
+            println!("  ✗ test.binaryConcat — {msg}");
+        }
     }
-    println!("  ✓ test.binaryConcat");
-    if let Err(e) = std::panic::catch_unwind(|| test_binaryToBase16::testBinaryToBase16()) {
-        return Err(format!("test.binaryToBase16: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_binaryToBase16::testBinaryToBase16();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase16"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.binaryToBase16: {msg}"));
+            println!("  ✗ test.binaryToBase16 — {msg}");
+        }
     }
-    println!("  ✓ test.binaryToBase16");
-    if let Err(e) = std::panic::catch_unwind(|| test_binaryToBase58::testBinaryToBase58()) {
-        return Err(format!("test.binaryToBase58: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_binaryToBase58::testBinaryToBase58();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase58"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.binaryToBase58: {msg}"));
+            println!("  ✗ test.binaryToBase58 — {msg}");
+        }
     }
-    println!("  ✓ test.binaryToBase58");
-    if let Err(e) = std::panic::catch_unwind(|| test_binaryToBase64::testBinaryToBase64()) {
-        return Err(format!("test.binaryToBase64: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_binaryToBase64::testBinaryToBase64();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase64"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.binaryToBase64: {msg}"));
+            println!("  ✗ test.binaryToBase64 — {msg}");
+        }
     }
-    println!("  ✓ test.binaryToBase64");
-    if let Err(e) = std::panic::catch_unwind(|| test_capitalize::testCapitalize()) {
-        return Err(format!("test.capitalize: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_capitalize::testCapitalize();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.capitalize"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.capitalize: {msg}"));
+            println!("  ✗ test.capitalize — {msg}");
+        }
     }
-    println!("  ✓ test.capitalize");
-    if let Err(e) = std::panic::catch_unwind(|| test_clone::testClone()) {
-        return Err(format!("test.clone: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_clone::testClone();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.clone"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.clone: {msg}"));
+            println!("  ✗ test.clone — {msg}");
+        }
     }
-    println!("  ✓ test.clone");
-    if let Err(e) = std::panic::catch_unwind(|| test_constants::testConstants()) {
-        return Err(format!("test.constants: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_constants::testConstants();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.constants"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.constants: {msg}"));
+            println!("  ✗ test.constants — {msg}");
+        }
     }
-    println!("  ✓ test.constants");
-    if let Err(e) = std::panic::catch_unwind(|| test_datetime::testDatetime()) {
-        return Err(format!("test.datetime: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_datetime::testDatetime();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.datetime"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.datetime: {msg}"));
+            println!("  ✗ test.datetime — {msg}");
+        }
     }
-    println!("  ✓ test.datetime");
-    if let Err(e) = std::panic::catch_unwind(|| test_decimalToPrecision::testDecimalToPrecision()) {
-        return Err(format!("test.decimalToPrecision: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_decimalToPrecision::testDecimalToPrecision();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.decimalToPrecision"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.decimalToPrecision: {msg}"));
+            println!("  ✗ test.decimalToPrecision — {msg}");
+        }
     }
-    println!("  ✓ test.decimalToPrecision");
-    if let Err(e) = std::panic::catch_unwind(|| test_deepExtend::testDeepExtend()) {
-        return Err(format!("test.deepExtend: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_deepExtend::testDeepExtend();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.deepExtend"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.deepExtend: {msg}"));
+            println!("  ✗ test.deepExtend — {msg}");
+        }
     }
-    println!("  ✓ test.deepExtend");
-    if let Err(e) = std::panic::catch_unwind(|| test_encodeDecode::testEncodeDecode()) {
-        return Err(format!("test.encodeDecode: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_encodeDecode::testEncodeDecode();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.encodeDecode"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.encodeDecode: {msg}"));
+            println!("  ✗ test.encodeDecode — {msg}");
+        }
     }
-    println!("  ✓ test.encodeDecode");
-    if let Err(e) = std::panic::catch_unwind(|| test_ethMethods::testEthMethods()) {
-        return Err(format!("test.ethMethods: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_ethMethods::testEthMethods();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.ethMethods"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.ethMethods: {msg}"));
+            println!("  ✗ test.ethMethods — {msg}");
+        }
     }
-    println!("  ✓ test.ethMethods");
-    if let Err(e) = std::panic::catch_unwind(|| test_extend::testExtend()) {
-        return Err(format!("test.extend: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_extend::testExtend();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.extend"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.extend: {msg}"));
+            println!("  ✗ test.extend — {msg}");
+        }
     }
-    println!("  ✓ test.extend");
-    if let Err(e) = std::panic::catch_unwind(|| test_extractParams::testExtractParams()) {
-        return Err(format!("test.extractParams: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_extractParams::testExtractParams();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.extractParams"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.extractParams: {msg}"));
+            println!("  ✗ test.extractParams — {msg}");
+        }
     }
-    println!("  ✓ test.extractParams");
-    if let Err(e) = std::panic::catch_unwind(|| test_filterBy::testFilterBy()) {
-        return Err(format!("test.filterBy: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_filterBy::testFilterBy();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.filterBy"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.filterBy: {msg}"));
+            println!("  ✗ test.filterBy — {msg}");
+        }
     }
-    println!("  ✓ test.filterBy");
-    if let Err(e) = std::panic::catch_unwind(|| test_groupBy::testGroupBy()) {
-        return Err(format!("test.groupBy: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_groupBy::testGroupBy();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.groupBy"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.groupBy: {msg}"));
+            println!("  ✗ test.groupBy — {msg}");
+        }
     }
-    println!("  ✓ test.groupBy");
-    if let Err(e) = std::panic::catch_unwind(|| test_handleMethods::testHandleMethods()) {
-        return Err(format!("test.handleMethods: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_handleMethods::testHandleMethods();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.handleMethods"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.handleMethods: {msg}"));
+            println!("  ✗ test.handleMethods — {msg}");
+        }
     }
-    println!("  ✓ test.handleMethods");
-    if let Err(e) = std::panic::catch_unwind(|| test_implodeParams::testImplodeParams()) {
-        return Err(format!("test.implodeParams: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_implodeParams::testImplodeParams();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.implodeParams"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.implodeParams: {msg}"));
+            println!("  ✗ test.implodeParams — {msg}");
+        }
     }
-    println!("  ✓ test.implodeParams");
-    if let Err(e) = std::panic::catch_unwind(|| test_inArray::testInArray()) {
-        return Err(format!("test.inArray: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_inArray::testInArray();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.inArray"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.inArray: {msg}"));
+            println!("  ✗ test.inArray — {msg}");
+        }
     }
-    println!("  ✓ test.inArray");
-    if let Err(e) = std::panic::catch_unwind(|| test_indexBy::testIndexBy()) {
-        return Err(format!("test.indexBy: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_indexBy::testIndexBy();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.indexBy"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.indexBy: {msg}"));
+            println!("  ✗ test.indexBy — {msg}");
+        }
     }
-    println!("  ✓ test.indexBy");
-    if let Err(e) = std::panic::catch_unwind(|| test_io::testIo()) {
-        return Err(format!("test.io: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_io::testIo();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.io"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.io: {msg}"));
+            println!("  ✗ test.io — {msg}");
+        }
     }
-    println!("  ✓ test.io");
-    if let Err(e) = std::panic::catch_unwind(|| test_isEmpty::testIsEmpty()) {
-        return Err(format!("test.isEmpty: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_isEmpty::testIsEmpty();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.isEmpty"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.isEmpty: {msg}"));
+            println!("  ✗ test.isEmpty — {msg}");
+        }
     }
-    println!("  ✓ test.isEmpty");
-    if let Err(e) = std::panic::catch_unwind(|| test_isJsonEncodedObject::testIsJsonEncodedObject()) {
-        return Err(format!("test.isJsonEncodedObject: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_isJsonEncodedObject::testIsJsonEncodedObject();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.isJsonEncodedObject"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.isJsonEncodedObject: {msg}"));
+            println!("  ✗ test.isJsonEncodedObject — {msg}");
+        }
     }
-    println!("  ✓ test.isJsonEncodedObject");
-    if let Err(e) = std::panic::catch_unwind(|| test_json::testJson()) {
-        return Err(format!("test.json: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_json::testJson();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.json"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.json: {msg}"));
+            println!("  ✗ test.json — {msg}");
+        }
     }
-    println!("  ✓ test.json");
-    if let Err(e) = std::panic::catch_unwind(|| test_keysort::testKeysort()) {
-        return Err(format!("test.keysort: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_keysort::testKeysort();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.keysort"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.keysort: {msg}"));
+            println!("  ✗ test.keysort — {msg}");
+        }
     }
-    println!("  ✓ test.keysort");
-    if let Err(e) = std::panic::catch_unwind(|| test_numberToBE::testNumberToBE()) {
-        return Err(format!("test.numberToBE: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_numberToBE::testNumberToBE();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.numberToBE"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.numberToBE: {msg}"));
+            println!("  ✗ test.numberToBE — {msg}");
+        }
     }
-    println!("  ✓ test.numberToBE");
-    if let Err(e) = std::panic::catch_unwind(|| test_numberToString::testNumberToString()) {
-        return Err(format!("test.numberToString: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_numberToString::testNumberToString();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.numberToString"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.numberToString: {msg}"));
+            println!("  ✗ test.numberToString — {msg}");
+        }
     }
-    println!("  ✓ test.numberToString");
-    if let Err(e) = std::panic::catch_unwind(|| test_omit::testOmit()) {
-        return Err(format!("test.omit: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_omit::testOmit();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.omit"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.omit: {msg}"));
+            println!("  ✗ test.omit — {msg}");
+        }
     }
-    println!("  ✓ test.omit");
-    if let Err(e) = std::panic::catch_unwind(|| test_parsePrecision::testParsePrecision()) {
-        return Err(format!("test.parsePrecision: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_parsePrecision::testParsePrecision();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.parsePrecision"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.parsePrecision: {msg}"));
+            println!("  ✗ test.parsePrecision — {msg}");
+        }
     }
-    println!("  ✓ test.parsePrecision");
-    if let Err(e) = std::panic::catch_unwind(|| test_precise::testPrecise()) {
-        return Err(format!("test.precise: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_precise::testPrecise();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.precise"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.precise: {msg}"));
+            println!("  ✗ test.precise — {msg}");
+        }
     }
-    println!("  ✓ test.precise");
-    if let Err(e) = std::panic::catch_unwind(|| test_precisionFromString::testPrecisionFromString()) {
-        return Err(format!("test.precisionFromString: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_precisionFromString::testPrecisionFromString();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.precisionFromString"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.precisionFromString: {msg}"));
+            println!("  ✗ test.precisionFromString — {msg}");
+        }
     }
-    println!("  ✓ test.precisionFromString");
-    if let Err(e) = std::panic::catch_unwind(|| test_rawencode::testRawencode()) {
-        return Err(format!("test.rawencode: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_rawencode::testRawencode();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.rawencode"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.rawencode: {msg}"));
+            println!("  ✗ test.rawencode — {msg}");
+        }
     }
-    println!("  ✓ test.rawencode");
-    if let Err(e) = std::panic::catch_unwind(|| test_removeRepeatedElementsFromArray::testRemoveRepeatedElementsFromArray()) {
-        return Err(format!("test.removeRepeatedElementsFromArray: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_removeRepeatedElementsFromArray::testRemoveRepeatedElementsFromArray();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.removeRepeatedElementsFromArray"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.removeRepeatedElementsFromArray: {msg}"));
+            println!("  ✗ test.removeRepeatedElementsFromArray — {msg}");
+        }
     }
-    println!("  ✓ test.removeRepeatedElementsFromArray");
-    if let Err(e) = std::panic::catch_unwind(|| test_safeMethods::testSafeMethods()) {
-        return Err(format!("test.safeMethods: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_safeMethods::testSafeMethods();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.safeMethods"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.safeMethods: {msg}"));
+            println!("  ✗ test.safeMethods — {msg}");
+        }
     }
-    println!("  ✓ test.safeMethods");
-    if let Err(e) = std::panic::catch_unwind(|| test_safeTicker::testSafeTicker()) {
-        return Err(format!("test.safeTicker: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_safeTicker::testSafeTicker();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.safeTicker"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.safeTicker: {msg}"));
+            println!("  ✗ test.safeTicker — {msg}");
+        }
     }
-    println!("  ✓ test.safeTicker");
-    if let Err(e) = std::panic::catch_unwind(|| test_setMarketsFromExchange::testSetMarketsFromExchange()) {
-        return Err(format!("test.setMarketsFromExchange: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        let _ = tokio::runtime::Runtime::new().unwrap().block_on(test_setMarketsFromExchange::testSetMarketsFromExchange());
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.setMarketsFromExchange"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.setMarketsFromExchange: {msg}"));
+            println!("  ✗ test.setMarketsFromExchange — {msg}");
+        }
     }
-    println!("  ✓ test.setMarketsFromExchange");
-    if let Err(e) = std::panic::catch_unwind(|| test_sleep::testSleep()) {
-        return Err(format!("test.sleep: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        let _ = tokio::runtime::Runtime::new().unwrap().block_on(test_sleep::testSleep());
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.sleep"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.sleep: {msg}"));
+            println!("  ✗ test.sleep — {msg}");
+        }
     }
-    println!("  ✓ test.sleep");
-    if let Err(e) = std::panic::catch_unwind(|| test_sort::testSort()) {
-        return Err(format!("test.sort: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_sort::testSort();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.sort"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.sort: {msg}"));
+            println!("  ✗ test.sort — {msg}");
+        }
     }
-    println!("  ✓ test.sort");
-    if let Err(e) = std::panic::catch_unwind(|| test_sortBy::testSortBy()) {
-        return Err(format!("test.sortBy: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_sortBy::testSortBy();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.sortBy"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.sortBy: {msg}"));
+            println!("  ✗ test.sortBy — {msg}");
+        }
     }
-    println!("  ✓ test.sortBy");
-    if let Err(e) = std::panic::catch_unwind(|| test_stringToBase16::testStringToBase16()) {
-        return Err(format!("test.stringToBase16: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_stringToBase16::testStringToBase16();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.stringToBase16"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.stringToBase16: {msg}"));
+            println!("  ✗ test.stringToBase16 — {msg}");
+        }
     }
-    println!("  ✓ test.stringToBase16");
-    if let Err(e) = std::panic::catch_unwind(|| test_stringToBase64::testStringToBase64()) {
-        return Err(format!("test.stringToBase64: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_stringToBase64::testStringToBase64();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.stringToBase64"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.stringToBase64: {msg}"));
+            println!("  ✗ test.stringToBase64 — {msg}");
+        }
     }
-    println!("  ✓ test.stringToBase64");
-    if let Err(e) = std::panic::catch_unwind(|| test_strip::testStrip()) {
-        return Err(format!("test.strip: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_strip::testStrip();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.strip"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.strip: {msg}"));
+            println!("  ✗ test.strip — {msg}");
+        }
     }
-    println!("  ✓ test.strip");
-    if let Err(e) = std::panic::catch_unwind(|| test_sum::testSum()) {
-        return Err(format!("test.sum: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_sum::testSum();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.sum"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.sum: {msg}"));
+            println!("  ✗ test.sum — {msg}");
+        }
     }
-    println!("  ✓ test.sum");
-    if let Err(e) = std::panic::catch_unwind(|| test_timeframes::testTimeframes()) {
-        return Err(format!("test.timeframes: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_timeframes::testTimeframes();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.timeframes"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.timeframes: {msg}"));
+            println!("  ✗ test.timeframes — {msg}");
+        }
     }
-    println!("  ✓ test.timeframes");
-    if let Err(e) = std::panic::catch_unwind(|| test_toArray::testToArray()) {
-        return Err(format!("test.toArray: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_toArray::testToArray();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.toArray"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.toArray: {msg}"));
+            println!("  ✗ test.toArray — {msg}");
+        }
     }
-    println!("  ✓ test.toArray");
-    if let Err(e) = std::panic::catch_unwind(|| test_unique::testUnique()) {
-        return Err(format!("test.unique: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_unique::testUnique();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.unique"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.unique: {msg}"));
+            println!("  ✗ test.unique — {msg}");
+        }
     }
-    println!("  ✓ test.unique");
-    if let Err(e) = std::panic::catch_unwind(|| test_urlencode::testUrlencode()) {
-        return Err(format!("test.urlencode: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_urlencode::testUrlencode();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.urlencode"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.urlencode: {msg}"));
+            println!("  ✗ test.urlencode — {msg}");
+        }
     }
-    println!("  ✓ test.urlencode");
-    if let Err(e) = std::panic::catch_unwind(|| test_urlencodeBase64::testUrlencodeBase64()) {
-        return Err(format!("test.urlencodeBase64: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_urlencodeBase64::testUrlencodeBase64();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeBase64"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.urlencodeBase64: {msg}"));
+            println!("  ✗ test.urlencodeBase64 — {msg}");
+        }
     }
-    println!("  ✓ test.urlencodeBase64");
-    if let Err(e) = std::panic::catch_unwind(|| test_urlencodeNested::testUrlencodeNested()) {
-        return Err(format!("test.urlencodeNested: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_urlencodeNested::testUrlencodeNested();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeNested"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.urlencodeNested: {msg}"));
+            println!("  ✗ test.urlencodeNested — {msg}");
+        }
     }
-    println!("  ✓ test.urlencodeNested");
-    if let Err(e) = std::panic::catch_unwind(|| test_urlencodeWithArrayRepeat::testUrlencodeWithArrayRepeat()) {
-        return Err(format!("test.urlencodeWithArrayRepeat: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_urlencodeWithArrayRepeat::testUrlencodeWithArrayRepeat();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeWithArrayRepeat"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.urlencodeWithArrayRepeat: {msg}"));
+            println!("  ✗ test.urlencodeWithArrayRepeat — {msg}");
+        }
     }
-    println!("  ✓ test.urlencodeWithArrayRepeat");
-    if let Err(e) = std::panic::catch_unwind(|| test_uuid::testUuid()) {
-        return Err(format!("test.uuid: panicked: {e:?}"));
+    match std::panic::catch_unwind(|| {
+        test_uuid::testUuid();
+    }) {
+        Ok(_)  => { passed += 1; println!("  ✓ test.uuid"); }
+        Err(e) => {
+            let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| e.downcast_ref::<&str>().copied())
+                .unwrap_or("<non-string panic>");
+            failed.push(format!("test.uuid: {msg}"));
+            println!("  ✗ test.uuid — {msg}");
+        }
     }
-    println!("  ✓ test.uuid");
-    Ok(())
+    let _ = std::panic::take_hook();
+    let total = passed + failed.len();
+    println!("Transpiled base tests: {}/{} passed", passed, total);
+    if failed.is_empty() {
+        Ok(())
+    } else {
+        Err(format!("{} transpiled base test(s) failed:\n  {}", failed.len(), failed.join("\n  ")))
+    }
 }

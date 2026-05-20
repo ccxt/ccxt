@@ -1594,7 +1594,7 @@ impl TestMainClass {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
-            sum = exchange.sum(sum.clone(), resultsLength.clone(), &[]);
+            sum = exchange.sum(&[sum.clone(), resultsLength.clone()]);
             i = add(&i, &Value::Int(1));
         }
         }
@@ -1667,7 +1667,7 @@ impl TestMainClass {
                 continue;
             }
             let mut numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
-            sum = exchange.sum(sum.clone(), numberOfTests.clone(), &[]);
+            sum = exchange.sum(&[sum.clone(), numberOfTests.clone()]);
             if is_equal(&type_var, &Value::Str("request".to_string())) {
                 append_to_array(&mut promises, self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]));
             }  else {

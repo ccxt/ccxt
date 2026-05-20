@@ -29,6 +29,28 @@ pub fn equals(a: Value, b: Value) -> bool {
 /// the snake-cased version of its TS counterpart so the post-
 /// processor can rewrite `testSharedMethods.assertDeepEqual(...)` to
 /// `crate::tests_support::shared::assert_deep_equal(...)`.
+// Stub types for the WS Cache classes referenced by some base tests.
+// Their `new` constructors return `Value` (a stand-in Map) so the
+// transpiled tests — which treat the result as a Value — compile
+// without further reshaping. Real implementations live in the
+// not-yet-ported `rust/ccxt/src/pro/{Cache,Client,...}.rs`.
+pub struct ArrayCache;
+impl ArrayCache {
+    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+}
+pub struct ArrayCacheByTimestamp;
+impl ArrayCacheByTimestamp {
+    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+}
+pub struct ArrayCacheBySymbolById;
+impl ArrayCacheBySymbolById {
+    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+}
+pub struct ArrayCacheBySymbolBySide;
+impl ArrayCacheBySymbolBySide {
+    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+}
+
 pub mod shared {
     use ccxt::Value;
 

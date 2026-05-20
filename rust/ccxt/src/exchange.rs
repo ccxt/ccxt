@@ -651,22 +651,22 @@ impl Exchange {
         }
     }
 
-    pub fn binary_to_base64(&self, data: Value) -> Value {
+    pub fn binary_to_base64(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
         Value::Str(B64.encode(&bytes))
     }
-    pub fn base64_to_binary(&self, s: Value) -> Value {
+    pub fn base64_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
         match B64.decode(&str_val) {
             Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
             Err(_) => Value::Null,
         }
     }
-    pub fn binary_to_base16(&self, data: Value) -> Value {
+    pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
         Value::Str(hex::encode(&bytes))
     }
-    pub fn base16_to_binary(&self, s: Value) -> Value {
+    pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
         match hex::decode(&str_val) {
             Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),

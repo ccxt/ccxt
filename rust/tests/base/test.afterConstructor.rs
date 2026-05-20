@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 
 fn helperTestInitThrottler() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -22,7 +23,7 @@ fn helperTestInitThrottler() {
     assert!(ccxt::runtime::is_true(&(is_equal(&get_value(&tokenBucket, &Value::Str("refillRate".to_string())), &divide(&Value::Int(1), &rateLimit)))));
     // fix decimal/integer issues across langs
     assert!(ccxt::runtime::is_true(&(exchange.in_array(get_value(&tokenBucket, &Value::Str("capacity".to_string())), Value::List(vec![Value::Int(1), Value::Int(1)])))));
-    let mut cost: Value = exchange.parse_to_numeric(exchange.safeString2(tokenBucket.clone(), Value::Str("cost".to_string()), Value::Str("defaultCost".to_string()))); // python sync, todo fix
+    let mut cost: Value = exchange.parse_to_numeric(exchange.safeString2(tokenBucket.clone(), Value::Str("cost".to_string()), Value::Str("defaultCost".to_string()), &[])); // python sync, todo fix
     assert!(ccxt::runtime::is_true(&(exchange.in_array(cost.clone(), Value::List(vec![Value::Int(1), Value::Int(1)])))));
     assert!(ccxt::runtime::is_true(&(!is_true(&(Value::Bool(in_op(&tokenBucket, &Value::Str("maxCapacity".to_string()))))) || is_true(&exchange.in_array(get_value(&tokenBucket, &Value::Str("maxCapacity".to_string())), Value::List(vec![Value::Int(1000), Value::Int(1000)]))))));
 }
@@ -69,7 +70,7 @@ fn helperTestInitSandbox() {
     //
     // CASE A: when sandbox is not enabled
     //
-    let mut exchange3 = crate::tests_support::make_exchange(opts);
+    let mut exchange3 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(false));
     exchange3.set_sandbox_mode(Value::Bool(true));
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(true));
@@ -77,7 +78,7 @@ fn helperTestInitSandbox() {
     // CASE B: when sandbox is enabled
     //
     add_element_to_object(get_value_mut(&mut opts, &Value::Str("options".to_string())), &Value::Str("sandbox".to_string()), Value::Bool(true));
-    let mut exchange4 = crate::tests_support::make_exchange(opts);
+    let mut exchange4 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(true));
     exchange4.set_sandbox_mode(Value::Bool(false));
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(false));
@@ -158,7 +159,7 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
         let mut m = std::collections::HashMap::new();
         m
-    }), Value::Str("options".to_string()), get_value(&exchange.prop(&&Value::Str("options".to_string())), &Value::Str("defaultNetworkCodeReplacements".to_string())), defaultNetworkCodeReplacements);
+    }), Value::Str("options".to_string()), get_value(&exchange.prop(&&Value::Str("options".to_string())), &Value::Str("defaultNetworkCodeReplacements".to_string())), defaultNetworkCodeReplacements.clone());
     //
     // credentials
     //
@@ -188,7 +189,7 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
         let mut m = std::collections::HashMap::new();
         m
-    }), Value::Str("requiredCredentials".to_string()), crate::tests_support::shared::exchange_prop(&exchange, Value::Str("requiredCredentials".to_string())), requiredCredentials);
+    }), Value::Str("requiredCredentials".to_string()), crate::tests_support::shared::exchange_prop(&exchange, Value::Str("requiredCredentials".to_string())), requiredCredentials.clone());
     //
     // proxies
     //
@@ -281,7 +282,7 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
         let mut m = std::collections::HashMap::new();
         m
-    }), Value::Str("limits".to_string()), exchange.prop(&&Value::Str("limits".to_string())), limits);
+    }), Value::Str("limits".to_string()), exchange.prop(&&Value::Str("limits".to_string())), limits.clone());
     assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("rollingWindowSize".to_string())), &Value::Int(60000)))));
     assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("countries".to_string())), &Value::Null))));
     let mut urls: Value = Value::Map({
@@ -299,7 +300,7 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
         let mut m = std::collections::HashMap::new();
         m
-    }), Value::Str("urls".to_string()), exchange.prop(&&Value::Str("urls".to_string())), urls);
+    }), Value::Str("urls".to_string()), exchange.prop(&&Value::Str("urls".to_string())), urls.clone());
     assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("precision".to_string())), &Value::Null))));
     assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("hostname".to_string())), &Value::Null))));
     assert!(ccxt::runtime::is_true(&(is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("precisionMode".to_string())), &Value::Null) || is_equal(&crate::tests_support::shared::exchange_prop(&exchange, Value::Str("precisionMode".to_string())), &Value::Int(4)))));
@@ -345,7 +346,7 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
         let mut m = std::collections::HashMap::new();
         m
-    }), Value::Str("fees".to_string()), exchange.prop(&&Value::Str("fees".to_string())), fees);
+    }), Value::Str("fees".to_string()), exchange.prop(&&Value::Str("fees".to_string())), fees.clone());
     let mut status: Value = Value::Map({
         let mut m = std::collections::HashMap::new();
             m.insert("status".to_string(), Value::Str("ok".to_string()));
@@ -358,7 +359,7 @@ fn helperTestProperties() {
     crate::tests_support::shared::assert_deep_equal(&exchange, Value::Map({
         let mut m = std::collections::HashMap::new();
         m
-    }), Value::Str("status".to_string()), exchange.prop(&&Value::Str("status".to_string())), status);
+    }), Value::Str("status".to_string()), exchange.prop(&&Value::Str("status".to_string())), status.clone());
     assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("timeout".to_string())), &Value::Int(10000)))));
     assert!(ccxt::runtime::is_true(&(is_equal(&exchange.prop(&&Value::Str("verbose".to_string())), &Value::Bool(false)))));
     // assert!(ccxt::runtime::is_true(&(get_value(&testSharedMethods, &Value::Str("exchangeProp".to_string())) (exchange, 'newUpdates') === true))); // todo WS

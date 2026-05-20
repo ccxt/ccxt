@@ -34,6 +34,12 @@ impl Value {
     /// real struct in Rust.
     pub fn reduce(&mut self) { /* no-op */ }
 
+    /// `append(item)` on an Array — pushes the item. No-op on other
+    /// variants. Mirrors TS `array.push` shape (single arg, no return).
+    pub fn append(&mut self, item: Value) {
+        if let Value::Array(a) = self { a.push(item); }
+    }
+
     /// Constructor named to match the ast-transpiler's emission shape:
     /// `Value::List(vec![...])`. Aliases `Value::Array`. Note that this
     /// is a function, not a variant — so pattern matches still use
