@@ -1624,6 +1624,15 @@ class RustTranspilerBuilder {
             // recurse on inside so nested Precise calls get fixed too
             const inside = this.dropExtraPreciseArgs(rawInside);
             const args = this.splitArgs(inside) ?? [];
+            // `stringDiv(a, b, precision)` — the 3-arg form has an
+            // explicit precision; route it to `stringDivPrec` so the
+            // precision survives (dropping it changes results, e.g.
+            // `safeTicker`'s averaged price).
+            if (name === 'stringDiv' && args.length >= 3) {
+                out += `crate::precise::Precise::stringDivPrec(${args.slice(0, 3).join(', ')})`;
+                i = j + 1;
+                continue;
+            }
             // Determine the arity of this Precise method.
             const unaryNames = new Set(['stringAbs', 'stringNeg']);
             const arity = unaryNames.has(name) ? 1 : 2;
@@ -4156,6 +4165,27 @@ impl std::ops::DerefMut for ${coreName} {
                 '\n        requestUrl = ccxt::get_value(&exchange, &Value::Str("last_request_url".to_string()));' +
                 '$1',
             );
+            // Go's `testExchange{Request,Response}Statically` wraps each
+            // per-case call in a try/catch that records the failure and
+            // keeps going. `stripCatchBlocks` removed it — re-wrap the
+            // `test_{request,response}_statically` calls in
+            // `catch_unwind` so one failing case doesn't abort the run.
+            content = content.replace(
+                /self\.(test_request_statically|test_response_statically)\((.*)\)\.await;/g,
+                (_full: string, fn: string, args: string) => {
+                    const flag = fn === 'test_request_statically'
+                        ? 'requestTestsFailed' : 'responseTestsFailed';
+                    return `match std::panic::AssertUnwindSafe(self.${fn}(${args})).catch_unwind().await {\n` +
+                           `            Ok(_) => {},\n` +
+                           `            Err(__e) => {\n` +
+                           `                self.${flag} = Value::Bool(true);\n` +
+                           `                let __m = __e.downcast_ref::<String>().map(|s| s.as_str())\n` +
+                           `                    .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");\n` +
+                           `                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);\n` +
+                           `            }\n` +
+                           `        }`;
+                },
+            );
 
             const file = [
                 ...this.createGeneratedHeader(),
@@ -4164,6 +4194,7 @@ impl std::ops::DerefMut for ${coreName} {
                 'use ccxt::get_value;',
                 'use ccxt::runtime::*;',
                 'use crate::test_helpers::*;',
+                'use futures::FutureExt;',
                 '',
                 content,
             ].join('\n');
