@@ -478,15 +478,15 @@ pub fn index_of(haystack: &Value, needle: &Value) -> Value {
 
 // ── Numeric / precision constants (mirrors decimal_to_precision.ts) ─────────
 
-pub const TICK_SIZE: i64 = 4;
 pub const TRUNCATE:  i64 = 0;
-pub const ROUND:     i64 = 2;
-pub const ROUND_UP:  i64 = 3;
-pub const ROUND_DOWN: i64 = 4;
+pub const ROUND:     i64 = 1;
+pub const ROUND_UP:  i64 = 2;
+pub const ROUND_DOWN: i64 = 3;
+pub const DECIMAL_PLACES:       i64 = 2;
+pub const SIGNIFICANT_DIGITS:   i64 = 3;
+pub const TICK_SIZE: i64 = 4;
 pub const NO_PADDING:           i64 = 5;
 pub const PAD_WITH_ZERO:        i64 = 6;
-pub const SIGNIFICANT_DIGITS:   i64 = 1;
-pub const DECIMAL_PLACES:       i64 = 2;
 
 /// `string_replace(s, old, new)` — string replacement.
 pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
