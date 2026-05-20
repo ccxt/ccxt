@@ -26,7 +26,7 @@ async function main() {
         'hitbtc': 'BTC/USDT',
         'upbit': 'BTC/USDT',
         'coinbasepro': 'BTC/USD',
-        'ftx': 'BTC/USDT',
+        'okx': 'BTC/USDT',
         'okex': 'BTC/USDT',
         'gateio': 'BTC/USDT',
     };

@@ -122,8 +122,7 @@ func  (this *ApexCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <
             if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
             }
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPublicUrl()
             var topics any = []any{}
             var messageHashes any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -252,9 +251,9 @@ func  (this *ApexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes20615 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-                ccxt.PanicOnError(retRes20615)
-                ch <- retRes20615
+                retRes20515 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+                ccxt.PanicOnError(retRes20515)
+                ch <- retRes20515
                 return nil
         
             }()
@@ -280,15 +279,14 @@ func  (this *ApexCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes2208 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2208)
+            retRes2198 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2198)
             var symbolsLength any =     ccxt.GetArrayLength(symbols)
             if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() requires a non-empty array of symbols")))
             }
             symbols = this.MarketSymbols(symbols)
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPublicUrl()
             var topics any = []any{}
             var messageHashes any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -317,22 +315,61 @@ func  (this *ApexCore) WatchTopics(url any, messageHashes any, topics any, optio
             go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
+                    // apex's server rejects a subscribe whose args include any
+            // already-subscribed topic ("topic:already subscribed ..."). Since the
+            // connection is now reused across watch* calls, filter to only the
+            // topics whose messageHash isn't yet tracked on this client; if all
+            // are already subscribed, skip the subscribe entirely.
+            params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var request any = map[string]any {
-                "op": "subscribe",
-                "args": topics,
+            var client any = this.Client(url)
+            var newTopics any = []any{}
+            var newTopicsCount any = 0
+            for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(topics)); i++ {
+                if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(messageHashes, i)))) {
+                    ccxt.AppendToArray(&newTopics, ccxt.GetValue(topics, i))
+                    newTopicsCount = ccxt.Add(newTopicsCount, 1)
+                }
             }
-            var message any = this.Extend(request, params)
+            var message any = nil
+            if ccxt.IsTrue(ccxt.IsGreaterThan(newTopicsCount, 0)) {
+                var request any = map[string]any {
+                    "op": "subscribe",
+                    "args": newTopics,
+                }
+                message = this.Extend(request, params)
+            }
         
-                retRes25115 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes25115)
-                ch <- retRes25115
+                retRes26615 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes26615)
+                ch <- retRes26615
                 return nil
         
             }()
             return ch
         }
+func  (this *ApexCore) GetWsPublicUrl() any  {
+    // apex appends a millisecond timestamp to the WS URL for connection-time
+    // signing. CCXT's client manager keys clients by URL, so recomputing the
+    // timestamp on every watch* call would open a new connection each time.
+    // Cache it per exchange instance.
+    var url any = this.SafeString(this.Options, "wsPublicUrl")
+    if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
+        var timeStamp any = ccxt.ToString(this.Milliseconds())
+        url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+        ccxt.AddElementToObject(this.Options, "wsPublicUrl", url)
+    }
+    return url
+}
+func  (this *ApexCore) GetWsPrivateUrl() any  {
+    var url any = this.SafeString(this.Options, "wsPrivateUrl")
+    if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
+        var timeStamp any = ccxt.ToString(this.Milliseconds())
+        url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+        ccxt.AddElementToObject(this.Options, "wsPrivateUrl", url)
+    }
+    return url
+}
 func  (this *ApexCore) HandleOrderBook(client any, message any)  {
     //
     //     {
@@ -419,19 +456,18 @@ func  (this *ApexCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes3368 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3368)
+            retRes3758 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3758)
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPublicUrl()
             var messageHash any = ccxt.Add("ticker:", symbol)
             var topic any = ccxt.Add(ccxt.Add("instrumentInfo", ".H."), ccxt.GetValue(market, "id2"))
             var topics any = []any{topic}
         
-                retRes34415 :=  (<-this.WatchTopics(url, []any{messageHash}, topics, params))
-                ccxt.PanicOnError(retRes34415)
-                ch <- retRes34415
+                retRes38215 :=  (<-this.WatchTopics(url, []any{messageHash}, topics, params))
+                ccxt.PanicOnError(retRes38215)
+                ch <- retRes38215
                 return nil
         
             }()
@@ -456,12 +492,11 @@ func  (this *ApexCore) WatchTickers(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            retRes3578 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3578)
+            retRes3958 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3958)
             symbols = this.MarketSymbols(symbols, nil, false)
             var messageHashes any = []any{}
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPublicUrl()
             var topics any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol any = ccxt.GetValue(symbols, i)
@@ -595,10 +630,9 @@ func  (this *ApexCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalAr
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-            retRes4598 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4598)
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+            retRes4968 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4968)
+            var url any = this.GetWsPublicUrl()
             var rawHashes any = []any{}
             var messageHashes any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -723,17 +757,16 @@ func  (this *ApexCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = params
             var messageHash any = "myTrades"
         
-            retRes5738 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5738)
+            retRes6098 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6098)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
             }
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPrivateUrl()
         
-            retRes5808 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes5808)
+            retRes6158 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes6158)
         
             trades:= (<-this.WatchTopics(url, []any{messageHash}, []any{"myTrades"}, params))
             ccxt.PanicOnError(trades)
@@ -772,20 +805,19 @@ func  (this *ApexCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes6008 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6008)
+            retRes6358 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6358)
             var messageHash any = ""
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 symbols = this.MarketSymbols(symbols)
                 messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
             }
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPrivateUrl()
             messageHash = ccxt.Add("positions", messageHash)
             var client any = this.Client(url)
         
-            retRes6108 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes6108)
+            retRes6448 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes6448)
             this.SetPositionsCache(client, symbols)
             var cache any = this.Positions
             if ccxt.IsTrue(ccxt.IsEqual(cache, nil)) {
@@ -837,18 +869,17 @@ func  (this *ApexCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes6378 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6378)
+            retRes6718 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6718)
             var messageHash any = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
             }
-            var timeStamp any = ccxt.ToString(this.Milliseconds())
-            var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+            var url any = this.GetWsPrivateUrl()
         
-            retRes6458 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes6458)
+            retRes6788 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes6788)
             var topics any = []any{"orders"}
         
             orders:= (<-this.WatchTopics(url, []any{messageHash}, topics, params))
@@ -1093,9 +1124,9 @@ func  (this *ApexCore) Authenticate(url any, optionalArgs ...any) <- chan any {
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes87315 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes87315)
-                ch <- retRes87315
+                retRes90615 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes90615)
+                ch <- retRes90615
                 return nil
         
             }()
@@ -1274,11 +1305,11 @@ func  (this *ApexCore) Pong(client any, message any) <- chan any {
                         }()
             		    // try block:
                         
-                    retRes101112 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                    retRes104412 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
                         "args": []any{ccxt.ToString(timeStamp)},
                         "op": "pong",
                     }))
-                    ccxt.PanicOnError(retRes101112)
+                    ccxt.PanicOnError(retRes104412)
             		    return nil
             	    }(this)
                 

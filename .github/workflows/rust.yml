@@ -1,4 +1,4 @@
-name: Go
+name: Rust
 on:
   workflow_dispatch:
   push:
@@ -15,10 +15,6 @@ jobs:
         if: github.ref == 'refs/heads/master'
         with:
           token: ${{ secrets.GH_TOKEN }}
-          fetch-depth: 2
-      - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
-        with:
           fetch-depth: 2
       - uses: taiki-e/cache-cargo-install-action@v3
         with:

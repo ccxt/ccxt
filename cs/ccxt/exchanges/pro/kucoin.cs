@@ -1894,7 +1894,7 @@ public partial class kucoin : ccxt.kucoin
     {
         object firstDelta = this.safeValue(cache, 0);
         object nonce = this.safeInteger(orderbook, "nonce");
-        object firstDeltaStart = this.safeInteger2(firstDelta, "sequenceStart", "sequence");
+        object firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
         if (isTrue(isLessThan(nonce, subtract(firstDeltaStart, 1))))
         {
             return -1;
@@ -1902,8 +1902,8 @@ public partial class kucoin : ccxt.kucoin
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaStart = this.safeInteger2(delta, "sequenceStart", "sequence");
-            object deltaEnd = this.safeInteger2(delta, "sequenceEnd", "timestamp"); // todo check
+            object deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
+            object deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
             if (isTrue(isTrue((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1)))) && isTrue((isLessThan(nonce, deltaEnd)))))
             {
                 return i;

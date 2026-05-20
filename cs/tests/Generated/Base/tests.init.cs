@@ -44,6 +44,7 @@ public partial class BaseTest
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();
             testBinaryConcat();

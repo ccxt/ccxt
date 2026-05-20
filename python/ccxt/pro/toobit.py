@@ -57,7 +57,7 @@ class toobit(ccxt.async_support.toobit):
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchOrderBook': {
+                    'watchOrderBookForSymbols': {
                         'channel': 'depth',  # depth, diffDepth
                     },
                     'listenKeyRefreshRate': 1200000,  # 20 mins
@@ -500,7 +500,7 @@ class toobit(ccxt.async_support.toobit):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel: Str = None
-        channel, params = self.handle_option_and_params(params, 'watchOrderBook', 'channel', 'depth')
+        channel, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'channel', 'depth')
         messageHashes = []
         subParams = []
         for i in range(0, len(symbols)):
