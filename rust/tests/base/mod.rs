@@ -67,9 +67,9 @@ pub fn run_all() -> Result<(), String> {
     std::panic::set_hook(Box::new(|_| {}));
     let mut passed = 0;
     let mut failed: Vec<String> = Vec::new();
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_afterConstructor::testAfterConstructor();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.afterConstructor"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -79,9 +79,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.afterConstructor — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_aggregate::testAggregate();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.aggregate"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -91,9 +91,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.aggregate — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_arrayConcat::testArrayConcat();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.arrayConcat"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -103,9 +103,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.arrayConcat — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_arraysConcat::testArraysConcat();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.arraysConcat"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -115,9 +115,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.arraysConcat — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_base16ToBinary::testBase16ToBinary();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.base16ToBinary"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -127,9 +127,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.base16ToBinary — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_base58ToBinary::testBase58ToBinary();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.base58ToBinary"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -139,9 +139,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.base58ToBinary — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_base64ToBinary::testBase64ToBinary();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.base64ToBinary"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -151,9 +151,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.base64ToBinary — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_binaryConcat::testBinaryConcat();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.binaryConcat"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -163,9 +163,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.binaryConcat — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_binaryToBase16::testBinaryToBase16();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase16"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -175,9 +175,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.binaryToBase16 — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_binaryToBase58::testBinaryToBase58();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase58"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -187,9 +187,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.binaryToBase58 — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_binaryToBase64::testBinaryToBase64();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.binaryToBase64"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -199,9 +199,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.binaryToBase64 — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_capitalize::testCapitalize();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.capitalize"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -211,9 +211,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.capitalize — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_clone::testClone();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.clone"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -223,9 +223,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.clone — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_constants::testConstants();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.constants"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -235,9 +235,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.constants — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_datetime::testDatetime();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.datetime"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -247,9 +247,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.datetime — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_decimalToPrecision::testDecimalToPrecision();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.decimalToPrecision"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -259,9 +259,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.decimalToPrecision — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_deepExtend::testDeepExtend();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.deepExtend"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -271,9 +271,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.deepExtend — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_encodeDecode::testEncodeDecode();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.encodeDecode"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -283,9 +283,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.encodeDecode — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_ethMethods::testEthMethods();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.ethMethods"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -295,9 +295,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.ethMethods — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_extend::testExtend();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.extend"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -307,9 +307,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.extend — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_extractParams::testExtractParams();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.extractParams"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -319,9 +319,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.extractParams — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_filterBy::testFilterBy();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.filterBy"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -331,9 +331,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.filterBy — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_groupBy::testGroupBy();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.groupBy"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -343,9 +343,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.groupBy — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_handleMethods::testHandleMethods();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.handleMethods"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -355,9 +355,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.handleMethods — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_implodeParams::testImplodeParams();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.implodeParams"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -367,9 +367,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.implodeParams — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_inArray::testInArray();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.inArray"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -379,9 +379,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.inArray — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_indexBy::testIndexBy();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.indexBy"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -391,9 +391,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.indexBy — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_io::testIo();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.io"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -403,9 +403,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.io — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_isEmpty::testIsEmpty();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.isEmpty"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -415,9 +415,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.isEmpty — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_isJsonEncodedObject::testIsJsonEncodedObject();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.isJsonEncodedObject"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -427,9 +427,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.isJsonEncodedObject — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_json::testJson();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.json"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -439,9 +439,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.json — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_keysort::testKeysort();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.keysort"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -451,9 +451,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.keysort — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_numberToBE::testNumberToBE();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.numberToBE"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -463,9 +463,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.numberToBE — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_numberToString::testNumberToString();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.numberToString"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -475,9 +475,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.numberToString — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_omit::testOmit();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.omit"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -487,9 +487,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.omit — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_parsePrecision::testParsePrecision();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.parsePrecision"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -499,9 +499,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.parsePrecision — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_precise::testPrecise();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.precise"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -511,9 +511,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.precise — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_precisionFromString::testPrecisionFromString();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.precisionFromString"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -523,9 +523,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.precisionFromString — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_rawencode::testRawencode();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.rawencode"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -535,9 +535,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.rawencode — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_removeRepeatedElementsFromArray::testRemoveRepeatedElementsFromArray();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.removeRepeatedElementsFromArray"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -547,9 +547,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.removeRepeatedElementsFromArray — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_safeMethods::testSafeMethods();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.safeMethods"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -559,9 +559,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.safeMethods — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_safeTicker::testSafeTicker();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.safeTicker"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -571,9 +571,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.safeTicker — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
-        let _ = tokio::runtime::Runtime::new().unwrap().block_on(test_setMarketsFromExchange::testSetMarketsFromExchange());
-    }) {
+    match std::thread::spawn(|| {
+        tokio::runtime::Runtime::new().unwrap().block_on(test_setMarketsFromExchange::testSetMarketsFromExchange());
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.setMarketsFromExchange"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -583,9 +583,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.setMarketsFromExchange — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
-        let _ = tokio::runtime::Runtime::new().unwrap().block_on(test_sleep::testSleep());
-    }) {
+    match std::thread::spawn(|| {
+        tokio::runtime::Runtime::new().unwrap().block_on(test_sleep::testSleep());
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.sleep"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -595,9 +595,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.sleep — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_sort::testSort();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.sort"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -607,9 +607,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.sort — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_sortBy::testSortBy();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.sortBy"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -619,9 +619,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.sortBy — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_stringToBase16::testStringToBase16();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.stringToBase16"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -631,9 +631,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.stringToBase16 — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_stringToBase64::testStringToBase64();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.stringToBase64"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -643,9 +643,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.stringToBase64 — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_strip::testStrip();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.strip"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -655,9 +655,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.strip — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_sum::testSum();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.sum"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -667,9 +667,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.sum — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_timeframes::testTimeframes();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.timeframes"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -679,9 +679,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.timeframes — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_toArray::testToArray();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.toArray"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -691,9 +691,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.toArray — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_unique::testUnique();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.unique"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -703,9 +703,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.unique — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_urlencode::testUrlencode();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.urlencode"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -715,9 +715,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.urlencode — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_urlencodeBase64::testUrlencodeBase64();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeBase64"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -727,9 +727,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.urlencodeBase64 — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_urlencodeNested::testUrlencodeNested();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeNested"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -739,9 +739,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.urlencodeNested — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_urlencodeWithArrayRepeat::testUrlencodeWithArrayRepeat();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.urlencodeWithArrayRepeat"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())
@@ -751,9 +751,9 @@ pub fn run_all() -> Result<(), String> {
             println!("  ✗ test.urlencodeWithArrayRepeat — {msg}");
         }
     }
-    match std::panic::catch_unwind(|| {
+    match std::thread::spawn(|| {
         test_uuid::testUuid();
-    }) {
+    }).join() {
         Ok(_)  => { passed += 1; println!("  ✓ test.uuid"); }
         Err(e) => {
             let msg = e.downcast_ref::<String>().map(|s| s.as_str())

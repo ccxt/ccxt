@@ -28,6 +28,380 @@ unsafe fn coerce_to_mut_unsafe(e: &Exchange) -> &mut Exchange {
     &mut *ptr
 }
 
+/// Non-cryptographic 64-bit PRNG (splitmix64) seeded from a global
+/// counter mixed with the high-resolution clock. Good enough for the
+/// `uuid*` helpers — uniqueness across calls, not security.
+fn random_u64() -> u64 {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos() as u64)
+        .unwrap_or(0);
+    let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let mut z = now ^ n.wrapping_mul(0x9E37_79B9_7F4A_7C15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+/// Returns `n` random lowercase hex characters.
+fn random_hex(n: usize) -> String {
+    let mut s = String::with_capacity(n);
+    while s.len() < n {
+        s.push_str(&format!("{:016x}", random_u64()));
+    }
+    s.truncate(n);
+    s
+}
+
+/// Wraps a byte slice into the port's binary representation —
+/// a `Value::Array` of `Value::Int` byte values.
+fn bytes_to_value(bytes: &[u8]) -> Value {
+    Value::Array(bytes.iter().map(|b| Value::Int(*b as i64)).collect())
+}
+
+/// True when `v` is a `Value::Array` whose elements are all integer
+/// byte values (0..=255) — the port's stand-in for a binary buffer.
+fn is_byte_array(v: &Value) -> bool {
+    match v {
+        Value::Array(a) => a.iter().all(|x| matches!(x, Value::Int(n) if (0..=255).contains(n))),
+        _ => false,
+    }
+}
+
+/// Recursive helper for `urlencodeNested` — flattens nested maps and
+/// arrays into bracketed keys (`b[c]`, `d[0]`), encoding only values.
+fn urlencode_nested_walk(prefix: &str, v: &Value, out: &mut Vec<String>) {
+    match v {
+        Value::Map(m) => {
+            for (k, val) in m {
+                urlencode_nested_walk(&format!("{prefix}[{k}]"), val, out);
+            }
+        }
+        Value::Array(a) => {
+            for (i, val) in a.iter().enumerate() {
+                urlencode_nested_walk(&format!("{prefix}[{i}]"), val, out);
+            }
+        }
+        scalar => {
+            out.push(format!("{}={}", prefix, crate::exchange::url_pct(&stringify_param(scalar))));
+        }
+    }
+}
+
+/// f64 → plain decimal string (Rust's `{}` never uses scientific
+/// notation for f64, matching TS `numberToString`).
+fn dtp_num_to_string(x: f64) -> String { format!("{x}") }
+
+/// Free-function form of `precisionFromString` (returns i64).
+fn precision_from_string_i64(s: &str) -> i64 {
+    if let Some(idx) = s.find(['e', 'E']) {
+        let exp: i64 = s[idx + 1..].parse().unwrap_or(0);
+        return -exp;
+    }
+    let trimmed = s.trim_end_matches('0');
+    match trimmed.split_once('.') {
+        Some((_, frac)) => frac.len() as i64,
+        None => 0,
+    }
+}
+
+/// Port of `truncate_to_string` from `functions/number.ts`.
+fn truncate_to_string(num: &str, precision: i64) -> String {
+    if precision > 0 {
+        if let Some(dot) = num.find('.') {
+            let frac = &num[dot + 1..];
+            if frac.len() as i64 > precision {
+                return format!("{}.{}", &num[..dot], &frac[..precision as usize]);
+            }
+        }
+        return num.to_string();
+    }
+    let int_part = num.split('.').next().unwrap_or("0");
+    int_part.parse::<i64>().map(|n| n.to_string()).unwrap_or_else(|_| "0".to_string())
+}
+
+/// Faithful port of `_decimalToPrecision` from `functions/number.ts`.
+fn decimal_to_precision_impl(
+    x: &str, rounding_mode: i64, num_precision_digits: f64,
+    counting_mode: i64, padding_mode: i64,
+) -> String {
+    use crate::runtime::{TRUNCATE, ROUND, DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE, NO_PADDING};
+    const ZERO: i64 = 48;
+    const ONE: i64 = 49;
+    const FIVE: i64 = 53;
+    const NINE: i64 = 57;
+
+    // ── negative precision ───────────────────────────────────────────
+    if num_precision_digits < 0.0 {
+        let to_nearest = 10f64.powf(-num_precision_digits);
+        let xnum: f64 = x.parse().unwrap_or(0.0);
+        if rounding_mode == ROUND {
+            let inner = decimal_to_precision_impl(
+                &dtp_num_to_string(xnum / to_nearest), rounding_mode, 0.0, counting_mode, padding_mode);
+            let inner_num: f64 = inner.parse().unwrap_or(0.0);
+            return dtp_num_to_string(to_nearest * inner_num);
+        }
+        if rounding_mode == TRUNCATE {
+            return dtp_num_to_string(xnum - (xnum % to_nearest));
+        }
+    }
+
+    // ── tick size ────────────────────────────────────────────────────
+    if counting_mode == TICK_SIZE {
+        let precision_digits_string = decimal_to_precision_impl(
+            &dtp_num_to_string(num_precision_digits), ROUND, 22.0, DECIMAL_PLACES, NO_PADDING);
+        let new_npd = precision_from_string_i64(&precision_digits_string);
+        if rounding_mode == TRUNCATE {
+            let truncated_x = truncate_to_string(x, new_npd.max(0));
+            let x_num: f64 = truncated_x.parse().unwrap_or(0.0);
+            let scale = 10f64.powi(new_npd as i32);
+            let x_scaled = (x_num * scale).round();
+            let tick_scaled = (num_precision_digits * scale).round();
+            let ticks = (x_scaled / tick_scaled).trunc();
+            let x_new = (ticks * tick_scaled) / scale;
+            if padding_mode == NO_PADDING {
+                let fixed = format!("{:.*}", new_npd.max(0) as usize, x_new);
+                let renum: f64 = fixed.parse().unwrap_or(0.0);
+                return dtp_num_to_string(renum);
+            }
+            return decimal_to_precision_impl(
+                &dtp_num_to_string(x_new), ROUND, new_npd as f64, DECIMAL_PLACES, padding_mode);
+        }
+        let mut x_num: f64 = x.parse().unwrap_or(0.0);
+        let mut missing = x_num % num_precision_digits;
+        missing = decimal_to_precision_impl(
+            &dtp_num_to_string(missing), ROUND, 8.0, DECIMAL_PLACES, NO_PADDING)
+            .parse().unwrap_or(0.0);
+        let fp_error = decimal_to_precision_impl(
+            &dtp_num_to_string(missing / num_precision_digits),
+            ROUND, new_npd.max(8) as f64, DECIMAL_PLACES, NO_PADDING);
+        if precision_from_string_i64(&fp_error) != 0 {
+            if x_num > 0.0 {
+                if missing >= num_precision_digits / 2.0 {
+                    x_num = x_num - missing + num_precision_digits;
+                } else {
+                    x_num -= missing;
+                }
+            } else if missing >= num_precision_digits / 2.0 {
+                x_num -= missing;
+            } else {
+                x_num = x_num - missing - num_precision_digits;
+            }
+        }
+        return decimal_to_precision_impl(
+            &dtp_num_to_string(x_num), ROUND, new_npd as f64, DECIMAL_PLACES, padding_mode);
+    }
+
+    // ── main char-buffer path ────────────────────────────────────────
+    let npd = num_precision_digits as i64;
+    let bytes: Vec<u8> = x.as_bytes().to_vec();
+    let str_end = bytes.len() as i64;
+    if str_end == 0 { return String::new(); }
+    let is_negative = bytes[0] == b'-';
+    let str_start: i64 = if is_negative { 1 } else { 0 };
+    let mut str_dot = str_end;
+    for k in 0..str_end {
+        if bytes[k as usize] == b'.' { str_dot = k; break; }
+    }
+    let has_dot = str_dot < str_end;
+    let chars_len = ((str_end - str_start) + if has_dot { 0 } else { 1 }) as usize;
+    let mut chars = vec![ZERO as u8; chars_len];
+
+    let mut after_dot = chars_len as i64;
+    let mut digits_start: i64 = -1;
+    let mut digits_end: i64;
+    {
+        let mut i: i64 = 1;
+        let mut j: i64 = str_start;
+        while j < str_end {
+            let c = bytes[j as usize];
+            if c == b'.' {
+                after_dot = i;
+                i -= 1;
+            } else if !c.is_ascii_digit() {
+                return x.to_string();
+            } else {
+                if (i as usize) < chars.len() {
+                    chars[i as usize] = c;
+                }
+                if c != b'0' && digits_start < 0 { digits_start = i; }
+            }
+            j += 1;
+            i += 1;
+        }
+    }
+    if digits_start < 0 { digits_start = 1; }
+
+    let mut precision_start = if counting_mode == DECIMAL_PLACES { after_dot } else { digits_start };
+
+    digits_end = -1;
+    let mut all_zeros = true;
+    let mut sign_needed = is_negative;
+    {
+        let mut memo: i64 = 0;
+        let mut i = chars.len() as i64 - 1;
+        while i >= 0 {
+            let mut c = chars[i as usize] as i64;
+            if i != 0 {
+                c += memo;
+                if i >= precision_start + npd {
+                    let ceil = (rounding_mode == ROUND)
+                        && (c >= FIVE)
+                        && !((c == FIVE) && memo != 0);
+                    c = if ceil { NINE + 1 } else { ZERO };
+                }
+                if c > NINE { c = ZERO; memo = 1; } else { memo = 0; }
+            } else if memo != 0 {
+                c = ONE;
+            }
+            chars[i as usize] = c as u8;
+            if c != ZERO {
+                all_zeros = false;
+                digits_start = i;
+                digits_end = if digits_end < 0 { i + 1 } else { digits_end };
+            }
+            i -= 1;
+        }
+    }
+
+    if counting_mode == SIGNIFICANT_DIGITS {
+        precision_start = digits_start;
+    }
+    let precision_end = precision_start + npd;
+    if all_zeros { sign_needed = false; }
+
+    let read_start = if digits_start >= after_dot || all_zeros { after_dot - 1 } else { digits_start };
+    let read_end = if digits_end < after_dot { after_dot } else { digits_end };
+
+    let n_sign: i64 = if sign_needed { 1 } else { 0 };
+    let n_before_dot = n_sign + (after_dot - read_start);
+    let n_after_dot = (read_end - after_dot).max(0);
+    let actual_length = read_end - read_start;
+    let desired_length = if padding_mode == NO_PADDING { actual_length } else { precision_end - read_start };
+    let pad = (desired_length - actual_length).max(0);
+    let pad_start = n_before_dot + 1 + n_after_dot;
+    let pad_end = pad_start + pad;
+    let is_integer = (n_after_dot + pad) == 0;
+
+    let out_len = (n_before_dot + if is_integer { 0 } else { 1 } + n_after_dot + pad).max(0) as usize;
+    let mut out = vec![ZERO as u8; out_len];
+    let get_char = |idx: i64| -> u8 {
+        if idx >= 0 && (idx as usize) < chars.len() { chars[idx as usize] } else { ZERO as u8 }
+    };
+    if sign_needed && !out.is_empty() { out[0] = b'-'; }
+    {
+        let mut i = n_sign;
+        let mut j = read_start;
+        while i < n_before_dot {
+            if (i as usize) < out.len() { out[i as usize] = get_char(j); }
+            i += 1; j += 1;
+        }
+    }
+    if !is_integer && (n_before_dot as usize) < out.len() {
+        out[n_before_dot as usize] = b'.';
+    }
+    {
+        let mut i = n_before_dot + 1;
+        let mut j = after_dot;
+        while i < pad_start {
+            if (i as usize) < out.len() { out[i as usize] = get_char(j); }
+            i += 1; j += 1;
+        }
+    }
+    {
+        let mut i = pad_start;
+        while i < pad_end {
+            if (i as usize) < out.len() { out[i as usize] = ZERO as u8; }
+            i += 1;
+        }
+    }
+    String::from_utf8(out).unwrap_or_default()
+}
+
+/// Coerces a `Value` (or a missing one) to `f64` — used by `aggregate`.
+fn value_as_f64(v: Option<&Value>) -> f64 {
+    match v {
+        Some(Value::Int(n))   => *n as f64,
+        Some(Value::Float(f)) => *f,
+        Some(Value::Str(s))   => s.parse().unwrap_or(0.0),
+        _ => 0.0,
+    }
+}
+
+/// Generic ordering for `Value`s — numeric when both sides are
+/// numbers, lexical for strings, used by `sortBy`/`sortBy2`.
+fn value_cmp(a: &Value, b: &Value) -> std::cmp::Ordering {
+    use std::cmp::Ordering;
+    let num = |v: &Value| -> Option<f64> {
+        match v {
+            Value::Int(n)   => Some(*n as f64),
+            Value::Float(f) => Some(*f),
+            _ => None,
+        }
+    };
+    match (num(a), num(b)) {
+        (Some(x), Some(y)) => x.partial_cmp(&y).unwrap_or(Ordering::Equal),
+        _ => stringify_param(a).cmp(&stringify_param(b)),
+    }
+}
+
+const BASE58_ALPHABET: &[u8] = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+/// Base58 encode (Bitcoin alphabet).
+fn base58_encode(input: &[u8]) -> String {
+    if input.is_empty() {
+        return String::new();
+    }
+    let zeros = input.iter().take_while(|&&b| b == 0).count();
+    let mut digits: Vec<u8> = Vec::new();
+    for &byte in input {
+        let mut carry = byte as u32;
+        for d in digits.iter_mut() {
+            carry += (*d as u32) << 8;
+            *d = (carry % 58) as u8;
+            carry /= 58;
+        }
+        while carry > 0 {
+            digits.push((carry % 58) as u8);
+            carry /= 58;
+        }
+    }
+    let mut out = String::with_capacity(zeros + digits.len());
+    for _ in 0..zeros {
+        out.push('1');
+    }
+    for &d in digits.iter().rev() {
+        out.push(BASE58_ALPHABET[d as usize] as char);
+    }
+    out
+}
+
+/// Base58 decode (Bitcoin alphabet). Returns `None` on invalid input.
+fn base58_decode(input: &str) -> Option<Vec<u8>> {
+    if input.is_empty() {
+        return Some(Vec::new());
+    }
+    let zeros = input.bytes().take_while(|&b| b == b'1').count();
+    let mut bytes: Vec<u8> = Vec::new();
+    for ch in input.bytes() {
+        let mut carry = BASE58_ALPHABET.iter().position(|&a| a == ch)? as u32;
+        for b in bytes.iter_mut() {
+            carry += (*b as u32) * 58;
+            *b = (carry & 0xff) as u8;
+            carry >>= 8;
+        }
+        while carry > 0 {
+            bytes.push((carry & 0xff) as u8);
+            carry >>= 8;
+        }
+    }
+    let mut out = vec![0u8; zeros];
+    out.extend(bytes.iter().rev());
+    Some(out)
+}
+
 fn arg_default(opt: &[Value]) -> Value {
     opt.get(0).cloned().unwrap_or(Value::Null)
 }
@@ -182,10 +556,25 @@ impl Exchange {
         me.fetch_deposit_address(code, &[params]).await
     }
 
-    /// `urlencode_with_array_repeat(params)` — binance-style array repeat
-    /// in URL queries (`a=1&a=2` instead of `a[]=1&a[]=2`).
+    /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
+    /// array values repeat the key (`a=1&a=2`); scalars encode normally.
     pub fn urlencode_with_array_repeat(&self, params: Value) -> Value {
-        self.urlencode(params, &[])
+        let m = match &params { Value::Map(m) => m, _ => return Value::Str(String::new()) };
+        let mut pairs: Vec<String> = Vec::new();
+        for (k, v) in m {
+            let key = crate::exchange::url_pct(k);
+            match v {
+                Value::Array(items) => {
+                    for item in items {
+                        pairs.push(format!("{}={}", key, crate::exchange::url_pct(&stringify_param(item))));
+                    }
+                }
+                other => {
+                    pairs.push(format!("{}={}", key, crate::exchange::url_pct(&stringify_param(other))));
+                }
+            }
+        }
+        Value::Str(pairs.join("&"))
     }
 
     pub fn safe_integer(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
@@ -275,11 +664,13 @@ impl Exchange {
         }
     }
 
+    /// `safeTimestamp(o, k)` — `parseInt(asFloat(value) * 1000)`. The
+    /// value is read as a float (seconds, possibly fractional) and
+    /// converted to integer milliseconds.
     pub fn safe_timestamp(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
-        // Stored in seconds; convert to milliseconds.
-        let v = self.safe_integer(obj, key, &[]);
-        match v {
-            Value::Int(n) => Value::Int(n * 1000),
+        match self.safe_float(obj, key, &[]) {
+            Value::Float(f) => Value::Int((f * 1000.0) as i64),
+            Value::Int(n)   => Value::Int(n * 1000),
             _ => arg_default(optional_args),
         }
     }
@@ -440,12 +831,34 @@ impl Exchange {
         } else { Value::Array(vec![]) }
     }
 
-    pub fn sort_by(&self, arr: Value, _key: Value, _optional_args: &[Value]) -> Value {
-        arr
+    /// `sortBy(array, key, descending=false)` — stable sort of an array
+    /// of objects by `obj[key]`. Mirrors `functions/generic.ts`.
+    pub fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value {
+        let mut items = match arr { Value::Array(a) => a, other => return other };
+        let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
+        let key = Value::Str(stringify_param(&key));
+        items.sort_by(|a, b| {
+            let av = crate::get_value(a, &key);
+            let bv = crate::get_value(b, &key);
+            let ord = value_cmp(&av, &bv);
+            if descending { ord.reverse() } else { ord }
+        });
+        Value::Array(items)
     }
 
-    pub fn sort_by2(&self, arr: Value, _k1: Value, _k2: Value, _optional_args: &[Value]) -> Value {
-        arr
+    /// `sortBy2(array, key1, key2, descending=false)` — sort by `key1`,
+    /// then `key2` as a tiebreaker. Mirrors `functions/generic.ts`.
+    pub fn sort_by2(&self, arr: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
+        let mut items = match arr { Value::Array(a) => a, other => return other };
+        let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
+        let k1 = Value::Str(stringify_param(&k1));
+        let k2 = Value::Str(stringify_param(&k2));
+        items.sort_by(|a, b| {
+            let ord = value_cmp(&crate::get_value(a, &k1), &crate::get_value(b, &k1))
+                .then(value_cmp(&crate::get_value(a, &k2), &crate::get_value(b, &k2)));
+            if descending { ord.reverse() } else { ord }
+        });
+        Value::Array(items)
     }
 
     pub fn keysort(&self, obj: Value, _optional_args: &[Value]) -> Value {
@@ -458,7 +871,29 @@ impl Exchange {
         } else { obj }
     }
 
-    pub fn aggregate(&self, arr: Value) -> Value { arr }
+    /// `aggregate(bidasks)` — groups `[price, volume]` rows by price,
+    /// summing volume and dropping zero-volume rows. Preserves the
+    /// first-occurrence order of prices. Mirrors `functions/misc.ts`.
+    pub fn aggregate(&self, arr: Value) -> Value {
+        let items = match arr { Value::Array(a) => a, _ => return Value::Array(vec![]) };
+        let mut order: Vec<u64> = Vec::new();
+        let mut buckets: HashMap<u64, (f64, f64)> = HashMap::new();
+        for item in items {
+            let row = match item { Value::Array(r) => r, _ => continue };
+            let price = value_as_f64(row.get(0));
+            let volume = value_as_f64(row.get(1));
+            if volume > 0.0 {
+                let bits = price.to_bits();
+                let entry = buckets.entry(bits).or_insert_with(|| { order.push(bits); (price, 0.0) });
+                entry.1 += volume;
+            }
+        }
+        let out: Vec<Value> = order.iter().map(|b| {
+            let (p, v) = buckets[b];
+            Value::Array(vec![Value::Float(p), Value::Float(v)])
+        }).collect();
+        Value::Array(out)
+    }
     pub fn map_to_safe_map(&self, v: Value) -> Value { v }
     pub fn create_safe_dictionary(&self, _optional_args: &[Value]) -> Value {
         Value::Map(HashMap::new())
@@ -549,17 +984,82 @@ impl Exchange {
     }
 
 
-    pub fn base16ToBinary(&self, _hex: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
-    pub fn base58_to_binary(&self, _s: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
-    pub fn binary_to_base58(&self, _b: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    pub fn base16ToBinary(&self, hex: Value, optional_args: &[Value]) -> Value {
+        self.base16_to_binary(hex, optional_args)
+    }
+    pub fn base58_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
+        match &s {
+            Value::Str(s) => match base58_decode(s) {
+                Some(b) => bytes_to_value(&b),
+                None => Value::Null,
+            },
+            _ => Value::Null,
+        }
+    }
+    pub fn binary_to_base58(&self, b: Value, _optional_args: &[Value]) -> Value {
+        Value::Str(base58_encode(&crate::exchange::value_to_bytes(&b)))
+    }
     pub fn binary_length(&self, b: Value, _optional_args: &[Value]) -> Value {
         match b { Value::Array(a) => Value::Int(a.len() as i64), _ => Value::Int(0) }
     }
-    pub fn is_binary_message(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Bool(false) }
-    pub fn number_to_be(&self, _n: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
-    pub fn parse_date(&self, _s: Value, _optional_args: &[Value]) -> Value { Value::Null }
-    pub fn is_binary_message_var(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Bool(false) }
-    pub fn ymd(&self, ts: Value, optional_args: &[Value]) -> Value { self.yyyymmdd(ts, optional_args) }
+    /// `isBinaryMessage` — in this port a binary buffer is a
+    /// `Value::Array` of byte-valued ints (see `base16_to_binary`,
+    /// `string_to_binary`). `instanceof Uint8Array` can't transpile.
+    pub fn is_binary_message(&self, v: Value, _optional_args: &[Value]) -> Value {
+        Value::Bool(is_byte_array(&v))
+    }
+    /// `numberToBE(n, padding)` — big-endian byte array of width `padding`.
+    pub fn number_to_be(&self, n: Value, optional_args: &[Value]) -> Value {
+        let num: u64 = match &n {
+            Value::Int(i)   => (*i).max(0) as u64,
+            Value::Float(f) => (*f).max(0.0) as u64,
+            Value::Str(s)   => s.parse().unwrap_or(0),
+            _ => 0,
+        };
+        let padding: usize = match optional_args.get(0) {
+            Some(Value::Int(i))   => (*i).max(0) as usize,
+            Some(Value::Float(f)) => (*f).max(0.0) as usize,
+            _ => 8,
+        };
+        let be = num.to_be_bytes(); // 8 bytes
+        let mut out: Vec<u8> = Vec::with_capacity(padding);
+        if padding >= be.len() {
+            out.extend(std::iter::repeat(0u8).take(padding - be.len()));
+            out.extend_from_slice(&be);
+        } else {
+            out.extend_from_slice(&be[be.len() - padding..]);
+        }
+        bytes_to_value(&out)
+    }
+    /// `parseDate(x)` — ports `functions/time.ts`. Parses an ISO-8601
+    /// timestamp (with `T`/`Z` or a plain `YYYY-MM-DD HH:MM:SS` form,
+    /// treated as UTC) into epoch milliseconds. Invalid → Null.
+    pub fn parse_date(&self, s: Value, _optional_args: &[Value]) -> Value {
+        let text = match &s { Value::Str(s) if !s.is_empty() => s.clone(), _ => return Value::Null };
+        // rfc3339 (handles the `T...Z` and offset forms)
+        if let Ok(t) = chrono::DateTime::parse_from_rfc3339(&text) {
+            return Value::Int(t.timestamp_millis());
+        }
+        // naive `YYYY-MM-DD HH:MM:SS[.fff]` — interpreted as UTC
+        for fmt in ["%Y-%m-%d %H:%M:%S%.f", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S%.f", "%Y-%m-%dT%H:%M:%S"] {
+            if let Ok(ndt) = chrono::NaiveDateTime::parse_from_str(&text, fmt) {
+                return Value::Int(ndt.and_utc().timestamp_millis());
+            }
+        }
+        Value::Null
+    }
+    pub fn is_binary_message_var(&self, v: Value, _optional_args: &[Value]) -> Value {
+        Value::Bool(is_byte_array(&v))
+    }
+    /// `ymd(timestamp, infix='')` — like `yyyymmdd` but the infix
+    /// defaults to empty (TS `functions/time.ts`).
+    pub fn ymd(&self, ts: Value, optional_args: &[Value]) -> Value {
+        if optional_args.is_empty() {
+            self.yyyymmdd(ts, &[Value::Str(String::new())])
+        } else {
+            self.yyyymmdd(ts, optional_args)
+        }
+    }
     pub fn safe_float_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Array(ks) = keys {
             for k in ks {
@@ -581,17 +1081,55 @@ impl Exchange {
     pub fn safeString2(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
         self.safe_string2(obj, k1, k2, optional_args)
     }
-    pub fn binary_concat(&self, _first: Value, _optional_args: &[Value]) -> Value { Value::Array(vec![]) }
-    pub fn stringToBase64(&self, _s: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
-    pub fn binary_to_string(&self, _b: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    /// `binaryConcat(a, b, ...)` — concatenates byte buffers. The
+    /// variadic call-site wrap folds the tail args into `optional_args`.
+    pub fn binary_concat(&self, first: Value, optional_args: &[Value]) -> Value {
+        let mut out = crate::exchange::value_to_bytes(&first);
+        for v in optional_args {
+            out.extend(crate::exchange::value_to_bytes(v));
+        }
+        bytes_to_value(&out)
+    }
+    pub fn stringToBase64(&self, s: Value, optional_args: &[Value]) -> Value {
+        self.string_to_base64(s, optional_args)
+    }
+    /// `binaryToString(buffer)` — decodes a byte buffer as UTF-8.
+    pub fn binary_to_string(&self, b: Value, _optional_args: &[Value]) -> Value {
+        let bytes = crate::exchange::value_to_bytes(&b);
+        Value::Str(String::from_utf8_lossy(&bytes).into_owned())
+    }
     pub fn string_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         match s {
             Value::Str(s) => Value::Array(s.bytes().map(|b| Value::Int(b as i64)).collect()),
             _ => Value::Array(vec![]),
         }
     }
-    pub fn urlencode_base64(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
-    pub fn urlencode_nested(&self, _v: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    /// `urlencodeBase64(payload)` — url-safe base64 with `+/` → `-_`
+    /// and trailing `=` padding stripped. Accepts a string or a byte
+    /// buffer (`Value::Array`).
+    pub fn urlencode_base64(&self, v: Value, _optional_args: &[Value]) -> Value {
+        let bytes = match &v {
+            Value::Str(s) => s.as_bytes().to_vec(),
+            _ => crate::exchange::value_to_bytes(&v),
+        };
+        let encoded = match self.binary_to_base64(bytes_to_value(&bytes), &[]) {
+            Value::Str(s) => s,
+            _ => String::new(),
+        };
+        let trimmed = encoded.trim_end_matches('=');
+        Value::Str(trimmed.replace('+', "-").replace('/', "_"))
+    }
+    /// `urlencodeNested(object)` — `qs.stringify(object, { encodeValuesOnly: true })`:
+    /// nested maps → `parent[child]`, arrays → `parent[index]`, only
+    /// values are percent-encoded.
+    pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> Value {
+        let m = match &v { Value::Map(m) => m, _ => return Value::Str(String::new()) };
+        let mut pairs: Vec<String> = Vec::new();
+        for (k, val) in m {
+            urlencode_nested_walk(k, val, &mut pairs);
+        }
+        Value::Str(pairs.join("&"))
+    }
     pub fn is_json_encoded_object(&self, optional_args: &[Value]) -> Value {
         match optional_args.get(0) {
             Some(Value::Str(s)) => Value::Bool(s.starts_with('{') || s.starts_with('[')),
@@ -621,10 +1159,32 @@ impl Exchange {
         Value::Null
     }
     pub fn eth_get_address_from_private_key(&self, _pk: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
-    pub fn exists_file(&self, _p: Value) -> Value { Value::Bool(false) }
-    pub fn read_file(&self, _p: Value) -> Value { Value::Null }
-    pub fn write_file(&self, _p: Value, _content: Value) -> Value { Value::Null }
-    pub fn get_temp_dir(&self) -> Value { Value::Str("/tmp".to_string()) }
+    pub fn exists_file(&self, p: Value) -> Value {
+        match &p {
+            Value::Str(path) => Value::Bool(std::path::Path::new(path).is_file()),
+            _ => Value::Bool(false),
+        }
+    }
+    pub fn read_file(&self, p: Value) -> Value {
+        match &p {
+            Value::Str(path) => match std::fs::read_to_string(path) {
+                Ok(s) => Value::Str(s),
+                Err(_) => Value::Null,
+            },
+            _ => Value::Null,
+        }
+    }
+    pub fn write_file(&self, p: Value, content: Value) -> Value {
+        let path = match &p { Value::Str(s) => s.clone(), _ => return Value::Bool(false) };
+        let body = match &content {
+            Value::Str(s) => s.clone(),
+            other => stringify_param(other),
+        };
+        Value::Bool(std::fs::write(&path, body).is_ok())
+    }
+    pub fn get_temp_dir(&self) -> Value {
+        Value::Str(format!("{}/", std::env::temp_dir().to_string_lossy().trim_end_matches('/')))
+    }
     pub fn get_property(&self, obj: Value, key: Value) -> Value {
         crate::get_value(&obj, &Value::Str(stringify_param(&key)))
     }
@@ -642,9 +1202,10 @@ impl Exchange {
         }
     }
     pub fn yyyymmdd(&self, ts: Value, optional_args: &[Value]) -> Value {
+        // TS default infix for yyyymmdd is '-'.
         let infix = match optional_args.get(0) {
             Some(Value::Str(s)) => s.clone(),
-            _ => String::new(),
+            _ => "-".to_string(),
         };
         let n = match ts { Value::Int(n) => n, _ => 0 };
         let dt = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n);
@@ -653,18 +1214,33 @@ impl Exchange {
             None => Value::Null,
         }
     }
-    pub fn ymdhms(&self, ts: Value, _optional_args: &[Value]) -> Value {
-        let n = match ts { Value::Int(n) => n, _ => 0 };
+    /// `ymdhms(timestamp, infix=' ')` — UTC `YYYY-MM-DD<infix>HH:MM:SS`.
+    pub fn ymdhms(&self, ts: Value, optional_args: &[Value]) -> Value {
+        let infix = match optional_args.get(0) {
+            Some(Value::Str(s)) => s.clone(),
+            _ => " ".to_string(),
+        };
+        let n = match ts {
+            Value::Int(n)   => n,
+            Value::Float(f) => f as i64,
+            _ => 0,
+        };
         let dt = chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n);
         match dt {
-            Some(t) => Value::Str(t.format("%Y-%m-%d %H:%M:%S").to_string()),
+            Some(t) => Value::Str(t.format(&format!("%Y-%m-%d{infix}%H:%M:%S")).to_string()),
             None => Value::Null,
         }
     }
 
     /// `rawencode(params, [doSeq])` — URL-encode without sorting.
+    /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
+    /// flat `key=value` pairs with no percent-encoding.
     pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> Value {
-        Value::Str(self.urlencode_kv(&params))
+        let m = match &params { Value::Map(m) => m, _ => return Value::Str(String::new()) };
+        let pairs: Vec<String> = m.iter()
+            .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
+            .collect();
+        Value::Str(pairs.join("&"))
     }
 
     /// `intToBase16(n)` — int → lowercase hex string.
@@ -692,10 +1268,24 @@ impl Exchange {
         Value::Null
     }
 
-    /// `uuid22()` — pseudo-random 22-char id. Stub returns a fixed string.
-    pub fn uuid22(&self, _optional_args: &[Value]) -> Value { Value::Str("00000000000000000000".to_string()) }
-    pub fn uuid16(&self, _optional_args: &[Value]) -> Value { Value::Str("0000000000000000".to_string()) }
-    pub fn uuid(&self,   _optional_args: &[Value]) -> Value { Value::Str("00000000-0000-0000-0000-000000000000".to_string()) }
+    /// `uuid22()` — pseudo-random 22-char hex id.
+    pub fn uuid22(&self, _optional_args: &[Value]) -> Value {
+        Value::Str(random_hex(22))
+    }
+    /// `uuid16()` — pseudo-random 16-char hex id.
+    pub fn uuid16(&self, _optional_args: &[Value]) -> Value {
+        Value::Str(random_hex(16))
+    }
+    /// `uuid()` — pseudo-random UUID v4: `xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx`.
+    pub fn uuid(&self, _optional_args: &[Value]) -> Value {
+        let h = random_hex(32);
+        let variant = ['8', '9', 'a', 'b'][(random_u64() % 4) as usize];
+        let s = format!(
+            "{}-{}-4{}-{}{}-{}",
+            &h[0..8], &h[8..12], &h[13..16], variant, &h[17..20], &h[20..32],
+        );
+        Value::Str(s)
+    }
 
     /// `urlencode(params)` — wraps the typed `urlencode_kv` for Value args.
     pub fn urlencode(&self, params: Value, _optional_args: &[Value]) -> Value {
@@ -795,77 +1385,45 @@ impl Exchange {
         })
     }
 
+    /// `precisionFromString(str)` — ports `functions/number.ts`.
+    /// Scientific notation (`1e-4` → 4, `1e4` → -4); otherwise the
+    /// number of fractional digits after stripping trailing zeros.
     pub fn precision_from_string(&self, s: Value) -> Value {
         let s = stringify_param(&s);
-        Value::Int(if let Some(idx) = s.find('.') { (s.len() - idx - 1) as i64 } else { 0 })
+        if let Some(idx) = s.find(['e', 'E']) {
+            let exp: i64 = s[idx + 1..].parse().unwrap_or(0);
+            return Value::Int(-exp);
+        }
+        let trimmed = s.trim_end_matches('0');
+        match trimmed.split_once('.') {
+            Some((_, frac)) => Value::Int(frac.len() as i64),
+            None => Value::Int(0),
+        }
     }
 
-    /// `decimal_to_precision(n, rounding_mode, precision, [counting_mode], [padding_mode])`.
-    /// Rounding modes: TRUNCATE=0, ROUND=2.
-    /// Counting modes: SIGNIFICANT_DIGITS=1, DECIMAL_PLACES=2, TICK_SIZE=4.
+    /// `decimalToPrecision(n, roundingMode, numPrecisionDigits, [countingMode], [paddingMode])`
+    /// — faithful port of `_decimalToPrecision` from `functions/number.ts`.
     pub fn decimal_to_precision(&self, n: Value, rounding: Value, precision: Value, optional_args: &[Value]) -> Value {
         let n_s = stringify_param(&n);
-        let num: f64 = match n_s.parse() { Ok(v) => v, Err(_) => return Value::Str(n_s) };
-        let prec_s = stringify_param(&precision);
+        let prec_f: f64 = match &precision {
+            Value::Int(i)   => *i as f64,
+            Value::Float(f) => *f,
+            Value::Str(s)   => s.parse().unwrap_or(f64::NAN),
+            _ => return Value::Str(n_s),
+        };
         let counting: i64 = match optional_args.get(0) {
             Some(Value::Int(c)) => *c,
             _ => crate::runtime::DECIMAL_PLACES,
+        };
+        let padding: i64 = match optional_args.get(1) {
+            Some(Value::Int(p)) => *p,
+            _ => crate::runtime::NO_PADDING,
         };
         let rounding_mode: i64 = match &rounding {
             Value::Int(r) => *r,
             _ => crate::runtime::TRUNCATE,
         };
-        if counting == crate::runtime::TICK_SIZE {
-            // Use Precise string math to avoid f64 round-trip errors:
-            // `1 / 0.00001 * 0.00001 = 0.99999...` in f64.
-            let div = match crate::precise::string_div(&n_s, &prec_s) {
-                Some(v) => v,
-                None => return Value::Str(n_s),
-            };
-            // Truncate or round to integer
-            let int_part = match rounding_mode {
-                r if r == crate::runtime::ROUND => {
-                    // round-to-even via string_add of 0.5 then trunc.
-                    let half = crate::precise::string_add(&div, "0.5")
-                        .unwrap_or_else(|| div.clone());
-                    half.split('.').next().unwrap_or("0").to_string()
-                }
-                _ => div.split('.').next().unwrap_or("0").to_string(),
-            };
-            let result = match crate::precise::string_mul(&int_part, &prec_s) {
-                Some(v) => v,
-                None => return Value::Str(n_s),
-            };
-            return Value::Str(strip_trailing_zeros(&result));
-        }
-        let prec_int: i64 = match prec_s.parse::<i64>() {
-            Ok(v) => v,
-            Err(_) => match prec_s.parse::<f64>() { Ok(v) => v as i64, Err(_) => return Value::Str(n_s) },
-        };
-        if counting == crate::runtime::SIGNIFICANT_DIGITS {
-            if num == 0.0 || prec_int <= 0 { return Value::Str("0".to_string()); }
-            let order = num.abs().log10().floor() as i64;
-            let dp    = ((prec_int - 1) - order).max(0) as usize;
-            let factor = 10f64.powi(dp as i32);
-            let r = match rounding_mode {
-                r if r == crate::runtime::ROUND => (num * factor).round() / factor,
-                _                                => (num * factor).trunc() / factor,
-            };
-            return Value::Str(format!("{r}"));
-        }
-        // DECIMAL_PLACES (default).
-        let dp = prec_int.max(0) as usize;
-        let factor = 10f64.powi(dp as i32);
-        let r = match rounding_mode {
-            r if r == crate::runtime::ROUND => (num * factor).round() / factor,
-            _                                => (num * factor).trunc() / factor,
-        };
-        Value::Str(if dp > 0 {
-            let s = format!("{:.*}", dp, r);
-            s.trim_end_matches('0').trim_end_matches('.').to_string()
-        } else {
-            format!("{}", r as i64)
-        })
+        Value::Str(decimal_to_precision_impl(&n_s, rounding_mode, prec_f, counting, padding))
     }
 
     pub fn capitalize(&self, s: Value) -> Value {

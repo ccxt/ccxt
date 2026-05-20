@@ -699,8 +699,12 @@ impl Exchange {
         let n = match ts {
             Value::Int(n)   => n,
             Value::Float(f) => f as i64,
+            Value::Str(ref s) => match s.parse::<i64>() { Ok(v) => v, Err(_) => return Value::Null },
             _ => return Value::Null,
         };
+        if n < 0 {
+            return Value::Null;
+        }
         chrono::DateTime::<chrono::Utc>::from_timestamp_millis(n)
             .map(|t| Value::Str(t.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)))
             .unwrap_or(Value::Null)
@@ -1094,7 +1098,7 @@ impl Exchange {
     }
 }
 
-fn value_to_bytes(v: &Value) -> Vec<u8> {
+pub(crate) fn value_to_bytes(v: &Value) -> Vec<u8> {
     match v {
         Value::Str(s) => s.as_bytes().to_vec(),
         Value::Array(a) => a.iter().filter_map(|x| match x {
@@ -1105,7 +1109,7 @@ fn value_to_bytes(v: &Value) -> Vec<u8> {
     }
 }
 
-fn url_pct(s: &str) -> String {
+pub(crate) fn url_pct(s: &str) -> String {
     s.bytes().map(|b| match b {
         b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => (b as char).to_string(),
         _ => format!("%{b:02X}"),
