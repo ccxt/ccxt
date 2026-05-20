@@ -178,6 +178,9 @@ abstract class ascendex extends \ccxt\async\Exchange {
     public function v2_private_accountgroup_get_futures_order_hist_current($params = array()) {
         return $this->request('futures/order/hist/current', array('v2', 'private', 'accountGroup'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2_private_accountgroup_get_futures_funding_payments($params = array()) {
+        return $this->request('futures/funding-payments', array('v2', 'private', 'accountGroup'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_private_accountgroup_get_futures_order_open($params = array()) {
         return $this->request('futures/order/open', array('v2', 'private', 'accountGroup'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -393,6 +396,9 @@ abstract class ascendex extends \ccxt\async\Exchange {
     }
     public function v2PrivateAccountGroupGetFuturesOrderHistCurrent($params = array()) {
         return $this->request('futures/order/hist/current', array('v2', 'private', 'accountGroup'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateAccountGroupGetFuturesFundingPayments($params = array()) {
+        return $this->request('futures/funding-payments', array('v2', 'private', 'accountGroup'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PrivateAccountGroupGetFuturesOrderOpen($params = array()) {
         return $this->request('futures/order/open', array('v2', 'private', 'accountGroup'), 'GET', $params, null, null, array("cost" => 1));

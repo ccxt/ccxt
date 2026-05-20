@@ -1,5 +1,7 @@
 import collections
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Delegate:
     def __init__(self, name, delegated):
@@ -23,6 +25,7 @@ class BaseCache(list):
     __contains__ = Delegate('__contains__', '_deque')
     __reversed__ = Delegate('__reversed__', '_deque')
     clear = Delegate('clear', '_deque')
+    pop = Delegate('pop', '_deque')
 
     def __init__(self, max_size=None):
         super(BaseCache, self).__init__()
@@ -47,10 +50,19 @@ class BaseCache(list):
         else:
             return deque[item]
 
+    # to be overriden
+    def getLimit(self, symbol, limit):
+        pass
+
+    # support transpiled snake_case calls
+    def get_limit(self, symbol, limit):
+        return self.getLimit(symbol, limit)
+
 
 class ArrayCache(BaseCache):
     def __init__(self, max_size=None):
         super(ArrayCache, self).__init__(max_size)
+        self.hashmap = {}
         self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
@@ -142,7 +154,10 @@ class ArrayCacheBySymbolById(ArrayCache):
         if len(self._deque) == self._deque.maxlen:
             delete_item = self._deque.popleft()
             self._index.popleft()
-            del self.hashmap[delete_item['symbol']][delete_item['id']]
+            try:
+                del self.hashmap[delete_item['symbol']][delete_item['id']]
+            except Exception as e:
+                logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
         self._deque.append(item)
         self._index.append(item['id'])
         if self._clear_all_updates:
@@ -159,4 +174,46 @@ class ArrayCacheBySymbolById(ArrayCache):
         before_length = len(id_set)
         id_set.add(item['id'])
         after_length = len(id_set)
+        self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)
+
+
+class ArrayCacheBySymbolBySide(ArrayCache):
+    def __init__(self, max_size=None):
+        super(ArrayCacheBySymbolBySide, self).__init__(max_size)
+        self._nested_new_updates_by_symbol = True
+        self.hashmap = {}
+        self._index = collections.deque([], max_size)
+
+    def append(self, item):
+        by_side = self.hashmap.setdefault(item['symbol'], {})
+        if item['side'] in by_side:
+            reference = by_side[item['side']]
+            if reference != item:
+                reference.update(item)
+            item = reference
+            index = self._index.index(item['symbol'] + item['side'])
+            del self._deque[index]
+            del self._index[index]
+        else:
+            by_side[item['side']] = item
+        if len(self._deque) == self._deque.maxlen:
+            delete_item = self._deque.popleft()
+            self._index.popleft()
+            del self.hashmap[delete_item['symbol']][delete_item['side']]
+        self._deque.append(item)
+        self._index.append(item['symbol'] + item['side'])
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._clear_updates_by_symbol.clear()
+            self._all_new_updates = 0
+            self._new_updates_by_symbol.clear()
+        if item['symbol'] not in self._new_updates_by_symbol:
+            self._new_updates_by_symbol[item['symbol']] = set()
+        if self._clear_updates_by_symbol.get(item['symbol']):
+            self._clear_updates_by_symbol[item['symbol']] = False
+            self._new_updates_by_symbol[item['symbol']].clear()
+        side_set = self._new_updates_by_symbol[item['symbol']]
+        before_length = len(side_set)
+        side_set.add(item['side'])
+        after_length = len(side_set)
         self._all_new_updates = (self._all_new_updates or 0) + (after_length - before_length)

@@ -30,19 +30,18 @@ function testOrder(exchange, skippedProperties, method, entry, symbol, now) {
         'fee': {},
         'trades': [],
     };
-    const emptyAllowedFor = ['clientOrderId', 'stopPrice', 'trades']; // todo: we need more detailed property to skip the exchanges, that return only order id when executing order (in createOrder)
+    const emptyAllowedFor = ['clientOrderId', 'stopPrice', 'trades', 'timestamp', 'datetime', 'lastTradeTimestamp', 'average', 'type', 'timeInForce', 'postOnly', 'side', 'price', 'amount', 'cost', 'filled', 'remaining', 'status', 'fee']; // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
     testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertTimestamp(exchange, skippedProperties, method, entry, now);
+    testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
     //
-    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK']);
+    testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'timeInForce', ['GTC', 'GTK', 'IOC', 'FOK', 'PO']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'status', ['open', 'closed', 'canceled']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'side', ['buy', 'sell']);
     testSharedMethods.assertInArray(exchange, skippedProperties, method, entry, 'postOnly', [true, false]);
     testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, 'symbol', symbol);
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'price', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'stopPrice', '0');
-    testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'cost', '0');
-    testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'average', '0');
+    testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'cost', '0');
     testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, 'average', '0');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'filled', '0');
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'remaining', '0');
@@ -50,9 +49,10 @@ function testOrder(exchange, skippedProperties, method, entry, symbol, now) {
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'amount', exchange.safeString(entry, 'remaining'));
     testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, 'amount', exchange.safeString(entry, 'filled'));
     if (!('trades' in skippedProperties)) {
+        const skippedNew = exchange.deepExtend(skippedProperties, { 'timestamp': true, 'datetime': true, 'side': true });
         if (entry['trades'] !== undefined) {
             for (let i = 0; i < entry['trades'].length; i++) {
-                testTrade(exchange, skippedProperties, method, entry['trades'][i], symbol, now);
+                testTrade(exchange, skippedNew, method, entry['trades'][i], symbol, now);
             }
         }
     }

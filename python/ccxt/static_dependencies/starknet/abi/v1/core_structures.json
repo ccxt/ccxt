@@ -1,0 +1,14 @@
+{
+  "abi": [
+    {
+      "type": "struct",
+      "name": "core::starknet::eth_address::EthAddress",
+      "members": [
+        {
+          "name": "address",
+          "type": "core::felt252"
+        }
+      ]
+    }
+  ]
+}

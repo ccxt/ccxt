@@ -1,0 +1,559 @@
+{
+    "USDC": {
+        "id": "USDC",
+        "name": "USDC",
+        "code": "USDC",
+        "info": {
+            "asset_id": "1",
+            "asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+            "asset_name": "USDC",
+            "status": "ACTIVE",
+            "collateral_weight": "1.0",
+            "supported_networks_enabled": true,
+            "min_borrow_qty": "10",
+            "max_borrow_qty": "500000",
+            "loan_collateral_requirement_multiplier": "1.15",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "BTC": {
+        "id": "BTC",
+        "name": "BTC",
+        "code": "BTC",
+        "info": {
+            "asset_id": "118059611751202816",
+            "asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+            "asset_name": "BTC",
+            "status": "ACTIVE",
+            "collateral_weight": "0.85",
+            "supported_networks_enabled": true,
+            "min_borrow_qty": "0",
+            "max_borrow_qty": "0",
+            "loan_collateral_requirement_multiplier": "1.0",
+            "account_collateral_limit": "10.264",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "name": "ETH",
+        "code": "ETH",
+        "info": {
+            "asset_id": "118059611793145856",
+            "asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+            "asset_name": "ETH",
+            "status": "ACTIVE",
+            "collateral_weight": "0.85",
+            "supported_networks_enabled": true,
+            "min_borrow_qty": "0",
+            "max_borrow_qty": "0",
+            "loan_collateral_requirement_multiplier": "1.0",
+            "account_collateral_limit": "140",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "LTC": {
+        "id": "LTC",
+        "name": "LTC",
+        "code": "LTC",
+        "info": {
+            "asset_id": "207597618027560960",
+            "asset_uuid": "c9c24c6e-c045-5fde-98a2-00ea7f520437",
+            "asset_name": "LTC",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "XRP": {
+        "id": "XRP",
+        "name": "XRP",
+        "code": "XRP",
+        "info": {
+            "asset_id": "207597752345952256",
+            "asset_uuid": "e17a44c8-6ea1-564f-a02c-2a9ca1d8eec4",
+            "asset_name": "XRP",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "SOL": {
+        "id": "SOL",
+        "name": "SOL",
+        "code": "SOL",
+        "info": {
+            "asset_id": "240528042118610944",
+            "asset_uuid": "4f039497-3af8-5bb3-951c-6df9afa9be1c",
+            "asset_name": "SOL",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "AVAX": {
+        "id": "AVAX",
+        "name": "AVAX",
+        "code": "AVAX",
+        "info": {
+            "asset_id": "240528327834599424",
+            "asset_uuid": "9d06e463-b3ba-5abf-9082-8761846b28ab",
+            "asset_name": "AVAX",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "DOGE": {
+        "id": "DOGE",
+        "name": "DOGE",
+        "code": "DOGE",
+        "info": {
+            "asset_id": "252856602632126464",
+            "asset_uuid": "d9a3edfa-1be7-589c-bd20-c034f3830b60",
+            "asset_name": "DOGE",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "LINK": {
+        "id": "LINK",
+        "name": "LINK",
+        "code": "LINK",
+        "info": {
+            "asset_id": "252856824380784640",
+            "asset_uuid": "ea3107c6-416b-5b02-b99f-ded31a0cbdfe",
+            "asset_name": "LINK",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "XLM": {
+        "id": "XLM",
+        "name": "XLM",
+        "code": "XLM",
+        "info": {
+            "asset_id": "252857009521557504",
+            "asset_uuid": "13b83335-5ede-595b-821e-5bcdfa80560f",
+            "asset_name": "XLM",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "ADA": {
+        "id": "ADA",
+        "name": "ADA",
+        "code": "ADA",
+        "info": {
+            "asset_id": "252857260189941760",
+            "asset_uuid": "63062039-7afb-56ff-8e19-5e3215dc404a",
+            "asset_name": "ADA",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "BCH": {
+        "id": "BCH",
+        "name": "BCH",
+        "code": "BCH",
+        "info": {
+            "asset_id": "255405347580149765",
+            "asset_uuid": "45f99e13-b522-57d7-8058-c57bf92fe7a3",
+            "asset_name": "BCH",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "MATIC": {
+        "id": "MATIC",
+        "name": "MATIC",
+        "code": "MATIC",
+        "info": {
+            "asset_id": "255405814024503296",
+            "asset_uuid": "026bcc1e-9163-591c-a709-34dd18b2e7a1",
+            "asset_name": "MATIC",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "ETC": {
+        "id": "ETC",
+        "name": "ETC",
+        "code": "ETC",
+        "info": {
+            "asset_id": "257664568862441472",
+            "asset_uuid": "c16df856-0345-5358-8a70-2a78c804e61f",
+            "asset_name": "ETC",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "OP": {
+        "id": "OP",
+        "name": "OP",
+        "code": "OP",
+        "info": {
+            "asset_id": "257669064879505408",
+            "asset_uuid": "627b8bbb-9908-41be-87a8-1c9c87b6c5e7",
+            "asset_name": "OP",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "ARB": {
+        "id": "ARB",
+        "name": "ARB",
+        "code": "ARB",
+        "info": {
+            "asset_id": "257673123338387459",
+            "asset_uuid": "c2102278-2bbe-49e1-a115-5e83bffbcead",
+            "asset_name": "ARB",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "INJ": {
+        "id": "INJ",
+        "name": "INJ",
+        "code": "INJ",
+        "info": {
+            "asset_id": "273144137505570816",
+            "asset_uuid": "0d150a7d-821e-5ca4-a17e-17f206668ecd",
+            "asset_name": "INJ",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "TIA": {
+        "id": "TIA",
+        "name": "TIA",
+        "code": "TIA",
+        "info": {
+            "asset_id": "273159254586687488",
+            "asset_uuid": "72ed7be3-3583-48df-b756-e6f1b4c940a2",
+            "asset_name": "TIA",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "FIL": {
+        "id": "FIL",
+        "name": "FIL",
+        "code": "FIL",
+        "info": {
+            "asset_id": "277823132364963840",
+            "asset_uuid": "0a5b73d1-a976-5966-b3ff-86be8f9b65d5",
+            "asset_name": "FIL",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "APT": {
+        "id": "APT",
+        "name": "APT",
+        "code": "APT",
+        "info": {
+            "asset_id": "277824677198430208",
+            "asset_uuid": "976e5f1e-e419-4eac-990e-76caf525c6af",
+            "asset_name": "APT",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "SUI": {
+        "id": "SUI",
+        "name": "SUI",
+        "code": "SUI",
+        "info": {
+            "asset_id": "277826056721793024",
+            "asset_uuid": "26417fbc-f542-417a-9596-5a6065b76b78",
+            "asset_name": "SUI",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "NEAR": {
+        "id": "NEAR",
+        "name": "NEAR",
+        "code": "NEAR",
+        "info": {
+            "asset_id": "283222181406572545",
+            "asset_uuid": "979a75c9-9466-5e6b-9545-930a89a3db8f",
+            "asset_name": "NEAR",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "ICP": {
+        "id": "ICP",
+        "name": "ICP",
+        "code": "ICP",
+        "info": {
+            "asset_id": "283224163001303042",
+            "asset_uuid": "8f0fb5e8-9924-50bd-b95c-1d4b88fd20cc",
+            "asset_name": "ICP",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    },
+    "DOT": {
+        "id": "DOT",
+        "name": "DOT",
+        "code": "DOT",
+        "info": {
+            "asset_id": "283233899176263680",
+            "asset_uuid": "ebea861a-c0ae-5323-bbe0-46893a119a39",
+            "asset_name": "DOT",
+            "status": "ACTIVE",
+            "collateral_weight": "0.0",
+            "supported_networks_enabled": false,
+            "loan_collateral_requirement_multiplier": "0.0",
+            "account_collateral_limit": "0",
+            "ecosystem_collateral_limit_breached": false
+        },
+        "active": true,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        }
+    }
+}

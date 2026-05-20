@@ -1,12 +1,20 @@
 'use strict';
 
-var binance = require('./binance.js');
+Object.defineProperty(exports, '__esModule', { value: true });
 
-//  ---------------------------------------------------------------------------
+var binance = require('./binance.js');
+var binanceus$1 = require('../binanceus.js');
+
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceus extends binance {
+class binanceus extends binance["default"] {
     describe() {
-        return this.deepExtend(super.describe(), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new binanceus$1["default"]();
+        const restDescribe = restInstance.describe();
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
             'countries': ['US'],
@@ -18,8 +26,9 @@ class binanceus extends binance {
                         'spot': 'wss://stream.binance.us:9443/ws',
                     },
                     'web': 'https://www.binance.us',
+                    'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
+                    'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
                     'v3': 'https://api.binance.us/api/v3',
                     'v1': 'https://api.binance.us/api/v1',
@@ -29,22 +38,35 @@ class binanceus extends binance {
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
             },
+            'has': {
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrderWs': false,
+                'createStopLossOrderWs': false,
+                'createTakeProfitOrderWs': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsWs': false,
+                'fetchPositionWs': false,
+                'unWatchPositions': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMarkPrice': false,
+                'watchMarkPrices': false,
+                'watchMyLiquidations': false,
+                'watchMyLiquidationsForSymbols': false,
+                'watchPosition': false,
+                'watchPositions': false,
+            },
             'options': {
                 'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
-                'fetchMarkets': ['spot'],
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.0,
-                    'maker': 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                'fetchMarkets': {
+                    'types': ['spot'],
                 },
             },
         });
     }
 }
 
-module.exports = binanceus;
+exports["default"] = binanceus;

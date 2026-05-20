@@ -7,29 +7,32 @@ namespace ccxt\abstract;
 
 
 abstract class indodax extends \ccxt\Exchange {
-    public function public_get_server_time($params = array()) {
-        return $this->request('server_time', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_server_time($params = array()) {
+        return $this->request('api/server_time', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_pairs($params = array()) {
-        return $this->request('pairs', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_pairs($params = array()) {
+        return $this->request('api/pairs', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_price_increments($params = array()) {
-        return $this->request('price_increments', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_price_increments($params = array()) {
+        return $this->request('api/price_increments', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_summaries($params = array()) {
-        return $this->request('summaries', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_summaries($params = array()) {
+        return $this->request('api/summaries', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_ticker_all($params = array()) {
-        return $this->request('ticker_all', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_ticker_pair($params = array()) {
+        return $this->request('api/ticker/{pair}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_pair_ticker($params = array()) {
-        return $this->request('{pair}/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_ticker_all($params = array()) {
+        return $this->request('api/ticker_all', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_pair_trades($params = array()) {
-        return $this->request('{pair}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_trades_pair($params = array()) {
+        return $this->request('api/trades/{pair}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_pair_depth($params = array()) {
-        return $this->request('{pair}/depth', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function public_get_api_depth_pair($params = array()) {
+        return $this->request('api/depth/{pair}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_tradingview_history_v2($params = array()) {
+        return $this->request('tradingview/history_v2', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_post_getinfo($params = array()) {
         return $this->request('getInfo', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -70,29 +73,32 @@ abstract class indodax extends \ccxt\Exchange {
     public function private_post_createvoucher($params = array()) {
         return $this->request('createVoucher', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
-    public function publicGetServerTime($params = array()) {
-        return $this->request('server_time', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiServerTime($params = array()) {
+        return $this->request('api/server_time', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetPairs($params = array()) {
-        return $this->request('pairs', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiPairs($params = array()) {
+        return $this->request('api/pairs', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetPriceIncrements($params = array()) {
-        return $this->request('price_increments', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiPriceIncrements($params = array()) {
+        return $this->request('api/price_increments', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetSummaries($params = array()) {
-        return $this->request('summaries', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiSummaries($params = array()) {
+        return $this->request('api/summaries', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetTickerAll($params = array()) {
-        return $this->request('ticker_all', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiTickerPair($params = array()) {
+        return $this->request('api/ticker/{pair}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetPairTicker($params = array()) {
-        return $this->request('{pair}/ticker', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiTickerAll($params = array()) {
+        return $this->request('api/ticker_all', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetPairTrades($params = array()) {
-        return $this->request('{pair}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiTradesPair($params = array()) {
+        return $this->request('api/trades/{pair}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetPairDepth($params = array()) {
-        return $this->request('{pair}/depth', 'public', 'GET', $params, null, null, array("cost" => 5));
+    public function publicGetApiDepthPair($params = array()) {
+        return $this->request('api/depth/{pair}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetTradingviewHistoryV2($params = array()) {
+        return $this->request('tradingview/history_v2', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privatePostGetInfo($params = array()) {
         return $this->request('getInfo', 'private', 'POST', $params, null, null, array("cost" => 4));

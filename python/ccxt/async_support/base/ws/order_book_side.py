@@ -21,6 +21,9 @@ class OrderBookSide(list):
         for delta in deltas:
             self.storeArray(list(delta))
 
+    def store_array(self, delta):
+        return self.storeArray(delta)
+
     def storeArray(self, delta):
         price = delta[0]
         size = delta[1]
@@ -124,22 +127,30 @@ class IndexedOrderBookSide(OrderBookSide):
                 if index_price == old_price:
                     # just overwrite the old index
                     index = bisect.bisect_left(self._index, index_price)
+                    while self[index][2] != order_id:
+                        index += 1
                     self._index[index] = index_price
                     self[index] = delta
                     return
                 else:
                     # remove old price level
                     old_index = bisect.bisect_left(self._index, old_price)
+                    while self[old_index][2] != order_id:
+                        old_index += 1
                     del self._index[old_index]
                     del self[old_index]
             # insert new price level
             self._hashmap[order_id] = index_price
             index = bisect.bisect_left(self._index, index_price)
+            while index < len (self._index) and self._index[index] == index_price and self[index][2] < order_id:
+                index += 1
             self._index.insert(index, index_price)
             self.insert(index, delta)
         elif order_id in self._hashmap:
             old_price = self._hashmap[order_id]
             index = bisect.bisect_left(self._index, old_price)
+            while self[index][2] != order_id:
+                index += 1
             del self._index[index]
             del self[index]
             del self._hashmap[order_id]

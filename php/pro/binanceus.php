@@ -9,8 +9,13 @@ use Exception; // a common import
 
 class binanceus extends \ccxt\pro\binance {
 
-    public function describe() {
-        return $this->deep_extend(parent::describe(), array(
+    public function describe(): mixed {
+        // eslint-disable-next-line new-cap
+        $restInstance = new \ccxt\async\binanceus ();
+        $restDescribe = $restInstance->describe ();
+        $parentWsDescribe = parent::describe_data();
+        $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
+        return $this->deep_extend($extended, array(
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
@@ -22,8 +27,9 @@ class binanceus extends \ccxt\pro\binance {
                         'spot' => 'wss://stream.binance.us:9443/ws',
                     ),
                     'web' => 'https://www.binance.us',
+                    'sapi' => 'https://api.binance.us/sapi/v1',
                     'wapi' => 'https://api.binance.us/wapi/v3',
-                    'public' => 'https://api.binance.us/api/v1',
+                    'public' => 'https://api.binance.us/api/v3',
                     'private' => 'https://api.binance.us/api/v3',
                     'v3' => 'https://api.binance.us/api/v3',
                     'v1' => 'https://api.binance.us/api/v1',
@@ -33,18 +39,31 @@ class binanceus extends \ccxt\pro\binance {
                 'doc' => 'https://github.com/binance-us/binance-official-api-docs',
                 'fees' => 'https://www.binance.us/en/fee/schedule',
             ),
+            'has' => array(
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createReduceOnlyOrderWs' => false,
+                'createStopLossOrderWs' => false,
+                'createTakeProfitOrderWs' => false,
+                'fetchPositionForSymbolWs' => false,
+                'fetchPositionsForSymbolWs' => false,
+                'fetchPositionsWs' => false,
+                'fetchPositionWs' => false,
+                'unWatchPositions' => false,
+                'watchLiquidations' => false,
+                'watchLiquidationsForSymbols' => false,
+                'watchMarkPrice' => false,
+                'watchMarkPrices' => false,
+                'watchMyLiquidations' => false,
+                'watchMyLiquidationsForSymbols' => false,
+                'watchPosition' => false,
+                'watchPositions' => false,
+            ),
             'options' => array(
                 'fetchCurrencies' => false,
                 'quoteOrderQty' => false,
                 'defaultType' => 'spot',
-                'fetchMarkets' => array( 'spot' ),
-            ),
-            'fees' => array(
-                'trading' => array(
-                    'tierBased' => false,
-                    'percentage' => true,
-                    'taker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker' => 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                'fetchMarkets' => array(
+                    'types' => array( 'spot' ),
                 ),
             ),
         ));

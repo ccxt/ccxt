@@ -1,0 +1,2262 @@
+{
+    "BTC": {
+        "info": {
+            "currency": "btc",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "bep20btcb",
+                    "displayName": "BEP20BTCB",
+                    "fullName": "BTCB",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.000001",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.000001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "17.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.000004",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "btc",
+                    "displayName": "BTC",
+                    "fullName": "Bitcoin",
+                    "isDynamic": true,
+                    "numOfConfirmations": "2",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.0005",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.0001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "100.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00025",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "trc20btc",
+                    "displayName": "TRC20",
+                    "fullName": "TRC20",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.0005",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "60.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "wbtc",
+                    "displayName": "WBTC",
+                    "fullName": "ERC20",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.000097",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.000097",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "90.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "ratio",
+                    "withdrawFeeExpandType": "ratio",
+                    "withdrawFeeExpandData": null,
+                    "minTransactFeeWithdraw": "0.0001",
+                    "transactFeeRateWithdraw": "0.003",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "btc",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.000004,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chain": "bep20btcb",
+                    "displayName": "BEP20BTCB",
+                    "fullName": "BTCB",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.000001",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.000001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "17.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.000004",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "bep20btcb",
+                "network": "BEP20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.000001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.000001,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.000004,
+                "precision": 1e-8
+            },
+            "BTC": {
+                "info": {
+                    "chain": "btc",
+                    "displayName": "BTC",
+                    "fullName": "Bitcoin",
+                    "isDynamic": true,
+                    "numOfConfirmations": "2",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.0005",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.0001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "100.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00025",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "btc",
+                "network": "BTC",
+                "limits": {
+                    "deposit": {
+                        "min": 0.0005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00025,
+                "precision": 1e-8
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "trc20btc",
+                    "displayName": "TRC20",
+                    "fullName": "TRC20",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.0005",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "60.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "trc20btc",
+                "network": "TRC20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.0005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00001,
+                "precision": 1e-8
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "wbtc",
+                    "displayName": "WBTC",
+                    "fullName": "ERC20",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.000097",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.000097",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "90.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "ratio",
+                    "withdrawFeeExpandType": "ratio",
+                    "withdrawFeeExpandData": null,
+                    "minTransactFeeWithdraw": "0.0001",
+                    "transactFeeRateWithdraw": "0.003",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "wbtc",
+                "network": "ERC20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.000097,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.000097,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 1e-8
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.000001,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 0.000001,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "currency": "usdt",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "arc20usdt",
+                    "displayName": "ARBITRUMONE",
+                    "fullName": "Arbitrum One",
+                    "baseChain": "ARB",
+                    "baseChainProtocol": "ARBISCAN_ERC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "2400000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "bep20usdt",
+                    "displayName": "BEP20",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.8",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "cchainusdt",
+                    "displayName": "AVAXCCHAIN",
+                    "fullName": "",
+                    "baseChain": "AVAXCCHAIN",
+                    "baseChainProtocol": "CCHAINERC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "30",
+                    "numOfFastConfirmations": "30",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "4000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.21",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "solusdt",
+                    "displayName": "SOLANA",
+                    "fullName": "Solana",
+                    "baseChain": "SOLANA",
+                    "baseChainProtocol": "SPL",
+                    "isDynamic": true,
+                    "numOfConfirmations": "300",
+                    "numOfFastConfirmations": "100",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "2",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1.6873",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "trc20usdt",
+                    "displayName": "TRC20",
+                    "fullName": "",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "stepfixed",
+                    "withdrawFeeExpandData": {
+                        "type": "stepfixed",
+                        "step-fixed-step-list": [
+                            {
+                                "max": "100",
+                                "fee": "1.2"
+                            },
+                            {
+                                "max": "5000",
+                                "fee": "1.5"
+                            },
+                            {
+                                "max": "10000",
+                                "fee": "2"
+                            },
+                            {
+                                "max": "9223372036854775807",
+                                "fee": "2"
+                            }
+                        ]
+                    },
+                    "transactFeeWithdraw": "2",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "usdterc20",
+                    "displayName": "ERC20",
+                    "fullName": "",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "2.531517",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "usdt",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.21,
+        "fees": {},
+        "networks": {
+            "ARB": {
+                "info": {
+                    "chain": "arc20usdt",
+                    "displayName": "ARBITRUMONE",
+                    "fullName": "Arbitrum One",
+                    "baseChain": "ARB",
+                    "baseChainProtocol": "ARBISCAN_ERC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "2400000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "arc20usdt",
+                "network": "ARB",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 1,
+                "precision": 0.000001
+            },
+            "BEP20": {
+                "info": {
+                    "chain": "bep20usdt",
+                    "displayName": "BEP20",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.8",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "bep20usdt",
+                "network": "BEP20",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.8,
+                "precision": 1e-8
+            },
+            "AVAXCCHAIN": {
+                "info": {
+                    "chain": "cchainusdt",
+                    "displayName": "AVAXCCHAIN",
+                    "fullName": "",
+                    "baseChain": "AVAXCCHAIN",
+                    "baseChainProtocol": "CCHAINERC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "30",
+                    "numOfFastConfirmations": "30",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "4000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.21",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "cchainusdt",
+                "network": "AVAXCCHAIN",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.21,
+                "precision": 0.000001
+            },
+            "SOL": {
+                "info": {
+                    "chain": "solusdt",
+                    "displayName": "SOLANA",
+                    "fullName": "Solana",
+                    "baseChain": "SOLANA",
+                    "baseChainProtocol": "SPL",
+                    "isDynamic": true,
+                    "numOfConfirmations": "300",
+                    "numOfFastConfirmations": "100",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "2",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1.6873",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "solusdt",
+                "network": "SOL",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.6873,
+                "precision": 0.000001
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "trc20usdt",
+                    "displayName": "TRC20",
+                    "fullName": "",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "stepfixed",
+                    "withdrawFeeExpandData": {
+                        "type": "stepfixed",
+                        "step-fixed-step-list": [
+                            {
+                                "max": "100",
+                                "fee": "1.2"
+                            },
+                            {
+                                "max": "5000",
+                                "fee": "1.5"
+                            },
+                            {
+                                "max": "10000",
+                                "fee": "2"
+                            },
+                            {
+                                "max": "9223372036854775807",
+                                "fee": "2"
+                            }
+                        ]
+                    },
+                    "transactFeeWithdraw": "2",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "trc20usdt",
+                "network": "TRC20",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2,
+                "precision": 0.000001
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "usdterc20",
+                    "displayName": "ERC20",
+                    "fullName": "",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "2.531517",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "usdterc20",
+                "network": "ERC20",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2.531517,
+                "precision": 0.000001
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 1,
+                "max": null
+            }
+        }
+    },
+    "EUR": {
+        "info": {
+            "currency": "eur",
+            "assetType": "2",
+            "chains": [
+                {
+                    "chain": "eur",
+                    "displayName": "EUR",
+                    "fullName": "Euro",
+                    "isDynamic": false,
+                    "numOfConfirmations": "999",
+                    "numOfFastConfirmations": "999",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "10",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "10",
+                    "withdrawPrecision": "2",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "0.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "999",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "eur",
+        "numericId": null,
+        "code": "EUR",
+        "precision": 0.01,
+        "type": "fiat",
+        "name": null,
+        "active": true,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 999,
+        "fees": {},
+        "networks": {
+            "EUR": {
+                "info": {
+                    "chain": "eur",
+                    "displayName": "EUR",
+                    "fullName": "Euro",
+                    "isDynamic": false,
+                    "numOfConfirmations": "999",
+                    "numOfFastConfirmations": "999",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "10",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "10",
+                    "withdrawPrecision": "2",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "0.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "999",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "eur",
+                "network": "EUR",
+                "limits": {
+                    "deposit": {
+                        "min": 10,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 999,
+                "precision": 0.01
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 10,
+                "max": null
+            }
+        }
+    },
+    "INR": {
+        "info": {
+            "currency": "inr",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "inery",
+                    "displayName": "BEP20",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "4.5",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "4.5",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "4545000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "37.6358347",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "inr",
+        "numericId": null,
+        "code": "INR",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": false,
+        "withdraw": true,
+        "fee": 37.6358347,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chain": "inery",
+                    "displayName": "BEP20",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "4.5",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "4.5",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "4545000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "37.6358347",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "inery",
+                "network": "BEP20",
+                "limits": {
+                    "deposit": {
+                        "min": 4.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 4.5,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": true,
+                "fee": 37.6358347,
+                "precision": 1e-8
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 4.5,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 4.5,
+                "max": null
+            }
+        }
+    },
+    "LTC": {
+        "info": {
+            "currency": "ltc",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "hltc",
+                    "displayName": "ERC20",
+                    "fullName": "HLTC",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.01",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.01",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "15000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.08018072",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "ltc",
+                    "displayName": "LTC",
+                    "fullName": "Litecoin",
+                    "isDynamic": false,
+                    "numOfConfirmations": "6",
+                    "numOfFastConfirmations": "3",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.001",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.1",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "5000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "ltc",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.001,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "chain": "hltc",
+                    "displayName": "ERC20",
+                    "fullName": "HLTC",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.01",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.01",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "15000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.08018072",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "hltc",
+                "network": "ERC20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.08018072,
+                "precision": 1e-8
+            },
+            "LTC": {
+                "info": {
+                    "chain": "ltc",
+                    "displayName": "LTC",
+                    "fullName": "Litecoin",
+                    "isDynamic": false,
+                    "numOfConfirmations": "6",
+                    "numOfFastConfirmations": "3",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.001",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.1",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "5000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "ltc",
+                "network": "LTC",
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.001,
+                "precision": 1e-8
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.01,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 0.001,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "currency": "eth",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "arbieth",
+                    "displayName": "ARBIETH",
+                    "fullName": "Arbitrum One",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.005",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "80.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00102",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "baseeth",
+                    "displayName": "BASEETH",
+                    "fullName": "",
+                    "isDynamic": false,
+                    "numOfConfirmations": "400",
+                    "numOfFastConfirmations": "200",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.005",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1670.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "bep20eth",
+                    "displayName": "BEP20ETH",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "0.0005",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.0005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "550.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00012",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "btt2eth",
+                    "displayName": "BTT2ETH",
+                    "fullName": "",
+                    "baseChain": "BTT",
+                    "baseChainProtocol": "BTTRC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "0.0003",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.0003",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "590.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.000036",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "eth",
+                    "displayName": "ETH",
+                    "fullName": "Ethereum",
+                    "isDynamic": false,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.01",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "2000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.0021",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "opteth",
+                    "displayName": "OPTETH",
+                    "fullName": "",
+                    "isDynamic": false,
+                    "numOfConfirmations": "400",
+                    "numOfFastConfirmations": "200",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.005",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "250.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "trc20eth",
+                    "displayName": "TRC20",
+                    "fullName": "",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.00019",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.00019",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "9999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "9999999999.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.0001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "eth",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.000036,
+        "fees": {},
+        "networks": {
+            "ARBIETH": {
+                "info": {
+                    "chain": "arbieth",
+                    "displayName": "ARBIETH",
+                    "fullName": "Arbitrum One",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.005",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "80.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00102",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "arbieth",
+                "network": "ARBIETH",
+                "limits": {
+                    "deposit": {
+                        "min": 0.005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.005,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00102,
+                "precision": 1e-8
+            },
+            "BASEETH": {
+                "info": {
+                    "chain": "baseeth",
+                    "displayName": "BASEETH",
+                    "fullName": "",
+                    "isDynamic": false,
+                    "numOfConfirmations": "400",
+                    "numOfFastConfirmations": "200",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.005",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1670.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "baseeth",
+                "network": "BASEETH",
+                "limits": {
+                    "deposit": {
+                        "min": 0.005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.005,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            },
+            "BEP20": {
+                "info": {
+                    "chain": "bep20eth",
+                    "displayName": "BEP20ETH",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "0.0005",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.0005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "550.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.00012",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "bep20eth",
+                "network": "BEP20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.0005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0005,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.00012,
+                "precision": 1e-8
+            },
+            "BTT": {
+                "info": {
+                    "chain": "btt2eth",
+                    "displayName": "BTT2ETH",
+                    "fullName": "",
+                    "baseChain": "BTT",
+                    "baseChainProtocol": "BTTRC20",
+                    "isDynamic": false,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "prohibited",
+                    "minDepositAmt": "0.0003",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.0003",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "590.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.000036",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "btt2eth",
+                "network": "BTT",
+                "limits": {
+                    "deposit": {
+                        "min": 0.0003,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0003,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.000036,
+                "precision": 1e-8
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "eth",
+                    "displayName": "ETH",
+                    "fullName": "Ethereum",
+                    "isDynamic": false,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.01",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.001",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "2000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.0021",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "eth",
+                "network": "ERC20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.01,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0021,
+                "precision": 1e-8
+            },
+            "OPTETH": {
+                "info": {
+                    "chain": "opteth",
+                    "displayName": "OPTETH",
+                    "fullName": "",
+                    "isDynamic": false,
+                    "numOfConfirmations": "400",
+                    "numOfFastConfirmations": "200",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.005",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.005",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "250.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "opteth",
+                "network": "OPTETH",
+                "limits": {
+                    "deposit": {
+                        "min": 0.005,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.005,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.001,
+                "precision": 1e-8
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "trc20eth",
+                    "displayName": "TRC20",
+                    "fullName": "",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.00019",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.00019",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "9999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "9999999999.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.0001",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "trc20eth",
+                "network": "TRC20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.00019,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.00019,
+                        "max": 9999999999
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.0001,
+                "precision": 1e-8
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00019,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 0.00019,
+                "max": null
+            }
+        }
+    },
+    "ADA": {
+        "info": {
+            "currency": "ada",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "ada",
+                    "displayName": "ADA",
+                    "fullName": "Cardano",
+                    "isDynamic": false,
+                    "numOfConfirmations": "15",
+                    "numOfFastConfirmations": "15",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "10",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "20",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "10000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "ada",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "fees": {},
+        "networks": {
+            "ADA": {
+                "info": {
+                    "chain": "ada",
+                    "displayName": "ADA",
+                    "fullName": "Cardano",
+                    "isDynamic": false,
+                    "numOfConfirmations": "15",
+                    "numOfFastConfirmations": "15",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "10",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "20",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "10000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "ada",
+                "network": "ADA",
+                "limits": {
+                    "deposit": {
+                        "min": 10,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 20,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 20,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 10,
+                "max": null
+            }
+        }
+    },
+    "XRP": {
+        "info": {
+            "currency": "xrp",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "xrp",
+                    "displayName": "XRP",
+                    "fullName": "Ripple XRP",
+                    "isDynamic": false,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.5",
+                    "withdrawPrecision": "4",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "4000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.25",
+                    "addrWithTag": true,
+                    "addrDepositTag": true
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "xrp",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.0001,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.25,
+        "fees": {},
+        "networks": {
+            "XRP": {
+                "info": {
+                    "chain": "xrp",
+                    "displayName": "XRP",
+                    "fullName": "Ripple XRP",
+                    "isDynamic": false,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "0.5",
+                    "withdrawPrecision": "4",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "4000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.25",
+                    "addrWithTag": true,
+                    "addrDepositTag": true
+                },
+                "id": "xrp",
+                "network": "XRP",
+                "limits": {
+                    "deposit": {
+                        "min": 0.1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.5,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.25,
+                "precision": 0.0001
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.5,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 0.1,
+                "max": null
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "currency": "usdc",
+            "assetType": "1",
+            "chains": [
+                {
+                    "chain": "bep20usdc",
+                    "displayName": "BEP20USDC",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.43455221",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "optusdc1",
+                    "displayName": "OPTUSDC1",
+                    "fullName": "",
+                    "baseChain": "OPTIMISM",
+                    "baseChainProtocol": "OPTERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.5",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.5",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "999000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "26.684",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "solusdc",
+                    "displayName": "SOLUSDC",
+                    "fullName": "Solana",
+                    "baseChain": "SOLANA",
+                    "baseChainProtocol": "SPL",
+                    "isDynamic": true,
+                    "numOfConfirmations": "300",
+                    "numOfFastConfirmations": "100",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "2",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1.6881",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "trc20usdc1",
+                    "displayName": "TRC20",
+                    "fullName": "",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.5",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.5",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "999000.000000000000000000",
+                    "withdrawQuotaPerDay": "999000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.5002",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                {
+                    "chain": "usdc",
+                    "displayName": "ERC20",
+                    "fullName": "ERC20",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "2",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "600000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "2.532418",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                }
+            ],
+            "instStatus": "normal"
+        },
+        "id": "usdc",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.43455221,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chain": "bep20usdc",
+                    "displayName": "BEP20USDC",
+                    "fullName": "",
+                    "baseChain": "BSC",
+                    "baseChainProtocol": "bep20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "120",
+                    "numOfFastConfirmations": "60",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "1",
+                    "withdrawPrecision": "8",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.43455221",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "bep20usdc",
+                "network": "BEP20",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 1,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.43455221,
+                "precision": 1e-8
+            },
+            "OPTIMISM": {
+                "info": {
+                    "chain": "optusdc1",
+                    "displayName": "OPTUSDC1",
+                    "fullName": "",
+                    "baseChain": "OPTIMISM",
+                    "baseChainProtocol": "OPTERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.5",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.5",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "999000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "26.684",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "optusdc1",
+                "network": "OPTIMISM",
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.5,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 26.684,
+                "precision": 0.000001
+            },
+            "SOL": {
+                "info": {
+                    "chain": "solusdc",
+                    "displayName": "SOLUSDC",
+                    "fullName": "Solana",
+                    "baseChain": "SOLANA",
+                    "baseChainProtocol": "SPL",
+                    "isDynamic": true,
+                    "numOfConfirmations": "300",
+                    "numOfFastConfirmations": "100",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "2",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "1000000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "1.6881",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "solusdc",
+                "network": "SOL",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.6881,
+                "precision": 0.000001
+            },
+            "TRC20": {
+                "info": {
+                    "chain": "trc20usdc1",
+                    "displayName": "TRC20",
+                    "fullName": "",
+                    "baseChain": "TRX",
+                    "baseChainProtocol": "TRC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "1",
+                    "numOfFastConfirmations": "1",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "0.5",
+                    "withdrawStatus": "prohibited",
+                    "minWithdrawAmt": "0.5",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "999000.000000000000000000",
+                    "withdrawQuotaPerDay": "999000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "0.5002",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "trc20usdc1",
+                "network": "TRC20",
+                "limits": {
+                    "deposit": {
+                        "min": 0.5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.5,
+                        "max": 999000
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.5002,
+                "precision": 0.000001
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "usdc",
+                    "displayName": "ERC20",
+                    "fullName": "ERC20",
+                    "baseChain": "ETH",
+                    "baseChainProtocol": "ERC20",
+                    "isDynamic": true,
+                    "numOfConfirmations": "64",
+                    "numOfFastConfirmations": "6",
+                    "depositStatus": "allowed",
+                    "minDepositAmt": "1",
+                    "withdrawStatus": "allowed",
+                    "minWithdrawAmt": "2",
+                    "withdrawPrecision": "6",
+                    "maxWithdrawAmt": "99999999999999999.000000000000000000",
+                    "withdrawQuotaPerDay": "600000.000000000000000000",
+                    "withdrawQuotaPerYear": null,
+                    "withdrawQuotaTotal": null,
+                    "withdrawFeeType": "fixed",
+                    "withdrawFeeExpandType": "fixed",
+                    "withdrawFeeExpandData": null,
+                    "transactFeeWithdraw": "2.532418",
+                    "addrWithTag": false,
+                    "addrDepositTag": false
+                },
+                "id": "usdc",
+                "network": "ERC20",
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 100000000000000000
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2.532418,
+                "precision": 0.000001
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.5,
+                "max": 100000000000000000
+            },
+            "deposit": {
+                "min": 0.5,
+                "max": null
+            }
+        }
+    }
+}
