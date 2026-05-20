@@ -28,7 +28,6 @@ import type {
     Int,
     Market,
     Num,
-    OHLCV,
     Order,
     OrderBook,
     OrderSide,
@@ -108,7 +107,7 @@ export default class zex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'sandbox': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': true,
@@ -117,8 +116,14 @@ export default class zex extends Exchange {
             'timeframes': {},
             'hostname': 'zex.finance',
             'urls': {
-                'logo': '',
+                'logo': 'https://zex.finance/images/navbar/logo.svg',
+                // mainnet not launched yet — testnet is the current production environment.
+                // when mainnet ships, move the testnet URLs under 'test' and add the mainnet URLs under 'api'.
                 'api': {
+                    'public': 'https://api-testnet.zex.finance/v1',
+                    'private': 'https://api-testnet.zex.finance/v1',
+                },
+                'test': {
                     'public': 'https://api-testnet.zex.finance/v1',
                     'private': 'https://api-testnet.zex.finance/v1',
                 },
@@ -134,7 +139,6 @@ export default class zex extends Exchange {
                         'time': 1,
                         'exchangeInfo': 1,
                         'depth': 1,
-                        'klines': 1,
                         'ticker/price': 1,
                         'ticker': 1,
                         'withdraw/fee': 1,
@@ -741,57 +745,6 @@ export default class zex extends Exchange {
             },
             market
         );
-    }
-
-    /**
-     * @method
-     * @name zex#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.zex.finance/
-     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-     * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-    // await this.loadMarkets ();
-    // const market = this.market (symbol);
-    // const request: Dict = {
-    //     'symbol': market['id'],
-    //     'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
-    // };
-    // if (since !== undefined) {
-    //     request['startTime'] = since;
-    // }
-    // if (limit !== undefined) {
-    //     request['limit'] = limit;
-    // }
-    // const until = this.safeInteger (params, 'until');
-    // if (until !== undefined) {
-    //     request['endTime'] = until;
-    // }
-    // const response = await this.publicGetKlines (this.extend (request, this.omit (params, 'until')));
-    // return this.parseOHLCVs (response, market, timeframe, since, limit);
-        throw new Error ('Not implemented yet');
-    }
-
-    /**
-     * @ignore
-     * @method
-     * @description parse a single OHLCV candle
-     */
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
-        ];
     }
 
     /**
