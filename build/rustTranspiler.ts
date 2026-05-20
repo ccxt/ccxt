@@ -2533,6 +2533,7 @@ class RustTranspilerBuilder {
             'fetch_premium_index_ohlcv', 'fetch_mark_price_ohlcv',
             'fetch_position', 'fetch_positions', 'fetch_position_mode',
             'fetch_position_adl_rank', 'fetch_positions_adl_rank',
+            'fetch_position_history', 'fetch_positions_history',
             'fetch_leverage', 'fetch_leverages', 'fetch_leverage_tiers',
             'fetch_deposit', 'fetch_deposits', 'fetch_withdrawal', 'fetch_withdrawals',
             'fetch_deposit_address', 'fetch_deposit_addresses',
@@ -2702,6 +2703,7 @@ class RustTranspilerBuilder {
             parse_income:               ['info', 'market'],
             parse_greeks:               ['greeks', 'market'],
             parse_margin_mode:          ['margin_mode', 'market'],
+            create_expired_option_market: ['symbol'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };
