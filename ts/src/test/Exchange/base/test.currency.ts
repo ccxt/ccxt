@@ -3,10 +3,33 @@ import { Currency, Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) {
-    const format = {
+    const sharedFormat = {
+        'info': {},
         'id': 'btc', // string literal for referencing within an exchange
-        'code': 'BTC', // uppercase string literal of a pair of currencies
+        'withdraw': true, // withdraw enabled
+        'deposit': true, // deposit enabled
+        'precision': exchange.parseNumber ('0.0001'), // would be integer in case of SIGNIFICANT_DIGITS
+        'fee': exchange.parseNumber ('0.001'),
+        'limits': {
+            'withdraw': {
+                'min': exchange.parseNumber ('0.01'),
+                'max': exchange.parseNumber ('1000'),
+            },
+            'deposit': {
+                'min': exchange.parseNumber ('0.01'),
+                'max': exchange.parseNumber ('1000'),
+            },
+        },
     };
+    const currencyFormat = exchange.deepExtend (sharedFormat, {
+        'code': 'BTC', // uppercase string literal of a currency
+        'name': 'Bitcoin', // uppercase string, base currency
+        'active': true, // if deposit/withdraw enabled
+        'networks': {},
+    });
+    const networkFormat = exchange.deepExtend (sharedFormat, {
+        'network': 'BEP20', // can be either uppercase unified code or lowercase network id
+    });
     // todo: remove fee from empty
     const emptyAllowedFor = [ 'name', 'fee' ];
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
