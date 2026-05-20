@@ -115,6 +115,17 @@ async fn main() -> ExitCode {
         let root = repo_root();
         let dir  = root.join("ts/src/test/static").join(kind);
 
+        // Methods that build a request and then *parse* a canned
+        // response (`fetchDepositAddress`, `fetchFundingInterval`, …)
+        // panic during the parse step — but the request was already
+        // captured, so the request test still passes. Those panics are
+        // caught via `catch_unwind` in `registry::dispatch`; silence the
+        // default panic hook so they don't spam stderr. `--verbose`
+        // keeps the hook for debugging.
+        if !args.verbose {
+            std::panic::set_hook(Box::new(|_| {}));
+        }
+
         let targets: Vec<String> = match &args.exchange {
             Some(name) => vec![name.clone()],
             None => match list_fixtures(&dir) {
