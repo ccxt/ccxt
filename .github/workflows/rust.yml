@@ -16,14 +16,17 @@ jobs:
         with:
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 2
+      - uses: actions/checkout@v4
+        if: github.ref != 'refs/heads/master'
+        with:
+          fetch-depth: 2
       - uses: taiki-e/cache-cargo-install-action@v3
         with:
           tool: cargo-hack
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
-        run: npm i # tmp why ci isn't working?
-        # run: npm ci --include=dev
+        run: npm ci --include=dev
       - name: Determine modified files
         run: ./utils/init_actions.sh
       - name: Check tsc version
