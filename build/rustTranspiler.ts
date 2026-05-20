@@ -1417,6 +1417,45 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    /// Paren-balanced walker. Renames `Precise::stringDiv(a, b, prec)`
+    /// (three args — explicit precision) to `Precise::stringDivPrec(...)`
+    /// so the precision argument survives `dropExtraPreciseArgs`. The
+    /// two-arg form is left untouched.
+    renamePreciseStringDivPrec(content: string): string {
+        const marker = 'crate::precise::Precise::stringDiv(';
+        let i = 0;
+        let out = '';
+        while (i < content.length) {
+            const idx = content.indexOf(marker, i);
+            if (idx < 0) { out += content.slice(i); break; }
+            out += content.slice(i, idx);
+            const callStart = idx + marker.length;
+            let depth = 1, j = callStart, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\') { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(idx); break; }
+            const inside = content.slice(callStart, j);
+            const args = this.splitArgs(inside) ?? [];
+            if (args.length >= 3) {
+                out += `crate::precise::Precise::stringDivPrec(${inside})`;
+            } else {
+                out += `crate::precise::Precise::stringDiv(${inside})`;
+            }
+            i = j + 1;
+        }
+        return out;
+    }
+
     /**
      * Walks `add_element_to_object(...)` statements (paren-balanced).
      * When the first arg includes `&mut X` (directly or via `get_value_mut`)
@@ -3246,6 +3285,11 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.unwrapCatchUnwind(content);
                 content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
                 content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
+                // `Precise::stringDiv(a, b, precision)` (3 args) →
+                // `Precise::stringDivPrec(...)` so the precision arg
+                // survives `dropExtraPreciseArgs` (which would otherwise
+                // truncate `stringDiv` to its 2-arg form).
+                content = this.renamePreciseStringDivPrec(content);
                 content = this.dropExtraPreciseArgs(content);
                 content = this.wrapVariadicCalls(content, this.handWrittenVariadics());
                 content = this.autoCloneCallArgs(content);
