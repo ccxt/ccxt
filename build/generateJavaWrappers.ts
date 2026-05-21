@@ -245,10 +245,22 @@ function genMethod(m: MethodInfo, castToObject = false): string {
 
     const lines: string[] = [];
 
-    // Full sync method with all params
+    // Full sync method with all params.
+    //
+    // Uses Helpers.joinUnwrapped() instead of raw .join() so that ccxt errors
+    // surface as their idiomatic typed exception (AuthenticationError,
+    // NetworkError, InsufficientFunds, …) rather than wrapped in a
+    // CompletionException. Users can write:
+    //
+    //     try { Order o = binance.createOrder(...); }
+    //     catch (InsufficientFunds e) { ... }
+    //     catch (AuthenticationError e) { ... }
+    //     catch (NetworkError e) { ... }
+    //
+    // — same shape as JDK exceptions, no .getCause() unwrap needed.
     lines.push(`    @SuppressWarnings("unchecked")`);
     lines.push(`    public ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
-    lines.push(`        Object res = ${delegateCall}.join();`);
+    lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
     lines.push(`        return ${genReturnExpr(m)};`);
     lines.push(`    }`);
 
@@ -332,6 +344,7 @@ function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[]): 
     // Header
     lines.push(`package io.github.ccxt.exchanges;`);
     lines.push(``);
+    lines.push(`import io.github.ccxt.Helpers;`);
     lines.push(`import io.github.ccxt.types.*;`);
     lines.push(``);
     lines.push(`import java.util.List;`);
@@ -407,6 +420,7 @@ function generateTypedWsClass(exchangeId: string, watchMethods: MethodInfo[]): s
 
     lines.push(`package io.github.ccxt.exchanges.pro;`);
     lines.push(``);
+    lines.push(`import io.github.ccxt.Helpers;`);
     lines.push(`import io.github.ccxt.types.*;`);
     lines.push(``);
     lines.push(`import java.util.List;`);

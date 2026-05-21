@@ -7598,21 +7598,50 @@ try {
 #### **Java**
 ```java
 import io.github.ccxt.errors.*;
-import java.util.concurrent.CompletionException;
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
 
+// CCXT's typed sync wrappers unwrap CompletionException for you, so users
+// write idiomatic Java try/catch with multiple typed catch blocks in
+// most-specific → least-specific order — same shape as catching
+// ArrayIndexOutOfBoundsException, IOException, etc.
+Binance exchange = new Binance();
 try {
     Ticker ticker = exchange.fetchTicker("ETH/BTC");
-    System.out.println(ticker.last);
-} catch (CompletionException e) {
-    Throwable cause = e.getCause();
-    if (cause instanceof NetworkError) {
-        System.out.println("Network error: " + cause.getMessage());
-    } else if (cause instanceof ExchangeError) {
-        System.out.println("Exchange error: " + cause.getMessage());
-    } else {
-        System.out.println("Error: " + cause.getMessage());
-    }
+    System.out.println(ticker.last());
+} catch (RateLimitExceeded e) {           // back off, retry later
+    System.out.println("Rate limited: " + e.getMessage());
+} catch (NetworkError e) {                // transient: DDoSProtection, RequestTimeout, ExchangeNotAvailable
+    System.out.println("Network error: " + e.getMessage());
+} catch (AuthenticationError e) {         // refresh creds
+    System.out.println("Auth failed: " + e.getMessage());
+} catch (ExchangeError e) {               // exchange-side issue (don't retry blindly)
+    System.out.println("Exchange error: " + e.getMessage());
+} catch (BaseError e) {                   // ccxt catch-all
+    System.out.println("CCXT error: " + e.getMessage());
 }
+```
+
+For async pipelines (`fetchTickerAsync`, etc.), `CompletableFuture` wraps
+thrown errors in `CompletionException`. Use `Helpers.unwrap()` inside
+`.exceptionally(...)` to peel the wrapper and pattern-match the underlying
+ccxt error:
+
+```java
+import io.github.ccxt.Helpers;
+
+exchange.fetchTickerAsync("ETH/BTC")
+    .thenAccept(t -> System.out.println(t.last()))
+    .exceptionally(throwable -> {
+        Throwable cause = Helpers.unwrap(throwable);
+        return switch (cause) {
+            case RateLimitExceeded e   -> { System.out.println("rate-limited"); yield null; }
+            case NetworkError e        -> { System.out.println("network"); yield null; }
+            case AuthenticationError e -> { System.out.println("auth"); yield null; }
+            case ExchangeError e       -> { System.out.println("exchange"); yield null; }
+            default -> throw new java.util.concurrent.CompletionException(cause);
+        };
+    });
 ```
 <!-- tabs:end -->
 

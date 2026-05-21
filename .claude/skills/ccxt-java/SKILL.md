@@ -466,39 +466,82 @@ BaseError
 ```
 
 ### Basic Error Handling
+
+Typed sync methods (`fetchTicker`, `createOrder`, `fetchBalance`, etc.) unwrap
+`CompletionException` internally and rethrow the underlying typed ccxt error,
+so users write idiomatic Java `try`/`catch` with multiple typed `catch` blocks
+in **most-specific → least-specific** order — same shape as catching
+`ArrayIndexOutOfBoundsException` / `IOException` from the JDK:
+
 ```java
 import io.github.ccxt.errors.*;
-import java.util.concurrent.CompletionException;
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
 
+Binance exchange = new Binance();
 try {
     Ticker ticker = exchange.fetchTicker("BTC/USDT");
-} catch (CompletionException e) {
-    Throwable cause = e.getCause();
-    if (cause instanceof NetworkError) {
-        System.out.println("Network error - retry: " + cause.getMessage());
-    } else if (cause instanceof ExchangeError) {
-        System.out.println("Exchange error - do not retry: " + cause.getMessage());
-    }
+} catch (NetworkError e) {
+    System.out.println("Network error - retry: " + e.getMessage());
+} catch (ExchangeError e) {
+    System.out.println("Exchange error - do not retry: " + e.getMessage());
 }
 ```
 
-Note: Typed sync methods wrap the `CompletableFuture.join()` call, so exceptions are wrapped in `CompletionException`. Unwrap with `.getCause()`.
+No `CompletionException` boilerplate, no `.getCause()` unwrap needed.
 
 ### Specific Exception Handling
+
+Multi-catch and ordering work exactly as JDK conventions expect:
+
 ```java
 try {
     Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.01, 50000.0, null);
-} catch (CompletionException e) {
-    Throwable cause = e.getCause();
-    if (cause instanceof InsufficientFunds) {
-        System.out.println("Not enough balance");
-    } else if (cause instanceof InvalidOrder) {
-        System.out.println("Invalid order parameters");
-    } else if (cause instanceof AuthenticationError) {
-        System.out.println("Check your API credentials");
-    }
+} catch (InsufficientFunds e) {
+    System.out.println("Not enough balance: " + e.getMessage());
+} catch (InvalidOrder e) {                                  // covers OrderNotFound, DuplicateOrderId, etc.
+    System.out.println("Invalid order params: " + e.getMessage());
+} catch (AuthenticationError e) {
+    System.out.println("Check your API credentials: " + e.getMessage());
+} catch (RateLimitExceeded | DDoSProtection e) {             // multi-catch — same handler for both
+    Thread.sleep(30_000);
+} catch (NetworkError e) {                                   // any other transient: RequestTimeout, ExchangeNotAvailable
+    Thread.sleep(2_000);
+} catch (ExchangeError e) {                                  // any other exchange-side error
+    System.out.println("Exchange refused: " + e.getMessage());
+} catch (BaseError e) {                                      // ccxt catch-all (rare)
+    System.out.println("CCXT error: " + e.getMessage());
 }
 ```
+
+### Async Error Handling
+
+For async methods (`fetchTickerAsync`, `createOrderAsync`, …), the returned
+`CompletableFuture` wraps exceptions in `CompletionException`. Use the
+`Helpers.unwrap()` helper inside `.exceptionally(...)` to peel the wrapper
+and pattern-match the underlying ccxt error:
+
+```java
+import io.github.ccxt.Helpers;
+
+exchange.fetchTickerAsync("BTC/USDT")
+    .thenAccept(t -> System.out.println(t.last()))
+    .exceptionally(throwable -> {
+        Throwable cause = Helpers.unwrap(throwable);          // peels CompletionException
+        return switch (cause) {                                // pattern-matching switch (Java 21+)
+            case RateLimitExceeded e   -> { backoff(); yield null; }
+            case NetworkError e        -> { retry(); yield null; }
+            case AuthenticationError e -> { refreshCredentials(); yield null; }
+            case ExchangeError e       -> { logExchangeError(e); yield null; }
+            case BaseError e           -> { logCcxtError(e); yield null; }
+            default -> throw new java.util.concurrent.CompletionException(cause);
+        };
+    });
+```
+
+If you'd rather block and use the sync exception style, you can also do
+`Helpers.joinUnwrapped(future)` instead of calling `.join()` directly — that's
+the same helper the typed sync wrappers use internally.
 
 ## Rate Limiting
 

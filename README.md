@@ -758,6 +758,64 @@ CompletableFuture.allOf(btc, eth).join();
 System.out.println("BTC: " + btc.get().last + " ETH: " + eth.get().last);
 ```
 
+#### Error handling
+
+Typed sync methods throw the underlying ccxt error directly — no `CompletionException`
+unwrap needed. Catch exceptions in standard JDK order (most-specific first), like you
+would with any other Java library:
+
+```Java
+import io.github.ccxt.errors.*;
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Order;
+
+Binance binance = new Binance(Map.of("apiKey", "...", "secret", "..."));
+try {
+    Order order = binance.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0);
+} catch (InsufficientFunds e) {
+    // user error — show balance, don't retry
+} catch (InvalidOrder e) {                        // covers OrderNotFound, DuplicateOrderId, …
+    // user error — fix params
+} catch (AuthenticationError e) {                 // covers PermissionDenied, AccountSuspended
+    // refresh credentials
+} catch (RateLimitExceeded | DDoSProtection e) {  // multi-catch (Java 7+)
+    Thread.sleep(30_000);
+} catch (NetworkError e) {                        // RequestTimeout, ExchangeNotAvailable, …
+    Thread.sleep(2_000);                          // transient — retry
+} catch (ExchangeError e) {                       // any other exchange-side error
+    // exchange refused
+} catch (BaseError e) {                           // ccxt catch-all
+    // unknown ccxt error
+}
+```
+
+For async methods, `CompletableFuture` wraps thrown errors in `CompletionException`
+(JDK behaviour). Use `Helpers.unwrap()` inside `.exceptionally(...)` to peel the wrap
+and pattern-match the real cause:
+
+```Java
+import io.github.ccxt.Helpers;
+
+binance.createOrderAsync("BTC/USDT", "limit", "buy", 0.001, 50000.0)
+    .thenAccept(order -> log.info("placed " + order.id))
+    .exceptionally(throwable -> {
+        Throwable cause = Helpers.unwrap(throwable);
+        return switch (cause) {
+            case InsufficientFunds    e -> { notifyUser(e); yield null; }
+            case AuthenticationError  e -> { refreshCreds(); yield null; }
+            case RateLimitExceeded    e -> { scheduleRetry(); yield null; }
+            case NetworkError         e -> { scheduleRetry(); yield null; }
+            case BaseError            e -> { log.error("ccxt", e); yield null; }
+            default -> throw new java.util.concurrent.CompletionException(cause);
+        };
+    });
+```
+
+The full hierarchy lives under `io.github.ccxt.errors` — see the [Error Handling
+section of the Manual](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
+for the complete tree (NetworkError vs ExchangeError, retry-safe vs user-error
+categories, etc.).
+
 #### WebSocket
 
 WebSocket support is available via the pro exchange classes:

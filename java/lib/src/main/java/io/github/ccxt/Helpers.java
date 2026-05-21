@@ -22,6 +22,87 @@ public class Helpers {
 
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    /**
+     * Block on a CompletableFuture and rethrow any wrapped ccxt error directly.
+     *
+     * <p>{@code CompletableFuture.join()} always wraps thrown exceptions in
+     * {@link CompletionException}, which forces callers to catch the wrapper
+     * and unwrap via {@code .getCause()} to discover what actually went wrong.
+     * For ccxt's typed sync API we want idiomatic Java exception handling:
+     *
+     * <pre>{@code
+     * try {
+     *     Order order = binance.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0);
+     * } catch (InsufficientFunds e)     { ... }
+     * catch (AuthenticationError e)     { ... }
+     * catch (RateLimitExceeded e)       { ... }
+     * catch (NetworkError e)            { ... }
+     * catch (ExchangeError e)           { ... }
+     * }</pre>
+     *
+     * <p>This helper unwraps the {@link CompletionException} once and rethrows
+     * the underlying cause. If a transpile-generated {@code spawn()} lambda
+     * wrapped the original ccxt error in a plain {@link RuntimeException} as
+     * a checked-exception bridge, this peels that bridge too so the user sees
+     * the original typed exception (preserving class, message, stack trace,
+     * and any subclass-specific fields).
+     */
+    public static Object joinUnwrapped(CompletableFuture<Object> future) {
+        try {
+            return future.join();
+        } catch (CompletionException ce) {
+            Throwable t = ce.getCause();
+            // peel a transpile-bridge `new RuntimeException(_e)` wrapper that
+            // some spawn() lambdas use to bridge checked exceptions — only
+            // when it's the *raw* RuntimeException class (not a subclass).
+            while (t != null
+                    && t.getClass() == RuntimeException.class
+                    && t.getCause() instanceof io.github.ccxt.errors.BaseError) {
+                t = t.getCause();
+            }
+            if (t instanceof RuntimeException re) throw re;
+            if (t instanceof Error err) throw err;
+            throw ce;
+        }
+    }
+
+    /**
+     * Unwrap a {@link CompletionException} (and any transpile-bridge
+     * {@link RuntimeException} wrappers) to expose the underlying ccxt error.
+     *
+     * <p>Intended for async pipelines where the user receives a {@link Throwable}
+     * inside {@code .exceptionally(...)} or {@code .handle(...)} callbacks:
+     *
+     * <pre>{@code
+     * binance.createOrderAsync("BTC/USDT", "limit", "buy", 0.001, 50000.0)
+     *     .thenAccept(order -> log.info("Placed: {}", order.id()))
+     *     .exceptionally(throwable -> {
+     *         Throwable cause = Helpers.unwrap(throwable);
+     *         return switch (cause) {
+     *             case InsufficientFunds    e -> { notifyUser(e); yield null; }
+     *             case AuthenticationError  e -> { refreshCredentials(); yield null; }
+     *             case RateLimitExceeded    e -> { scheduleRetry(); yield null; }
+     *             case NetworkError         e -> { scheduleRetry(); yield null; }
+     *             case BaseError            e -> { log.error("ccxt error", e); yield null; }
+     *             default -> throw new java.util.concurrent.CompletionException(cause);
+     *         };
+     *     });
+     * }</pre>
+     */
+    public static Throwable unwrap(Throwable t) {
+        while (t instanceof CompletionException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        // peel transpile-bridge RuntimeException wrappers
+        while (t != null
+                && t.getClass() == RuntimeException.class
+                && t.getCause() instanceof io.github.ccxt.errors.BaseError) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
     public static Object normalizeIntIfNeeded(Object a) {
         if (a == null) return null;
