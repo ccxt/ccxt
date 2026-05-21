@@ -13,6 +13,8 @@
 // Flags:
 //   --verbose  print the HTTP request/response trace
 //   --sandbox  swap urls.api with urls.test (where supported)
+//   --testnet  alias of --sandbox
+//   --demo     enable demo trading (enableDemoTrading)
 //
 // Adding a new exchange is one `dispatch_exchange!` arm below — the
 // generated `init()` + `call_dynamic` on each Core handle the rest.
@@ -73,7 +75,7 @@ fn snake(name: &str) -> String {
 /// build_implicit_api) and `call_dynamic(method, args) -> Value` in its
 /// generated impl block. We just box the right Core and invoke.
 macro_rules! dispatch_exchange {
-    ($id:expr, $method:expr, $args:expr, $verbose:expr, $sandbox:expr,
+    ($id:expr, $method:expr, $args:expr, $verbose:expr, $sandbox:expr, $demo:expr,
      $( $name:literal => $core:ty ),* $(,)?
     ) => {{
         match $id {
@@ -83,6 +85,7 @@ macro_rules! dispatch_exchange {
                     ex.bind(); // re-bind after Box move
                     ex.exchange.verbose = Value::Bool($verbose);
                     if $sandbox { ex.exchange.set_sandbox_mode(Value::Bool(true)); }
+                    if $demo { ex.exchange.enable_demo_trading(Value::Bool(true)); }
                     // Most unified methods need markets loaded first.
                     let m = $method;
                     if !["fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m.as_str()) {
@@ -151,6 +154,9 @@ fn usage() -> ! {
     eprintln!("  npm run cli.rs -- binance fetchTicker BTC/USDT");
     eprintln!("  npm run cli.rs -- bybit fetchOHLCV BTC/USDT 1h null 10");
     eprintln!("  npm run cli.rs -- okx fetchMarkets --verbose");
+    eprintln!("  npm run cli.rs -- binance fetchBalance --testnet");
+    eprintln!("  npm run cli.rs -- okx fetchBalance --demo");
+    eprintln!("flags: --verbose --sandbox --testnet --demo");
     std::process::exit(2);
 }
 
@@ -166,7 +172,9 @@ async fn main() {
     let flags:      Vec<String> = argv.iter().skip(3).filter(|a| a.starts_with("--")).cloned().collect();
     let positional: Vec<String> = argv.iter().skip(3).filter(|a| !a.starts_with("--")).cloned().collect();
     let verbose = flags.iter().any(|f| f == "--verbose");
-    let sandbox = flags.iter().any(|f| f == "--sandbox");
+    // `--testnet` is an alias of `--sandbox` (matches cli/ts/helpers.ts).
+    let sandbox = flags.iter().any(|f| f == "--sandbox" || f == "--testnet");
+    let demo    = flags.iter().any(|f| f == "--demo");
 
     let args: Vec<Value> = positional.iter().map(|s| parse_arg(s)).collect();
 
@@ -177,11 +185,12 @@ async fn main() {
     }
     if verbose { println!("{YELLOW}verbose mode{RESET}"); }
     if sandbox { println!("{YELLOW}sandbox mode{RESET}"); }
+    if demo    { println!("{YELLOW}demo trading mode{RESET}"); }
     println!();
 
     let m = m_snake.clone();
     let result = panic::AssertUnwindSafe(async move {
-        dispatch_exchange!(id.as_str(), m, args, verbose, sandbox,
+        dispatch_exchange!(id.as_str(), m, args, verbose, sandbox, demo,
             "binance"     => BinanceCore,
             "bybit"       => BybitCore,
             "okx"         => OkxCore,
