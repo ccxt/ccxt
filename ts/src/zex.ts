@@ -30,6 +30,7 @@ import type {
     Num,
     Order,
     OrderBook,
+    OrderRequest,
     OrderSide,
     OrderType,
     Str,
@@ -162,7 +163,6 @@ export default class zex extends Exchange {
                         'faucet/info': 1,
                     },
                     'post': {
-                        'register': 1,
                         'order': 1,
                         'withdraw': 1,
                         'transfer': 1,
@@ -284,22 +284,6 @@ export default class zex extends Exchange {
     /**
      * @ignore
      * @method
-     * @description derive the secp256k1 compressed public key from privateKey as hex string (no 0x prefix)
-     */
-    zexDerivePublicKey (): string {
-        const rawKey = this.privateKey;
-        let cleanKey = rawKey;
-        if (rawKey.indexOf ('0x') === 0) {
-            cleanKey = rawKey.slice (2);
-        }
-        const privateKeyBytes = this.base16ToBinary (cleanKey);
-        const pubKey = secp256k1.getPublicKey (privateKeyBytes, true);
-        return this.binaryToBase16 (pubKey);
-    }
-
-    /**
-     * @ignore
-     * @method
      * @description derive the Ethereum address from the private key
      */
     zexDeriveAddress (): string {
@@ -309,7 +293,7 @@ export default class zex extends Exchange {
     /**
      * @ignore
      * @method
-     * @description initialize the client by deriving userId; registers new user if needed
+     * @description resolve and cache the on-chain userId for the configured privateKey. Throws if the wallet is not yet registered with zex — register out of band via the zex web app first.
      */
     async initializeClient (): Promise<int> {
         const cachedUserId = this.safeInteger (this.options, 'userId');
@@ -317,23 +301,10 @@ export default class zex extends Exchange {
             return cachedUserId;
         }
         const address = this.zexDeriveAddress ();
-        let userId = undefined;
-        try {
-            const response = await this.privateGetUserId ({ 'address': address });
-            userId = this.safeInteger (response, 'id');
-        } catch (e) {
-            userId = undefined; // user not registered yet
-        }
+        const response = await this.privateGetUserId ({ 'address': address });
+        const userId = this.safeInteger (response, 'id');
         if (userId === undefined) {
-            const pubKey = this.zexDerivePublicKey ();
-            const regMsg = 'Welcome to ZEX.';
-            const sig = this.zexSign (regMsg);
-            await this.privatePostRegister ({
-                'signature': sig,
-                'public_key': pubKey,
-            });
-            const response2 = await this.privateGetUserId ({ 'address': address });
-            userId = this.safeInteger (response2, 'id');
+            throw new AuthenticationError (this.id + ' initializeClient: wallet ' + address + ' is not registered with zex; register via the zex app first');
         }
         this.options['userId'] = userId;
         return userId as int;
@@ -886,7 +857,7 @@ export default class zex extends Exchange {
             orderNonce = this.safeInteger (params, 'nonce');
         }
         if (orderNonce === undefined) {
-            orderNonce = parseInt (id, 10);
+            orderNonce = parseInt (id);
         }
         if (orderNonce === undefined) {
             throw new OrderNotFound (this.id + ' cancelOrder: could not find order nonce for order id ' + id);
@@ -932,7 +903,7 @@ export default class zex extends Exchange {
             let orderNonce = this.safeInteger (this.options['orderNonceCache'], id);
             if (orderNonce === undefined) {
                 // fall back to interpreting the id as the nonce (zex order ids ARE nonces in this client)
-                orderNonce = parseInt (id, 10);
+                orderNonce = parseInt (id);
             }
             if (orderNonce === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrders: could not resolve nonce for order ' + id);
@@ -976,7 +947,7 @@ export default class zex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrders (orders: any[], params = {}): Promise<Order[]> {
+    async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const userId = await this.getUserId ();
         const items = [];

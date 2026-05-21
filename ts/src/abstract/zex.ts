@@ -30,7 +30,6 @@ interface Exchange {
     privateGetCapitalConfigGetall (params?: {}): Promise<implicitReturnType>;
     privateGetTxLatest (params?: {}): Promise<implicitReturnType>;
     privateGetFaucetInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostRegister (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;
     privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostTransfer (params?: {}): Promise<implicitReturnType>;
