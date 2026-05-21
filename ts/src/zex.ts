@@ -781,8 +781,12 @@ export default class zex extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder requires a price for limit orders');
         }
         const userId = await this.getUserId ();
-        const nonceResponse = await this.privateGetUserNonce ({ 'id': userId });
-        const nonce = this.safeInteger (nonceResponse, 'nonce');
+        let nonce = this.safeInteger (params, 'nonce');
+        if (nonce === undefined) {
+            const nonceResponse = await this.privateGetUserNonce ({ 'id': userId });
+            nonce = this.safeInteger (nonceResponse, 'nonce');
+        }
+        params = this.omit (params, 'nonce');
         const t = Math.floor (this.milliseconds () / 1000);
         const marketId = market['id'];
         const parts = marketId.split ('-');

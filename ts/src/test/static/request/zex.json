@@ -72,17 +72,10 @@
                     "limit",
                     "buy",
                     0.001,
-                    1000
+                    1000,
+                    { "nonce": 1 }
                 ],
-                "params": {
-                    "operation": "1",
-                    "symbol": "BTC-USDT",
-                    "side": "buy",
-                    "type": "LIMIT",
-                    "base_token": "BTC",
-                    "quote_token": "USDT",
-                    "price": "1000"
-                }
+                "output": "{\"operation\":\"buy\",\"base_token\":\"BTC\",\"quote_token\":\"USDT\",\"amount\":\"0.001\",\"price\":\"1000.0\",\"user_id\":1001,\"nonce\":1,\"timestamp\":0,\"signature_type\":\"secp256k1\",\"signature\":\"\"}"
             }
         ]
     }
