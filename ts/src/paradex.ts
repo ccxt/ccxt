@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, OrderRequest } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, OrderRequest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -70,7 +70,7 @@ export default class paradex extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -2862,6 +2862,92 @@ export default class paradex extends Exchange {
             'lastPrice': this.safeNumber (greeks, 'last_traded_price'),
             'underlyingPrice': this.safeNumber (greeks, 'underlying_price'),
             'info': greeks,
+        };
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.paradex.trade/api/prod/account/get-funding
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.cursor] returns the next paginated page
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', undefined, 100) as FundingHistory[];
+        }
+        const market = this.market (symbol);
+        let request: Dict = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['page_size'] = Math.min (limit, 5000);
+        } else {
+            request['page_size'] = 100;
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_at', request, params);
+        const response = await this.privateGetFundingPayments (this.extend (request, params));
+        //
+        // {
+        //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results": [
+        //         {
+        //             "account": "string",
+        //             "created_at": 1681375481000,
+        //             "fill_id": "8615262148007718462",
+        //             "id": "1681375578221101699352320000",
+        //             "index": "-2819.53434361",
+        //             "market": "BTC-USD-PERP",
+        //             "payment": "34.4490622"
+        //         }
+        //     ]
+        // }
+        //
+        const results = this.safeList (response, 'results', []);
+        return this.parseIncomes (results, market, since, limit);
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        //
+        //     {
+        //         "account": "string",
+        //         "created_at": 1681375481000,
+        //         "fill_id": "8615262148007718462",
+        //         "id": "1681375578221101699352320000",
+        //         "index": "-2819.53434361",
+        //         "market": "BTC-USD-PERP",
+        //         "payment": "34.4490622"
+        //     }
+        //
+        const marketId = this.safeString (income, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (income, 'created_at');
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': market['settle'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'id'),
+            'amount': this.safeNumber (income, 'payment'),
         };
     }
 

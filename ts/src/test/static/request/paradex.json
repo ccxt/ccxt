@@ -23,6 +23,22 @@
                 "output": null
             }
         ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding payment history",
+                "method": "fetchFundingHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/payments?market=BTC-USD-PERP&page_size=2&start_at=1748360400000&end_at=1748360500000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1748360400000,
+                    2,
+                    {
+                        "until": 1748360500000
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

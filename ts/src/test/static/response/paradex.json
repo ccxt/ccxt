@@ -123,6 +123,77 @@
                 }
             }
         ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding payment history",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USD:USDC",
+                    1748360400000,
+                    2
+                ],
+                "httpResponse": {
+                    "next": null,
+                    "prev": null,
+                    "results": [
+                        {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360402936,
+                            "fill_id": "8615262148007718462",
+                            "id": "1748360402930201709192260004",
+                            "index": "-2819.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "34.4490622"
+                        },
+                        {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360462936,
+                            "fill_id": "8615262148007718463",
+                            "id": "1748360462930201709192260005",
+                            "index": "-2818.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "-12.4490622"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360402936,
+                            "fill_id": "8615262148007718462",
+                            "id": "1748360402930201709192260004",
+                            "index": "-2819.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "34.4490622"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1748360402936,
+                        "datetime": "2025-05-27T15:40:02.936Z",
+                        "id": "1748360402930201709192260004",
+                        "amount": 34.4490622
+                    },
+                    {
+                        "info": {
+                            "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
+                            "created_at": 1748360462936,
+                            "fill_id": "8615262148007718463",
+                            "id": "1748360462930201709192260005",
+                            "index": "-2818.53434361",
+                            "market": "BTC-USD-PERP",
+                            "payment": "-12.4490622"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "code": "USDC",
+                        "timestamp": 1748360462936,
+                        "datetime": "2025-05-27T15:41:02.936Z",
+                        "id": "1748360462930201709192260005",
+                        "amount": -12.4490622
+                    }
+                ]
+            }
+        ],
         "createOrders": [
             {
                 "description": "batch limit orders",
