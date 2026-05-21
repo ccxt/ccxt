@@ -99,7 +99,11 @@ macro_rules! dispatch_exchange {
 /// Helper trait: lets every Core load+populate markets uniformly. The
 /// transpiled `load_markets` stub returns cached value but doesn't
 /// actually populate, so we call fetch_markets and write the symbol map.
-#[async_trait::async_trait]
+// `?Send`: an `Exchange` holds a raw `*mut ()` core pointer for virtual
+// dispatch, so its futures are not `Send`. The CLI never spawns onto
+// other threads (it just `block_on`s `main`), so a non-Send boxed future
+// is fine — the default `#[async_trait]` would wrongly demand `Send`.
+#[async_trait::async_trait(?Send)]
 trait LoadMarketsSafe {
     async fn load_markets_safe(&mut self) -> Value;
 }
@@ -107,7 +111,7 @@ trait LoadMarketsSafe {
 macro_rules! impl_load_markets {
     ($($core:ty),* $(,)?) => {
         $(
-            #[async_trait::async_trait]
+            #[async_trait::async_trait(?Send)]
             impl LoadMarketsSafe for $core {
                 async fn load_markets_safe(&mut self) -> Value {
                     let markets = self.fetch_markets(&[]).await;
