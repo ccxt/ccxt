@@ -1573,10 +1573,14 @@ impl Exchange {
         match exchange_mut.implicit_api_call(&n, params).await {
             Ok(v)  => v,
             Err(e) => {
+                // Propagate the failure — a swallowed HTTP error (e.g. an
+                // authentication failure on a private endpoint) would
+                // otherwise surface as an empty/Null result. `throw` in
+                // the transpiled code is a `panic!`, so we do the same.
                 if matches!(exchange_mut.verbose, Value::Bool(true)) {
                     eprintln!("[ccxt] {n} failed: {e}");
                 }
-                Value::Null
+                panic!("{e}");
             }
         }
     }

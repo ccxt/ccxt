@@ -2295,6 +2295,43 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    /**
+     * `&mut self.<field>.clone()` takes `&mut` of a throwaway copy — the
+     * mutation is silently lost (this broke `enableDemoTrading`'s
+     * `urls['api'] = urls['demo']` swap). Inside `&mut self` methods the
+     * `.clone()` is safe to drop so the real field is mutated. `&self`
+     * methods are left alone — there `&mut self.field` wouldn't compile;
+     * those need a separate receiver-promotion fix.
+     */
+    stripMutSelfFieldClones(content: string): string {
+        const fnRe = /\bpub\s+(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&mut self\b/g;
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = fnRe.exec(content)) !== null) {
+            const braceIdx = content.indexOf('{', m.index + m[0].length);
+            if (braceIdx < 0) break;
+            let depth = 1, j = braceIdx + 1, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) break;
+            const body = content.slice(braceIdx, j + 1)
+                .replace(/&mut self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)/g, '&mut self.$1');
+            out += content.slice(last, braceIdx) + body;
+            last = j + 1;
+            fnRe.lastIndex = last;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
     splitAddElementBorrowConflicts(content: string): string {
         const pattern = /\badd_element_to_object\(/;
         let i = 0;
@@ -2340,7 +2377,13 @@ class RustTranspilerBuilder {
             }
             const name = mutMatch[1];
             const expr = args[2];
-            const conflicts = new RegExp(`\\b${name}\\.clone\\(\\)|&\\s*${name}\\b`).test(expr);
+            // `&mut self.<field>` mutably borrows `*self`, so the value
+            // arg conflicts if it touches `self` at all (e.g.
+            // `add_element_to_object(&mut self.options, K, self.milliseconds())`).
+            // For a `&mut <local>` the narrower clone/borrow check applies.
+            const conflicts = name === 'self'
+                ? /\bself\b/.test(expr)
+                : new RegExp(`\\b${name}\\.clone\\(\\)|&\\s*${name}\\b`).test(expr);
             const exprTrim = expr.trim();
             // If 3rd arg is just a bare identifier, clone it so subsequent
             // uses of that identifier keep it alive.
@@ -3385,6 +3428,7 @@ ${isBase
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
         content = this.rewriteGetValueAssignments(content);
         content = this.cloneInTernary(content);
+        content = this.stripMutSelfFieldClones(content);
         content = this.splitAddElementBorrowConflicts(content);
         content = this.splitGetValueMutAdds(content);
         // Propagate async-ness through the call graph: keep iterating
@@ -3864,6 +3908,7 @@ impl std::ops::DerefMut for ${coreName} {
         // where EXPR refers to `X` either via `.clone()`, `&X`, or
         // `value` that came from `X`. Splits into a temp + add. Done
         // via paren-balanced walker so KEY/EXPR can contain nested calls.
+        basePart = this.stripMutSelfFieldClones(basePart);
         basePart = this.splitAddElementBorrowConflicts(basePart);
 
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
@@ -4049,6 +4094,7 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
+                content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.splitGetValueMutAdds(content);
                 // Async propagation — mark fns async when their body
@@ -4593,6 +4639,7 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
             content = this.cloneInTernary(content);
+            content = this.stripMutSelfFieldClones(content);
             content = this.splitAddElementBorrowConflicts(content);
             content = this.splitGetValueMutAdds(content);
             content = this.appendValueNullToVoidEnds(content);
