@@ -10,11 +10,15 @@
 // Args:
 //   bare words `null`/`true`/`false` and JSON `{...}`/`[...]` are
 //   parsed as Value::{Null,Bool,Map,Array}; everything else is a string.
+// Credentials:
+//   Loaded from `keys.local.json` (fallback `keys.json`) at the repo
+//   root, then `<EXCHANGE_ID>_<CRED>` env vars override — same as cli.go.
+//     e.g. BINANCE_APIKEY, BINANCE_SECRET, OKX_PASSWORD
 // Flags:
 //   --verbose  print the HTTP request/response trace
-//   --sandbox  swap urls.api with urls.test (where supported)
-//   --testnet  alias of --sandbox
-//   --demo     enable demo trading (enableDemoTrading)
+//   --testnet  enable sandbox/testnet mode (setSandboxMode(true))
+//   --demo     enable demo trading (enableDemoTrading(true))
+//   --no-keys  skip credential loading
 //
 // Adding a new exchange is one `dispatch_exchange!` arm below — the
 // generated `init()` + `call_dynamic` on each Core handle the rest.
@@ -24,6 +28,7 @@ use ccxt::exchanges::{
     binance::BinanceCore, bybit::BybitCore, okx::OkxCore, kucoin::KucoinCore,
     bitget::BitgetCore, hyperliquid::HyperliquidCore, gate::GateCore,
 };
+use std::collections::HashMap;
 use std::env;
 use std::panic;
 use futures::FutureExt;
@@ -69,13 +74,78 @@ fn snake(name: &str) -> String {
     out
 }
 
+// ── credentials (keys.local.json / keys.json + env vars) ─────────────────────
+
+/// Standard CCXT credential field names.
+const CRED_KEYS: &[&str] = &[
+    "apiKey", "secret", "password", "uid",
+    "walletAddress", "privateKey", "token", "twofa", "login", "accountId",
+];
+
+/// Loads credentials for `id` from `keys.local.json` (falling back to
+/// `keys.json`) at the repo root, then lets `<ID>_<CRED>` env vars
+/// override — mirroring cli.go's keys-file + env behavior.
+fn load_credentials(id: &str) -> Vec<(String, String)> {
+    let mut creds: HashMap<String, String> = HashMap::new();
+    // 1. keys file — search the cwd and a few parents (npm runs from the
+    //    repo root, but `cargo run` may be invoked from elsewhere).
+    'outer: for fname in ["keys.local.json", "keys.json"] {
+        let mut dir = env::current_dir().unwrap_or_default();
+        for _ in 0..5 {
+            let path = dir.join(fname);
+            if path.is_file() {
+                if let Ok(text) = std::fs::read_to_string(&path) {
+                    let parsed = ccxt::runtime::json_parse(&Value::Str(text));
+                    if let Value::Map(top) = &parsed {
+                        if let Some(Value::Map(ex_obj)) = top.get(id) {
+                            for (k, v) in ex_obj {
+                                if let Value::Str(s) = v {
+                                    creds.insert(k.clone(), s.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+                break 'outer;
+            }
+            if !dir.pop() { break; }
+        }
+    }
+    // 2. env vars override — `<ID>_<CRED>` upper-cased.
+    for &cred in CRED_KEYS {
+        let env_name = format!("{}_{}", id.to_uppercase(), cred.to_uppercase());
+        if let Ok(v) = env::var(&env_name) {
+            if !v.is_empty() { creds.insert(cred.to_string(), v); }
+        }
+    }
+    creds.into_iter().collect()
+}
+
+/// Writes a credential onto the exchange's typed field.
+fn set_credential(ex: &mut ccxt::exchange::Exchange, key: &str, val: &str) {
+    let v = Value::Str(val.to_string());
+    match key {
+        "apiKey"        => ex.apiKey        = v,
+        "secret"        => ex.secret        = v,
+        "password"      => ex.password      = v,
+        "uid"           => ex.uid           = v,
+        "walletAddress" => ex.walletAddress = v,
+        "privateKey"    => ex.privateKey    = v,
+        "token"         => ex.token         = v,
+        "twofa"         => ex.twofa         = v,
+        "login"         => ex.login         = v,
+        "accountId"     => ex.accountId     = v,
+        _ => {}
+    }
+}
+
 // ── dynamic dispatch over exchanges ──────────────────────────────────────────
 
 /// Each transpiled Core auto-implements `init()` (bind + populate +
 /// build_implicit_api) and `call_dynamic(method, args) -> Value` in its
 /// generated impl block. We just box the right Core and invoke.
 macro_rules! dispatch_exchange {
-    ($id:expr, $method:expr, $args:expr, $verbose:expr, $sandbox:expr, $demo:expr,
+    ($id:expr, $method:expr, $args:expr, $verbose:expr, $testnet:expr, $demo:expr, $creds:expr,
      $( $name:literal => $core:ty ),* $(,)?
     ) => {{
         match $id {
@@ -84,8 +154,12 @@ macro_rules! dispatch_exchange {
                     let mut ex = Box::new(<$core>::new(None));
                     ex.bind(); // re-bind after Box move
                     ex.exchange.verbose = Value::Bool($verbose);
-                    if $sandbox { ex.exchange.set_sandbox_mode(Value::Bool(true)); }
-                    if $demo { ex.exchange.enable_demo_trading(Value::Bool(true)); }
+                    for (k, v) in $creds.iter() {
+                        set_credential(&mut ex.exchange, k, v);
+                    }
+                    // --testnet → setSandboxMode(true), --demo → enableDemoTrading(true)
+                    if $testnet { ex.exchange.set_sandbox_mode(Value::Bool(true)); }
+                    if $demo    { ex.exchange.enable_demo_trading(Value::Bool(true)); }
                     // Most unified methods need markets loaded first.
                     let m = $method;
                     if !["fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m.as_str()) {
@@ -129,7 +203,6 @@ macro_rules! impl_load_markets {
 impl_load_markets!(BinanceCore, BybitCore, OkxCore, KucoinCore, BitgetCore, HyperliquidCore, GateCore);
 
 fn populate_markets(ex: &mut ccxt::exchange::Exchange, markets_array: &Value) {
-    use std::collections::HashMap;
     let arr = match markets_array { Value::Array(a) => a, _ => return };
     let mut by_symbol: HashMap<String, Value> = HashMap::new();
     let mut by_id:     HashMap<String, Value> = HashMap::new();
@@ -156,7 +229,8 @@ fn usage() -> ! {
     eprintln!("  npm run cli.rs -- okx fetchMarkets --verbose");
     eprintln!("  npm run cli.rs -- binance fetchBalance --testnet");
     eprintln!("  npm run cli.rs -- okx fetchBalance --demo");
-    eprintln!("flags: --verbose --sandbox --testnet --demo");
+    eprintln!("flags: --verbose --testnet --demo --no-keys");
+    eprintln!("credentials: keys.local.json / keys.json or <ID>_<CRED> env vars");
     std::process::exit(2);
 }
 
@@ -172,9 +246,12 @@ async fn main() {
     let flags:      Vec<String> = argv.iter().skip(3).filter(|a| a.starts_with("--")).cloned().collect();
     let positional: Vec<String> = argv.iter().skip(3).filter(|a| !a.starts_with("--")).cloned().collect();
     let verbose = flags.iter().any(|f| f == "--verbose");
-    // `--testnet` is an alias of `--sandbox` (matches cli/ts/helpers.ts).
-    let sandbox = flags.iter().any(|f| f == "--sandbox" || f == "--testnet");
+    let testnet = flags.iter().any(|f| f == "--testnet");
     let demo    = flags.iter().any(|f| f == "--demo");
+    let no_keys = flags.iter().any(|f| f == "--no-keys");
+
+    // Credentials from keys.local.json / keys.json + env vars.
+    let creds: Vec<(String, String)> = if no_keys { Vec::new() } else { load_credentials(&id) };
 
     let args: Vec<Value> = positional.iter().map(|s| parse_arg(s)).collect();
 
@@ -184,13 +261,18 @@ async fn main() {
         println!("{GREEN}args:{RESET}     {args:?}");
     }
     if verbose { println!("{YELLOW}verbose mode{RESET}"); }
-    if sandbox { println!("{YELLOW}sandbox mode{RESET}"); }
+    if testnet { println!("{YELLOW}testnet mode{RESET}"); }
     if demo    { println!("{YELLOW}demo trading mode{RESET}"); }
+    if !creds.is_empty() {
+        let mut names: Vec<&str> = creds.iter().map(|(k, _)| k.as_str()).collect();
+        names.sort();
+        println!("{GREEN}credentials:{RESET} {}", names.join(", "));
+    }
     println!();
 
     let m = m_snake.clone();
     let result = panic::AssertUnwindSafe(async move {
-        dispatch_exchange!(id.as_str(), m, args, verbose, sandbox, demo,
+        dispatch_exchange!(id.as_str(), m, args, verbose, testnet, demo, creds,
             "binance"     => BinanceCore,
             "bybit"       => BybitCore,
             "okx"         => OkxCore,
@@ -203,6 +285,13 @@ async fn main() {
 
     match result {
         Ok(v)  => println!("\n{GREEN}result:{RESET} {v:?}"),
-        Err(_) => println!("\n{RED}(panicked){RESET}"),
+        Err(payload) => {
+            // A thrown CCXT error surfaces as a panic — extract its message.
+            let msg = payload.downcast_ref::<String>().map(|s| s.as_str())
+                .or_else(|| payload.downcast_ref::<&str>().copied())
+                .unwrap_or("(unknown error)");
+            eprintln!("\n{RED}error:{RESET} {msg}");
+            std::process::exit(1);
+        }
     }
 }

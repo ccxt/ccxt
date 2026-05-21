@@ -667,22 +667,24 @@ impl Exchange {
     // ── crypto ──────────────────────────────────────────────────────────────
 
     pub fn hmac(&self, data: Value, secret: Value, hash: Value, optional_args: &[Value]) -> Value {
-        let d = match &data { Value::Str(s) => s.clone(), _ => return Value::Null };
-        let s = match &secret { Value::Str(s) => s.clone(), _ => return Value::Null };
+        // `data`/`secret` may be a string OR the byte-array produced by
+        // `encode()` (CCXT's `hmac` takes the encoded request/secret).
+        let dbytes = value_to_bytes(&data);
+        let sbytes = value_to_bytes(&secret);
         let h = match &hash { Value::Str(s) => s.clone(), _ => "sha256".to_string() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string(),
         };
-        match self.hmac_typed(&d, &s, &h, &digest) {
+        match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
             Ok(v) => Value::Str(v),
             Err(_) => Value::Null,
         }
     }
 
-    pub fn hmac_typed(&self, data: &str, secret: &str, hash: &str, digest: &str) -> Result<String> {
-        let dbytes = data.as_bytes();
-        let sbytes = secret.as_bytes();
+    pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
+        let dbytes = data;
+        let sbytes = secret;
         let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
             "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
             "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
@@ -697,21 +699,22 @@ impl Exchange {
     }
 
     pub fn hash(&self, data: Value, algo: Value, optional_args: &[Value]) -> Value {
-        let d = match &data { Value::Str(s) => s.clone(), _ => return Value::Null };
+        // `data` may be a string OR the byte-array produced by `encode()`.
+        let dbytes = value_to_bytes(&data);
         let a = match &algo { Value::Str(s) => s.clone(), _ => "sha256".to_string() };
         let digest = match optional_args.get(0) {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string(),
         };
-        Value::Str(self.hash_typed(&d, &a, &digest))
+        Value::Str(self.hash_typed(&dbytes, &a, &digest))
     }
 
-    pub fn hash_typed(&self, data: &str, algo: &str, digest: &str) -> String {
+    pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
         let raw: Vec<u8> = match algo.to_ascii_lowercase().as_str() {
-            "sha256" => { let mut h = Sha256::new(); h.update(data.as_bytes()); h.finalize().to_vec() }
-            "sha512" => { let mut h = Sha512::new(); h.update(data.as_bytes()); h.finalize().to_vec() }
-            "sha1"   => { let mut h = Sha1::new();   h.update(data.as_bytes()); h.finalize().to_vec() }
-            "md5"    => { let mut h = Md5::new();    h.update(data.as_bytes()); h.finalize().to_vec() }
+            "sha256" => { let mut h = Sha256::new(); h.update(data); h.finalize().to_vec() }
+            "sha512" => { let mut h = Sha512::new(); h.update(data); h.finalize().to_vec() }
+            "sha1"   => { let mut h = Sha1::new();   h.update(data); h.finalize().to_vec() }
+            "md5"    => { let mut h = Md5::new();    h.update(data); h.finalize().to_vec() }
             _ => return String::new(),
         };
         match digest {
