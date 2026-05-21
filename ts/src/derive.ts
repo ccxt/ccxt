@@ -1227,6 +1227,7 @@ export default class derive extends Exchange {
         }
         const maxFeeString = this.numberToString (maxFee);
         const amountString = this.numberToString (amount);
+        const orderSideIsBuy = (orderSide === 'buy');
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1236,7 +1237,7 @@ export default class derive extends Exchange {
             this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
             this.convertToBigInt (this.parseUnits (maxFeeString)),
             subaccountId,
-            orderSide === 'buy',
+            orderSideIsBuy,
         ]), keccak, 'binary');
         let deriveWalletAddress = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('createOrder', params);
@@ -1411,6 +1412,7 @@ export default class derive extends Exchange {
         const priceString = this.numberToString (price);
         const maxFeeString = this.safeString (params, 'max_fee', '0');
         const amountString = this.numberToString (amount);
+        const orderSideIsBuy = (orderSide === 'buy');
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1420,7 +1422,7 @@ export default class derive extends Exchange {
             this.convertToBigInt (this.parseUnits (this.amountToPrecision (symbol, amountString))),
             this.convertToBigInt (this.parseUnits (maxFeeString)),
             subaccountId,
-            orderSide === 'buy',
+            orderSideIsBuy,
         ]), keccak, 'binary');
         let deriveWalletAddress = undefined;
         [ deriveWalletAddress, params ] = this.handleDeriveWalletAddress ('editOrder', params);

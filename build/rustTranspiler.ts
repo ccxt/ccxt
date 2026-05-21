@@ -173,12 +173,14 @@ class RustTranspilerBuilder {
     }
 
     /**
-     * `throw new <ClassVar>(msg)` where the class is a runtime variable
-     * (e.g. digifinex `const [ExceptionClass] = this.safeValue(...)`,
-     * lbank `const ErrorClass = ...`, waves `const Exception = ...`)
-     * transpiles to `panic!("{:?}", ExceptionClass::new(msg))` — treating
-     * the local variable as a type, which doesn't compile. Rewrite those
-     * to the dynamic `create_error(class, message)` helper. Real error
+     * `throw new <Class>(msg)` where the class is a runtime value — either
+     * a local variable (digifinex `const [ExceptionClass] = …`, lbank
+     * `const ErrorClass = …`, waves `const Exception = …`) or a dynamic
+     * lookup (krakenfutures `throw new errors[status](…)` →
+     * `get_value(&errors,&status)::new(…)`). The transpiler emits
+     * `panic!("{:?}", <classExpr>::new(msg))`, treating the value as a
+     * type. Rewrite to the dynamic `create_error(class, message)` helper,
+     * paren-balanced so a `msg` containing `)` isn't truncated. Real error
      * classes (ExchangeError, OrderNotFound, …) keep their `::new`.
      */
     rewriteDynamicThrows(content: string): string {
@@ -198,30 +200,47 @@ class RustTranspilerBuilder {
             const idx = content.indexOf(marker, i);
             if (idx < 0) { out += content.slice(i); break; }
             const after = idx + marker.length;
-            const m = /^([A-Za-z_][A-Za-z0-9_]*)::new\(/.exec(content.slice(after, after + 80));
-            if (!m || errorClasses.has(m[1])) {
+            // Scan forward (paren-balanced) for `::new(` at depth 0 — that
+            // marks the end of the class expression.
+            let p = after, depth = 0, inStr = false, escape = false, newAt = -1;
+            while (p < content.length) {
+                const c = content[p];
+                if (escape) { escape = false; p++; continue; }
+                if (c === '\\' && inStr) { escape = true; p++; continue; }
+                if (c === '"') { inStr = !inStr; p++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[') depth++;
+                    else if (c === ')' || c === ']') { if (depth === 0) break; depth--; }
+                    else if (c === ',' && depth === 0) break;
+                    else if (depth === 0 && content.startsWith('::new(', p)) { newAt = p; break; }
+                }
+                p++;
+            }
+            if (newAt < 0) { out += content.slice(i, after); i = after; continue; }
+            const classExpr = content.slice(after, newAt).trim();
+            if (errorClasses.has(classExpr)) {
                 out += content.slice(i, after);
                 i = after;
                 continue;
             }
-            // Walk paren-balanced from after `<Ident>::new(`.
-            let depth = 1;
-            let j = after + m[0].length;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
+            // Walk paren-balanced over the `::new(...)` argument list.
+            let depth2 = 1;
+            let j = newAt + '::new('.length;
+            let inStr2 = false, escape2 = false;
+            while (j < content.length && depth2 > 0) {
                 const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
-                if (depth === 0) break;
+                if (escape2) { escape2 = false; j++; continue; }
+                if (c === '\\' && inStr2) { escape2 = true; j++; continue; }
+                if (c === '"') { inStr2 = !inStr2; j++; continue; }
+                if (!inStr2) { if (c === '(') depth2++; else if (c === ')') depth2--; }
+                if (depth2 === 0) break;
                 j++;
             }
-            if (depth !== 0) { out += content.slice(i, after); i = after; continue; }
-            const args = content.slice(after + m[0].length, j);
+            if (depth2 !== 0) { out += content.slice(i, after); i = after; continue; }
+            const args = content.slice(newAt + '::new('.length, j);
             out += content.slice(i, idx) + marker +
                 `crate::exchange_errors::create_error(` +
-                `&crate::runtime::stringify_param(&${m[1]}), ` +
+                `&crate::runtime::stringify_param(&(${classExpr})), ` +
                 `&crate::runtime::stringify_param(&(${args})))`;
             i = j + 1;
         }
@@ -269,6 +288,138 @@ class RustTranspilerBuilder {
         }
         out += content.slice(last);
         return out;
+    }
+
+    /**
+     * Rust forbids a direct cycle of `async fn`s (the future would be
+     * infinitely sized) — `error[E0733]: recursion in an async fn
+     * requires boxing`. When an exchange file contains a cycle of async
+     * methods (e.g. lighter `loadAccount` → `changeApiKey` → …), box
+     * every intra-file async-to-async call so the future is heap-sized.
+     */
+    boxRecursiveAsyncCalls(content: string): string {
+        // 1. Collect `pub async fn <name>` + body ranges.
+        const fns: { name: string, bodyStart: number, bodyEnd: number }[] = [];
+        const fnRe = /\bpub\s+async\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        let fm: RegExpExecArray | null;
+        while ((fm = fnRe.exec(content)) !== null) {
+            const braceIdx = content.indexOf('{', fm.index + fm[0].length);
+            if (braceIdx < 0) continue;
+            let depth = 1, j = braceIdx + 1, inStr = false, esc = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (esc) { esc = false; j++; continue; }
+                if (c === '\\' && inStr) { esc = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            fns.push({ name: fm[1], bodyStart: braceIdx + 1, bodyEnd: j });
+        }
+        if (fns.length === 0) return content;
+        // The dynamic-dispatch plumbing (`call_dynamic` is a giant match
+        // that invokes every method, `call_method` routes through it)
+        // would create false cycles — exclude it from the graph so only
+        // genuine method-to-method recursion is detected.
+        const dispatchHubs = new Set(['call_dynamic', 'call_method', 'call_internal', 'dispatch_to_derived']);
+        const asyncNames = new Set(fns.map(f => f.name).filter(n => !dispatchHubs.has(n)));
+        // 2. Direct call graph between async methods.
+        const graph = new Map<string, Set<string>>();
+        for (const f of fns) {
+            if (dispatchHubs.has(f.name)) continue;
+            const body = content.slice(f.bodyStart, f.bodyEnd);
+            const callees = new Set<string>();
+            const cRe = /\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+            let cm: RegExpExecArray | null;
+            while ((cm = cRe.exec(body)) !== null) {
+                if (asyncNames.has(cm[1])) callees.add(cm[1]);
+            }
+            graph.set(f.name, callees);
+        }
+        // 3. Transitive reachability per async method.
+        const reach = new Map<string, Set<string>>();
+        for (const start of asyncNames) {
+            const r = new Set<string>();
+            const stack = [...(graph.get(start) || [])];
+            while (stack.length) {
+                const n = stack.pop() as string;
+                if (r.has(n)) continue;
+                r.add(n);
+                for (const x of (graph.get(n) || [])) stack.push(x);
+            }
+            reach.set(start, r);
+        }
+        // Any cycle at all? (some method reaches itself)
+        let hasCycle = false;
+        for (const [n, r] of reach) { if (r.has(n)) { hasCycle = true; break; } }
+        if (!hasCycle) return content;
+        // 4. Box only cycle-closing calls — `A → B` where B can reach A.
+        //    Process bodies back-to-front so earlier indices stay valid.
+        let result = content;
+        for (const f of [...fns].sort((a, b) => b.bodyStart - a.bodyStart)) {
+            const body = result.slice(f.bodyStart, f.bodyEnd);
+            let bo = '';
+            const callRe = /\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+            let m: RegExpExecArray | null;
+            let last = 0;
+            while ((m = callRe.exec(body)) !== null) {
+                const callee = m[1];
+                if (!asyncNames.has(callee)) continue;
+                const r = reach.get(callee);
+                if (!r || !r.has(f.name)) continue;  // not cycle-closing
+                // paren-balance to the call's closing `)`.
+                let depth = 1, j = m.index + m[0].length, inStr = false, esc = false;
+                while (j < body.length && depth > 0) {
+                    const c = body[j];
+                    if (esc) { esc = false; j++; continue; }
+                    if (c === '\\' && inStr) { esc = true; j++; continue; }
+                    if (c === '"') { inStr = !inStr; j++; continue; }
+                    if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
+                    if (depth === 0) break;
+                    j++;
+                }
+                if (depth !== 0) continue;
+                // Only box an awaited call — `Box::pin(fut).await`.
+                let aw = j + 1;
+                while (aw < body.length && /\s/.test(body[aw])) aw++;
+                if (body.slice(aw, aw + 6) !== '.await') continue;
+                bo += body.slice(last, m.index) +
+                    'Box::pin(' + body.slice(m.index, j + 1) + ')';
+                last = j + 1;
+                callRe.lastIndex = last;
+            }
+            bo += body.slice(last);
+            result = result.slice(0, f.bodyStart) + bo + result.slice(f.bodyEnd);
+        }
+        return result;
+    }
+
+    /**
+     * A method name used as a value (not called) — e.g. bingx's
+     * `this.safeInteger (this.parseParams, 'recvWindow', …)` references
+     * the `parseParams` method instead of a dict. A method isn't a
+     * `Value`, so in argument position rewrite `self.<method>` (not
+     * followed by `(`) to `Value::Null`, matching the JS semantics where
+     * reading `method['key']` yields `undefined`.
+     */
+    rewriteMethodRefsAsNull(content: string): string {
+        const methods = new Set<string>();
+        const fnRe = /\bpub\s+(?:async\s+)?fn\s+([a-z_][a-zA-Z0-9_]*)\s*\(/g;
+        let fm: RegExpExecArray | null;
+        while ((fm = fnRe.exec(content)) !== null) methods.add(fm[1]);
+        if (methods.size === 0) return content;
+        // Only touch method refs in argument position (preceded by `(`
+        // or `,`) to avoid disturbing legitimate field reads.
+        return content.replace(
+            /([(,]\s*)self\.([a-zA-Z_][a-zA-Z0-9_]*)\b(\s*)([^(\s])/g,
+            (full, pre, ident, ws, nextCh) => {
+                if (nextCh === '(') return full;
+                if (methods.has(toSnakeCase(ident))) {
+                    return `${pre}Value::Null${ws}${nextCh}`;
+                }
+                return full;
+            });
     }
 
     createGeneratedHeader(): string[] {
@@ -500,13 +651,10 @@ class RustTranspilerBuilder {
             [/crate::exchange_errors::([a-z_][a-z_0-9]*)::new\(/g,
                 'crate::exchange_errors::$1('],
 
-            // Dynamic error class construction `get_value(&exact, &k)::new(msg)`
-            // → `create_error(<k as str>, <msg as str>)`. Best-effort: the
-            // dispatcher looks up the class name from a Value::Str key.
-            [/get_value\(([^)]+)\)\s*::new\(([^)]+)\)/g,
-                (_: string, args: string, msg: string) => {
-                    return `crate::exchange_errors::create_error(&crate::runtime::stringify_param(&get_value(${args})), &crate::runtime::stringify_param(&${msg.trim()}))`;
-                }],
+            // (Dynamic error construction `get_value(...)::new(msg)` and
+            // `<localVar>::new(msg)` is handled by the paren-balanced
+            // `rewriteDynamicThrows` pass — a plain regex truncates a
+            // `msg` that itself contains `)`.)
 
             // `get_value(&self, &key)` when not followed by `(` — dynamic
             // property access on the exchange (TS `this[key]`). Route
@@ -824,10 +972,6 @@ class RustTranspilerBuilder {
 
             // `return self;` (chained methods) — `self` isn't a Value.
             [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
-
-            // Bare `return;` (a TS early-return with no value) yields `()`,
-            // but exchange methods are `-> Value`. Yield Value::Null.
-            [/^(\s*)return\s*;/gm, '$1return Value::Null;'],
 
             // Last statement in a Value-returning method is a bare expression
             // with `;` — that returns `()`. Wrap the body so a Value::Null
@@ -1339,7 +1483,10 @@ class RustTranspilerBuilder {
                 i = bodyStart;
                 continue;
             }
-            const body = content.slice(bodyStart, j);
+            let body = content.slice(bodyStart, j);
+            // A bare `return;` inside a `-> Value` fn yields `()` — make it
+            // explicit. (Scoped here so `()`-returning fns are untouched.)
+            body = body.replace(/(^|[^a-zA-Z0-9_])return\s*;/g, '$1return Value::Null;');
             // Check last non-whitespace, non-comment char before `}`.
             // Trailing `// ...` comments would otherwise hide the
             // terminating `;` and stop us inserting `Value::Null`.
@@ -1351,8 +1498,32 @@ class RustTranspilerBuilder {
                 if (trimmed === before) break;
             }
             const lastChar = trimmed.slice(-1);
+            // A body ending with `}` that closes an `if`/`for`/`while`/
+            // `loop` statement yields `()` — those need a Value::Null tail
+            // too (e.g. grvt.loadAccountInfos ends with a bare `if` block).
+            // `match` / value-blocks are left alone.
+            let tailYieldsUnit = false;
+            if (lastChar === '}') {
+                let d = 0, k = trimmed.length - 1;
+                for (; k >= 0; k--) {
+                    const c = trimmed[k];
+                    if (c === '}') d++;
+                    else if (c === '{') { d--; if (d === 0) break; }
+                }
+                if (k >= 0) {
+                    let s = k - 1, d2 = 0;
+                    for (; s >= 0; s--) {
+                        const c = trimmed[s];
+                        if (c === '}' || c === ')' || c === ']') d2++;
+                        else if (c === '{' || c === '(' || c === '[') { if (d2 === 0) break; d2--; }
+                        else if (c === ';' && d2 === 0) break;
+                    }
+                    const stmt = trimmed.slice(s + 1).trimStart();
+                    tailYieldsUnit = /^(if|for|while|loop)\b/.test(stmt);
+                }
+            }
             out += content.slice(i, bodyStart);
-            if (lastChar === ';') {
+            if (lastChar === ';' || tailYieldsUnit) {
                 out += body + '\n    Value::Null\n';
             } else {
                 out += body;
@@ -1984,6 +2155,8 @@ class RustTranspilerBuilder {
             { name: 'm.insert',                wrapIdx: [1] },
             { name: 'add_element_to_object',   wrapIdx: [2] },
             { name: 'ternary',                 wrapIdx: [1, 2] },
+            // `handlePostOnly(isMarketOrder, …)` — first arg is a bool.
+            { name: 'self.handle_post_only',   wrapIdx: [0] },
         ];
         // First handle named-call sites.
         for (const { name, wrapIdx } of targets) {
@@ -3183,6 +3356,8 @@ ${isBase
         content = this.rewriteDynamicThrows(content);
         // Normalize `jwt(...)` free-function calls to exactly 3 args.
         content = this.normalizeJwtCalls(content);
+        // Method names used as values (uncalled) → Value::Null.
+        content = this.rewriteMethodRefsAsNull(content);
         // Wrap bool exprs flowing into Value-arg positions.
         content = this.wrapBoolValueArgs(content);
         // Same paren-balanced walkers used for the base file.
@@ -3234,6 +3409,10 @@ ${isBase
         // Wrap `-> Value` methods whose last statement is `expr;` so they
         // return Value::Null at the end.
         content = this.appendValueNullToVoidEnds(content);
+
+        // Box async-method recursion cycles — must run AFTER `.await` has
+        // been appended, so the `.await` lands outside the `Box::pin(...)`.
+        content = this.boxRecursiveAsyncCalls(content);
 
         if (ws) {
             content = this.regexAll(content, this.getWsRegexes());
@@ -3625,6 +3804,7 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.regexAll(basePart, this.getRustRegexes(asyncMethods));
         basePart = this.rewriteHashAlgoConstants(basePart);
         basePart = this.rewriteBareErrorClassRefs(basePart);
+        basePart = this.rewriteDynamicThrows(basePart);
         basePart = this.wrapBoolValueArgs(basePart);
         // Collapse consecutive `impl Exchange { } impl Exchange { }` blocks
         // into one (per-method `impl` blocks are an artifact of transpilation).
@@ -3848,6 +4028,8 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
                 content = this.rewriteHashAlgoConstants(content);
                 content = this.rewriteBareErrorClassRefs(content);
+            content = this.rewriteDynamicThrows(content);
+                content = this.rewriteDynamicThrows(content);
                 content = this.wrapBoolValueArgs(content);
                 content = this.stripCatchBlocks(content);
                 content = this.unwrapCatchUnwind(content);
