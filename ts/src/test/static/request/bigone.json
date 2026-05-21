@@ -7,7 +7,8 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "default",
+                "description": "default (disabled, because of web-endpoint weird request)",
+                "disabled": true,
                 "method": "fetchCurrencies",
                 "url": "https://big.one/api//v3/assets",
                 "input": [],
