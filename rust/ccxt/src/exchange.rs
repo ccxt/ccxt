@@ -305,7 +305,22 @@ impl Exchange {
             token:         Value::Null,
             login:         Value::Null,
             accountId:     Value::Null,
-            requiredCredentials: Value::Map(HashMap::new()),
+            // Base-class default (Exchange.ts). Kept when an exchange's
+            // describe() doesn't override it — so `checkRequiredCredentials`
+            // still works even though `super.describe()` is stubbed.
+            requiredCredentials: {
+                let mut m = std::collections::HashMap::new();
+                m.insert("apiKey".to_string(),        Value::Bool(true));
+                m.insert("secret".to_string(),        Value::Bool(true));
+                m.insert("uid".to_string(),           Value::Bool(false));
+                m.insert("login".to_string(),         Value::Bool(false));
+                m.insert("password".to_string(),      Value::Bool(false));
+                m.insert("twofa".to_string(),         Value::Bool(false));
+                m.insert("privateKey".to_string(),    Value::Bool(false));
+                m.insert("walletAddress".to_string(), Value::Bool(false));
+                m.insert("token".to_string(),         Value::Bool(false));
+                Value::Map(m)
+            },
 
             timeout:              Value::Int(10_000),
             rateLimit:            Value::Int(2_000),
@@ -573,17 +588,41 @@ impl Exchange {
         let mut req = client.request(method_parsed, url);
         for (k, v) in &self.internals.headers { req = req.header(k, v); }
         for (k, v) in &headers                { req = req.header(k, v); }
-        if let Some(b) = body                 { req = req.body(b); }
         if self.is_verbose() {
             eprintln!("[ccxt] {method} {url}");
+            for (k, v) in &self.internals.headers { eprintln!("[ccxt]   {k}: {v}"); }
+            for (k, v) in &headers                { eprintln!("[ccxt]   {k}: {v}"); }
+            if let Some(b) = &body {
+                eprintln!("[ccxt]   request body: {b}");
+            }
         }
+        if let Some(b) = body                 { req = req.body(b); }
         let resp = req.send().await?;
         let status = resp.status().as_u16();
         let text   = resp.text().await?;
         if self.is_verbose() {
             eprintln!("[ccxt] ← {status} {} bytes", text.len());
         }
+        let json = match serde_json::from_str::<serde_json::Value>(&text) {
+            Ok(j)  => Value::from_json(&j),
+            Err(_) => Value::Null,
+        };
         if status >= 400 {
+            // Let the derived exchange map its own error codes — e.g.
+            // binance turns `{"code":-2014}` into an AuthenticationError.
+            // `handleErrors` throws (panics) for a recognized error; if
+            // it returns, fall through to a generic HTTP error.
+            self.derived().handle_errors(
+                Value::Int(status as i64),
+                Value::Null,
+                Value::Str(url.to_string()),
+                Value::Str(method.to_string()),
+                Value::Null,
+                Value::Str(text.clone()),
+                json.clone(),
+                Value::Null,
+                Value::Null,
+            );
             return Err(ExchangeError::new(
                 if status == 429 { "RateLimitExceeded" }
                 else if status >= 500 { "ExchangeNotAvailable" }
@@ -591,10 +630,10 @@ impl Exchange {
                 format!("HTTP {status}: {text}"),
             ));
         }
-        match serde_json::from_str::<serde_json::Value>(&text) {
-            Ok(j)  => Ok(Value::from_json(&j)),
-            Err(_) => Ok(Value::Str(text)),
+        if matches!(json, Value::Null) {
+            return Ok(Value::Str(text));
         }
+        Ok(json)
     }
 
     // ── encoding / URL helpers ──────────────────────────────────────────────

@@ -178,7 +178,7 @@ class RustTranspilerBuilder {
      * `const ErrorClass = …`, waves `const Exception = …`) or a dynamic
      * lookup (krakenfutures `throw new errors[status](…)` →
      * `get_value(&errors,&status)::new(…)`). The transpiler emits
-     * `panic!("{:?}", <classExpr>::new(msg))`, treating the value as a
+     * `panic!("{}", <classExpr>::new(msg))`, treating the value as a
      * type. Rewrite to the dynamic `create_error(class, message)` helper,
      * paren-balanced so a `msg` containing `)` isn't truncated. Real error
      * classes (ExchangeError, OrderNotFound, …) keep their `::new`.
@@ -193,7 +193,7 @@ class RustTranspilerBuilder {
             'ExchangeClosedByUser,NullResponse,InvalidProxySettings,ChecksumError,OnMaintenance,' +
             'BadSymbol,NoChange,CancelPending,OrderNotCached,OrderImmediatelyFillable,' +
             'OrderNotFillable,DuplicateOrderId,RestrictedLocation,AddressPending,BaseError').split(','));
-        const marker = 'panic!("{:?}", ';
+        const marker = 'panic!("{}", ';
         let out = '';
         let i = 0;
         while (i < content.length) {
@@ -3521,7 +3521,10 @@ impl ${coreName} {
         self.exchange.id       = crate::get_value(&described, &crate::Value::Str("id".to_string()));
         self.exchange.name     = crate::get_value(&described, &crate::Value::Str("name".to_string()));
         self.exchange.exceptions = crate::get_value(&described, &crate::Value::Str("exceptions".to_string()));
-        self.exchange.requiredCredentials = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string()));
+        // Only override the base-default requiredCredentials when the
+        // exchange's describe() actually provides them (super.describe()
+        // is stubbed, so most exchanges' describe() omits this).
+        { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
         self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
         self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
