@@ -21,7 +21,7 @@
             {
                 "description": "default",
                 "method": "fetchCurrencies",
-                "url": "https://fapi.asterdex.com/fapi/v3/exchangeInfo",
+                "url": "https://sapi.asterdex.com/api/v3/exchangeInfo",
                 "input": [],
                 "output": null
             }
