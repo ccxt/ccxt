@@ -679,40 +679,40 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString (currency, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (rows);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'asset');
+        const code = this.safeCurrencyCode (currencyId);
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'margin': this.safeBool (rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
 
     /**
