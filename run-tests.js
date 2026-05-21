@@ -188,6 +188,23 @@ const exec = (bin, ...args) => {
             return resolver (result) ;
         })
 
+        if (debugKeys['--info']) {
+            psSpawn.on ('error', (a, b) => {
+                console.log ('spawn event', a, b)
+            })
+            psSpawn.on ('spawn', (a,b) => {
+                console.log ('spawn event', a, b)
+            })
+            psSpawn.on ('disconnect', (a, b) => {
+                console.log ('disconnect event', a, b)
+            })
+            psSpawn.on ('message', (a, b) => {
+                console.log ('message event', a, b)
+            })
+            psSpawn.on ('close', (a, b) => {
+                console.log ('close event', a, b)
+            })
+        }
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
