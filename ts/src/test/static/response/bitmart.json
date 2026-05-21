@@ -213,12 +213,12 @@
             }
           },
           {
-            "description": "fetch USDT deposit address",
+            "description": "fetch USDT deposit addres on trx",
             "method": "fetchDepositAddress",
             "input": [
               "USDT"
             ],
-            "httpResponse": {"message":"OK","code":1000,"trace":"9eaec51cd80d46d48a1c6b447206c4d6.67.17394377658295303","data":{"currency":"USDT-TRC20","chain":"TRON","address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":""}},
+            "httpResponse": {"message":"OK","code":1000,"trace":"9eaec51cd80d46d48a1c6b447206c4d6.67.17394377658295303","data":{"currency":"USDT-TRX","chain":"TRON","address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":""}},
             "parsedResponse": {
               "info": {
                 "currency": "USDT-TRX",
