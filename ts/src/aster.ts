@@ -660,16 +660,8 @@ export default class aster extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const promises = [
-            this.sapiPublicGetV3ExchangeInfo (params),
-            this.fapiPublicGetV3ExchangeInfo (params),
-        ];
-        const results = await Promise.all (promises);
-        const sapiResult = this.safeDict (results, 0, {});
+        const sapiResult = await this.sapiPublicGetV3ExchangeInfo (params);
         const sapiRows = this.safeList (sapiResult, 'assets', []);
-        const fapiResult = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiResult, 'assets', []);
-        const rows = this.arrayConcat (sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -679,7 +671,7 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        return this.parseCurrencies (rows);
+        return this.parseCurrencies (sapiRows);
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
