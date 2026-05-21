@@ -3162,6 +3162,7 @@ export default class binance extends Exchange {
                 'margin': this.safeBool (marginEntry, 'isBorrowable'),
             });
         }
+        return undefined;
     }
 
     /**
