@@ -807,7 +807,7 @@
             {
                 "description": "fetch USDT deposit address",
                 "method": "fetchDepositAddress",
-                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-TRC20",
+                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-TRX",
                 "input": [
                     "USDT"
                 ]
@@ -815,7 +815,7 @@
             {
                 "description": "fetch USDT deposit address with ERC20 network",
                 "method": "fetchDepositAddress",
-                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",
+                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-ETH",
                 "input": [
                     "USDT",
                     {
