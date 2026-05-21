@@ -36,7 +36,7 @@
             {
                 "description": "usdt erc20 tx fee",
                 "method": "fetchTransactionFee",
-                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=USDT-ERC20",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=USDT-ETH",
                 "input": [
                     "USDT",
                     {
@@ -48,7 +48,7 @@
             {
                 "description": "eth tx fee",
                 "method": "fetchTransactionFee",
-                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=USDT-TRC20",
+                "url": "https://api-cloud.bitmart.com/account/v1/withdraw/charge?currency=USDT-TRX",
                 "input": [
                     "USDT"
                 ],
