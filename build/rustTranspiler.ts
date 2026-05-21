@@ -275,13 +275,12 @@ class RustTranspilerBuilder {
             if (depth !== 0) continue;
             const inside = content.slice(callOpen, j);
             const args = this.splitArgs(inside) || [];
-            let norm: string[];
-            if (args.length >= 3) {
-                norm = args.slice(0, 3).map(a => a.trim());
-            } else {
-                norm = args.map(a => a.trim());
-                while (norm.length < 3) norm.push('Value::Null');
-            }
+            // Runtime `jwt(request, secret, algorithm, isRsa, opts)` —
+            // 5 fixed params. Normalize every call to exactly 5 args.
+            const jwtDefaults = ['Value::Null', 'Value::Null', 'Value::Null',
+                'Value::Bool(false)', 'Value::Null'];
+            const norm = args.slice(0, 5).map(a => a.trim());
+            while (norm.length < 5) norm.push(jwtDefaults[norm.length]);
             out += content.slice(last, callOpen) + norm.join(', ') + ')';
             last = j + 1;
             re.lastIndex = last;
@@ -2911,6 +2910,11 @@ class RustTranspilerBuilder {
             create_safe_list:       0,
             parse_precision:        0,
             handle_request_network: 3,
+            // `networkCodeToId(networkCode, currencyCode?)` — 1 fixed +
+            // optional; `networkIdToCode(networkId, currencyCode?)` — both
+            // optional. Wrap the trailing arg(s) into the slice.
+            network_code_to_id: 1,
+            network_id_to_code: 0,
             // camelCase aliases for tests that didn't get snake-cased.
             safeString2:   3,
             safeStringN:   2,
@@ -4058,7 +4062,10 @@ impl std::ops::DerefMut for ${coreName} {
             if (testName === 'tests.init') continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (tsContent.includes('// NO_AUTO_TRANSPILE')) continue;
+            // `test.cryptography` is marked NO_AUTO_TRANSPILE (it's
+            // hand-transpiled per-language, cf. Go's transpileCryptoTests)
+            // but the Rust base-test pipeline handles it fine — include it.
+            if (tsContent.includes('// NO_AUTO_TRANSPILE') && testName !== 'test.cryptography') continue;
 
             const outFile = `${outDir}/${testName}.rs`;
             log.magenta('Transpiling from', (tsFile as any).yellow);
@@ -4078,6 +4085,7 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteBareErrorClassRefs(content);
             content = this.rewriteDynamicThrows(content);
                 content = this.rewriteDynamicThrows(content);
+                content = this.normalizeJwtCalls(content);
                 content = this.wrapBoolValueArgs(content);
                 content = this.stripCatchBlocks(content);
                 content = this.unwrapCatchUnwind(content);
@@ -4094,6 +4102,13 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
+                // `exchange['field'] = X` on the typed test exchange
+                // becomes `set_value(&mut exchange, …)` — but `exchange`
+                // is an `Exchange` struct, not a `Value`. Route to the
+                // real field assignment.
+                content = content.replace(
+                    /(?:crate::|ccxt::)?set_value\(&mut exchange,\s*&Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\),\s*([^;]+?)\)/g,
+                    'exchange.$1 = $2');
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.splitGetValueMutAdds(content);
@@ -4337,6 +4352,25 @@ impl std::ops::DerefMut for ${coreName} {
                     /\bexchange\.extend\((extended|opts|obj\d*)\.clone\(\)\s*,/g,
                     'exchange.extend($1.clone(),',
                 );
+
+                // test.cryptography's `equals` helper has a `for…of` over
+                // `Object.keys` that the transpiler drops — replace the
+                // mangled definition with a correct shallow-equality fn.
+                if (testName === 'test.cryptography') {
+                    content = content.replace(
+                        /\bfn equals\s*\([^)]*\)\s*->\s*Value\s*\{[\s\S]*?\n\}/,
+                        [
+                            'fn equals(a: Value, b: Value) -> Value {',
+                            '    if let (Value::Map(am), Value::Map(bm)) = (&a, &b) {',
+                            '        for (k, av) in am {',
+                            '            if bm.get(k) != Some(av) { return Value::Bool(false); }',
+                            '        }',
+                            '    }',
+                            '    Value::Bool(true)',
+                            '}',
+                        ].join('\n'),
+                    );
+                }
 
                 const file = [
                     ...this.createGeneratedHeader(),

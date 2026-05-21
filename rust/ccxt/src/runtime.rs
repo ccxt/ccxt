@@ -526,9 +526,86 @@ pub fn totp(_secret: Value) -> Value {
     Value::Str("000000".to_string())
 }
 
-/// `rsa(message, key, hash)` — RSA signature. Stub: returns empty string.
-pub fn rsa(_msg: Value, _key: Value, _hash: Value) -> Value {
-    Value::Str(String::new())
+/// `encode(s)` — UTF-8 bytes of a string as a byte-array Value.
+pub fn encode(s: Value) -> Value {
+    match &s {
+        Value::Str(st) => Value::Array(st.bytes().map(|b| Value::Int(b as i64)).collect()),
+        Value::Array(_) => s,
+        _ => Value::Array(vec![]),
+    }
+}
+
+/// Free-function `hash(data, algo, digest)` — used by transpiled crypto
+/// code that imports `hash` from `base/functions/crypto.js`.
+pub fn hash(data: Value, algo: Value, digest: Value) -> Value {
+    let dbytes = crate::exchange::value_to_bytes(&data);
+    let a = match &algo { Value::Str(s) => s.as_str(), _ => "sha256" };
+    let dg = match &digest { Value::Str(s) => s.as_str(), _ => "hex" };
+    let raw = crate::exchange::hash_raw(&dbytes, a);
+    match dg {
+        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
+        "base64" => Value::Str(b64_encode(&raw)),
+        _        => Value::Str(hex::encode(&raw)),
+    }
+}
+
+/// Free-function `hmac(data, secret, algo, digest)`.
+pub fn hmac(data: Value, secret: Value, algo: Value, digest: Value) -> Value {
+    use hmac::{Hmac, Mac};
+    let dbytes = crate::exchange::value_to_bytes(&data);
+    let sbytes = crate::exchange::value_to_bytes(&secret);
+    let a = match &algo { Value::Str(s) => s.to_ascii_lowercase(), _ => "sha256".to_string() };
+    let dg = match &digest { Value::Str(s) => s.as_str(), _ => "hex" };
+    let raw: Vec<u8> = match a.as_str() {
+        "sha256" => { let mut m = Hmac::<sha2::Sha256>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
+        "sha512" => { let mut m = Hmac::<sha2::Sha512>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
+        "sha384" => { let mut m = Hmac::<sha2::Sha384>::new_from_slice(&sbytes).unwrap(); m.update(&dbytes); m.finalize().into_bytes().to_vec() }
+        "sha1"   => { let mut m = Hmac::<sha1::Sha1>::new_from_slice(&sbytes).unwrap();   m.update(&dbytes); m.finalize().into_bytes().to_vec() }
+        "md5"    => { let mut m = Hmac::<md5::Md5>::new_from_slice(&sbytes).unwrap();     m.update(&dbytes); m.finalize().into_bytes().to_vec() }
+        _ => return Value::Null,
+    };
+    match dg {
+        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
+        "base64" => Value::Str(b64_encode(&raw)),
+        _        => Value::Str(hex::encode(&raw)),
+    }
+}
+
+/// `crc32(string, signed)` — IEEE CRC-32. With `signed = true` the u32 is
+/// reinterpreted as a signed 32-bit integer.
+pub fn crc32(s: Value, signed: Value) -> Value {
+    let bytes = crate::exchange::value_to_bytes(&s);
+    let mut crc: u32 = 0xFFFF_FFFF;
+    for &b in &bytes {
+        crc ^= b as u32;
+        for _ in 0..8 {
+            crc = if crc & 1 != 0 { (crc >> 1) ^ 0xEDB8_8320 } else { crc >> 1 };
+        }
+    }
+    crc = !crc;
+    if matches!(signed, Value::Bool(true)) {
+        Value::Int(crc as i32 as i64)
+    } else {
+        Value::Int(crc as i64)
+    }
+}
+
+/// `rsa(message, key, hash)` — RSA PKCS#1 v1.5 signature (SHA-256),
+/// returned base64-encoded. `key` is a PKCS#1 PEM private key.
+pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
+    use rsa::RsaPrivateKey;
+    use rsa::pkcs1::DecodeRsaPrivateKey;
+    use rsa::pkcs1v15::SigningKey;
+    use rsa::signature::{SignatureEncoding, Signer};
+    let msg = crate::exchange::value_to_bytes(&message);
+    let pem = String::from_utf8_lossy(&crate::exchange::value_to_bytes(&key)).into_owned();
+    let pk = match RsaPrivateKey::from_pkcs1_pem(pem.trim()) {
+        Ok(k) => k,
+        Err(_) => return Value::Str(String::new()),
+    };
+    let signing_key = SigningKey::<sha2::Sha256>::new(pk);
+    let sig = signing_key.sign(&msg);
+    Value::Str(b64_encode(&sig.to_bytes()))
 }
 
 /// `ecdsa(message, secret, curve, preHash)` — secp256k1 ECDSA signature
@@ -565,12 +642,50 @@ pub fn eddsa(_a: Value, _b: Value, _c: Value) -> Value {
     Value::Str(String::new())
 }
 
-/// `jwt(...)` — JWT encoding. Stub.
-/// `jwt(request, secret, algorithm)` — JSON Web Token signing. Currently
-/// a stub; returns an empty token until JWT signing is ported. The
-/// transpiler normalizes every call site to exactly 3 args.
-pub fn jwt(_request: Value, _secret: Value, _algorithm: Value) -> Value {
-    Value::Str(String::new())
+/// Standard base64.
+fn b64_encode(data: &[u8]) -> String {
+    use base64::{engine::general_purpose::STANDARD, Engine as _};
+    STANDARD.encode(data)
+}
+
+/// URL-safe base64, no padding (the `urlencodeBase64` of CCXT).
+fn b64url_encode(data: &[u8]) -> String {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+    URL_SAFE_NO_PAD.encode(data)
+}
+
+/// `jwt(request, secret, algorithm, isRsa, opts)` — JSON Web Token.
+/// HS256 (HMAC) or RS256 (RSA), signing `header.payload`.
+pub fn jwt(request: Value, secret: Value, algorithm: Value, is_rsa: Value, _opts: Value) -> Value {
+    let rsa_mode = matches!(is_rsa, Value::Bool(true));
+    let bits = match algorithm.as_str() {
+        Some("sha512") => "512",
+        Some("sha384") => "384",
+        _ => "256",
+    };
+    let alg = format!("{}{}", if rsa_mode { "RS" } else { "HS" }, bits);
+    // Header keys must be in a fixed order — build the JSON literally.
+    let header = format!("{{\"alg\":\"{alg}\",\"typ\":\"JWT\"}}");
+    let payload = serde_json::to_string(&request.to_json()).unwrap_or_else(|_| "{}".to_string());
+    let token = format!("{}.{}",
+        b64url_encode(header.as_bytes()),
+        b64url_encode(payload.as_bytes()));
+    // Signature: standard base64 from rsa()/hmac(), then made URL-safe.
+    let sig_std: String = if rsa_mode {
+        match rsa(Value::Str(token.clone()), secret, algorithm) {
+            Value::Str(s) => s,
+            _ => String::new(),
+        }
+    } else {
+        match hmac(encode(Value::Str(token.clone())), secret, algorithm,
+                   Value::Str("base64".to_string())) {
+            Value::Str(s) => s,
+            _ => String::new(),
+        }
+    };
+    let sig_url = sig_std.replace('+', "-").replace('/', "_")
+        .trim_end_matches('=').to_string();
+    Value::Str(format!("{token}.{sig_url}"))
 }
 
 /// `replace_str(s, old, new)` — string replacement, alias for string_replace.

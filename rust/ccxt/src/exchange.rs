@@ -602,6 +602,16 @@ impl Exchange {
         let text   = resp.text().await?;
         if self.is_verbose() {
             eprintln!("[ccxt] ← {status} {} bytes", text.len());
+            // Print the response body, capped so a multi-MB payload
+            // (e.g. binance exchangeInfo) doesn't flood the terminal.
+            const CAP: usize = 16384;
+            if text.len() > CAP {
+                eprintln!("[ccxt]   response body: {}… ({} bytes total)",
+                    &text[..text.char_indices().take_while(|(i, _)| *i < CAP).last().map(|(i, c)| i + c.len_utf8()).unwrap_or(0)],
+                    text.len());
+            } else {
+                eprintln!("[ccxt]   response body: {text}");
+            }
         }
         let json = match serde_json::from_str::<serde_json::Value>(&text) {
             Ok(j)  => Value::from_json(&j),
