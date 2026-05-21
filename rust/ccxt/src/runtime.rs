@@ -531,9 +531,33 @@ pub fn rsa(_msg: Value, _key: Value, _hash: Value) -> Value {
     Value::Str(String::new())
 }
 
-/// `ecdsa(message, secret, hash, [pre_hash])` — ECDSA signature. Stub.
-pub fn ecdsa(_a: Value, _b: Value, _c: Value, _d: Value) -> Value {
-    Value::Map(std::collections::HashMap::new())
+/// `ecdsa(message, secret, curve, preHash)` — secp256k1 ECDSA signature
+/// with public-key recovery. Returns `{r, s, v}` (hex r/s, integer
+/// recovery id). `message` is a hex digest (already hashed) unless
+/// `preHash` names a hash algorithm to apply first.
+pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> Value {
+    use k256::ecdsa::SigningKey;
+    let empty = || Value::Map(std::collections::HashMap::new());
+    let msg_s = match &message { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
+    let sk_s  = match &secret  { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
+    let sk_bytes = match hex::decode(&sk_s) { Ok(b) => b, Err(_) => return empty() };
+    // The 32-byte digest to sign.
+    let digest: Vec<u8> = match &pre_hash {
+        Value::Str(algo) => crate::exchange::hash_raw(
+            &crate::exchange::value_to_bytes(&message), algo),
+        _ => match hex::decode(&msg_s) { Ok(b) => b, Err(_) => return empty() },
+    };
+    let sk = match SigningKey::from_slice(&sk_bytes) { Ok(k) => k, Err(_) => return empty() };
+    let (sig, recid) = match sk.sign_prehash_recoverable(&digest) {
+        Ok(x) => x,
+        Err(_) => return empty(),
+    };
+    let bytes = sig.to_bytes(); // 64 bytes: r || s, low-S normalized
+    let mut m = std::collections::HashMap::new();
+    m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32])));
+    m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64])));
+    m.insert("v".to_string(), Value::Int(recid.to_byte() as i64));
+    Value::Map(m)
 }
 
 /// `eddsa(message, secret, hash)` — EdDSA signature. Stub.

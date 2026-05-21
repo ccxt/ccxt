@@ -706,17 +706,17 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string(),
         };
-        Value::Str(self.hash_typed(&dbytes, &a, &digest))
+        let raw = hash_raw(&dbytes, &a);
+        match digest.as_str() {
+            // `binary` → a byte-array Value (consumed by another crypto step).
+            "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
+            "base64" => Value::Str(B64.encode(&raw)),
+            _        => Value::Str(hex::encode(&raw)),
+        }
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
-        let raw: Vec<u8> = match algo.to_ascii_lowercase().as_str() {
-            "sha256" => { let mut h = Sha256::new(); h.update(data); h.finalize().to_vec() }
-            "sha512" => { let mut h = Sha512::new(); h.update(data); h.finalize().to_vec() }
-            "sha1"   => { let mut h = Sha1::new();   h.update(data); h.finalize().to_vec() }
-            "md5"    => { let mut h = Md5::new();    h.update(data); h.finalize().to_vec() }
-            _ => return String::new(),
-        };
+        let raw = hash_raw(data, algo);
         match digest {
             "base64" => B64.encode(&raw),
             _        => hex::encode(&raw),
@@ -1186,6 +1186,112 @@ impl Exchange {
             }
         }
         out
+    }
+}
+
+/// Raw digest bytes for a named hash algorithm — includes Keccak-256
+/// (`keccak`), used by ETH-style signing (hyperliquid, etc.).
+pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
+    match algo.to_ascii_lowercase().as_str() {
+        "sha256" => { let mut h = Sha256::new(); h.update(data); h.finalize().to_vec() }
+        "sha512" => { let mut h = Sha512::new(); h.update(data); h.finalize().to_vec() }
+        "sha1"   => { let mut h = Sha1::new();   h.update(data); h.finalize().to_vec() }
+        "md5"    => { let mut h = Md5::new();    h.update(data); h.finalize().to_vec() }
+        "keccak" | "keccak256" => {
+            use sha3::{Keccak256, Digest as _};
+            let mut h = Keccak256::new();
+            h.update(data);
+            h.finalize().to_vec()
+        }
+        _ => Vec::new(),
+    }
+}
+
+/// EIP-712 `encode` — produces the `\x19\x01 || domainSeparator ||
+/// hashStruct(message)` preimage. The caller keccak-hashes this into the
+/// 32-byte digest that gets ECDSA-signed (hyperliquid, etc.).
+pub(crate) fn eip712_encode(domain: &Value, types: &Value, message: &Value) -> Vec<u8> {
+    let dm = match domain { Value::Map(m) => m, _ => return Vec::new() };
+    // EIP712Domain field set — canonical order, only the keys present.
+    let mut domain_fields: Vec<(String, String)> = Vec::new();
+    for (n, t) in [("name", "string"), ("version", "string"), ("chainId", "uint256"),
+                   ("verifyingContract", "address"), ("salt", "bytes32")] {
+        if dm.contains_key(n) { domain_fields.push((n.to_string(), t.to_string())); }
+    }
+    let domain_sep = eip712_hash_struct("EIP712Domain", &domain_fields, domain);
+    // The primary type is the single key of `types`.
+    let (primary, fields) = match types {
+        Value::Map(m) => match m.iter().next() {
+            Some((k, Value::Array(arr))) => {
+                let f: Vec<(String, String)> = arr.iter().filter_map(|it| match it {
+                    Value::Map(fm) => Some((
+                        fm.get("name")?.as_str()?.to_string(),
+                        fm.get("type")?.as_str()?.to_string(),
+                    )),
+                    _ => None,
+                }).collect();
+                (k.clone(), f)
+            }
+            _ => return Vec::new(),
+        },
+        _ => return Vec::new(),
+    };
+    let struct_hash = eip712_hash_struct(&primary, &fields, message);
+    let mut out = vec![0x19u8, 0x01u8];
+    out.extend_from_slice(&domain_sep);
+    out.extend_from_slice(&struct_hash);
+    out
+}
+
+fn eip712_hash_struct(type_name: &str, fields: &[(String, String)], data: &Value) -> Vec<u8> {
+    let inner: Vec<String> = fields.iter().map(|(n, t)| format!("{t} {n}")).collect();
+    let type_str = format!("{}({})", type_name, inner.join(","));
+    let mut enc = hash_raw(type_str.as_bytes(), "keccak"); // typeHash (32 bytes)
+    let dm = match data { Value::Map(m) => Some(m), _ => None };
+    for (name, ty) in fields {
+        let v = dm.and_then(|m| m.get(name)).cloned().unwrap_or(Value::Null);
+        enc.extend_from_slice(&eip712_encode_value(ty, &v));
+    }
+    hash_raw(&enc, "keccak")
+}
+
+fn eip712_encode_value(ty: &str, v: &Value) -> [u8; 32] {
+    let mut out = [0u8; 32];
+    if ty == "string" || ty == "bytes" {
+        out.copy_from_slice(&hash_raw(&value_to_bytes(v), "keccak"));
+    } else if ty.starts_with("bytes") {
+        // bytesN — left-aligned.
+        let b = eip712_bytes(v);
+        let n = b.len().min(32);
+        out[..n].copy_from_slice(&b[..n]);
+    } else if ty == "address" {
+        // 20-byte address, right-aligned (left-padded with zeros).
+        let b = eip712_bytes(v);
+        let take = b.len().min(20);
+        out[32 - take..].copy_from_slice(&b[b.len() - take..]);
+    } else if ty == "bool" {
+        if matches!(v, Value::Bool(true)) { out[31] = 1; }
+    } else if ty.starts_with("uint") || ty.starts_with("int") {
+        let n: u128 = match v {
+            Value::Int(i) => (*i).max(0) as u128,
+            Value::Float(f) => f.max(0.0) as u128,
+            Value::Str(s) => s.trim().parse().unwrap_or(0),
+            _ => 0,
+        };
+        let be = n.to_be_bytes();
+        out[32 - be.len()..].copy_from_slice(&be);
+    }
+    out
+}
+
+/// Decode an EIP-712 byte value: a `0x`-hex string or a byte-array Value.
+fn eip712_bytes(v: &Value) -> Vec<u8> {
+    match v {
+        Value::Str(s) => {
+            let h = s.strip_prefix("0x").unwrap_or(s);
+            hex::decode(h).unwrap_or_else(|_| s.as_bytes().to_vec())
+        }
+        _ => value_to_bytes(v),
     }
 }
 
