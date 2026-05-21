@@ -1059,6 +1059,22 @@ class RustTranspilerBuilder {
             if (c === '"') { inStr = !inStr; out += c; i++; continue; }
             if (inStr) { out += c; i++; continue; }
 
+            // Skip comments verbatim — a `<ident>.<field>` inside a `//`
+            // line comment or a `/* */` block comment (e.g. `i.e.` or a
+            // `@see https://docs.gemini.com/...` URL in a JSDoc block) is
+            // text, not a property access, and must not be rewritten.
+            if (c === '/' && content[i + 1] === '/') {
+                while (i < content.length && content[i] !== '\n') { out += content[i]; i++; }
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '*') {
+                out += '/*';
+                i += 2;
+                while (i < content.length && !(content[i] === '*' && content[i + 1] === '/')) { out += content[i]; i++; }
+                if (i < content.length) { out += '*/'; i += 2; }
+                continue;
+            }
+
             // Try matching <ident>.<field> at i
             if (isIdentStart(c)) {
                 let j = i + 1;
@@ -1173,6 +1189,21 @@ class RustTranspilerBuilder {
                 if (escape) { escape = false; j++; continue; }
                 if (c === '\\' && inStr) { escape = true; j++; continue; }
                 if (c === '"') { inStr = !inStr; j++; continue; }
+                // Skip comments — a `{`/`}` inside a `//` line comment or a
+                // `/* */` block comment is text, not a delimiter. JSON
+                // examples in leading comments (e.g. gemini.parseDepositAddress
+                // ends a comment line with `//      }`) otherwise desync the
+                // depth counter and split the method in two.
+                if (!inStr && c === '/' && content[j + 1] === '/') {
+                    while (j < content.length && content[j] !== '\n') j++;
+                    continue;
+                }
+                if (!inStr && c === '/' && content[j + 1] === '*') {
+                    j += 2;
+                    while (j < content.length && !(content[j] === '*' && content[j + 1] === '/')) j++;
+                    j += 2;
+                    continue;
+                }
                 if (!inStr) {
                     if (c === '{') depth++;
                     else if (c === '}') depth--;
@@ -3199,33 +3230,48 @@ impl std::ops::DerefMut for ${coreName} {
             const exchangeName = basename(file, '.ts');
             const outPath = `${outFolder}/${exchangeName}.rs`;
 
+            // Phase 1 — run the transpiler. A throw here means the
+            // transpiler choked on a TypeScript construct; fail loudly with
+            // the underlying error rather than silently dropping the file.
+            let result: any;
+            let rustContent: string;
             try {
-                const result = this.transpiler.transpileRustByPath(tsPath);
-                const rustContent = this.createRustExchange(exchangeName, result, ws);
-                // Lexical sanity check: a file with mismatched delimiters
-                // will break the whole crate. If we detect one, skip
-                // writing so the crate stays compilable on every other
-                // exchange while we chase down the transpiler bug.
-                const lexErr = this.detectLexicalErrors(rustContent);
-                if (lexErr) {
-                    log.red(`[rust] Skipping ${file} — lexically invalid output:`, lexErr);
-                    // Dump the broken output so we can inspect what the
-                    // transpiler produced — outside the exchanges dir so
-                    // it doesn't get picked up by mod.rs.
-                    try {
-                        fs.writeFileSync(`/tmp/rust-broken-${exchangeName}.rs`, rustContent);
-                    } catch (_) { /* ignore */ }
-                    // Remove any stale .rs from a previous run so it
-                    // can't sneak back into mod.rs via existsSync().
-                    try { fs.unlinkSync(outPath); } catch (_) { /* ignore */ }
-                    continue;
-                }
-                overwriteFileAndFolder(outPath, rustContent);
-                log.magenta('→', (outPath as any).yellow);
-                written.push(exchangeName);
+                result = this.transpiler.transpileRustByPath(tsPath);
+                rustContent = this.createRustExchange(exchangeName, result, ws);
             } catch (e: any) {
-                log.red(`[rust] Error transpiling ${file}:`, e.message ?? e);
+                const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
+                throw new Error(
+                    `[rust] Failed to transpile exchange '${exchangeName}' (ts/src/${file}):\n` +
+                    `       the transpiler threw while generating Rust.\n\n${detail}`
+                );
             }
+
+            // Phase 2 — lexical sanity check. A file with mismatched
+            // delimiters would break the whole crate, so a failure here is
+            // a transpiler bug that must be fixed, not skipped. Dump the
+            // broken output and throw with a pointer to it.
+            const lexErr = this.detectLexicalErrors(rustContent);
+            if (lexErr) {
+                let dumpPath = `/tmp/rust-broken-${exchangeName}.rs`;
+                try {
+                    fs.writeFileSync(dumpPath, rustContent);
+                } catch (_) {
+                    dumpPath = '(failed to write dump file)';
+                }
+                // Remove any stale .rs from a previous run so a broken
+                // exchange can't sneak back into mod.rs via existsSync().
+                try { fs.unlinkSync(outPath); } catch (_) { /* ignore */ }
+                throw new Error(
+                    `[rust] Failed to transpile exchange '${exchangeName}' (ts/src/${file}):\n` +
+                    `       the generated Rust is lexically invalid — ${lexErr}.\n` +
+                    `       This means the transpiler mishandled a TypeScript construct in that file.\n` +
+                    `       The broken output was dumped to ${dumpPath} for inspection.`
+                );
+            }
+
+            overwriteFileAndFolder(outPath, rustContent);
+            log.magenta('→', (outPath as any).yellow);
+            written.push(exchangeName);
         }
 
         // Regenerate mod.rs — list every .rs file actually present on
