@@ -189,21 +189,15 @@ const exec = (bin, ...args) => {
         })
 
         if (debugKeys['--info']) {
-            psSpawn.on ('error', (a, b) => {
-                console.log ('spawn event', a, b)
-            })
-            psSpawn.on ('spawn', (a,b) => {
-                console.log ('spawn event', a, b)
-            })
-            psSpawn.on ('disconnect', (a, b) => {
-                console.log ('disconnect event', a, b)
-            })
-            psSpawn.on ('message', (a, b) => {
-                console.log ('message event', a, b)
-            })
-            psSpawn.on ('close', (a, b) => {
-                console.log ('close event', a, b)
-            })
+            psSpawn.on ('error', (err) => {
+                console.log ('RUNTESTS err event:', err);
+            });
+            psSpawn.on ('message', (code, sendHandle) => {
+                console.log ('RUNTESTS message event:', code, sendHandle);
+            });
+            psSpawn.on ('close', (code, signal) => {
+                console.log ('RUNTESTS close event:', code, signal);
+            });
         }
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
