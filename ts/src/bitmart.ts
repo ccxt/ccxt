@@ -1234,68 +1234,74 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const currencies = this.safeList (data, 'currencies', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const fullId = this.safeString (currency, 'currency');
-            let currencyId = fullId;
-            let networkId = this.safeString (currency, 'network');
-            const isNtf = (fullId.indexOf ('NFT') >= 0);
-            if (!isNtf) {
-                const parts = fullId.split ('-');
-                currencyId = this.safeString (parts, 0);
-                const second = this.safeString (parts, 1);
-                if (second !== undefined) {
-                    networkId = second.toUpperCase ();
-                }
-            }
-            const currencyCode = this.safeCurrencyCode (currencyId);
-            let entry = this.safeDict (result, currencyCode);
-            if (entry === undefined) {
-                entry = {
-                    'info': currency,
-                    'id': currencyId,
-                    'code': currencyCode,
-                    'precision': undefined,
-                    'name': this.safeString (currency, 'name'),
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'active': undefined,
-                    'networks': {},
-                    'type': isNtf ? 'other' : 'crypto',
-                };
-            }
-            const networkCode = this.networkIdToCode (networkId);
-            const withdraw = this.safeBool (currency, 'withdraw_enabled');
-            const deposit = this.safeBool (currency, 'deposit_enabled');
-            entry['networks'][networkCode] = {
-                'info': currency,
-                'id': networkId,
-                'code': networkCode,
-                'withdraw': withdraw,
-                'deposit': deposit,
-                'active': withdraw && deposit,
-                'fee': this.safeNumber (currency, 'withdraw_fee'),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'withdraw_minsize'),
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
-            result[currencyCode] = entry;
-        }
+        this.options['_temp_fetchCurrencies_result'] = {}; // a temporary object to store intermediate results from parsing currencies, will be used in `getCurrencyIdFromCodeAndNetwork`
+        const result = this.parseCurrencies (currencies);
+        // only after rebuilt, we should apply `safeCurrencyStructure`
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const currency = result[key];
             result[key] = this.safeCurrencyStructure (currency);
         }
+        delete this.options['_temp_fetchCurrencies_result']; // clean up the temporary object
         return result;
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const existingResult = this.options['_temp_fetchCurrencies_result'];
+        const fullId = this.safeString (currency, 'currency');
+        let currencyId = fullId;
+        let networkId = this.safeString (currency, 'network');
+        const isNtf = (fullId.indexOf ('NFT') >= 0);
+        if (!isNtf) {
+            const parts = fullId.split ('-');
+            currencyId = this.safeString (parts, 0);
+            const second = this.safeString (parts, 1);
+            if (second !== undefined) {
+                networkId = second.toUpperCase ();
+            }
+        }
+        const currencyCode = this.safeCurrencyCode (currencyId);
+        let entry = this.safeDict (existingResult, currencyCode);
+        if (entry === undefined) {
+            entry = {
+                'info': currency,
+                'id': currencyId,
+                'code': currencyCode,
+                'precision': undefined,
+                'name': this.safeString (currency, 'name'),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'active': undefined,
+                'networks': {},
+                'type': isNtf ? 'other' : 'crypto',
+            };
+        }
+        const networkCode = this.networkIdToCode (networkId);
+        const withdraw = this.safeBool (currency, 'withdraw_enabled');
+        const deposit = this.safeBool (currency, 'deposit_enabled');
+        entry['networks'][networkCode] = {
+            'info': currency,
+            'id': networkId,
+            'code': networkCode,
+            'withdraw': withdraw,
+            'deposit': deposit,
+            'active': withdraw && deposit,
+            'fee': this.safeNumber (currency, 'withdraw_fee'),
+            'limits': {
+                'withdraw': {
+                    'min': this.safeNumber (currency, 'withdraw_minsize'),
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        };
+        this.options['_temp_fetchCurrencies_result'][currencyCode] = entry;
+        // @ts-ignore
+        return entry;
     }
 
     getCurrencyIdFromCodeAndNetwork (currencyCode: Str, networkCode: Str): Str {

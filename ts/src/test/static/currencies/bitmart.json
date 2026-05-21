@@ -8,18 +8,21 @@
             "withdraw_enabled": true,
             "deposit_enabled": true,
             "withdraw_minsize": "0.0003",
-            "withdraw_minfee": "9.61"
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "7.7",
+            "withdraw_fee_estimate": "7.7",
+            "withdraw_fee": "0.0001"
         },
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.96,
+        "fee": 0.000002,
         "fees": {},
         "networks": {
             "BTC": {
@@ -31,14 +34,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.0003",
-                    "withdraw_minfee": "9.61"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "7.7",
+                    "withdraw_fee_estimate": "7.7",
+                    "withdraw_fee": "0.0001"
                 },
                 "id": "BTC",
                 "code": "BTC",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 9.61,
+                "fee": 0.0001,
                 "limits": {
                     "withdraw": {
                         "min": 0.0003,
@@ -50,26 +56,29 @@
                     }
                 }
             },
-            "LIGHTNING": {
+            "LIGHTNING_BTC": {
                 "info": {
-                    "currency": "BTC-Lightning",
-                    "name": "Bitcoin",
+                    "currency": "BTC-LIGHTNING_BTC",
+                    "name": "Bitcoin-LIGHTNING_BTC",
                     "contract_address": null,
                     "network": "LIGHTNING_BTC",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "0.000001",
-                    "withdraw_minfee": "0.96"
+                    "withdraw_minsize": "0.00001",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "7.7",
+                    "withdraw_fee_estimate": "7.7",
+                    "withdraw_fee": "0.0001"
                 },
-                "id": "LIGHTNING",
-                "code": "LIGHTNING",
+                "id": "LIGHTNING_BTC",
+                "code": "LIGHTNING_BTC",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.96,
+                "fee": 0.0001,
                 "limits": {
                     "withdraw": {
-                        "min": 0.000001,
+                        "min": 0.00001,
                         "max": null
                     },
                     "deposit": {
@@ -86,18 +95,52 @@
                     "network": "MERLIN-BTC",
                     "withdraw_enabled": false,
                     "deposit_enabled": false,
-                    "withdraw_minsize": "0.00020839",
-                    "withdraw_minfee": "2.88"
+                    "withdraw_minsize": "0.00025972",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "2.31",
+                    "withdraw_fee_estimate": "2.31",
+                    "withdraw_fee": "0.00003"
                 },
                 "id": "MERLIN",
                 "code": "MERLIN",
                 "withdraw": false,
                 "deposit": false,
                 "active": false,
-                "fee": 2.88,
+                "fee": 0.00003,
                 "limits": {
                     "withdraw": {
-                        "min": 0.00020839,
+                        "min": 0.00025972,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "currency": "BTC-BSC_BNB",
+                    "name": "Bitcoin-BSC_BNB",
+                    "contract_address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+                    "network": "BSC_BNB",
+                    "withdraw_enabled": true,
+                    "deposit_enabled": true,
+                    "withdraw_minsize": "0.00006493",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.15",
+                    "withdraw_fee_estimate": "0.15",
+                    "withdraw_fee": "0.000002"
+                },
+                "id": "BSC_BNB",
+                "code": "BEP20",
+                "withdraw": true,
+                "deposit": true,
+                "active": true,
+                "fee": 0.000002,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.00006493,
                         "max": null
                     },
                     "deposit": {
@@ -113,82 +156,60 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.000001,
+                "min": 0.00001,
                 "max": null
             }
         }
     },
     "USDT": {
         "info": {
-            "currency": "USDT",
-            "name": "Tether USD",
-            "contract_address": null,
-            "network": "USDT",
-            "withdraw_enabled": false,
-            "deposit_enabled": false,
-            "withdraw_minsize": "10",
-            "withdraw_minfee": "1.99"
+            "currency": "USDT-ETH",
+            "name": "Tether USD-ETH",
+            "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "network": "ETH",
+            "withdraw_enabled": true,
+            "deposit_enabled": true,
+            "withdraw_minsize": "5.005312",
+            "recharge_minsize": "0.001",
+            "withdraw_minfee": "3.09",
+            "withdraw_fee_estimate": "3.09",
+            "withdraw_fee": "3.1"
         },
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
         "precision": null,
-        "type": null,
-        "name": "Tether USD",
+        "type": "crypto",
+        "name": "Tether USD-ETH",
         "active": true,
         "deposit": true,
         "withdraw": true,
         "fee": 0,
         "fees": {},
         "networks": {
-            "OMNI": {
-                "info": {
-                    "currency": "USDT",
-                    "name": "Tether USD",
-                    "contract_address": null,
-                    "network": "USDT",
-                    "withdraw_enabled": false,
-                    "deposit_enabled": false,
-                    "withdraw_minsize": "10",
-                    "withdraw_minfee": "1.99"
-                },
-                "id": "USDT",
-                "code": "OMNI",
-                "withdraw": false,
-                "deposit": false,
-                "active": false,
-                "fee": 1.99,
-                "limits": {
-                    "withdraw": {
-                        "min": 10,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": null,
-                        "max": null
-                    }
-                }
-            },
             "ERC20": {
                 "info": {
-                    "currency": "USDT-ERC20",
-                    "name": "USDT-ERC20",
+                    "currency": "USDT-ETH",
+                    "name": "Tether USD-ETH",
                     "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                     "network": "ETH",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "15.0015",
-                    "withdraw_minfee": "3.09"
+                    "withdraw_minsize": "5.005312",
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "3.09",
+                    "withdraw_fee_estimate": "3.09",
+                    "withdraw_fee": "3.1"
                 },
-                "id": "ERC20",
+                "id": "ETH",
                 "code": "ERC20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 3.09,
+                "fee": 3.1,
                 "limits": {
                     "withdraw": {
-                        "min": 15.0015,
+                        "min": 5.005312,
                         "max": null
                     },
                     "deposit": {
@@ -199,21 +220,24 @@
             },
             "TRC20": {
                 "info": {
-                    "currency": "USDT-TRC20",
-                    "name": "USDT-TRC20",
+                    "currency": "USDT-TRX",
+                    "name": "Tether USD-TRX",
                     "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                     "network": "TRX",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "3",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.01",
+                    "withdraw_minfee": "2.29",
+                    "withdraw_fee_estimate": "2.29",
+                    "withdraw_fee": "2.3"
                 },
-                "id": "TRC20",
+                "id": "TRX",
                 "code": "TRC20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.99,
+                "fee": 2.3,
                 "limits": {
                     "withdraw": {
                         "min": 3,
@@ -234,7 +258,10 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "2",
-                    "withdraw_minfee": "0"
+                    "recharge_minsize": "0.01",
+                    "withdraw_minfee": "0",
+                    "withdraw_fee_estimate": "0",
+                    "withdraw_fee": "0"
                 },
                 "id": "BSC_BNB",
                 "code": "BEP20",
@@ -253,26 +280,29 @@
                     }
                 }
             },
-            "SPL": {
+            "SOL": {
                 "info": {
-                    "currency": "USDT-SPL",
-                    "name": "USDT-SPL",
+                    "currency": "USDT-SOL",
+                    "name": "Tether USD-SOL",
                     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
                     "network": "SOL",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "25.0025",
-                    "withdraw_minfee": "5.19"
+                    "withdraw_minsize": "5.005312",
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0.59",
+                    "withdraw_fee_estimate": "0.59",
+                    "withdraw_fee": "0.6"
                 },
-                "id": "SPL",
-                "code": "SPL",
+                "id": "SOL",
+                "code": "SOL",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 5.19,
+                "fee": 0.6,
                 "limits": {
                     "withdraw": {
-                        "min": 25.0025,
+                        "min": 5.005312,
                         "max": null
                     },
                     "deposit": {
@@ -290,14 +320,17 @@
                     "withdraw_enabled": false,
                     "deposit_enabled": false,
                     "withdraw_minsize": "1.5",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "ALGO",
                 "code": "ALGO",
                 "withdraw": false,
                 "deposit": false,
                 "active": false,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 1.5,
@@ -312,20 +345,23 @@
             "OPTIMISM": {
                 "info": {
                     "currency": "USDT-OPTIMISM",
-                    "name": "USDT-OPTIMISM",
+                    "name": "Tether USD-OPTIMISM",
                     "contract_address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
                     "network": "OPTIMISM",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "1.15",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "OPTIMISM",
                 "code": "OPTIMISM",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 1.15,
@@ -340,20 +376,23 @@
             "POLYGON": {
                 "info": {
                     "currency": "USDT-POLYGON",
-                    "name": "USDT-POLYGON",
+                    "name": "Tether USD-POLYGON",
                     "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
                     "network": "POLYGON",
-                    "withdraw_enabled": true,
-                    "deposit_enabled": true,
+                    "withdraw_enabled": false,
+                    "deposit_enabled": false,
                     "withdraw_minsize": "10",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "POLYGON",
                 "code": "POLYGON",
-                "withdraw": true,
-                "deposit": true,
-                "active": true,
-                "fee": 0.99,
+                "withdraw": false,
+                "deposit": false,
+                "active": false,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -374,14 +413,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "1.15",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "ARBI",
                 "code": "ARBI",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 1.15,
@@ -396,20 +438,23 @@
             "AVAX": {
                 "info": {
                     "currency": "USDT-AVAX-C",
-                    "name": "USDT-AVAX-C",
+                    "name": "Tether USD-AVAX-C",
                     "contract_address": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
                     "network": "AVAX-C",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "1.15",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "AVAX",
                 "code": "AVAX",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 1.15,
@@ -421,23 +466,26 @@
                     }
                 }
             },
-            "HRC20": {
+            "HECO_HT": {
                 "info": {
-                    "currency": "USDT-HECO",
-                    "name": "USDT-HECO",
+                    "currency": "USDT-HECO_HT",
+                    "name": "Tether USD-HECO_HT",
                     "contract_address": "0xa71edc38d189767582c38a3145b5873052c3e47a",
                     "network": "HECO_HT",
                     "withdraw_enabled": false,
                     "deposit_enabled": false,
                     "withdraw_minsize": "20",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
-                "id": "HECO",
-                "code": "HRC20",
+                "id": "HECO_HT",
+                "code": "HECO_HT",
                 "withdraw": false,
                 "deposit": false,
                 "active": false,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 20,
@@ -449,26 +497,29 @@
                     }
                 }
             },
-            "TON": {
+            "OPENTON": {
                 "info": {
-                    "currency": "USDT-TON",
-                    "name": "USDT-TON",
+                    "currency": "USDT-OPENTON",
+                    "name": "Tether USD-OPENTON",
                     "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
                     "network": "OPENTON",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "3.0003",
-                    "withdraw_minfee": "2.09"
+                    "withdraw_minsize": "3.003187",
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "2.09",
+                    "withdraw_fee_estimate": "2.09",
+                    "withdraw_fee": "2.1"
                 },
-                "id": "TON",
-                "code": "TON",
+                "id": "OPENTON",
+                "code": "OPENTON",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 2.09,
+                "fee": 2.1,
                 "limits": {
                     "withdraw": {
-                        "min": 3.0003,
+                        "min": 3.003187,
                         "max": null
                     },
                     "deposit": {
@@ -483,20 +534,54 @@
                     "name": "Tether USD-OP-BNB",
                     "contract_address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
                     "network": "OP-BNB",
-                    "withdraw_enabled": false,
+                    "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "10",
-                    "withdraw_minfee": "0"
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0",
+                    "withdraw_fee_estimate": "0",
+                    "withdraw_fee": "0"
                 },
                 "id": "OP",
                 "code": "OP",
-                "withdraw": false,
+                "withdraw": true,
                 "deposit": true,
-                "active": false,
+                "active": true,
                 "fee": 0,
                 "limits": {
                     "withdraw": {
                         "min": 10,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "APT": {
+                "info": {
+                    "currency": "USDT-APT",
+                    "name": "Tether USD-APT",
+                    "contract_address": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                    "network": "APT",
+                    "withdraw_enabled": true,
+                    "deposit_enabled": true,
+                    "withdraw_minsize": "20.021246",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "2.09",
+                    "withdraw_fee_estimate": "2.09",
+                    "withdraw_fee": "2.1"
+                },
+                "id": "APT",
+                "code": "APT",
+                "withdraw": true,
+                "deposit": true,
+                "active": true,
+                "fee": 2.1,
+                "limits": {
+                    "withdraw": {
+                        "min": 20.021246,
                         "max": null
                     },
                     "deposit": {
@@ -526,18 +611,21 @@
             "withdraw_enabled": true,
             "deposit_enabled": true,
             "withdraw_minsize": "0.2",
-            "withdraw_minfee": "0.97"
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "0.43",
+            "withdraw_fee_estimate": "0.43",
+            "withdraw_fee": "0.008"
         },
         "id": "LTC",
         "numericId": null,
         "code": "LTC",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "LiteCoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.97,
+        "fee": 0.008,
         "fees": {},
         "networks": {
             "LTC": {
@@ -549,14 +637,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.2",
-                    "withdraw_minfee": "0.97"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.43",
+                    "withdraw_fee_estimate": "0.43",
+                    "withdraw_fee": "0.008"
                 },
                 "id": "LTC",
                 "code": "LTC",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.97,
+                "fee": 0.008,
                 "limits": {
                     "withdraw": {
                         "min": 0.2,
@@ -588,19 +679,22 @@
             "network": "ETH",
             "withdraw_enabled": true,
             "deposit_enabled": true,
-            "withdraw_minsize": "0.00559972",
-            "withdraw_minfee": "5.36"
+            "withdraw_minsize": "0.0023613",
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "4.23",
+            "withdraw_fee_estimate": "4.23",
+            "withdraw_fee": "0.002"
         },
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.02,
+        "fee": 0.00001,
         "fees": {},
         "networks": {
             "ERC20": {
@@ -611,18 +705,21 @@
                     "network": "ETH",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "0.00559972",
-                    "withdraw_minfee": "5.36"
+                    "withdraw_minsize": "0.0023613",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "4.23",
+                    "withdraw_fee_estimate": "4.23",
+                    "withdraw_fee": "0.002"
                 },
                 "id": "ETH",
                 "code": "ERC20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 5.36,
+                "fee": 0.002,
                 "limits": {
                     "withdraw": {
-                        "min": 0.00559972,
+                        "min": 0.0023613,
                         "max": null
                     },
                     "deposit": {
@@ -640,14 +737,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.002",
-                    "withdraw_minfee": "0.02"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.02",
+                    "withdraw_fee_estimate": "0.02",
+                    "withdraw_fee": "0.00001"
                 },
                 "id": "OPTIMISM",
                 "code": "OPTIMISM",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.02,
+                "fee": 0.00001,
                 "limits": {
                     "withdraw": {
                         "min": 0.002,
@@ -668,14 +768,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.00126",
-                    "withdraw_minfee": "1.07"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "1.05",
+                    "withdraw_fee_estimate": "1.05",
+                    "withdraw_fee": "0.0005"
                 },
                 "id": "ARBI",
                 "code": "ARBI",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 1.07,
+                "fee": 0.0005,
                 "limits": {
                     "withdraw": {
                         "min": 0.00126,
@@ -696,14 +799,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.0026",
-                    "withdraw_minfee": "5.36"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "4.23",
+                    "withdraw_fee_estimate": "4.23",
+                    "withdraw_fee": "0.002"
                 },
                 "id": "ZKSYNC",
                 "code": "ZKSYNC",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 5.36,
+                "fee": 0.002,
                 "limits": {
                     "withdraw": {
                         "min": 0.0026,
@@ -724,14 +830,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.001",
-                    "withdraw_minfee": "0.8"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.63",
+                    "withdraw_fee_estimate": "0.63",
+                    "withdraw_fee": "0.0003"
                 },
                 "id": "BASE",
                 "code": "BASE",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.8,
+                "fee": 0.0003,
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
@@ -751,18 +860,21 @@
                     "network": "BSC_BNB",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "0.00373314",
-                    "withdraw_minfee": "0.53"
+                    "withdraw_minsize": "0.0023613",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.1",
+                    "withdraw_fee_estimate": "0.1",
+                    "withdraw_fee": "0.00005"
                 },
                 "id": "BEP20",
                 "code": "BEP20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.53,
+                "fee": 0.00005,
                 "limits": {
                     "withdraw": {
-                        "min": 0.00373314,
+                        "min": 0.0023613,
                         "max": null
                     },
                     "deposit": {
@@ -780,14 +892,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "0.004",
-                    "withdraw_minfee": "5.36"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "4.23",
+                    "withdraw_fee_estimate": "4.23",
+                    "withdraw_fee": "0.002"
                 },
                 "id": "STARKNET",
                 "code": "STARKNET",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 5.36,
+                "fee": 0.002,
                 "limits": {
                     "withdraw": {
                         "min": 0.004,
@@ -820,18 +935,21 @@
             "withdraw_enabled": true,
             "deposit_enabled": true,
             "withdraw_minsize": "2.8",
-            "withdraw_minfee": "0.62"
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "0.19",
+            "withdraw_fee_estimate": "0.19",
+            "withdraw_fee": "0.8"
         },
         "id": "ADA",
         "numericId": null,
         "code": "ADA",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "Cardano",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.62,
+        "fee": 0.8,
         "fees": {},
         "networks": {
             "ADA": {
@@ -843,14 +961,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "2.8",
-                    "withdraw_minfee": "0.62"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.19",
+                    "withdraw_fee_estimate": "0.19",
+                    "withdraw_fee": "0.8"
                 },
                 "id": "ADA",
                 "code": "ADA",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.62,
+                "fee": 0.8,
                 "limits": {
                     "withdraw": {
                         "min": 2.8,
@@ -883,18 +1004,21 @@
             "withdraw_enabled": true,
             "deposit_enabled": true,
             "withdraw_minsize": "10",
-            "withdraw_minfee": "0.48"
+            "recharge_minsize": "0.001",
+            "withdraw_minfee": "0.27",
+            "withdraw_fee_estimate": "0.27",
+            "withdraw_fee": "0.2"
         },
         "id": "XRP",
         "numericId": null,
         "code": "XRP",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "XRP",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.48,
+        "fee": 0.2,
         "fees": {},
         "networks": {
             "XRP": {
@@ -906,14 +1030,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "10",
-                    "withdraw_minfee": "0.48"
+                    "recharge_minsize": "0.001",
+                    "withdraw_minfee": "0.27",
+                    "withdraw_fee_estimate": "0.27",
+                    "withdraw_fee": "0.2"
                 },
                 "id": "XRP",
                 "code": "XRP",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.48,
+                "fee": 0.2,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -945,19 +1072,22 @@
             "network": "ETH",
             "withdraw_enabled": true,
             "deposit_enabled": true,
-            "withdraw_minsize": "15.004501",
-            "withdraw_minfee": "3.09"
+            "withdraw_minsize": "5.00191",
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "3.09",
+            "withdraw_fee_estimate": "3.09",
+            "withdraw_fee": "3.1"
         },
         "id": "USDC",
         "numericId": null,
         "code": "USDC",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "USDC",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0,
+        "fee": 0.2,
         "fees": {},
         "networks": {
             "ERC20": {
@@ -968,18 +1098,21 @@
                     "network": "ETH",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "15.004501",
-                    "withdraw_minfee": "3.09"
+                    "withdraw_minsize": "5.00191",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "3.09",
+                    "withdraw_fee_estimate": "3.09",
+                    "withdraw_fee": "3.1"
                 },
                 "id": "ETH",
                 "code": "ERC20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 3.09,
+                "fee": 3.1,
                 "limits": {
                     "withdraw": {
-                        "min": 15.004501,
+                        "min": 5.00191,
                         "max": null
                     },
                     "deposit": {
@@ -996,18 +1129,21 @@
                     "network": "SOL",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "25.007502",
-                    "withdraw_minfee": "5.19"
+                    "withdraw_minsize": "5.00191",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.59",
+                    "withdraw_fee_estimate": "0.59",
+                    "withdraw_fee": "0.6"
                 },
                 "id": "SPL",
                 "code": "SPL",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 5.19,
+                "fee": 0.6,
                 "limits": {
                     "withdraw": {
-                        "min": 25.007502,
+                        "min": 5.00191,
                         "max": null
                     },
                     "deposit": {
@@ -1025,14 +1161,17 @@
                     "withdraw_enabled": false,
                     "deposit_enabled": false,
                     "withdraw_minsize": "10",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "TRC20",
                 "code": "TRC20",
                 "withdraw": false,
                 "deposit": false,
                 "active": false,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -1053,14 +1192,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "2",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "ALGO",
                 "code": "ALGO",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 2,
@@ -1080,18 +1222,21 @@
                     "network": "BSC_BNB",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "2",
-                    "withdraw_minfee": "0"
+                    "withdraw_minsize": "5.00191028",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.19",
+                    "withdraw_fee_estimate": "0.19",
+                    "withdraw_fee": "0.2"
                 },
                 "id": "BSC_BNB",
                 "code": "BEP20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0,
+                "fee": 0.2,
                 "limits": {
                     "withdraw": {
-                        "min": 2,
+                        "min": 5.00191028,
                         "max": null
                     },
                     "deposit": {
@@ -1109,14 +1254,17 @@
                     "withdraw_enabled": false,
                     "deposit_enabled": false,
                     "withdraw_minsize": "2",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "POLYGON",
                 "code": "POLYGON",
                 "withdraw": false,
                 "deposit": false,
                 "active": false,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 2,
@@ -1137,17 +1285,82 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "2",
-                    "withdraw_minfee": "0.99"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.99",
+                    "withdraw_fee_estimate": "0.99",
+                    "withdraw_fee": "1"
                 },
                 "id": "ARBITRUM",
                 "code": "ARBITRUM",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.99,
+                "fee": 1,
                 "limits": {
                     "withdraw": {
                         "min": 2,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BASE": {
+                "info": {
+                    "currency": "USDC-BASE-ETH",
+                    "name": "USDC-BASE-ETH",
+                    "contract_address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "network": "BASE-ETH",
+                    "withdraw_enabled": true,
+                    "deposit_enabled": true,
+                    "withdraw_minsize": "20.007641",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "2.09",
+                    "withdraw_fee_estimate": "2.09",
+                    "withdraw_fee": "2.1"
+                },
+                "id": "BASE",
+                "code": "BASE",
+                "withdraw": true,
+                "deposit": true,
+                "active": true,
+                "fee": 2.1,
+                "limits": {
+                    "withdraw": {
+                        "min": 20.007641,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "AVAX": {
+                "info": {
+                    "currency": "USDC-AVAX-C",
+                    "name": "USDC-AVAX-C",
+                    "contract_address": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "network": "AVAX-C",
+                    "withdraw_enabled": true,
+                    "deposit_enabled": true,
+                    "withdraw_minsize": "20.007641",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "2.09",
+                    "withdraw_fee_estimate": "2.09",
+                    "withdraw_fee": "2.1"
+                },
+                "id": "AVAX",
+                "code": "AVAX",
+                "withdraw": true,
+                "deposit": true,
+                "active": true,
+                "fee": 2.1,
+                "limits": {
+                    "withdraw": {
+                        "min": 20.007641,
                         "max": null
                     },
                     "deposit": {
@@ -1176,19 +1389,22 @@
             "network": "SOL",
             "withdraw_enabled": true,
             "deposit_enabled": true,
-            "withdraw_minsize": "1.460494",
-            "withdraw_minfee": "6.96"
+            "withdraw_minsize": "2.462032",
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "0.6",
+            "withdraw_fee_estimate": "0.6",
+            "withdraw_fee": "0.3"
         },
         "id": "TRUMP",
         "numericId": null,
         "code": "TRUMP",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "OFFICIAL TRUMP-SOL",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 6.96,
+        "fee": 0.3,
         "fees": {},
         "networks": {
             "SOL": {
@@ -1199,18 +1415,21 @@
                     "network": "SOL",
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
-                    "withdraw_minsize": "1.460494",
-                    "withdraw_minfee": "6.96"
+                    "withdraw_minsize": "2.462032",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "0.6",
+                    "withdraw_fee_estimate": "0.6",
+                    "withdraw_fee": "0.3"
                 },
                 "id": "SOL",
                 "code": "SOL",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 6.96,
+                "fee": 0.3,
                 "limits": {
                     "withdraw": {
-                        "min": 1.460494,
+                        "min": 2.462032,
                         "max": null
                     },
                     "deposit": {
@@ -1226,7 +1445,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 1.460494,
+                "min": 2.462032,
                 "max": null
             }
         }
@@ -1240,18 +1459,21 @@
             "withdraw_enabled": true,
             "deposit_enabled": true,
             "withdraw_minsize": "20",
-            "withdraw_minfee": "4.39"
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "1.77",
+            "withdraw_fee_estimate": "1.77",
+            "withdraw_fee": "17"
         },
         "id": "DOGE",
         "numericId": null,
         "code": "DOGE",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "Dogecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 2.01,
+        "fee": 17,
         "fees": {},
         "networks": {
             "DOGE": {
@@ -1263,14 +1485,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "20",
-                    "withdraw_minfee": "4.39"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "1.77",
+                    "withdraw_fee_estimate": "1.77",
+                    "withdraw_fee": "17"
                 },
                 "id": "DOGE",
                 "code": "DOGE",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 4.39,
+                "fee": 17,
                 "limits": {
                     "withdraw": {
                         "min": 20,
@@ -1288,20 +1513,23 @@
                     "name": "Dogecoin-LAIKA-DOGE",
                     "contract_address": null,
                     "network": "LAIKA-DOGE",
-                    "withdraw_enabled": true,
-                    "deposit_enabled": true,
-                    "withdraw_minsize": "77.42934572",
-                    "withdraw_minfee": "2.01"
+                    "withdraw_enabled": false,
+                    "deposit_enabled": false,
+                    "withdraw_minsize": "191.15765736",
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "2.09",
+                    "withdraw_fee_estimate": "2.09",
+                    "withdraw_fee": "20"
                 },
                 "id": "LAIKA",
                 "code": "LAIKA",
-                "withdraw": true,
-                "deposit": true,
-                "active": true,
-                "fee": 2.01,
+                "withdraw": false,
+                "deposit": false,
+                "active": false,
+                "fee": 20,
                 "limits": {
                     "withdraw": {
-                        "min": 77.42934572,
+                        "min": 191.15765736,
                         "max": null
                     },
                     "deposit": {
@@ -1331,21 +1559,24 @@
             "withdraw_enabled": true,
             "deposit_enabled": true,
             "withdraw_minsize": "5",
-            "withdraw_minfee": "0.71"
+            "recharge_minsize": "0.00000001",
+            "withdraw_minfee": "1.09",
+            "withdraw_fee_estimate": "1.09",
+            "withdraw_fee": "3"
         },
         "id": "TRX",
         "numericId": null,
         "code": "TRX",
         "precision": null,
-        "type": null,
+        "type": "crypto",
         "name": "TRON",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.71,
+        "fee": 3,
         "fees": {},
         "networks": {
-            "TRX": {
+            "TRC20": {
                 "info": {
                     "currency": "TRX",
                     "name": "TRON",
@@ -1354,14 +1585,17 @@
                     "withdraw_enabled": true,
                     "deposit_enabled": true,
                     "withdraw_minsize": "5",
-                    "withdraw_minfee": "0.71"
+                    "recharge_minsize": "0.00000001",
+                    "withdraw_minfee": "1.09",
+                    "withdraw_fee_estimate": "1.09",
+                    "withdraw_fee": "3"
                 },
                 "id": "TRX",
-                "code": "TRX",
+                "code": "TRC20",
                 "withdraw": true,
                 "deposit": true,
                 "active": true,
-                "fee": 0.71,
+                "fee": 3,
                 "limits": {
                     "withdraw": {
                         "min": 5,

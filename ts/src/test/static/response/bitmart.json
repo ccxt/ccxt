@@ -3,6 +3,194 @@
     "skipKeys": [ "apply_time" ],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "message": "OK",
+                    "code": "1000",
+                    "trace": "05e4771acf0641aea6e5ce8f245357d4.89.17793720327607341",
+                    "data": {
+                        "currencies": [
+                            {
+                                "currency": "USDT-ETH",
+                                "name": "Tether USD-ETH",
+                                "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                                "network": "ETH",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "5.004909",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "3.09",
+                                "withdraw_fee_estimate": "3.09",
+                                "withdraw_fee": "3.1"
+                            },
+                            {
+                                "currency": "USDT-TRX",
+                                "name": "Tether USD-TRX",
+                                "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                "network": "TRX",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "3",
+                                "recharge_minsize": "0.01",
+                                "withdraw_minfee": "2.29",
+                                "withdraw_fee_estimate": "2.29",
+                                "withdraw_fee": "2.3"
+                            },
+                            {
+                                "currency": "USDT-BSC_BNB",
+                                "name": "Tether USD-BSC_BNB",
+                                "contract_address": "0x55d398326f99059fF775485246999027B3197955",
+                                "network": "BSC_BNB",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "2",
+                                "recharge_minsize": "0.01",
+                                "withdraw_minfee": "0",
+                                "withdraw_fee_estimate": "0",
+                                "withdraw_fee": "0"
+                            },
+                            {
+                                "currency": "USDT-SOL",
+                                "name": "Tether USD-SOL",
+                                "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                "network": "SOL",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "5.004909",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "0.59",
+                                "withdraw_fee_estimate": "0.59",
+                                "withdraw_fee": "0.6"
+                            },
+                            {
+                                "currency": "USDT-ALGO",
+                                "name": "USDT",
+                                "contract_address": "312769",
+                                "network": "ALGO",
+                                "withdraw_enabled": false,
+                                "deposit_enabled": false,
+                                "withdraw_minsize": "1.5",
+                                "recharge_minsize": "0.00000001",
+                                "withdraw_minfee": "0.99",
+                                "withdraw_fee_estimate": "0.99",
+                                "withdraw_fee": "1"
+                            },
+                            {
+                                "currency": "USDT-OPTIMISM",
+                                "name": "Tether USD-OPTIMISM",
+                                "contract_address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                                "network": "OPTIMISM",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "1.15",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "0.99",
+                                "withdraw_fee_estimate": "0.99",
+                                "withdraw_fee": "1"
+                            },
+                            {
+                                "currency": "USDT-POLYGON",
+                                "name": "Tether USD-POLYGON",
+                                "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                                "network": "POLYGON",
+                                "withdraw_enabled": false,
+                                "deposit_enabled": false,
+                                "withdraw_minsize": "10",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "0.99",
+                                "withdraw_fee_estimate": "0.99",
+                                "withdraw_fee": "1"
+                            },
+                            {
+                                "currency": "USDT-ARBI",
+                                "name": "USDT-ARBI",
+                                "contract_address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                                "network": "ARBI",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "1.15",
+                                "recharge_minsize": "0.00000001",
+                                "withdraw_minfee": "0.99",
+                                "withdraw_fee_estimate": "0.99",
+                                "withdraw_fee": "1"
+                            },
+                            {
+                                "currency": "USDT-AVAX-C",
+                                "name": "Tether USD-AVAX-C",
+                                "contract_address": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                                "network": "AVAX-C",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "1.15",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "0.99",
+                                "withdraw_fee_estimate": "0.99",
+                                "withdraw_fee": "1"
+                            },
+                            {
+                                "currency": "USDT-HECO_HT",
+                                "name": "Tether USD-HECO_HT",
+                                "contract_address": "0xa71edc38d189767582c38a3145b5873052c3e47a",
+                                "network": "HECO_HT",
+                                "withdraw_enabled": false,
+                                "deposit_enabled": false,
+                                "withdraw_minsize": "20",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "0.99",
+                                "withdraw_fee_estimate": "0.99",
+                                "withdraw_fee": "1"
+                            },
+                            {
+                                "currency": "USDT-OPENTON",
+                                "name": "Tether USD-OPENTON",
+                                "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                                "network": "OPENTON",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "3.002945",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "2.09",
+                                "withdraw_fee_estimate": "2.09",
+                                "withdraw_fee": "2.1"
+                            },
+                            {
+                                "currency": "USDT-OP-BNB",
+                                "name": "Tether USD-OP-BNB",
+                                "contract_address": "0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3",
+                                "network": "OP-BNB",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "10",
+                                "recharge_minsize": "0.001",
+                                "withdraw_minfee": "0",
+                                "withdraw_fee_estimate": "0",
+                                "withdraw_fee": "0"
+                            },
+                            {
+                                "currency": "USDT-APT",
+                                "name": "Tether USD-APT",
+                                "contract_address": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
+                                "network": "APT",
+                                "withdraw_enabled": true,
+                                "deposit_enabled": true,
+                                "withdraw_minsize": "20.019635",
+                                "recharge_minsize": "0.00000001",
+                                "withdraw_minfee": "2.09",
+                                "withdraw_fee_estimate": "2.09",
+                                "withdraw_fee": "2.1"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {"info":{"currency":"USDT-ETH","name":"Tether USD-ETH","contract_address":"0xdac17f958d2ee523a2206206994597c13d831ec7","network":"ETH","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"5.004909","recharge_minsize":"0.001","withdraw_minfee":"3.09","withdraw_fee_estimate":"3.09","withdraw_fee":"3.1"},"id":"USDT","numericId":null,"code":"USDT","precision":null,"type":"crypto","name":"Tether USD-ETH","active":true,"deposit":true,"withdraw":true,"fee":0,"fees":{},"networks":{"ERC20":{"info":{"currency":"USDT-ETH","name":"Tether USD-ETH","contract_address":"0xdac17f958d2ee523a2206206994597c13d831ec7","network":"ETH","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"5.004909","recharge_minsize":"0.001","withdraw_minfee":"3.09","withdraw_fee_estimate":"3.09","withdraw_fee":"3.1"},"id":"ETH","code":"ERC20","withdraw":true,"deposit":true,"active":true,"fee":3.1,"limits":{"withdraw":{"min":5.004909,"max":null},"deposit":{"min":null,"max":null}}},"TRC20":{"info":{"currency":"USDT-TRX","name":"Tether USD-TRX","contract_address":"TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t","network":"TRX","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"3","recharge_minsize":"0.01","withdraw_minfee":"2.29","withdraw_fee_estimate":"2.29","withdraw_fee":"2.3"},"id":"TRX","code":"TRC20","withdraw":true,"deposit":true,"active":true,"fee":2.3,"limits":{"withdraw":{"min":3,"max":null},"deposit":{"min":null,"max":null}}},"BEP20":{"info":{"currency":"USDT-BSC_BNB","name":"Tether USD-BSC_BNB","contract_address":"0x55d398326f99059fF775485246999027B3197955","network":"BSC_BNB","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"2","recharge_minsize":"0.01","withdraw_minfee":"0","withdraw_fee_estimate":"0","withdraw_fee":"0"},"id":"BSC_BNB","code":"BEP20","withdraw":true,"deposit":true,"active":true,"fee":0,"limits":{"withdraw":{"min":2,"max":null},"deposit":{"min":null,"max":null}}},"SOL":{"info":{"currency":"USDT-SOL","name":"Tether USD-SOL","contract_address":"Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB","network":"SOL","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"5.004909","recharge_minsize":"0.001","withdraw_minfee":"0.59","withdraw_fee_estimate":"0.59","withdraw_fee":"0.6"},"id":"SOL","code":"SOL","withdraw":true,"deposit":true,"active":true,"fee":0.6,"limits":{"withdraw":{"min":5.004909,"max":null},"deposit":{"min":null,"max":null}}},"ALGO":{"info":{"currency":"USDT-ALGO","name":"USDT","contract_address":"312769","network":"ALGO","withdraw_enabled":false,"deposit_enabled":false,"withdraw_minsize":"1.5","recharge_minsize":"0.00000001","withdraw_minfee":"0.99","withdraw_fee_estimate":"0.99","withdraw_fee":"1"},"id":"ALGO","code":"ALGO","withdraw":false,"deposit":false,"active":false,"fee":1,"limits":{"withdraw":{"min":1.5,"max":null},"deposit":{"min":null,"max":null}}},"OPTIMISM":{"info":{"currency":"USDT-OPTIMISM","name":"Tether USD-OPTIMISM","contract_address":"0x94b008aA00579c1307B0EF2c499aD98a8ce58e58","network":"OPTIMISM","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"1.15","recharge_minsize":"0.001","withdraw_minfee":"0.99","withdraw_fee_estimate":"0.99","withdraw_fee":"1"},"id":"OPTIMISM","code":"OPTIMISM","withdraw":true,"deposit":true,"active":true,"fee":1,"limits":{"withdraw":{"min":1.15,"max":null},"deposit":{"min":null,"max":null}}},"POLYGON":{"info":{"currency":"USDT-POLYGON","name":"Tether USD-POLYGON","contract_address":"0xc2132D05D31c914a87C6611C10748AEb04B58e8F","network":"POLYGON","withdraw_enabled":false,"deposit_enabled":false,"withdraw_minsize":"10","recharge_minsize":"0.001","withdraw_minfee":"0.99","withdraw_fee_estimate":"0.99","withdraw_fee":"1"},"id":"POLYGON","code":"POLYGON","withdraw":false,"deposit":false,"active":false,"fee":1,"limits":{"withdraw":{"min":10,"max":null},"deposit":{"min":null,"max":null}}},"ARBI":{"info":{"currency":"USDT-ARBI","name":"USDT-ARBI","contract_address":"0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9","network":"ARBI","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"1.15","recharge_minsize":"0.00000001","withdraw_minfee":"0.99","withdraw_fee_estimate":"0.99","withdraw_fee":"1"},"id":"ARBI","code":"ARBI","withdraw":true,"deposit":true,"active":true,"fee":1,"limits":{"withdraw":{"min":1.15,"max":null},"deposit":{"min":null,"max":null}}},"AVAX":{"info":{"currency":"USDT-AVAX-C","name":"Tether USD-AVAX-C","contract_address":"0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7","network":"AVAX-C","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"1.15","recharge_minsize":"0.001","withdraw_minfee":"0.99","withdraw_fee_estimate":"0.99","withdraw_fee":"1"},"id":"AVAX","code":"AVAX","withdraw":true,"deposit":true,"active":true,"fee":1,"limits":{"withdraw":{"min":1.15,"max":null},"deposit":{"min":null,"max":null}}},"HECO_HT":{"info":{"currency":"USDT-HECO_HT","name":"Tether USD-HECO_HT","contract_address":"0xa71edc38d189767582c38a3145b5873052c3e47a","network":"HECO_HT","withdraw_enabled":false,"deposit_enabled":false,"withdraw_minsize":"20","recharge_minsize":"0.001","withdraw_minfee":"0.99","withdraw_fee_estimate":"0.99","withdraw_fee":"1"},"id":"HECO_HT","code":"HECO_HT","withdraw":false,"deposit":false,"active":false,"fee":1,"limits":{"withdraw":{"min":20,"max":null},"deposit":{"min":null,"max":null}}},"OPENTON":{"info":{"currency":"USDT-OPENTON","name":"Tether USD-OPENTON","contract_address":"EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs","network":"OPENTON","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"3.002945","recharge_minsize":"0.001","withdraw_minfee":"2.09","withdraw_fee_estimate":"2.09","withdraw_fee":"2.1"},"id":"OPENTON","code":"OPENTON","withdraw":true,"deposit":true,"active":true,"fee":2.1,"limits":{"withdraw":{"min":3.002945,"max":null},"deposit":{"min":null,"max":null}}},"OP":{"info":{"currency":"USDT-OP-BNB","name":"Tether USD-OP-BNB","contract_address":"0x9e5AAC1Ba1a2e6aEd6b32689DFcF62A509Ca96f3","network":"OP-BNB","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"10","recharge_minsize":"0.001","withdraw_minfee":"0","withdraw_fee_estimate":"0","withdraw_fee":"0"},"id":"OP","code":"OP","withdraw":true,"deposit":true,"active":true,"fee":0,"limits":{"withdraw":{"min":10,"max":null},"deposit":{"min":null,"max":null}}},"APT":{"info":{"currency":"USDT-APT","name":"Tether USD-APT","contract_address":"0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b","network":"APT","withdraw_enabled":true,"deposit_enabled":true,"withdraw_minsize":"20.019635","recharge_minsize":"0.00000001","withdraw_minfee":"2.09","withdraw_fee_estimate":"2.09","withdraw_fee":"2.1"},"id":"APT","code":"APT","withdraw":true,"deposit":true,"active":true,"fee":2.1,"limits":{"withdraw":{"min":20.019635,"max":null},"deposit":{"min":null,"max":null}}}},"limits":{"deposit":{"min":null,"max":null},"withdraw":{"min":1.15,"max":null}}}
+                }
+            }
+        ],
         "fetchDepositAddress": [
           {
             "description": "fetch TRUMP deposit address",
