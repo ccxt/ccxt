@@ -40,7 +40,7 @@ export default class paradex extends Exchange {
                 'borrowIsolatedMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': true,
                 'cancelOrdersForSymbols': false,
                 'closeAllPositions': false,
@@ -53,7 +53,7 @@ export default class paradex extends Exchange {
                 'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
@@ -70,12 +70,12 @@ export default class paradex extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': true,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': false,
@@ -85,7 +85,7 @@ export default class paradex extends Exchange {
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1516,12 +1516,12 @@ export default class paradex extends Exchange {
         return this.extend (request, params);
     }
 
-    async signOrderRequest (request: Dict) {
+    async signOrderRequest (request: Dict, modify = false) {
         const account = await this.retrieveAccount ();
         const now = this.nonce ();
         const orderType = this.safeString (request, 'type');
         const isMarket = (orderType.indexOf ('MARKET') >= 0);
-        const orderReq = {
+        const orderReq: Dict = {
             'timestamp': now * 1000,
             'market': this.stringToBase16 (request['market']),
             'side': (request['side'] === 'BUY') ? '1' : '2',
@@ -1529,17 +1529,27 @@ export default class paradex extends Exchange {
             'size': this.scaleNumber (request['size']),
             'price': (isMarket) ? '0' : this.scaleNumber (request['price']),
         };
+        const orderFields = [
+            { 'name': 'timestamp', 'type': 'felt' },
+            { 'name': 'market', 'type': 'felt' },
+            { 'name': 'side', 'type': 'felt' },
+            { 'name': 'orderType', 'type': 'felt' },
+            { 'name': 'size', 'type': 'felt' },
+            { 'name': 'price', 'type': 'felt' },
+        ];
+        let messageTypes = {};
+        if (modify) {
+            orderReq['id'] = request['id'];
+            orderFields.push ({ 'name': 'id', 'type': 'felt' });
+            messageTypes = {
+                'ModifyOrder': orderFields,
+            };
+        } else {
+            messageTypes = {
+                'Order': orderFields,
+            };
+        }
         const domain = await this.prepareParadexDomain ();
-        const messageTypes = {
-            'Order': [
-                { 'name': 'timestamp', 'type': 'felt' },
-                { 'name': 'market', 'type': 'felt' },
-                { 'name': 'side', 'type': 'felt' },
-                { 'name': 'orderType', 'type': 'felt' },
-                { 'name': 'size', 'type': 'felt' },
-                { 'name': 'price', 'type': 'felt' },
-            ],
-        };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, orderReq, account['address']);
         const signature = this.starknetSign (msg, account['privateKey']);
         request['signature'] = signature;
@@ -1605,6 +1615,75 @@ export default class paradex extends Exchange {
         //
         const order = this.parseOrder (response, market);
         return order;
+    }
+
+    /**
+     * @method
+     * @name paradex#editOrder
+     * @description edit an open limit order or TPSL order
+     * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'limit' or a TPSL order type
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopPrice] alias for triggerPrice
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a price argument');
+        }
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        request = this.omit (request, [ 'instruction', 'client_id', 'flags' ]);
+        request['order_id'] = id;
+        request['id'] = id;
+        request = await this.signOrderRequest (request, true);
+        const response = await this.privatePutOrdersOrderId (request);
+        //
+        //     {
+        //         "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //         "avg_fill_price": "26000",
+        //         "cancel_reason": "NOT_ENOUGH_MARGIN",
+        //         "client_id": "x1234",
+        //         "created_at": 1681493746016,
+        //         "flags": [
+        //             "REDUCE_ONLY"
+        //         ],
+        //         "id": "123456",
+        //         "instruction": "GTC",
+        //         "last_updated_at": 1681493746016,
+        //         "market": "BTC-USD-PERP",
+        //         "price": "26000",
+        //         "published_at": 1681493746016,
+        //         "received_at": 1681493746016,
+        //         "remaining_size": "0",
+        //         "request_info": {
+        //             "id": "string",
+        //             "message": "string",
+        //             "request_type": "string",
+        //             "status": "string"
+        //         },
+        //         "seq_no": 1681471234972000000,
+        //         "side": "BUY",
+        //         "size": "0.05",
+        //         "status": "NEW",
+        //         "stp": "EXPIRE_MAKER",
+        //         "timestamp": 1681493746016,
+        //         "trigger_price": "26000",
+        //         "type": "MARKET"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     /**
@@ -2891,7 +2970,7 @@ export default class paradex extends Exchange {
             } else {
                 const token = this.options['authToken'];
                 headers['Authorization'] = 'Bearer ' + token;
-                if ((method === 'POST') || ((method === 'DELETE') && (path === 'orders/batch'))) {
+                if ((method === 'POST') || (method === 'PUT') || ((method === 'DELETE') && (path === 'orders/batch'))) {
                     headers['Content-Type'] = 'application/json';
                     body = this.json (query);
                 } else {
