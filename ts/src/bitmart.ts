@@ -708,6 +708,7 @@ export default class bitmart extends Exchange {
                     'Ethereum': 'ERC20',
                     'USDT': 'OMNI', // the default USDT network for bitmart is OMNI
                     'Bitcoin': 'BTC',
+                    'TRX': 'TRC20',
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
