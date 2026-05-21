@@ -469,6 +469,22 @@
                 "input": ["SOL/USD:USDC"]
             }
         ],
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://api.prod.paradex.trade/v1/liquidations?from=1748360400000&to=1748360500000",
+                "input": [
+                    "BTC/USD:USDC",
+                    1748360400000,
+                    null,
+                    {
+                        "until": 1748360500000
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "fetchDeposits",

@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, OrderRequest } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, OrderRequest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -86,7 +86,7 @@ export default class paradex extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyLiquidations': false,
+                'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -2313,6 +2313,7 @@ export default class paradex extends Exchange {
      */
     async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.authenticateRest ();
+        await this.loadMarkets ();
         let request: Dict = {};
         if (since !== undefined) {
             request['from'] = since;
@@ -2320,6 +2321,47 @@ export default class paradex extends Exchange {
             request['from'] = 1;
         }
         const market = this.market (symbol);
+        [ request, params ] = this.handleUntilOption ('to', request, params);
+        const response = await this.privateGetLiquidations (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "created_at": 1697213130097,
+        //                 "id": "0x123456789"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        return this.parseLiquidations (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
+     * @param {string} [symbol] unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+     */
+    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        let request: Dict = {};
+        if (since !== undefined) {
+            request['from'] = since;
+        } else {
+            request['from'] = 1;
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         [ request, params ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateGetLiquidations (this.extend (request, params));
         //
@@ -2346,7 +2388,7 @@ export default class paradex extends Exchange {
         const timestamp = this.safeInteger (liquidation, 'created_at');
         return this.safeLiquidation ({
             'info': liquidation,
-            'symbol': undefined,
+            'symbol': this.safeString (market, 'symbol'),
             'contracts': undefined,
             'contractSize': undefined,
             'price': undefined,

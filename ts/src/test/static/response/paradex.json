@@ -194,6 +194,45 @@
                 ]
             }
         ],
+        "fetchMyLiquidations": [
+            {
+                "description": "fetchMyLiquidations",
+                "method": "fetchMyLiquidations",
+                "input": [
+                    "BTC/USD:USDC",
+                    1748360400000,
+                    null,
+                    {
+                        "until": 1748360500000
+                    }
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "created_at": 1748360402936,
+                            "id": "0x123456789"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "created_at": 1748360402936,
+                            "id": "0x123456789"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "timestamp": 1748360402936,
+                        "datetime": "2025-05-27T15:40:02.936Z",
+                        "price": null,
+                        "baseValue": null,
+                        "quoteValue": null,
+                        "contracts": null,
+                        "contractSize": null,
+                        "side": null
+                    }
+                ]
+            }
+        ],
         "createOrders": [
             {
                 "description": "batch limit orders",
