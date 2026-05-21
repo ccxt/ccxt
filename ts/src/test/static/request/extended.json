@@ -554,7 +554,46 @@
                         "stopLossPrice": 45
                     }
                 ],
-                "output": "{\"id\":\"cc7dfcdb-4248-4964-a09c-0537176aa031\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894768,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"},\"stopLossPrice\":45}"
+                "output": "{\"id\":\"cc7dfcdb-4248-4964-a09c-0537176aa031\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894768,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"}}"
+            },
+            {
+                "description": "swap limit buy with take profit price",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    50,
+                    {
+                        "takeProfitPrice": 45
+                    }
+                ],
+                "output": "{\"id\":\"cc7dfcdb-4248-4964-a09c-0537176aa031\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"SELL\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894768,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"}}"
+            },
+            {
+                "description": "swap limit buy with stop loss and take profit",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    50,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 70,
+                            "price": 70
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 30,
+                            "price": 30
+                        }
+                    }
+                ],
+                "output": "{\"id\":\"52ac7880-eb33-4a76-8987-9e3621b878d5\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1779365174266,\"fee\":\"0.0005\",\"nonce\":\"1779361574\",\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.00025\",\"builderId\":\"257624\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"tpSlType\":\"ORDER\",\"stopLoss\":{\"triggerPrice\":\"70\",\"price\":\"70\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"}},\"takeProfit\":{\"triggerPrice\":\"30\",\"price\":\"30\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"}}}"
             }
         ]
     }
