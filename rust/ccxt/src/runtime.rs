@@ -559,6 +559,15 @@ pub fn replace_all_str(s: &Value, old: &Value, new_val: &Value) -> Value {
     Value::Str(sv.replace(ov, nv))
 }
 
+/// `Date.now()` — current Unix time in milliseconds.
+pub fn date_now() -> Value {
+    let ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0);
+    Value::Int(ms)
+}
+
 /// `pad_start(s, len, pad)` / `pad_end` — left/right pad strings.
 pub fn pad_start(s: &Value, len: &Value, pad: &Value) -> Value {
     let target = match as_i64(len) { Some(v) => v as usize, None => 0 };

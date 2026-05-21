@@ -514,11 +514,10 @@ class RustTranspilerBuilder {
             [/(?<![:.\w])\b(TICK_SIZE|TRUNCATE|ROUND|ROUND_UP|ROUND_DOWN|NO_PADDING|PAD_WITH_ZERO|SIGNIFICANT_DIGITS|DECIMAL_PLACES)\b/g,
                 'Value::Int(crate::runtime::$1)'],
 
-            // Hash-algorithm name constants (`sha256`, `sha512`, `md5`,
-            // `sha1`, `keccak`, `ed25519`). In TS these are imported strings;
-            // route bare refs to a Value::Str literal.
-            [/(?<![:.\w"])\b(sha256|sha512|sha1|md5|keccak|ed25519|ripemd160|secp256k1|p256)\b(?![:.\w("])/g,
-                'Value::Str("$1".to_string())'],
+            // (Hash-algorithm name constants are rewritten by the
+            // string-aware `rewriteHashAlgoConstants` post-processor —
+            // a plain regex here corrupts `sha256` inside string
+            // literals, e.g. deribit's `'deri-hmac-sha256 id='`.)
 
 
             // Trailing `};` after blocks
@@ -752,6 +751,64 @@ class RustTranspilerBuilder {
         ];
 
         return rules;
+    }
+
+    /**
+     * String-aware rewrite of bare hash-algorithm identifiers
+     * (`sha256`, `sha512`, `sha384`, `md5`, …) — imported strings in
+     * TS — into `Value::Str("…")`. Skips string literals so an algo
+     * name inside a literal (e.g. deribit's `'deri-hmac-sha256 id='`)
+     * isn't corrupted.
+     */
+    rewriteHashAlgoConstants(content: string): string {
+        const algos = 'sha256|sha512|sha384|sha224|sha3|sha1|md5|keccak|ed25519|ripemd160|secp256k1|p256';
+        const re = new RegExp(`(?<![:.\\w])\\b(${algos})\\b(?![:.\\w(])`, 'g');
+        const repl = 'Value::Str("$1".to_string())';
+        // Walk char-by-char, skipping string literals AND comments — a
+        // stray `"` inside a `// "json": ...` comment would otherwise
+        // desync the tracker for the rest of the file. The regex is
+        // applied only to genuine code segments.
+        let out = '';
+        let i = 0, codeStart = 0;
+        const n = content.length;
+        while (i < n) {
+            const c = content[i];
+            const c2 = i + 1 < n ? content[i + 1] : '';
+            if (c === '"') {
+                out += content.slice(codeStart, i).replace(re, repl);
+                let j = i + 1, escape = false;
+                while (j < n) {
+                    const cc = content[j];
+                    if (escape) { escape = false; j++; continue; }
+                    if (cc === '\\') { escape = true; j++; continue; }
+                    if (cc === '"') { j++; break; }
+                    j++;
+                }
+                out += content.slice(i, j);
+                i = j; codeStart = j;
+                continue;
+            }
+            if (c === '/' && c2 === '/') {
+                out += content.slice(codeStart, i).replace(re, repl);
+                let j = i + 2;
+                while (j < n && content[j] !== '\n') j++;
+                out += content.slice(i, j);
+                i = j; codeStart = j;
+                continue;
+            }
+            if (c === '/' && c2 === '*') {
+                out += content.slice(codeStart, i).replace(re, repl);
+                let j = i + 2;
+                while (j < n && !(content[j] === '*' && content[j + 1] === '/')) j++;
+                j = Math.min(j + 2, n);
+                out += content.slice(i, j);
+                i = j; codeStart = j;
+                continue;
+            }
+            i++;
+        }
+        out += content.slice(codeStart).replace(re, repl);
+        return out;
     }
 
     getWsRegexes(): any[] {
@@ -2891,6 +2948,7 @@ ${isBase
 
         // Apply Rust-specific post-processing
         content = this.regexAll(content, this.getRustRegexes(asyncMethods));
+        content = this.rewriteHashAlgoConstants(content);
         // String-safe rewrites that mustn't run over keys inside "..."
         // (so e.g. `'OrderNotFound': OrderNotFound` doesn't nest).
         content = this.rewriteBareErrorClassRefs(content);
@@ -3315,6 +3373,7 @@ impl std::ops::DerefMut for ${coreName} {
 
         // ── 2. apply post-processing regexes ──────────────────────────────────
         basePart = this.regexAll(basePart, this.getRustRegexes(asyncMethods));
+        basePart = this.rewriteHashAlgoConstants(basePart);
         basePart = this.rewriteBareErrorClassRefs(basePart);
         basePart = this.wrapBoolValueArgs(basePart);
         // Collapse consecutive `impl Exchange { } impl Exchange { }` blocks
@@ -3537,6 +3596,7 @@ impl std::ops::DerefMut for ${coreName} {
                         .map((m: any) => m.name)
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
+                content = this.rewriteHashAlgoConstants(content);
                 content = this.rewriteBareErrorClassRefs(content);
                 content = this.wrapBoolValueArgs(content);
                 content = this.stripCatchBlocks(content);
@@ -4068,6 +4128,7 @@ impl std::ops::DerefMut for ${coreName} {
                 }
             }
             content = this.regexAll(content, this.getRustRegexes(asyncMethods));
+            content = this.rewriteHashAlgoConstants(content);
             content = this.rewriteBareErrorClassRefs(content);
             content = this.wrapBoolValueArgs(content);
             content = this.stripCatchBlocks(content);
