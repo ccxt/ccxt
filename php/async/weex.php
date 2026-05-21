@@ -1441,6 +1441,9 @@ class weex extends Exchange {
             $priceType = $this->safe_string_upper($params, 'price');
             $params = $this->omit($params, array( 'historical', 'until', 'price' ));
             $response = null;
+            if ($limit !== null) {
+                $limit = min ($limit, 1000); // hardcap threshold
+            }
             if ($historical) {
                 if ($priceType !== null) {
                     $request['priceType'] = $priceType;
@@ -1511,7 +1514,7 @@ class weex extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = null;
             if ($market['spot']) {
@@ -3388,7 +3391,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->safe_string($position, 'symbol');
+        $marketId = $this->safe_string_2($position, 'symbol', 'coinId'); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3403,20 +3406,23 @@ class weex extends Exchange {
         } elseif ($separatedMode === 'SEPARATED') {
             $hedged = true;
         }
+        $notional = $this->safe_string($position, 'openValue');
+        $size = $this->safe_string($position, 'size');
+        $entryPrice = Precise::string_div($notional, $size);
         return $this->safe_position(array(
             'symbol' => $market['symbol'],
             'id' => $this->safe_string_2($position, 'id', 'positionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'contracts' => $this->safe_number($position, 'size'),
+            'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'side' => $this->safe_string_lower($position, 'side'),
-            'notional' => $this->safe_number($position, 'openValue'),
+            'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizePnl'),
             'realizedPnl' => null,
             'collateral' => null,
-            'entryPrice' => null,
+            'entryPrice' => $this->parse_number($entryPrice),
             'markPrice' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidatePrice'),
             'marginMode' => $marginMode,
@@ -3431,7 +3437,7 @@ class weex extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
             'percentage' => null,
-            'info' => null,
+            'info' => $position,
         ));
     }
 

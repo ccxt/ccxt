@@ -908,7 +908,7 @@ export default class paradex extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['page_size'] = limit;
+            request['page_size'] = Math.min(limit, 1000);
         }
         if (since !== undefined) {
             request['start_at'] = since;

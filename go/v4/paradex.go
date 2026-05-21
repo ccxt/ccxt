@@ -1031,7 +1031,7 @@ func (this *ParadexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 			"market": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
+			AddElementToObject(request, "page_size", mathMin(limit, 1000))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_at", since)

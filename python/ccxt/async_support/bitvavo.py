@@ -188,7 +188,7 @@ class bitvavo(Exchange, ImplicitAPI):
                         'account': 1,
                         'order': 1,
                         'orders': 5,
-                        'ordersOpen': {'cost': 1, 'noMarket': 25},
+                        'ordersOpen': {'cost': 5, 'noMarket': 100},
                         'trades': 5,
                         'balance': 5,
                         'deposit': 1,
@@ -212,9 +212,9 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'order': 1,
-                        'orders': 1,
+                        'orders': {'cost': 25, 'noMarket': 100},
                         'institutional/subaccounts/order': 1,
-                        'institutional/subaccounts/orders': 1,
+                        'institutional/subaccounts/orders': {'cost': 25, 'noMarket': 100},
                     },
                 },
             },
@@ -334,7 +334,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     '102': BadRequest,  # Invalid JSON.
                     '103': RateLimitExceeded,  # You have been rate limited. Please observe the Bitvavo-Ratelimit-AllowAt header to see when you can send requests again. Failure to respect self limit will result in an IP ban. The default value is 1000 weighted requests per minute. Please contact support if you wish to increase self limit.
                     '104': RateLimitExceeded,  # You have been rate limited by the number of new orders. The default value is 100 new orders per second or 100.000 new orders per day. Please update existing orders instead of cancelling and creating orders. Please contact support if you wish to increase self limit.
-                    '105': PermissionDenied,  # Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
+                    '105': RateLimitExceeded,  # Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
                     '107': ExchangeNotAvailable,  # The matching engine is overloaded. Please wait 500ms and resubmit your order.
                     '108': ExchangeNotAvailable,  # The matching engine could not process your order in time. Please consider increasing the access window or resubmit your order.
                     '109': ExchangeNotAvailable,  # The matching engine did not respond in time. Operation may or may not have succeeded.

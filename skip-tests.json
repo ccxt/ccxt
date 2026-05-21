@@ -321,6 +321,7 @@
         }
     },
     "bitflyer": {
+        "preferredSpotSymbol": "BTC/JPY",
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "not defined when contract",
@@ -357,6 +358,7 @@
         }
     },
     "bithumb": {
+        "preferredSpotSymbol": "BTC/KRW",
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -1218,6 +1220,7 @@
         "until": "2025-08-31",
         "skipPhpAsync": "tmp",
         "skipCSharp": "tmp",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -1698,6 +1701,8 @@
         }
     },
     "modetrade": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "active": "undefined",
@@ -1907,12 +1912,9 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
-                "withdraw": "undefined",
-                "deposit": "undefined",
-                "networks": "networks key is missing",
-                "precision": "not provided",
                 "type": "todo",
-                "maxInactiveCurrenciesPercentage": 70
+                "maxInactiveCurrenciesPercentage": 70,
+                "limits":"tmp"
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
@@ -2091,6 +2093,8 @@
         }
     },
 	"woo": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "//skipWs": "requires auth",
         "skipMethods":{
             "loadMarkets":{
@@ -2121,6 +2125,8 @@
         }
 	},
     "woofipro": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods":{
             "loadMarkets":{
                 "active": "undefined",

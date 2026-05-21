@@ -2492,7 +2492,7 @@ class mexc(Exchange, ImplicitAPI):
             request['orderType'] = self.safe_integer(params, 'orderType', 1)
             response = self.contractPrivatePostPlanorderPlace(self.extend(request, params))
         else:
-            response = self.contractPrivatePostOrderSubmit(self.extend(request, params))
+            response = self.contractPrivatePostOrderCreate(self.extend(request, params))
         #
         # Swap
         #     {"code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4"}

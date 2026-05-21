@@ -673,14 +673,14 @@ class kucoin(ccxt.async_support.kucoin):
         channelName = '/spotMarket/level1:'
         if isFuturesMethod:
             channelName = '/contractMarket/tickerV2:'
-        ticker = await self.watch_multi_helper('watchBidsAsks', channelName, symbols, params)
+        ticker = await self.watch_multi_helper('watchBidsAsks', channelName, isFuturesMethod, symbols, params)
         if self.newUpdates:
             tickers: dict = {}
             tickers[ticker['symbol']] = ticker
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    async def watch_multi_helper(self, methodName, channelName: str, symbols: Strings = None, params={}):
+    async def watch_multi_helper(self, methodName, channelName: str, isFuturesChannel: bool, symbols: Strings = None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, False)
         length = len(symbols)
@@ -691,7 +691,7 @@ class kucoin(ccxt.async_support.kucoin):
             symbol = symbols[i]
             market = self.market(symbol)
             messageHashes.append('bidask@' + market['symbol'])
-        url = await self.negotiate(False)
+        url = await self.negotiate(False, isFuturesChannel)
         marketIds = self.market_ids(symbols)
         joined = ','.join(marketIds)
         requestId = str(self.request_id())
@@ -1595,13 +1595,13 @@ class kucoin(ccxt.async_support.kucoin):
     def get_cache_index(self, orderbook, cache):
         firstDelta = self.safe_value(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
-        firstDeltaStart = self.safe_integer_2(firstDelta, 'sequenceStart', 'sequence')
+        firstDeltaStart = self.safe_integer_n(firstDelta, ['sequenceStart', 'sequence', 'O'])
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaStart = self.safe_integer_2(delta, 'sequenceStart', 'sequence')
-            deltaEnd = self.safe_integer_2(delta, 'sequenceEnd', 'timestamp')  # todo check
+            deltaStart = self.safe_integer_n(delta, ['sequenceStart', 'sequence', 'O'])
+            deltaEnd = self.safe_integer_n(delta, ['sequenceEnd', 'sequence', 'C'])  # todo check
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)

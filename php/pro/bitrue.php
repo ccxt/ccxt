@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -16,19 +17,20 @@ class bitrue extends \ccxt\async\bitrue {
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
-                'watchTicker' => false,
+                'watchTicker' => true,
                 'watchTickers' => false,
-                'watchTrades' => false,
+                'watchTrades' => true,
                 'watchMyTrades' => false,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
-                'watchOHLCV' => false,
+                'watchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
                     'open' => 'https://open.bitrue.com',
                     'ws' => array(
                         'public' => 'wss://ws.bitrue.com/market/ws',
+                        'futurePublic' => 'wss://fmarket-ws.bitrue.com/kline-api/ws',
                         'private' => 'wss://wsapi.bitrue.com',
                     ),
                 ),
@@ -54,6 +56,17 @@ class bitrue extends \ccxt\async\bitrue {
                 'listenKeyRefreshRate' => 1800000, // 30 mins
                 'ws' => array(
                     'gunzip' => true,
+                ),
+                'futuresTimeframes' => array(
+                    '1m' => '1min',
+                    '5m' => '5min',
+                    '15m' => '15min',
+                    '30m' => '30min',
+                    '1h' => '60min',
+                    '2h' => '2h',
+                    '4h' => '4h',
+                    '1d' => '1day',
+                    '1w' => '1week',
                 ),
             ),
         ));
@@ -312,13 +325,26 @@ class bitrue extends \ccxt\async\bitrue {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook:' . $symbol;
-            $marketIdLowercase = strtolower($market['id']);
-            $channel = 'market_' . $marketIdLowercase . '_simple_depth_step0';
-            $url = $this->urls['api']['ws']['public'];
+            $url = null;
+            $channel = null;
+            $cbId = null;
+            if ($market['swap']) {
+                $baseIdLower = $this->safe_string_lower($market, 'baseId');
+                $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+                $wsId = 'e_' . $baseIdLower . $quoteIdLower;
+                $channel = 'market_' . $wsId . '_depth_step0';
+                $cbId = $wsId;
+                $url = $this->urls['api']['ws']['futurePublic'];
+            } else {
+                $marketIdLowercase = strtolower($market['id']);
+                $channel = 'market_' . $marketIdLowercase . '_simple_depth_step0';
+                $cbId = $marketIdLowercase;
+                $url = $this->urls['api']['ws']['public'];
+            }
             $message = array(
                 'event' => 'sub',
                 'params' => array(
-                    'cb_id' => $marketIdLowercase,
+                    'cb_id' => $cbId,
                     'channel' => $channel,
                 ),
             );
@@ -362,19 +388,402 @@ class bitrue extends \ccxt\async\bitrue {
         //
         $channel = $this->safe_string($message, 'channel');
         $parts = explode('_', $channel);
-        $marketId = $this->safe_string_upper($parts, 1);
-        $market = $this->safe_market($marketId);
+        $channelKind = $this->safe_string($parts, 1);
+        $isFutures = ($channelKind === 'e');
+        $market = null;
+        if ($isFutures) {
+            $wsBaseQuote = $this->safe_string_lower($parts, 2);
+            $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
+        } else {
+            $marketId = $this->safe_string_upper($parts, 1);
+            $market = $this->safe_market($marketId);
+        }
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
         $tick = $this->safe_value($message, 'tick', array());
+        $parseable = $tick;
+        if ($isFutures) {
+            $rawAsks = $this->safe_list($tick, 'asks', array());
+            $rawBuys = $this->safe_list($tick, 'buys', array());
+            $parseable = array(
+                'asks' => $this->parse_contract_bids_asks($rawAsks, $symbol),
+                'buys' => $this->parse_contract_bids_asks($rawBuys, $symbol),
+            );
+        }
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
-        $snapshot = $this->parse_order_book($tick, $symbol, $timestamp, 'buys', 'asks');
+        $snapshot = $this->parse_order_book($parseable, $symbol, $timestamp, 'buys', 'asks');
         $orderbook->reset ($snapshot);
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve ($orderbook, $messageHash);
+    }
+
+    public function find_swap_market_by_ws_base_quote(string $wsBaseQuote) {
+        $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $candidate = $this->markets[$symbols[$i]];
+            if (!$candidate['swap']) {
+                continue;
+            }
+            $baseId = $this->safe_string_lower($candidate, 'baseId', '');
+            $quoteId = $this->safe_string_lower($candidate, 'quoteId', '');
+            if ($baseId . $quoteId === $wsBaseQuote) {
+                return $candidate;
+            }
+        }
+        return null;
+    }
+
+    public function parse_contract_bids_asks($bidsAsks, string $symbol) {
+        $result = array();
+        for ($i = 0; $i < count($bidsAsks); $i++) {
+            $level = $bidsAsks[$i];
+            $price = $this->safe_number($level, 0);
+            $rawAmount = $this->safe_number($level, 1);
+            $amount = $this->convert_from_raw_quantity($symbol, $rawAmount);
+            $result[] = array( $price, $amount );
+        }
+        return $result;
+    }
+
+    public function convert_from_raw_quantity(string $symbol, $rawQuantity) {
+        if ($rawQuantity === null) {
+            return null;
+        }
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            return $rawQuantity;
+        }
+        $contractSize = $this->safe_number($market, 'contractSize', 1);
+        return $rawQuantity * $contractSize;
+    }
+
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches public $trades for a swap (futures) $market
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-$market-data
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' watchTrades is only supported for swap markets');
+            }
+            $baseIdLower = $this->safe_string_lower($market, 'baseId');
+            $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+            $wsId = 'e_' . $baseIdLower . $quoteIdLower;
+            $channel = 'market_' . $wsId . '_trade_ticker';
+            $messageHash = 'trades:' . $symbol;
+            $url = $this->urls['api']['ws']['futurePublic'];
+            $message = array(
+                'event' => 'sub',
+                'params' => array(
+                    'cb_id' => $wsId,
+                    'channel' => $channel,
+                ),
+            );
+            $request = $this->deep_extend($message, $params);
+            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function handle_trades(Client $client, $message) {
+        //
+        //     {
+        //         "event_rep" => "",
+        //         "channel" => "market_e_btcusdt_trade_ticker",
+        //         "ts" => 1721743391000,
+        //         "status" => "ok",
+        //         "tick" => {
+        //             "data" => array(
+        //                 {
+        //                     "amount" => "1666656191.2",
+        //                     "ds" => "2024-07-23 22:03:11",
+        //                     "price" => "66008.8",
+        //                     "side" => "SELL",
+        //                     "ts" => 1721743391398,
+        //                     "vol" => "25249"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $parts = explode('_', $channel);
+        $wsBaseQuote = $this->safe_string_lower($parts, 2);
+        $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
+        if ($market === null) {
+            return;
+        }
+        $symbol = $market['symbol'];
+        $tick = $this->safe_value($message, 'tick', array());
+        $data = $this->safe_list($tick, 'data', array());
+        $appended = false;
+        $stored = $this->safe_value($this->trades, $symbol);
+        for ($i = 0; $i < count($data); $i++) {
+            if ($stored === null) {
+                $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+                $stored = new ArrayCache ($limit);
+                $this->trades[$symbol] = $stored;
+            }
+            $trade = $this->parse_ws_trade($data[$i], $market);
+            $stored->append ($trade);
+            $appended = true;
+        }
+        if ($appended) {
+            $messageHash = 'trades:' . $symbol;
+            $client->resolve ($stored, $messageHash);
+        }
+    }
+
+    public function parse_ws_trade($trade, $market = null) {
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer($trade, 'ts');
+        $sideLower = $this->safe_string_lower($trade, 'side');
+        $priceString = $this->safe_string($trade, 'price');
+        $rawVol = $this->safe_number($trade, 'vol');
+        $baseAmount = $this->convert_from_raw_quantity($symbol, $rawVol);
+        return $this->safe_trade(array(
+            'info' => $trade,
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $symbol,
+            'order' => null,
+            'type' => null,
+            'side' => $sideLower,
+            'takerOrMaker' => 'taker',
+            'price' => $priceString,
+            'amount' => $this->number_to_string($baseAmount),
+            'cost' => null,
+            'fee' => null,
+        ), $market);
+    }
+
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches OHLCV candles for a swap (futures) $market
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-$market-data
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' watchOHLCV is only supported for swap markets');
+            }
+            $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
+            $interval = $this->safe_string($futuresTimeframes, $timeframe);
+            if ($interval === null) {
+                throw new NotSupported($this->id . ' watchOHLCV does not support $timeframe ' . $timeframe);
+            }
+            $baseIdLower = $this->safe_string_lower($market, 'baseId');
+            $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+            $wsId = 'e_' . $baseIdLower . $quoteIdLower;
+            $channel = 'market_' . $wsId . '_kline_' . $interval;
+            $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
+            $url = $this->urls['api']['ws']['futurePublic'];
+            $message = array(
+                'event' => 'sub',
+                'params' => array(
+                    'cb_id' => $wsId,
+                    'channel' => $channel,
+                ),
+            );
+            $request = $this->deep_extend($message, $params);
+            $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function handle_ohlcv(Client $client, $message) {
+        //
+        //     {
+        //         "channel" => "market_e_btcusdt_kline_1min",
+        //         "data" => array(),
+        //         "tick" => array(
+        //             "amount" => 396539282326.3,
+        //             "close" => 19517.1,
+        //             "ds" => "2022-07-13 14:00:00",
+        //             "high" => 19556.5,
+        //             "id" => 1657692000,
+        //             "low" => 19465.1,
+        //             "open" => 19507.3,
+        //             "vol" => 20325940
+        //         ),
+        //         "ts" => 1657696418000,
+        //         "status" => "ok"
+        //     }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $parts = explode('_', $channel);
+        $wsBaseQuote = $this->safe_string_lower($parts, 2);
+        $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
+        if ($market === null) {
+            return;
+        }
+        $symbol = $market['symbol'];
+        $wsInterval = $this->safe_string($parts, 4);
+        $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
+        $timeframe = $this->find_timeframe($wsInterval, $futuresTimeframes);
+        $tick = $this->safe_value($message, 'tick');
+        if ($tick === null) {
+            return;
+        }
+        $parsed = $this->parse_ws_ohlcv($tick, $market);
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            $this->ohlcvs[$symbol] = array();
+        }
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp ($limit);
+        }
+        $stored = $this->ohlcvs[$symbol][$timeframe];
+        $stored->append ($parsed);
+        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
+        $client->resolve ($stored, $messageHash);
+    }
+
+    public function parse_ws_ohlcv($tick, $market = null): array {
+        $symbol = $market['symbol'];
+        $idSeconds = $this->safe_integer($tick, 'id');
+        $timestamp = ($idSeconds === null) ? null : $idSeconds * 1000;
+        $open = $this->safe_number($tick, 'open');
+        $high = $this->safe_number($tick, 'high');
+        $low = $this->safe_number($tick, 'low');
+        $close = $this->safe_number($tick, 'close');
+        $rawVol = $this->safe_number($tick, 'vol');
+        $baseVolume = $this->convert_from_raw_quantity($symbol, $rawVol);
+        return array( $timestamp, $open, $high, $low, $close, $baseVolume );
+    }
+
+    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a 24h ticker for a swap (futures) $market
+             *
+             * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-$market-data
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            if (!$market['swap']) {
+                throw new NotSupported($this->id . ' watchTicker is only supported for swap markets');
+            }
+            $baseIdLower = $this->safe_string_lower($market, 'baseId');
+            $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+            $wsId = 'e_' . $baseIdLower . $quoteIdLower;
+            $channel = 'market_' . $wsId . '_ticker';
+            $messageHash = 'ticker:' . $symbol;
+            $url = $this->urls['api']['ws']['futurePublic'];
+            $message = array(
+                'event' => 'sub',
+                'params' => array(
+                    'cb_id' => $wsId,
+                    'channel' => $channel,
+                ),
+            );
+            $request = $this->deep_extend($message, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
+    }
+
+    public function handle_ticker(Client $client, $message) {
+        //
+        //     {
+        //         "channel" => "market_e_btcusdt_ticker",
+        //         "ts" => 1506584998239,
+        //         "tick" => array(
+        //             "amount" => 123.1221,
+        //             "vol" => 1212.12211,
+        //             "open" => 2233.22,
+        //             "close" => 1221.11,
+        //             "high" => 22322.22,
+        //             "low" => 2321.22,
+        //             "rose" => -0.2922
+        //         ),
+        //         "status" => "ok"
+        //     }
+        //
+        $channel = $this->safe_string($message, 'channel');
+        $parts = explode('_', $channel);
+        $wsBaseQuote = $this->safe_string_lower($parts, 2);
+        $market = $this->find_swap_market_by_ws_base_quote($wsBaseQuote);
+        if ($market === null) {
+            return;
+        }
+        $symbol = $market['symbol'];
+        $tick = $this->safe_value($message, 'tick');
+        if ($tick === null) {
+            return;
+        }
+        $timestamp = $this->safe_integer($message, 'ts');
+        $parsed = $this->parse_ws_ticker($tick, $market, $timestamp);
+        $this->tickers[$symbol] = $parsed;
+        $messageHash = 'ticker:' . $symbol;
+        $client->resolve ($parsed, $messageHash);
+    }
+
+    public function parse_ws_ticker($tick, $market, ?int $timestamp = null): array {
+        $symbol = $market['symbol'];
+        $rawVol = $this->safe_number($tick, 'vol');
+        $rawAmount = $this->safe_number($tick, 'amount');
+        $baseVolume = $this->convert_from_raw_quantity($symbol, $rawVol);
+        $quoteVolume = $this->convert_from_raw_quantity($symbol, $rawAmount);
+        $close = $this->safe_number($tick, 'close');
+        $rose = $this->safe_number($tick, 'rose');
+        $percentage = ($rose === null) ? null : $rose * 100;
+        return $this->safe_ticker(array(
+            'info' => $tick,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_number($tick, 'high'),
+            'low' => $this->safe_number($tick, 'low'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_number($tick, 'open'),
+            'close' => $close,
+            'last' => $close,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => $percentage,
+            'average' => null,
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
+        ), $market);
     }
 
     public function parse_ws_order_type($typeId) {
@@ -419,7 +828,16 @@ class bitrue extends \ccxt\async\bitrue {
 
     public function handle_message(Client $client, $message) {
         if (is_array($message) && array_key_exists('channel', $message)) {
-            $this->handle_order_book($client, $message);
+            $channel = $this->safe_string($message, 'channel');
+            if (mb_strpos($channel, '_depth_step') > -1) {
+                $this->handle_order_book($client, $message);
+            } elseif (mb_strpos($channel, '_trade_ticker') > -1) {
+                $this->handle_trades($client, $message);
+            } elseif (mb_strpos($channel, '_kline_') > -1) {
+                $this->handle_ohlcv($client, $message);
+            } elseif (mb_strpos($channel, '_ticker') > -1) {
+                $this->handle_ticker($client, $message);
+            }
         } elseif (is_array($message) && array_key_exists('ping', $message)) {
             $this->handle_ping($client, $message);
         } else {

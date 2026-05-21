@@ -937,7 +937,7 @@ class woo(ccxt.async_support.woo):
         #         "orderTag": "default",
         #         "totalFee": 0,
         #         "visible": 0.01,
-        #         "timestamp": 1657515556799,
+        #         "timestamp": 1657515556798,
         #         "reduceOnly": False,
         #         "maker": False
         #     }
@@ -1461,8 +1461,11 @@ class woo(ccxt.async_support.woo):
     def ping(self, client: Client):
         return {'event': 'ping'}
 
+    async def pong(self, client: Client, message):
+        await client.send({'event': 'pong'})
+
     def handle_ping(self, client: Client, message):
-        return {'event': 'pong'}
+        self.spawn(self.pong, client, message)
 
     def handle_pong(self, client: Client, message):
         #

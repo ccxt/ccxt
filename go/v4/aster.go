@@ -658,15 +658,11 @@ func (this *AsterCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var promises any = []any{this.SapiPublicGetV3ExchangeInfo(params), this.FapiPublicGetV3ExchangeInfo(params)}
 
-		results := (<-promiseAll(promises))
-		PanicOnError(results)
-		var sapiResult any = this.SafeDict(results, 0, map[string]any{})
+		sapiResult := (<-this.SapiPublicGetV3ExchangeInfo(params))
+		PanicOnError(sapiResult)
 		var sapiRows any = this.SafeList(sapiResult, "assets", []any{})
-		var fapiResult any = this.SafeDict(results, 1, map[string]any{})
-		var fapiRows any = this.SafeList(fapiResult, "assets", []any{})
-		var rows any = this.ArrayConcat(sapiRows, fapiRows)
+
 		//
 		//     [
 		//         {
@@ -676,45 +672,43 @@ func (this *AsterCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
-			var currency any = GetValue(rows, i)
-			var currencyId any = this.SafeString(currency, "asset")
-			var code any = this.SafeCurrencyCode(currencyId)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"info":      currency,
-				"code":      code,
-				"id":        currencyId,
-				"name":      code,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": nil,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"networks": nil,
-				"type":     "crypto",
-			}))
-		}
-
-		ch <- result
+		ch <- this.ParseCurrencies(sapiRows)
 		return nil
 
 	}()
 	return ch
+}
+func (this *AsterCore) ParseCurrency(rawCurrency any) any {
+	var currencyId any = this.SafeString(rawCurrency, "asset")
+	var code any = this.SafeCurrencyCode(currencyId)
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      rawCurrency,
+		"code":      code,
+		"id":        currencyId,
+		"name":      code,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": nil,
+		"margin":    this.SafeBool(rawCurrency, "marginAvailable"),
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"networks": nil,
+		"type":     "crypto",
+	})
 }
 
 /**
@@ -836,7 +830,15 @@ func (this *AsterCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//     ]
 		//
 		//
-		var rows any = this.ArrayConcat(sapiRows, fapiRows)
+		var fapiRowsFiltered any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(fapiRows)); i++ {
+			var market any = GetValue(fapiRows, i)
+			// tmp skip some markets with base = undefined
+			if IsTrue(this.SafeString(market, "baseAsset")) {
+				AppendToArray(&fapiRowsFiltered, market)
+			}
+		}
+		var rows any = this.ArrayConcat(sapiRows, fapiRowsFiltered)
 
 		ch <- this.ParseMarkets(rows)
 		return nil

@@ -1340,7 +1340,7 @@ func  (this *WooCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //         "orderTag": "default",
     //         "totalFee": 0,
     //         "visible": 0.01,
-    //         "timestamp": 1657515556799,
+    //         "timestamp": 1657515556798,
     //         "reduceOnly": false,
     //         "maker": false
     //     }
@@ -1994,10 +1994,22 @@ func  (this *WooCore) Ping(client any) any  {
         "event": "ping",
     }
 }
-func  (this *WooCore) HandlePing(client any, message any) any  {
-    return map[string]any {
-        "event": "pong",
-    }
+func  (this *WooCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                
+            retRes15858 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                "event": "pong",
+            }))
+            ccxt.PanicOnError(retRes15858)
+                return nil
+            }()
+            return ch
+        }
+func  (this *WooCore) HandlePing(client any, message any)  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *WooCore) HandlePong(client any, message any) any  {
     //

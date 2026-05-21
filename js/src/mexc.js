@@ -2588,7 +2588,7 @@ export default class mexc extends Exchange {
             response = await this.contractPrivatePostPlanorderPlace(this.extend(request, params));
         }
         else {
-            response = await this.contractPrivatePostOrderSubmit(this.extend(request, params));
+            response = await this.contractPrivatePostOrderCreate(this.extend(request, params));
         }
         //
         // Swap

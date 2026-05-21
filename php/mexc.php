@@ -2572,7 +2572,7 @@ class mexc extends Exchange {
             $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
             $response = $this->contractPrivatePostPlanorderPlace ($this->extend($request, $params));
         } else {
-            $response = $this->contractPrivatePostOrderSubmit ($this->extend($request, $params));
+            $response = $this->contractPrivatePostOrderCreate ($this->extend($request, $params));
         }
         //
         // Swap

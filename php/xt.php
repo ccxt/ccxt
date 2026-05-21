@@ -1418,6 +1418,11 @@ class xt extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
+            if ($market['spot']) {
+                $limit = min ($limit, 1000); // spot max $limit
+            } else {
+                $limit = min ($limit, 1500); // derivatives max $limit
+            }
             $request['limit'] = $limit;
         } else {
             $request['limit'] = 1000;
@@ -1925,12 +1930,12 @@ class xt extends Exchange {
         $response = null;
         if ($market['spot']) {
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = $this->publicSpotGetTradeRecent ($this->extend($request, $params));
         } else {
             if ($limit !== null) {
-                $request['num'] = $limit;
+                $request['num'] = min ($limit, 1000);
             }
             if ($market['linear']) {
                 $response = $this->publicLinearGetFutureMarketV1PublicQDeal ($this->extend($request, $params));

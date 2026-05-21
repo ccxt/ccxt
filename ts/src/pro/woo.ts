@@ -1004,7 +1004,7 @@ export default class woo extends wooRest {
         //         "orderTag": "default",
         //         "totalFee": 0,
         //         "visible": 0.01,
-        //         "timestamp": 1657515556799,
+        //         "timestamp": 1657515556798,
         //         "reduceOnly": false,
         //         "maker": false
         //     }
@@ -1582,8 +1582,12 @@ export default class woo extends wooRest {
         return { 'event': 'ping' };
     }
 
+    async pong (client: Client, message) {
+        await client.send ({ 'event': 'pong' });
+    }
+
     handlePing (client: Client, message) {
-        return { 'event': 'pong' };
+        this.spawn (this.pong, client, message);
     }
 
     handlePong (client: Client, message) {

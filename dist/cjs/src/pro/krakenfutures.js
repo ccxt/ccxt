@@ -549,6 +549,21 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         const marketId = this.safeString(trade, 'product_id');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'time');
@@ -562,8 +577,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             'type': this.safeString(trade, 'type'),
             'side': this.safeString(trade, 'side'),
             'takerOrMaker': 'taker',
-            'price': this.safeString(trade, 'price'),
-            'amount': this.safeString(trade, 'qty'),
+            'price': this.safeString2(trade, 'price', 'limit_price'),
+            'amount': this.safeString2(trade, 'filled', 'qty'),
             'cost': undefined,
             'fee': {
                 'rate': undefined,
@@ -613,7 +628,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'type': this.safeStringLower(trade, 'type'),
             'side': this.safeString(trade, 'side'),
             'takerOrMaker': this.safeString(trade, 'matchRole'),
-            'price': this.safeString(trade, 'price'),
+            'price': this.safeString2(trade, 'price', 'limit_price'),
             'amount': this.safeString(trade, 'tradeAmount'),
             'cost': undefined,
             'fee': {
@@ -732,13 +747,13 @@ class krakenfutures extends krakenfutures$1["default"] {
                     previousOrder['average'] = Precise["default"].stringDiv(totalCost, totalAmount);
                 }
                 previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    const stringOrderFilled = this.numberToString(previousOrder['filled']);
-                    previousOrder['filled'] = Precise["default"].stringAdd(stringOrderFilled, this.numberToString(trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise["default"].stringSub(this.numberToString(previousOrder['amount']), stringOrderFilled);
-                    }
-                }
+                const filledString = this.numberToString(trade['amount']);
+                const stringOrderFilled = this.safeString(previousOrder, 'filled', '0');
+                const totalFilled = Precise["default"].stringAdd(stringOrderFilled, filledString);
+                previousOrder['filled'] = totalFilled;
+                const prevAmountString = this.safeString(previousOrder, 'amount');
+                const remaining = Precise["default"].stringSub(prevAmountString, totalFilled);
+                previousOrder['remaining'] = remaining;
                 if (previousOrder['fee'] === undefined) {
                     previousOrder['fee'] = {
                         'rate': undefined,
@@ -913,11 +928,11 @@ class krakenfutures extends krakenfutures$1["default"] {
             'price': this.safeString(unparsedOrder, 'limit_price'),
             'stopPrice': this.safeString(unparsedOrder, 'stop_price'),
             'triggerPrice': this.safeString(unparsedOrder, 'stop_price'),
-            'amount': this.safeString(unparsedOrder, 'qty'),
+            'amount': undefined,
             'cost': undefined,
             'average': undefined,
             'filled': this.safeString(unparsedOrder, 'filled'),
-            'remaining': undefined,
+            'remaining': this.safeString(unparsedOrder, 'qty'),
             'status': status,
             'fee': {
                 'rate': undefined,

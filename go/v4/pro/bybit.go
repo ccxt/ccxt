@@ -2980,7 +2980,7 @@ func  (this *BybitCore) HandleErrorMessage(client any, message any) any  {
                     ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
                 }
             } else {
-                var messageHash any = this.SafeString(message, "reqId")
+                var messageHash any = this.SafeString2(message, "req_id", "reqId")
                 client.(ccxt.ClientInterface).Reject(error, messageHash)
             }
             return true

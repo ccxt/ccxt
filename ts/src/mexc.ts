@@ -2577,7 +2577,7 @@ export default class mexc extends Exchange {
             request['orderType'] = this.safeInteger (params, 'orderType', 1);
             response = await this.contractPrivatePostPlanorderPlace (this.extend (request, params));
         } else {
-            response = await this.contractPrivatePostOrderSubmit (this.extend (request, params));
+            response = await this.contractPrivatePostOrderCreate (this.extend (request, params));
         }
         //
         // Swap

@@ -240,8 +240,13 @@ export default class binance extends binanceRest {
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
-            const firstProtocol = baseUrl.indexOf ('://');
-            if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+            // const firstProtocol = baseUrl.indexOf ('://');
+            // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+            //     return baseUrl;
+            // }
+            const baseUrlSplit = baseUrl.split ('://');
+            const baseUrlSplitLength = baseUrlSplit.length;
+            if (baseUrlSplitLength > 2) {
                 return baseUrl;
             }
             // only rewrite when the URL ends with exactly "/ws"

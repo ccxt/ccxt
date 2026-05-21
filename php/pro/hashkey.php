@@ -593,12 +593,15 @@ class hashkey extends \ccxt\async\hashkey {
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($trade, 't');
-        $isMaker = $this->safe_bool($trade, 'm');
+        $isBuyerMaker = $this->safe_bool($trade, 'm');
+        $side = null;
         $takerOrMaker = null;
-        if ($isMaker !== null) {
-            if ($isMaker) {
+        if ($isBuyerMaker !== null) {
+            if ($isBuyerMaker) {
+                $side = 'sell';
                 $takerOrMaker = 'maker';
             } else {
+                $side = 'buy';
                 $takerOrMaker = 'taker';
             }
         }
@@ -607,7 +610,7 @@ class hashkey extends \ccxt\async\hashkey {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
-            'side' => $this->safe_string_lower($trade, 'S'),
+            'side' => $this->safe_string_lower($trade, 'S', $side),
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => null,

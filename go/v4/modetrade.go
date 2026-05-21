@@ -1878,7 +1878,7 @@ func (this *ModetradeCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
 		//
 		//     {
 		//         "success": true,
-		//         "timestamp": 1702989203989,
+		//         "timestamp": 1702989203988,
 		//         "data": {
 		//             "rows": [{
 		//                 "order_id": 13,

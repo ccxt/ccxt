@@ -1044,7 +1044,7 @@ class woo extends \ccxt\async\woo {
         //         "orderTag" => "default",
         //         "totalFee" => 0,
         //         "visible" => 0.01,
-        //         "timestamp" => 1657515556799,
+        //         "timestamp" => 1657515556798,
         //         "reduceOnly" => false,
         //         "maker" => false
         //     }
@@ -1630,8 +1630,14 @@ class woo extends \ccxt\async\woo {
         return array( 'event' => 'ping' );
     }
 
+    public function pong(Client $client, $message) {
+        return Async\async(function () use ($client, $message) {
+            Async\await($client->send (array( 'event' => 'pong' )));
+        }) ();
+    }
+
     public function handle_ping(Client $client, $message) {
-        return array( 'event' => 'pong' );
+        $this->spawn(array($this, 'pong'), $client, $message);
     }
 
     public function handle_pong(Client $client, $message) {

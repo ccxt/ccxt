@@ -15,6 +15,64 @@
         "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771"
     },
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "timezone": "UTC",
+                    "serverTime": "1779359311580",
+                    "futuresType": "U_MARGINED",
+                    "rateLimits": [ ],
+                    "exchangeFilters": [],
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "-10000"
+                        }
+                    ],
+                    "symbols": []
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "asset": "USDT",
+                            "marginAvailable": true,
+                            "autoAssetExchange": "-10000"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "margin": true
+                    }
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "arbitrum",
