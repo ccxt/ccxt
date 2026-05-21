@@ -172,6 +172,105 @@ class RustTranspilerBuilder {
             (_: string, n: string) => `Value::Str("${n}".to_string())`);
     }
 
+    /**
+     * `throw new <ClassVar>(msg)` where the class is a runtime variable
+     * (e.g. digifinex `const [ExceptionClass] = this.safeValue(...)`,
+     * lbank `const ErrorClass = ...`, waves `const Exception = ...`)
+     * transpiles to `panic!("{:?}", ExceptionClass::new(msg))` — treating
+     * the local variable as a type, which doesn't compile. Rewrite those
+     * to the dynamic `create_error(class, message)` helper. Real error
+     * classes (ExchangeError, OrderNotFound, …) keep their `::new`.
+     */
+    rewriteDynamicThrows(content: string): string {
+        const errorClasses = new Set(('NotSupported,ArgumentsRequired,InvalidOrder,InvalidAddress,' +
+            'BadRequest,BadResponse,AuthenticationError,ExchangeError,ExchangeNotAvailable,' +
+            'NetworkError,DDoSProtection,RateLimitExceeded,InsufficientFunds,OrderNotFound,' +
+            'InvalidNonce,PermissionDenied,AccountNotEnabled,AccountSuspended,NotImplemented,' +
+            'OperationFailed,OperationRejected,RequestTimeout,MarginModeAlreadySet,' +
+            'ManualInteractionNeeded,UnsubscribeError,ContractUnavailable,MarketClosed,' +
+            'ExchangeClosedByUser,NullResponse,InvalidProxySettings,ChecksumError,OnMaintenance,' +
+            'BadSymbol,NoChange,CancelPending,OrderNotCached,OrderImmediatelyFillable,' +
+            'OrderNotFillable,DuplicateOrderId,RestrictedLocation,AddressPending,BaseError').split(','));
+        const marker = 'panic!("{:?}", ';
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const idx = content.indexOf(marker, i);
+            if (idx < 0) { out += content.slice(i); break; }
+            const after = idx + marker.length;
+            const m = /^([A-Za-z_][A-Za-z0-9_]*)::new\(/.exec(content.slice(after, after + 80));
+            if (!m || errorClasses.has(m[1])) {
+                out += content.slice(i, after);
+                i = after;
+                continue;
+            }
+            // Walk paren-balanced from after `<Ident>::new(`.
+            let depth = 1;
+            let j = after + m[0].length;
+            let inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(i, after); i = after; continue; }
+            const args = content.slice(after + m[0].length, j);
+            out += content.slice(i, idx) + marker +
+                `crate::exchange_errors::create_error(` +
+                `&crate::runtime::stringify_param(&${m[1]}), ` +
+                `&crate::runtime::stringify_param(&(${args})))`;
+            i = j + 1;
+        }
+        return out;
+    }
+
+    /**
+     * `jwt(...)` is a free-function stub with a fixed 3-arg signature
+     * `(request, secret, algorithm)`, but CCXT's `this.jwt(...)` is
+     * called with 3, 4 or 5 args (trailing `isRsa` / `opts` are
+     * optional). Normalize every free-function call to exactly 3 args.
+     */
+    normalizeJwtCalls(content: string): string {
+        const re = /(^|[^.\w])jwt\(/g;
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(content)) !== null) {
+            const callOpen = m.index + m[0].length;
+            let depth = 1;
+            let j = callOpen;
+            let inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) { if (c === '(') depth++; else if (c === ')') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) continue;
+            const inside = content.slice(callOpen, j);
+            const args = this.splitArgs(inside) || [];
+            let norm: string[];
+            if (args.length >= 3) {
+                norm = args.slice(0, 3).map(a => a.trim());
+            } else {
+                norm = args.map(a => a.trim());
+                while (norm.length < 3) norm.push('Value::Null');
+            }
+            out += content.slice(last, callOpen) + norm.join(', ') + ')';
+            last = j + 1;
+            re.lastIndex = last;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
     createGeneratedHeader(): string[] {
         return [
             '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:',
@@ -466,6 +565,23 @@ class RustTranspilerBuilder {
             // but takes `&str`. Route to `parse_json_value`.
             [/\bself\.parse_json\(/g, 'self.parse_json_value('],
 
+            // `binaryConcat()` with no args — the base method is shaped
+            // `(first, ...rest)`; supply an empty first chunk.
+            [/\bself\.binary_concat\(\s*\)/g, 'self.binary_concat(Value::Null, &[])'],
+
+            // `setProperty(this, key, value)` transpiles to
+            // `self.set_property(self, key, value)` — but `self` is a typed
+            // `&Core`, not a `Value`. Drop the redundant receiver arg; the
+            // base `set_property` always mutates `self`.
+            [/\bself\.set_property\(\s*self\s*,/g, 'self.set_property('],
+
+            // `self.<field> = <localVar>;` moves the variable, which then
+            // can't be used again (e.g. bullish `self.token = token;
+            // return token;`). Clone on field assignment — the extra copy
+            // is cheap and keeps the source variable live.
+            [/\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-z][a-zA-Z0-9_]*)\s*;/g,
+                'self.$1 = $2.clone();'],
+
             // Implicit API method calls (e.g., `self.sapi_post_margin_borrow_repay(params)`)
             // — these are exchange-specific endpoints emitted from the
             // `api` block. Open a `__API__&[` marker; the close-pass
@@ -708,6 +824,10 @@ class RustTranspilerBuilder {
 
             // `return self;` (chained methods) — `self` isn't a Value.
             [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
+
+            // Bare `return;` (a TS early-return with no value) yields `()`,
+            // but exchange methods are `-> Value`. Yield Value::Null.
+            [/^(\s*)return\s*;/gm, '$1return Value::Null;'],
 
             // Last statement in a Value-returning method is a bare expression
             // with `;` — that returns `()`. Wrap the body so a Value::Null
@@ -1486,6 +1606,45 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Data-driven implicit-API rewrite. The hardcoded-prefix regex in
+     * getRustRegexes() only catches standard api groupings (public,
+     * private, sapi, fapi, …) and silently misses exchange-specific ones
+     * (alpaca's `trader`, bingx's `swap`, weex's `contract`, …), leaving
+     * `self.trader_private_get_v2_clock(...)` as a call to a method that
+     * doesn't exist.
+     *
+     * This reads the auto-generated `ts/src/abstract/<exchange>.ts` — the
+     * exhaustive list of implicit endpoint methods derived from the
+     * exchange's `api` block — and rewrites every `self.<snake_name>(`
+     * call to one of those methods into the same
+     * `self.call_method(Value::Str("<name>"), __API__&[` marker form that
+     * closeImplicitApiCalls() balances.
+     */
+    rewriteImplicitApiCalls(content: string, className: string): string {
+        const abstractPath = `./ts/src/abstract/${className}.ts`;
+        if (!fs.existsSync(abstractPath)) return content;
+        const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
+        // Interface method decls look like:
+        //   traderPrivateGetV2Clock (params?: {}): Promise<implicitReturnType>;
+        const names = new Set<string>();
+        const re = /^\s*([a-zA-Z][a-zA-Z0-9]*)\s*\([^)]*\):\s*Promise/gm;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(abstractSrc)) !== null) {
+            names.add(toSnakeCase(m[1]));
+        }
+        if (names.size === 0) return content;
+        // Rewrite `self.<name>(` for every known implicit method. Calls
+        // the regex in getRustRegexes() already converted are now
+        // `self.call_method(` and no longer match.
+        return content.replace(/\bself\.([a-z][a-z0-9_]*)\(/g, (full, name) => {
+            if (names.has(name)) {
+                return `self.call_method(Value::Str("${name}".to_string()), __API__&[`;
+            }
+            return full;
+        });
+    }
+
+    /**
      * Removes `} catch Exception e { ... }` blocks that the transpiler
      * emits from TS try/catch. Brace-balanced — drops the entire catch body.
      */
@@ -1522,7 +1681,12 @@ class RustTranspilerBuilder {
             const rcvIdx = params.findIndex(p => p === '&self' || p === '&mut self' || p === 'self');
             const real = rcvIdx >= 0 ? params.slice(rcvIdx + 1) : params;
             if (real.some(p => /:\s*&\[/.test(p))) continue;  // variadic; skip
-            if (real.length < 3) continue; // call form `self.X(a, &[..])` wraps args[1..]; nothing to expand unless ≥ 3 fixed
+            // The call form `self.X(.., &[rest])` wraps the trailing args
+            // in a slice; any fixed-shape method can have that slice
+            // expanded back into positional args — including a 0-param
+            // method called `self.X(&[])` (collapsed to `self.X()`), the
+            // 1-arg `fetchSpotMarkets(params)`, or the 2-arg
+            // `parseSettlements(settlements, market)`.
             if (!real.every(p => /:\s*Value\b/.test(p))) continue;
             fixedArities.set(name, real.length);
         }
@@ -1556,12 +1720,19 @@ class RustTranspilerBuilder {
             if (depth !== 0) continue;
             const inside = content.slice(m.index + m[0].length, j);
             const args = this.splitArgs(inside);
-            if (!args || args.length < 2) continue;
+            if (!args || args.length < 1) continue;
             const lastArg = args[args.length - 1].trim();
             if (!lastArg.startsWith('&[') || !lastArg.endsWith(']')) continue;
             // Expand the slice contents into individual args.
-            const sliceInner = lastArg.slice(2, -1);
-            const sliceArgs = this.splitArgs(sliceInner) || [];
+            const sliceInner = lastArg.slice(2, -1).trim();
+            let sliceArgs = sliceInner === '' ? [] : (this.splitArgs(sliceInner) || []);
+            // An empty `&[]` means the caller omitted the trailing
+            // (defaulted) params — fill with Value::Null so the arity of
+            // the fixed-shape method is still satisfied.
+            if (sliceArgs.length === 0) {
+                const needed = (fixedArities.get(name) as number) - (args.length - 1);
+                if (needed > 0) sliceArgs = Array(needed).fill('Value::Null');
+            }
             const flat = [...args.slice(0, -1), ...sliceArgs].join(', ');
             out += content.slice(last, m.index + m[0].length) + flat + ')';
             last = j + 1;
@@ -2635,6 +2806,24 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * The snake_case names of every `pub async fn` in the generated base
+     * (exchange_generated.rs). Exchange code that calls one of these needs
+     * a `.await` appended, but since they're defined in the base — not the
+     * exchange file — they don't appear in the per-file `methodsTypes`.
+     * Read fresh each call; the base is generated before the exchange loop.
+     */
+    asyncBaseMethods(): Set<string> {
+        const s = new Set<string>();
+        try {
+            const src = fs.readFileSync(BASE_METHODS_FILE, 'utf8');
+            const re = /\bpub async fn ([a-z_][a-z0-9_]*)\(/g;
+            let m: RegExpExecArray | null;
+            while ((m = re.exec(src)) !== null) s.add(m[1]);
+        } catch (_) { /* base not generated yet — fall back to empty */ }
+        return s;
+    }
+
+    /**
      * Inserts the async-dispatch preamble into every base method whose
      * name is in `asyncVirtualMethods()`. Walks brace-balanced bodies
      * so we don't disturb nested defs.
@@ -2907,6 +3096,13 @@ ${isBase
             if (!inherent.has(name)) continue;
             const inh = inherentSigs.get(name);
             if (!inh) continue;
+            // The trait shim is sync (`fn name(&self, …) -> Value`); an
+            // async inherent method can't be forwarded from it without a
+            // blocking executor. Skip — consistent with dispatchArmFor(),
+            // which also skips async methods. (Some parse_* methods get
+            // spuriously marked async by the transpiler even with no
+            // `.await` in the body.)
+            if (inh.isAsync) continue;
             // Trait declares (self, ...args : Value).
             const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
             // Forwarding call: align inherent param shape (some methods
@@ -2983,12 +3179,20 @@ ${isBase
         // String-safe rewrites that mustn't run over keys inside "..."
         // (so e.g. `'OrderNotFound': OrderNotFound` doesn't nest).
         content = this.rewriteBareErrorClassRefs(content);
+        // `throw new <localClassVar>(msg)` → dynamic create_error(...).
+        content = this.rewriteDynamicThrows(content);
+        // Normalize `jwt(...)` free-function calls to exactly 3 args.
+        content = this.normalizeJwtCalls(content);
         // Wrap bool exprs flowing into Value-arg positions.
         content = this.wrapBoolValueArgs(content);
         // Same paren-balanced walkers used for the base file.
         content = this.stripCatchBlocks(content);
         content = this.unwrapCatchUnwind(content);
         content = this.rewriteDynamicSelfCalls(content);
+        // Data-driven implicit-API rewrite for endpoints the hardcoded
+        // prefix regex missed — must run before closeImplicitApiCalls so
+        // its `__API__&[` markers get balanced.
+        content = this.rewriteImplicitApiCalls(content, className);
         content = this.closeImplicitApiCalls(content);
         content = this.cloneInRefSlices(content);
         content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
@@ -3012,7 +3216,7 @@ ${isBase
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
             const asyncSnake = Array.from(asyncMethods).map(n => toSnakeCase(n));
-            let currentSet = new Set([...asyncSnake, 'call_method', 'fetch', 'load_markets', 'throttle']);
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = content;
                 content = this.appendAwaitToAsyncCalls(content, currentSet);
@@ -3489,7 +3693,7 @@ impl std::ops::DerefMut for ${coreName} {
         // Propagate async-ness through the call graph (see above).
         {
             const asyncSnake = Array.from(asyncMethods).map(n => toSnakeCase(n));
-            let currentSet = new Set([...asyncSnake, 'call_method', 'fetch', 'load_markets', 'throttle']);
+            let currentSet = new Set([...asyncSnake, ...this.asyncBaseMethods(), 'call_method', 'fetch', 'load_markets', 'throttle']);
             for (let iter = 0; iter < 8; iter++) {
                 const before = basePart;
                 basePart = this.appendAwaitToAsyncCalls(basePart, currentSet);

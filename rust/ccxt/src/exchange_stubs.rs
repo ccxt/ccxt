@@ -555,6 +555,229 @@ impl Exchange {
         let me = unsafe { coerce_to_mut_unsafe(self) };
         me.fetch_deposit_address(code, &[params]).await
     }
+    pub fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
+        self.amount_to_precision(symbol, amount)
+    }
+    pub fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> Value {
+        self.handle_margin_mode_and_params(method_name, &[params, default_value])
+    }
+    pub fn super_safe_currency_code(&self, currency_id: Value, currency: Value) -> Value {
+        self.safe_currency_code(currency_id, &[currency])
+    }
+    pub fn super_set_markets(&self, markets: Value, currencies: Value) -> Value {
+        let me = unsafe { coerce_to_mut_unsafe(self) };
+        me.set_markets(markets, &[currencies])
+    }
+    pub fn super_network_id_to_code(&self, network_id: Value) -> Value {
+        self.network_id_to_code(&[network_id])
+    }
+    pub fn super_network_code_to_id(&self, network_code: Value) -> Value {
+        self.network_code_to_id(network_code, &[])
+    }
+    pub async fn super_load_markets(&self, reload: Value, params: Value) -> Value {
+        let me = unsafe { coerce_to_mut_unsafe(self) };
+        me.load_markets(&[reload, params]).await
+    }
+
+    // ── hand-written base helpers ──────────────────────────────────────────
+    // These live above the `METHODS BELOW THIS LINE ARE TRANSPILED` marker in
+    // ts/src/base/Exchange.ts, so they are language-specific hand-written code
+    // rather than transpiled into exchange_generated.rs.
+
+    /// `remove0xPrefix(hexData)` — strips a leading `0x`/`0X` if present.
+    pub fn remove0x_prefix(&self, hex_data: Value) -> Value {
+        match &hex_data {
+            Value::Str(s) if s.len() >= 2 && (&s[0..2] == "0x" || &s[0..2] == "0X") =>
+                Value::Str(s[2..].to_string()),
+            _ => hex_data,
+        }
+    }
+
+    /// `checkRequiredDependencies()` — a no-op in Rust; all crypto deps are
+    /// compiled in.
+    pub fn check_required_dependencies(&self) -> Value { Value::Null }
+
+    /// `randNumber(size)` — a random integer with `size` decimal digits.
+    pub fn rand_number(&self, size: Value) -> Value {
+        use rand::Rng;
+        let n = size.as_i64().unwrap_or(0).max(0) as usize;
+        let mut rng = rand::thread_rng();
+        let mut s = String::new();
+        for _ in 0..n {
+            s.push(char::from(b'0' + rng.gen_range(0..10u8)));
+        }
+        Value::Int(s.parse::<i64>().unwrap_or(0))
+    }
+
+    /// `randomBytes(length)` — `length` random bytes as a hex string.
+    pub fn random_bytes(&self, length: Value) -> Value {
+        use rand::Rng;
+        let n = length.as_i64().unwrap_or(0).max(0) as usize;
+        let mut rng = rand::thread_rng();
+        let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
+        Value::Str(hex::encode(bytes))
+    }
+
+    /// `convertToBigInt(value)` — the Value-bag has no distinct bigint type,
+    /// so coerce to a 64-bit integer.
+    pub fn convert_to_big_int(&self, value: Value) -> Value {
+        match &value {
+            Value::Int(_) => value,
+            Value::Float(f) => Value::Int(*f as i64),
+            Value::Str(s) => Value::Int(s.trim().parse::<i64>().unwrap_or(0)),
+            _ => Value::Int(0),
+        }
+    }
+
+    /// `fixStringifiedJsonMembers(content)` — un-escapes a JSON string whose
+    /// members are themselves stringified JSON (used by bingx).
+    pub fn fix_stringified_json_members(&self, content: Value) -> Value {
+        match &content {
+            Value::Str(s) => Value::Str(
+                s.replace('\\', "")
+                 .replace("\"{", "{").replace("}\"", "}")
+                 .replace("\"[", "[").replace("]\"", "]")),
+            _ => content,
+        }
+    }
+
+    /// `binaryConcatArray(arrayOfChunks)` — concatenates hex-string chunks.
+    pub fn binary_concat_array(&self, arr: Value) -> Value {
+        let mut out = String::new();
+        if let Value::Array(items) = &arr {
+            for it in items {
+                if let Value::Str(s) = it { out.push_str(s); }
+            }
+        }
+        Value::Str(out)
+    }
+
+    /// `uuid5(namespace, name)` — RFC-4122 v5 (SHA-1 based) UUID.
+    pub fn uuid5(&self, namespace: Value, name: Value) -> Value {
+        use sha1::{Sha1, Digest};
+        let ns = namespace.as_str().unwrap_or("").replace('-', "");
+        let mut data: Vec<u8> = Vec::new();
+        let mut i = 0;
+        while i + 1 < ns.len() {
+            if let Ok(b) = u8::from_str_radix(&ns[i..i + 2], 16) { data.push(b); }
+            i += 2;
+        }
+        data.extend_from_slice(name.as_str().unwrap_or("").as_bytes());
+        let mut hasher = Sha1::new();
+        hasher.update(&data);
+        let mut hash = hasher.finalize().to_vec();
+        hash[6] = (hash[6] & 0x0f) | 0x50;
+        hash[8] = (hash[8] & 0x3f) | 0x80;
+        let h = hex::encode(&hash[0..16]);
+        Value::Str(format!("{}-{}-{}-{}-{}",
+            &h[0..8], &h[8..12], &h[12..16], &h[16..20], &h[20..32]))
+    }
+
+    /// `ethAbiEncode(types, values)` — ETH ABI encoding is not yet ported.
+    pub fn eth_abi_encode(&self, _types: Value, _values: Value) -> Value {
+        Value::Null
+    }
+
+    /// `setProperty(this, key, value)` — dynamic field setter. The typed
+    /// `Exchange` struct has no Value-shaped dynamic field store, so this
+    /// is currently a no-op (the receiver arg is dropped by the transpiler).
+    pub fn set_property(&self, _property: Value, _optional_args: &[Value]) -> Value {
+        Value::Null
+    }
+
+    // ── exchange-specific signing helpers (above-the-marker base methods) ──
+    // These wrap heavy crypto (curve25519, StarkNet, dydx protobuf, lighter
+    // zk-proofs) that has not yet been ported to Rust. They are stubbed so
+    // the crate compiles; the signing code paths return Value::Null until a
+    // real implementation lands.
+
+    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
+    pub fn axolotl(&self, _payload: Value, _hex_key: Value, _ed25519: Value) -> Value {
+        Value::Null
+    }
+
+    /// `retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash)`.
+    pub fn retrieve_stark_account(&self, _signature: Value, _class_hash: Value, _proxy_hash: Value) -> Value {
+        Value::Null
+    }
+
+    /// `starknetEncodeStructuredData(domain, messageTypes, messageData, address)`.
+    pub fn starknet_encode_structured_data(&self, _domain: Value, _types: Value, _data: Value, _address: Value) -> Value {
+        Value::Null
+    }
+
+    /// `starknetSign(msgHash, pri)`.
+    pub fn starknet_sign(&self, _msg_hash: Value, _pri: Value) -> Value {
+        Value::Null
+    }
+
+    /// `toDydxLong(numStr)`.
+    pub fn to_dydx_long(&self, _num_str: Value) -> Value { Value::Null }
+
+    /// `retrieveDydxCredentials(entropy)`.
+    pub fn retrieve_dydx_credentials(&self, _entropy: Value) -> Value { Value::Null }
+
+    /// `loadDydxProtos()`.
+    pub async fn load_dydx_protos(&self) -> Value { Value::Null }
+
+    /// `encodeDydxTxRaw(signDoc, signature)`.
+    pub fn encode_dydx_tx_raw(&self, _sign_doc: Value, _signature: Value) -> Value {
+        Value::Null
+    }
+
+    /// `encodeDydxTxForSimulation(message, memo, sequence, publicKey)`.
+    pub fn encode_dydx_tx_for_simulation(&self, _message: Value, _memo: Value, _sequence: Value, _public_key: Value) -> Value {
+        Value::Null
+    }
+
+    /// `encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee?)`.
+    pub fn encode_dydx_tx_for_signing(&self, _message: Value, _memo: Value, _chain_id: Value, _account: Value, _authenticators: Value, _optional_args: &[Value]) -> Value {
+        Value::Null
+    }
+
+    /// `loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient?)`.
+    pub async fn load_lighter_library(&self, _library_path: Value, _chain_id: Value, _private_key: Value, _api_key_index: Value, _account_index: Value, _optional_args: &[Value]) -> Value {
+        Value::Null
+    }
+
+    /// `lighterCreateClient(signer, chainId, privateKey, apiKeyIndex, accountIndex)`.
+    pub fn lighter_create_client(&self, _signer: Value, _chain_id: Value, _private_key: Value, _api_key_index: Value, _account_index: Value) -> Value {
+        Value::Null
+    }
+
+    /// `lighterGenerateApiKey(signer)`.
+    pub fn lighter_generate_api_key(&self, _signer: Value) -> Value { Value::Null }
+
+    /// `getZKTransferSignatureObj(seeds, order)` — apex StarkEx signing.
+    pub async fn get_zk_transfer_signature_obj(&self, _seeds: Value, _optional_args: &[Value]) -> Value {
+        Value::Null
+    }
+
+    /// `getZKContractSignatureObj(seeds, order)` — apex StarkEx signing.
+    pub async fn get_zk_contract_signature_obj(&self, _seeds: Value, _optional_args: &[Value]) -> Value {
+        Value::Null
+    }
+
+    /// `futuresTransfer(code, amount, type, params?)` — binance futures
+    /// wallet transfer; inherited by binancecoinm / binanceusdm.
+    pub async fn futures_transfer(&self, _code: Value, _amount: Value, _transfer_type: Value, _optional_args: &[Value]) -> Value {
+        Value::Null
+    }
+
+    /// `lighterSign*(signer, request)` — lighter zk-proof signing helpers.
+    pub fn lighter_sign_create_order(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_create_grouped_orders(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_cancel_order(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_cancel_all_orders(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_withdraw(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_create_sub_account(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_modify_order(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_transfer(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_update_leverage(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_update_margin(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_approve_integrator(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_sign_change_pubkey(&self, _signer: Value, _request: Value) -> Value { Value::Null }
+    pub fn lighter_create_auth_token(&self, _signer: Value, _request: Value) -> Value { Value::Null }
 
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.

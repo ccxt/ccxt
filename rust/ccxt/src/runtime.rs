@@ -542,7 +542,10 @@ pub fn eddsa(_a: Value, _b: Value, _c: Value) -> Value {
 }
 
 /// `jwt(...)` — JWT encoding. Stub.
-pub fn jwt(_a: Value, _b: Value, _c: Value) -> Value {
+/// `jwt(request, secret, algorithm)` — JSON Web Token signing. Currently
+/// a stub; returns an empty token until JWT signing is ported. The
+/// transpiler normalizes every call site to exactly 3 args.
+pub fn jwt(_request: Value, _secret: Value, _algorithm: Value) -> Value {
     Value::Str(String::new())
 }
 
@@ -597,6 +600,19 @@ pub fn pad_end(s: &Value, len: &Value, pad: &Value) -> Value {
         }
         _ => Value::Null,
     }
+}
+
+/// `to_fixed(x, digits)` — JS `Number.prototype.toFixed`: format a number
+/// with a fixed number of decimal places, returned as a string.
+pub fn to_fixed(x: &Value, digits: &Value) -> Value {
+    let d = match as_i64(digits) { Some(v) => v.max(0) as usize, None => 0 };
+    let n = match x {
+        Value::Int(i) => *i as f64,
+        Value::Float(f) => *f,
+        Value::Str(s) => s.trim().parse::<f64>().unwrap_or(0.0),
+        _ => 0.0,
+    };
+    Value::Str(format!("{:.*}", d, n))
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────

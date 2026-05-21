@@ -269,6 +269,7 @@ pub struct Exchange {
     // user-agent / fetch behavior
     pub userAgent:                 Value,
     pub user_agent:                Value,
+    pub userAgents:                Value,
 
     // describe() output (legacy)
     pub describe_data:             Value,
@@ -390,6 +391,13 @@ impl Exchange {
 
             userAgent:   Value::Null,
             user_agent:  Value::Null,
+            userAgents:  {
+                let mut m = std::collections::HashMap::new();
+                m.insert("chrome".to_string(), Value::Str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36".to_string()));
+                m.insert("chrome39".to_string(), Value::Str("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36".to_string()));
+                m.insert("chrome100".to_string(), Value::Str("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36".to_string()));
+                Value::Map(m)
+            },
 
             describe_data:     Value::Null,
             derived_describe:  None,
