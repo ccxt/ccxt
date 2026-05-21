@@ -676,7 +676,7 @@ export default class extended extends Exchange {
             'active': isActive,
             'deposit': undefined,
             'withdraw': undefined,
-            'precision': precision,
+            'precision': Math.pow (10, precision * -1),
             'type': this.safeStringLower (currency, 'type'),
             'margin': this.safeBool (currency, 'canBeUsedAsCollateral'),
             'info': currency,
@@ -1867,7 +1867,7 @@ export default class extended extends Exchange {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'amount': amountString,
-            'transferredAsset': settlement['assetId'],
+            'transferredAsset': currency['id'],
             'settlement': settlement,
         };
         params = this.omit (params, [ 'fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution' ]);
