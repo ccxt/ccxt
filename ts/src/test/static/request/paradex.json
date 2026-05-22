@@ -503,6 +503,22 @@
                 "input": []
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "url": "https://api.prod.paradex.trade/v1/transfers?page_size=2&start_at=1721828350000&end_at=1721828400000",
+                "input": [
+                    "USDC",
+                    1721828350000,
+                    2,
+                    {
+                        "until": 1721828400000
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchWithdrawals": [
             {
                 "description": "fetchWithdrawals",

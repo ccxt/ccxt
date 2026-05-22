@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, OrderRequest } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -109,7 +109,7 @@ export default class paradex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -2603,6 +2603,107 @@ export default class paradex extends Exchange {
             }
         }
         return this.parseTransactions (deposits, undefined, since, limit);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchTransfers
+     * @description fetch a history of transfers made on an account
+     * @see https://docs.paradex.trade/api/prod/transfers/get
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.authenticateRest ();
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'next', 'cursor', undefined, 100) as TransferEntry[];
+        }
+        let request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.safeCurrency (code);
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end_at', request, params);
+        const response = await this.privateGetTransfers (this.extend (request, params));
+        //
+        //     {
+        //         "next": null,
+        //         "prev": null,
+        //         "results": [
+        //             {
+        //                 "id": "1718940471200201703989430000",
+        //                 "account": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3",
+        //                 "kind": "DEPOSIT",
+        //                 "status": "COMPLETED",
+        //                 "amount": "100000",
+        //                 "token": "USDC",
+        //                 "created_at": 1718940471208,
+        //                 "last_updated_at": 1718941455546,
+        //                 "txn_hash": "0x73a415ca558a97bbdcd1c43e52b45f1e0486a0a84b3bb4958035ad6c59cb866",
+        //                 "external_txn_hash": "",
+        //                 "socialized_loss_factor": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const rows = this.safeList (response, 'results', []);
+        return this.parseTransfers (rows, currency, since, limit);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        //     {
+        //         "id": "1718940471200201703989430000",
+        //         "account": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3",
+        //         "kind": "DEPOSIT",
+        //         "status": "COMPLETED",
+        //         "amount": "100000",
+        //         "token": "USDC",
+        //         "created_at": 1718940471208,
+        //         "last_updated_at": 1718941455546,
+        //         "txn_hash": "0x73a415ca558a97bbdcd1c43e52b45f1e0486a0a84b3bb4958035ad6c59cb866",
+        //         "external_txn_hash": "",
+        //         "socialized_loss_factor": ""
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'token');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (transfer, 'created_at');
+        const kind = this.safeString (transfer, 'kind');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (kind === 'DEPOSIT') {
+            fromAccount = 'external';
+            toAccount = 'account';
+        } else if (kind === 'WITHDRAWAL') {
+            fromAccount = 'account';
+            toAccount = 'external';
+        }
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransactionStatus (this.safeString (transfer, 'status')),
+        };
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
