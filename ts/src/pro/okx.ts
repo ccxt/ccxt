@@ -1322,25 +1322,25 @@ export default class okx extends okxRest {
     }
 
     handleOrderBookMessage (client: Client, message, orderbook, messageHash, market = undefined) {
-        //
-        //     {
-        //         "asks": [
-        //             [ '31738.3', '0.05973179', "0", "3" ],
-        //             [ '31738.5', '0.11035404', "0", "2" ],
-        //             [ '31739.6', '0.01', "0", "1" ],
-        //         ],
-        //         "bids": [
-        //             [ '31738.2', '0.67557666', "0", "9" ],
-        //             [ '31738', '0.02466947', "0", "2" ],
-        //             [ '31736.3', '0.01705046', "0", "2" ],
-        //         ],
-        //         "instId": "BTC-USDT",
-        //         "ts": "1626537446491"
-        //         "checksum": -855196043,
-        //         "prevSeqId": 123456,
-        //         "seqId": 123457
-        //     }
-        //
+    //
+    //     {
+    //         "asks": [
+    //             [ '31738.3', '0.05973179', "0", "3" ],
+    //             [ '31738.5', '0.11035404', "0", "2" ],
+    //             [ '31739.6', '0.01', "0", "1" ],
+    //         ],
+    //         "bids": [
+    //             [ '31738.2', '0.67557666', "0", "9" ],
+    //             [ '31738', '0.02466947', "0", "2" ],
+    //             [ '31736.3', '0.01705046', "0", "2" ],
+    //         ],
+    //         "instId": "BTC-USDT",
+    //         "ts": "1626537446491"
+    //         "checksum": -855196043,
+    //         "prevSeqId": 123456,
+    //         "seqId": 123457
+    //     }
+    //
         const asks = this.safeValue (message, 'asks', []);
         const bids = this.safeValue (message, 'bids', []);
         const storedAsks = orderbook['asks'];
@@ -1349,41 +1349,19 @@ export default class okx extends okxRest {
         this.handleDeltas (storedBids, bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId, market);
-        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         const seqId = this.safeInteger (message, 'seqId');
-        if (checksum) {
-            const prevSeqId = this.safeInteger (message, 'prevSeqId');
-            const nonce = orderbook['nonce'];
-            const asksLength = storedAsks.length;
-            const bidsLength = storedBids.length;
-            const payloadArray = [];
-            for (let i = 0; i < 25; i++) {
-                if (i < bidsLength) {
-                    payloadArray.push (this.numberToString (storedBids[i][0]));
-                    payloadArray.push (this.numberToString (storedBids[i][1]));
-                }
-                if (i < asksLength) {
-                    payloadArray.push (this.numberToString (storedAsks[i][0]));
-                    payloadArray.push (this.numberToString (storedAsks[i][1]));
-                }
+        const prevSeqId = this.safeInteger (message, 'prevSeqId');
+        const nonce = orderbook['nonce'];
+        let error = undefined;
+        if (prevSeqId !== -1 && nonce !== prevSeqId) {
+            error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+        }
+        if (error !== undefined) {
+            delete client.subscriptions[messageHash];
+            if (symbol !== undefined) {
+                delete this.orderbooks[symbol];
             }
-            const payload = payloadArray.join (':');
-            const responseChecksum = this.safeInteger (message, 'checksum');
-            const localChecksum = this.crc32 (payload, true);
-            let error = undefined;
-            if (prevSeqId !== -1 && nonce !== prevSeqId) {
-                error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
-            }
-            if (responseChecksum !== localChecksum) {
-                error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-            }
-            if (error !== undefined) {
-                delete client.subscriptions[messageHash];
-                if (symbol !== undefined) {
-                    delete this.orderbooks[symbol];
-                }
-                client.reject (error, messageHash);
-            }
+            client.reject (error, messageHash);
         }
         const timestamp = this.safeInteger (message, 'ts');
         orderbook['nonce'] = seqId;
