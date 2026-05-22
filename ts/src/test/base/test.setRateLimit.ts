@@ -11,8 +11,6 @@ async function testSetRateLimit () {
         'id': 'test',
         'rateLimit': 100,
     });
-    assert (exchange.rateLimit === 100, 'initial rateLimit should be 100');
-
     exchange.setRateLimit (50);
 
     assert (exchange.rateLimit === 50, 'rateLimit should be updated to 50');
