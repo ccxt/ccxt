@@ -7,7 +7,7 @@
             {
                 "description": "default",
                 "method": "fetchCurrencies",
-                "url": "https://bit.team/trade/api/cmc/assets",
+                "url": "https://bit.team/trade/api/currencies",
                 "input": [],
                 "output": null
             }
