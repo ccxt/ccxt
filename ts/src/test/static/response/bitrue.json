@@ -54,7 +54,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00",
                                     "minWithdraw": "2.00",
-                                    "maxWithdraw": "1000000000000000.00"
+                                    "maxWithdraw": "10000000000000.00"
                                 },
                                 {
                                     "originCoin": "usdt_erc20",
@@ -84,7 +84,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00",
                                     "minWithdraw": "2.00",
-                                    "maxWithdraw": "1000000000000000.00"
+                                    "maxWithdraw": "10000000000000.00"
                                 },
                                 {
                                     "originCoin": "usdt_bep20",
@@ -114,7 +114,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 {
                                     "originCoin": "usdt_op",
@@ -134,7 +134,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 {
                                     "originCoin": "usdt_ton",
@@ -144,7 +144,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.0000",
                                     "minWithdraw": "2.0000",
-                                    "maxWithdraw": "1000000000000000.0000"
+                                    "maxWithdraw": "10000000000000.0000"
                                 },
                                 {
                                     "originCoin": "usdt_scr",
@@ -154,7 +154,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.0000",
                                     "minWithdraw": "2.0000",
-                                    "maxWithdraw": "1000000000000000.0000"
+                                    "maxWithdraw": "10000000000000.0000"
                                 },
                                 {
                                     "originCoin": "usdt_kaia",
@@ -164,7 +164,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00000",
                                     "minWithdraw": "2.00000",
-                                    "maxWithdraw": "1000000000000000.00000"
+                                    "maxWithdraw": "10000000000000.00000"
                                 },
                                 {
                                     "originCoin": "usdt_xpl",
@@ -174,7 +174,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 {
                                     "originCoin": "usdt_mon",
@@ -194,7 +194,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 }
                             ]
                         }
@@ -242,7 +242,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00",
                                     "minWithdraw": "2.00",
-                                    "maxWithdraw": "1000000000000000.00"
+                                    "maxWithdraw": "10000000000000.00"
                                 },
                                 {
                                     "originCoin": "usdt_erc20",
@@ -272,7 +272,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00",
                                     "minWithdraw": "2.00",
-                                    "maxWithdraw": "1000000000000000.00"
+                                    "maxWithdraw": "10000000000000.00"
                                 },
                                 {
                                     "originCoin": "usdt_bep20",
@@ -302,7 +302,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 {
                                     "originCoin": "usdt_op",
@@ -322,7 +322,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 {
                                     "originCoin": "usdt_ton",
@@ -332,7 +332,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.0000",
                                     "minWithdraw": "2.0000",
-                                    "maxWithdraw": "1000000000000000.0000"
+                                    "maxWithdraw": "10000000000000.0000"
                                 },
                                 {
                                     "originCoin": "usdt_scr",
@@ -342,7 +342,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.0000",
                                     "minWithdraw": "2.0000",
-                                    "maxWithdraw": "1000000000000000.0000"
+                                    "maxWithdraw": "10000000000000.0000"
                                 },
                                 {
                                     "originCoin": "usdt_kaia",
@@ -352,7 +352,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00000",
                                     "minWithdraw": "2.00000",
-                                    "maxWithdraw": "1000000000000000.00000"
+                                    "maxWithdraw": "10000000000000.00000"
                                 },
                                 {
                                     "originCoin": "usdt_xpl",
@@ -362,7 +362,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 {
                                     "originCoin": "usdt_mon",
@@ -382,7 +382,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 }
                             ]
                         },
@@ -432,7 +432,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00",
                                     "minWithdraw": "2.00",
-                                    "maxWithdraw": "1000000000000000.00"
+                                    "maxWithdraw": "10000000000000.00"
                                 },
                                 "id": "AVAXC",
                                 "network": "AVAXC",
@@ -444,7 +444,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -507,7 +507,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00",
                                     "minWithdraw": "2.00",
-                                    "maxWithdraw": "1000000000000000.00"
+                                    "maxWithdraw": "10000000000000.00"
                                 },
                                 "id": "Polygon",
                                 "network": "Polygon",
@@ -519,7 +519,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -582,7 +582,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 "id": "Arbitrum",
                                 "network": "Arbitrum",
@@ -594,7 +594,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -632,7 +632,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 "id": "NEAR",
                                 "network": "NEAR",
@@ -644,7 +644,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -657,7 +657,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.0000",
                                     "minWithdraw": "2.0000",
-                                    "maxWithdraw": "1000000000000000.0000"
+                                    "maxWithdraw": "10000000000000.0000"
                                 },
                                 "id": "TON",
                                 "network": "TON",
@@ -669,7 +669,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -682,7 +682,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.0000",
                                     "minWithdraw": "2.0000",
-                                    "maxWithdraw": "1000000000000000.0000"
+                                    "maxWithdraw": "10000000000000.0000"
                                 },
                                 "id": "SCROLL",
                                 "network": "SCROLL",
@@ -694,7 +694,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -707,7 +707,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.00000",
                                     "minWithdraw": "2.00000",
-                                    "maxWithdraw": "1000000000000000.00000"
+                                    "maxWithdraw": "10000000000000.00000"
                                 },
                                 "id": "KAIA",
                                 "network": "KAIA",
@@ -719,7 +719,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -732,7 +732,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 "id": "XPL",
                                 "network": "XPL",
@@ -744,7 +744,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             },
@@ -782,7 +782,7 @@
                                     "enableDeposit": true,
                                     "withdrawFee": "1.000000",
                                     "minWithdraw": "2.000000",
-                                    "maxWithdraw": "1000000000000000.000000"
+                                    "maxWithdraw": "10000000000000.000000"
                                 },
                                 "id": "Stable",
                                 "network": "Stable",
@@ -794,7 +794,7 @@
                                 "limits": {
                                     "withdraw": {
                                         "min": 2,
-                                        "max": 1000000000000000
+                                        "max": 10000000000000
                                     }
                                 }
                             }
@@ -802,7 +802,7 @@
                         "limits": {
                             "withdraw": {
                                 "min": 0.22,
-                                "max": 1000000000000000
+                                "max": 10000000000000
                             },
                             "deposit": {
                                 "min": null,
