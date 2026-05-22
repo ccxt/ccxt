@@ -155,6 +155,7 @@ const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchPositions',
     'fetchAccounts',
     'fetchCurrencies',
+    'fetchMarkets',
     // WebSocket variants — same zero-required-param shape, same typed return.
     // Only includes methods that exist on at least one exchange's TS source AND
     // have a base `Object... varargs` definition on Exchange.java (so the

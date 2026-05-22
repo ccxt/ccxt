@@ -2855,6 +2855,7 @@ public class Exchange {
     public java.util.concurrent.CompletableFuture<Object> fetchPositionsAsync(Object... args) { return fetchPositions(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchAccountsAsync(Object... args) { return fetchAccounts(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchCurrenciesAsync(Object... args) { return fetchCurrencies(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketsAsync(Object... args) { return fetchMarkets(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchBalanceWsAsync(Object... args) { return fetchBalanceWs(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchOrdersWsAsync(Object... args) { return fetchOrdersWs(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWsAsync(Object... args) { return fetchMyTradesWs(args); }
@@ -5097,16 +5098,24 @@ public Object describe()
         return new java.util.HashMap<String, Object>() {{
             put( "defaultNetworkCodeReplacements", new java.util.HashMap<String, Object>() {{
                 put( "ETH", new java.util.HashMap<String, Object>() {{
-                    put( "ERC20", "ETH" );
-                }} );
-                put( "TRX", new java.util.HashMap<String, Object>() {{
-                    put( "TRC20", "TRX" );
+                    put( "primary", "ETH" );
+                    put( "secondary", "ERC20" );
+                    put( "default", "secondary" );
                 }} );
                 put( "CRO", new java.util.HashMap<String, Object>() {{
-                    put( "CRC20", "CRONOS" );
+                    put( "primary", "CRONOS" );
+                    put( "secondary", "CRC20" );
+                    put( "default", "secondary" );
                 }} );
-                put( "BRC20", new java.util.HashMap<String, Object>() {{
-                    put( "BRC20", "BTC" );
+                put( "TRX", new java.util.HashMap<String, Object>() {{
+                    put( "primary", "TRX" );
+                    put( "secondary", "TRC20" );
+                    put( "default", "secondary" );
+                }} );
+                put( "BTC", new java.util.HashMap<String, Object>() {{
+                    put( "primary", "BTC" );
+                    put( "secondary", "BRC20" );
+                    put( "default", "primary" );
                 }} );
             }} );
         }};
@@ -6992,6 +7001,66 @@ public Object describe()
         }};
     }
 
+    public Object prioritizedNetworkAliases(Object... optionalArgs)
+    {
+        /**
+        * @method
+        * @name Exchange#prioritizedNetworkAliases
+        * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
+        *   ---------------------------------
+        *   | input          | output       |
+        *   --------------------------------|
+        *   | ETH & USDC     | ERC20, ETH   |
+        *   | ERC20 & USDC   | ERC20, ETH   |
+        *   | ETH & ETH      | ETH, ERC20   |
+        *   | ERC20 & ETH    | ETH, ERC20   |
+        *   | ERC20          | ERC20, ETH   |
+        *   | ETH            | ERC20, ETH   |
+        *   ---------------------------------
+        * @param {string} networkCode unified network-code
+        * @param {string} currencyCode unified currency-code
+        * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
+        * @returns {string[]} [preferredChain, alternativeChain]
+        */
+        Object networkCode = Helpers.getArg(optionalArgs, 0, null);
+        Object currencyCode = Helpers.getArg(optionalArgs, 1, null);
+        Object allowDefault = Helpers.getArg(optionalArgs, 2, false);
+        if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
+        {
+            return null;
+        }
+        Object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new java.util.HashMap<String, Object>() {{}});
+        Object keys = Helpers.objectKeys(replacements);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        {
+            Object baseCoin = Helpers.GetValue(keys, i);
+            Object entry = Helpers.GetValue(replacements, baseCoin);
+            Object primary = Helpers.GetValue(entry, "primary");
+            Object secondary = Helpers.GetValue(entry, "secondary");
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(networkCode, primary)) && Helpers.isTrue(!Helpers.isEqual(networkCode, secondary))))
+            {
+                continue;
+            }
+            // pick which form goes first in the returned pair
+            Object preferPrimary = false;
+            if (Helpers.isTrue(Helpers.isEqual(currencyCode, baseCoin)))
+            {
+                preferPrimary = true; // mainnet currency uses primary chain
+            } else if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+            {
+                preferPrimary = false; // any other (token) currency uses secondary chain
+            } else if (Helpers.isTrue(allowDefault))
+            {
+                preferPrimary = (Helpers.isEqual(Helpers.GetValue(entry, "default"), "primary"));
+            } else
+            {
+                preferPrimary = (Helpers.isEqual(networkCode, primary)); // keep user input first
+            }
+            return ((Helpers.isTrue((preferPrimary)))) ? new java.util.ArrayList<Object>(java.util.Arrays.asList(primary, secondary)) : new java.util.ArrayList<Object>(java.util.Arrays.asList(secondary, primary));
+        }
+        return new java.util.ArrayList<Object>(java.util.Arrays.asList(networkCode, networkCode));
+    }
+
     public Object networkCodeToId(Object networkCode, Object... optionalArgs)
     {
         /**
@@ -7008,61 +7077,34 @@ public Object describe()
         {
             return null;
         }
-        Object networkIdsByCodes = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object networkId = this.safeString(networkIdsByCodes, networkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
+        Object networkIdsByCodes = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
+        var preferredChainalternativeChainVariable = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
+        var preferredChain = ((java.util.List<Object>) preferredChainalternativeChainVariable).get(0);
+        var alternativeChain = ((java.util.List<Object>) preferredChainalternativeChainVariable).get(1);
+        Object networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
+        if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
-            if (Helpers.isTrue(Helpers.isEqual(currencyCode, null)))
+            return networkId;
+        }
+        // fall back to scanning loaded currencies
+        Object currenciesToCheck = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        if (Helpers.isTrue(Helpers.isEqual(currencyCode, null)))
+        {
+            currenciesToCheck = Helpers.objectKeys(this.currencies);
+        } else
+        {
+            currenciesToCheck = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeDict(this.currencies, currencyCode)));
+        }
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesToCheck)); i++)
+        {
+            Object networks = this.safeDict(Helpers.GetValue(currenciesToCheck, i), "networks", new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.inOp(networks, networkCode)))
             {
-                Object currencies = Helpers.objectValues(this.currencies);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
-                {
-                    Object currency = Helpers.GetValue(currencies, i);
-                    Object networks = this.safeDict(currency, "networks");
-                    Object network = this.safeDict(networks, networkCode);
-                    networkId = this.safeString(network, "id");
-                    if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
-                    {
-                        break;
-                    }
-                }
-            } else
-            {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
-                Object defaultNetworkCodeReplacements = this.safeValue(this.options, "defaultNetworkCodeReplacements", new java.util.HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(Helpers.inOp(defaultNetworkCodeReplacements, currencyCode)))
-                {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    Object replacementObject = Helpers.GetValue(defaultNetworkCodeReplacements, currencyCode); // i.e. { 'ERC20': 'ETH' }
-                    Object keys = Helpers.objectKeys(replacementObject);
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
-                    {
-                        Object key = Helpers.GetValue(keys, i);
-                        Object value = Helpers.GetValue(replacementObject, key);
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (Helpers.isTrue(Helpers.isEqual(value, networkCode)))
-                        {
-                            networkId = this.safeString(networkIdsByCodes, key);
-                            break;
-                        }
-                    }
-                } else
-                {
-                    // serach for network inside currency
-                    Object currency = this.safeDict(this.currencies, currencyCode);
-                    Object networks = this.safeDict(currency, "networks");
-                    Object network = this.safeDict(networks, networkCode);
-                    networkId = this.safeString(network, "id");
-                }
-            }
-            // if it wasn't found, we just set the provided value to network-id
-            if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
-            {
-                networkId = networkCode;
+                return this.safeString(Helpers.GetValue(networks, networkCode), "id");
             }
         }
-        return networkId;
+        return networkCode;
     }
 
     public Object networkIdToCode(Object... optionalArgs)
@@ -7084,17 +7126,20 @@ public Object describe()
         }
         Object networkCodesByIds = this.safeDict(this.options, "networksById", new java.util.HashMap<String, Object>() {{}});
         Object networkCode = this.safeString(networkCodesByIds, networkId, networkId);
-        // replace mainnet network-codes (i.e. ERC20->ETH)
-        if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+        var preferredChainalternativeChainVariable = this.prioritizedNetworkAliases(networkCode, currencyCode, true);
+        var preferredChain = ((java.util.List<Object>) preferredChainalternativeChainVariable).get(0);
+        var alternativeChain = ((java.util.List<Object>) preferredChainalternativeChainVariable).get(1);
+        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
+        // it disambiguates them — trust the direct id→code inversion instead of guessing
+        if (Helpers.isTrue(Helpers.isEqual(currencyCode, null)))
         {
-            Object defaultNetworkCodeReplacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new java.util.HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.inOp(defaultNetworkCodeReplacements, currencyCode)))
+            Object networkIdsByCodes = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(networkIdsByCodes, preferredChain))) && Helpers.isTrue((Helpers.inOp(networkIdsByCodes, alternativeChain)))))
             {
-                Object replacementObject = this.safeDict(defaultNetworkCodeReplacements, currencyCode, new java.util.HashMap<String, Object>() {{}});
-                networkCode = this.safeString(replacementObject, networkCode, networkCode);
+                return networkCode;
             }
         }
-        return networkCode;
+        return preferredChain;
     }
 
     public Object handleNetworkCodeAndParams(Object parameters)
@@ -7308,7 +7353,7 @@ public Object describe()
         Object percentage = this.safeValue(position, "percentage");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(percentage, null))) && Helpers.isTrue((!Helpers.isEqual(unrealizedPnlString, null)))) && Helpers.isTrue((!Helpers.isEqual(initialMarginString, null)))))
         {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             Object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
             Helpers.addElementToObject(position, "percentage", this.parseNumber(percentageString));
         }

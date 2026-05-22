@@ -81,6 +81,7 @@ const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
         'fetchPositions',
         'fetchAccounts',
         'fetchCurrencies',
+        'fetchMarkets',
         // WebSocket variants
         'fetchBalanceWs',
         'fetchOrdersWs',

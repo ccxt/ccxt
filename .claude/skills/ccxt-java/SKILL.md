@@ -490,6 +490,36 @@ try {
 
 No `CompletionException` boilerplate, no `.getCause()` unwrap needed.
 
+#### Java pitfalls when catching ccxt errors
+
+1. **You cannot multi-catch a parent and child error together.** Java forbids it:
+   ```java
+   // ❌ compile error — BaseError is parent of NetworkError
+   catch (NetworkError | BaseError e) { ... }
+
+   // ✅ separate clauses, most-specific first
+   catch (NetworkError e) { ... }
+   catch (BaseError e) { ... }
+   ```
+
+2. **Passing `null` to a sync method can be ambiguous.** When a method has both a typed
+   overload `fetchX(Map<String, Object> params)` and the base async varargs `fetchX(Object...)`,
+   Java can't decide which one `null` belongs to:
+   ```java
+   // ❌ "reference to fetchBalance is ambiguous"
+   exchange.fetchBalance(null);
+
+   // ✅ either use the typed zero-arg overload
+   exchange.fetchBalance();
+
+   // ✅ or cast to disambiguate
+   exchange.fetchBalance((Map<String, Object>) null);
+   ```
+   Same applies to `fetchBalanceAsync(null)` etc.
+
+3. **The JVM stays alive after `main()` returns** because of internal HTTP/scheduler threads.
+   In standalone programs, call `System.exit(0)` at the end (or use a shutdown hook).
+
 ### Specific Exception Handling
 
 Multi-catch and ordering work exactly as JDK conventions expect:
@@ -513,6 +543,10 @@ try {
     System.out.println("CCXT error: " + e.getMessage());
 }
 ```
+
+Note: each `catch` clause must be for a single class; you cannot multi-catch
+`NetworkError | BaseError` because BaseError is a parent of NetworkError.
+The order above (most-specific to least-specific) is the JDK convention.
 
 ### Async Error Handling
 
