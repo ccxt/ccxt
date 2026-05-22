@@ -1978,6 +1978,107 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    /**
+     * Properly transpiles `try { … } catch (e) { … }` instead of
+     * discarding the catch (what `stripCatchBlocks` + `unwrapCatchUnwind`
+     * do). The ast-transpiler emits the sync form:
+     *
+     *   let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| { <try> }));
+     *   if let Err(_e) = _try_result { <catch> }
+     *
+     * A sync closure can't `.await`, so for an async try body this pass
+     * rewrites it to the future-based form:
+     *
+     *   let _try_result = futures::FutureExt::catch_unwind(
+     *       std::panic::AssertUnwindSafe(async { <try> })).await;
+     *   if let Err(_e) = _try_result { <catch> }
+     *
+     * The catch body is preserved either way. Used by the test-main
+     * pipeline so `try { createOrder } catch { capture }` keeps working.
+     */
+    rewriteTryCatchAsync(content: string): string {
+        const marker = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const idx = content.indexOf(marker, i);
+            if (idx < 0) { out += content.slice(i); break; }
+            out += content.slice(i, idx);
+            // Brace-match the closure body.
+            let depth = 1, j = idx + marker.length, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '{') depth++;
+                    else if (c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(idx); break; }
+            const inner = content.slice(idx + marker.length, j);
+            const semi = content.indexOf(';', j);
+            // Optional sibling `if let Err(<name>) = _try_result { … }`.
+            let after = semi + 1;
+            while (after < content.length && /\s/.test(content[after])) after++;
+            const ifMatch = content.slice(after).match(
+                /^if\s+let\s+Err\(([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=\s*_try_result\s*\{/);
+            let errName = '_e';
+            let catchBody = '';
+            let consumeEnd = semi + 1;
+            if (ifMatch) {
+                // The ast-transpiler binds `_e` / `_<name>` but the catch
+                // body references the un-prefixed `e` / `<name>` — bind the
+                // name the body actually uses (`#![allow(unused)]` covers
+                // the case where the body ignores it).
+                errName = ifMatch[1].replace(/^_/, '');
+                let d2 = 1, k = after + ifMatch[0].length, inStr2 = false, esc2 = false;
+                while (k < content.length && d2 > 0) {
+                    const c = content[k];
+                    if (esc2) { esc2 = false; k++; continue; }
+                    if (c === '\\' && inStr2) { esc2 = true; k++; continue; }
+                    if (c === '"') { inStr2 = !inStr2; k++; continue; }
+                    if (!inStr2) {
+                        if (c === '{') d2++;
+                        else if (c === '}') d2--;
+                    }
+                    if (d2 === 0) break;
+                    k++;
+                }
+                if (d2 === 0) {
+                    catchBody = content.slice(after + ifMatch[0].length, k);
+                    consumeEnd = k + 1;
+                }
+            }
+            // Recurse so nested try/catch in either body is handled too.
+            const tryBody   = this.rewriteTryCatchAsync(inner);
+            const catchPart = this.rewriteTryCatchAsync(catchBody);
+            // A `return` / `break` / `continue` in the try body must act on
+            // the enclosing fn/loop — wrapping it in a closure or `async {}`
+            // would change its meaning. Fall back to a plain block (the
+            // catch is dropped, as the old `stripCatchBlocks` did).
+            if (/\b(return|break|continue)\b/.test(inner)) {
+                out += `{${tryBody}}`;
+            } else {
+                // The catch binding is the panic payload (`Box<dyn Any>`);
+                // convert it to a `Value` so the catch body (which treats
+                // `e` as an error object) type-checks.
+                const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = crate::test_helpers::panic_to_value(_try_err);`;
+                if (inner.includes('.await')) {
+                    out += `let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {${tryBody}})).await;\n`;
+                } else {
+                    out += `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {${tryBody}}));\n`;
+                }
+                out += `${catchHead}${catchPart}}`;
+            }
+            i = consumeEnd;
+        }
+        return out;
+    }
+
     stripCatchBlocks(content: string): string {
         const pattern = /\}\s*catch\s+\w+\s+\w+\s*\{/;
         let i = 0;
@@ -4662,8 +4763,10 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.rewriteHashAlgoConstants(content);
             content = this.rewriteBareErrorClassRefs(content);
             content = this.wrapBoolValueArgs(content);
-            content = this.stripCatchBlocks(content);
-            content = this.unwrapCatchUnwind(content);
+            // `tests.rs` needs real try/catch (e.g. broker-id tests do
+            // `try { createOrder } catch { capture last_request_body }`),
+            // so transpile it properly instead of dropping the catch.
+            content = this.rewriteTryCatchAsync(content);
             content = this.rewriteDynamicSelfCalls(content);
             content = this.closeImplicitApiCalls(content);
             content = this.cloneInRefSlices(content);
@@ -4811,6 +4914,24 @@ impl std::ops::DerefMut for ${coreName} {
                            `        }`;
                 },
             );
+
+            // `urlencoded_to_dict` only builds a local dict — it never
+            // mutates `self`. The ast-transpiler over-marks it `&mut self`,
+            // which blocks `&self` callers. Force `&self` (done last so no
+            // later pass — e.g. promoteSelfMutMethods — can undo it).
+            content = content.replace(
+                /\bfn urlencoded_to_dict\(\s*&mut self\b/g,
+                'fn urlencoded_to_dict(&self');
+            // `obj['k'] = v` on a Value-typed local (e.g.
+            // `exchange.options['uta'] = false`) transpiles to
+            // `add_element_to_object(&mut get_value(&obj, k), …)` — but
+            // `get_value` returns a *clone*, so the write is silently
+            // lost. Route through `get_value_mut` to hit the real entry.
+            // Done last — the `&mut get_value(...)` form is produced by
+            // an earlier `add_element_to_object` rewrite pass.
+            content = content.replace(
+                /&mut get_value\(&([a-zA-Z_][a-zA-Z0-9_]*)\s*,/g,
+                'get_value_mut(&mut $1,');
 
             const file = [
                 ...this.createGeneratedHeader(),

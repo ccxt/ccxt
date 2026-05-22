@@ -134,6 +134,21 @@ pub fn exceptionMessage(exc: Value) -> Value {
 
 pub fn getTestName(s: Value) -> Value { s }
 
+/// Converts a `catch_unwind` panic payload into a `Value` — the
+/// transpiled `try/catch` catch bodies treat the caught error as an
+/// error object (`Value`), so the `Box<dyn Any>` panic payload is
+/// rendered to its message string.
+pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
+    let msg = payload.downcast_ref::<String>().cloned()
+        .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+        .unwrap_or_else(|| "panic".to_string());
+    Value::Str(msg)
+}
+
+/// `getRootException(e)` — TS unwraps nested `.cause` chains; the Rust
+/// catch binding is already the rendered error, so return it as-is.
+pub fn getRootException(e: Value) -> Value { e }
+
 // ── assertions ──────────────────────────────────────────────────────────────
 
 /// Truthiness for `assert` — accepts either a `Value` (the common
@@ -200,8 +215,19 @@ pub fn setFetchResponse(exchange: &mut Value, response: Value) -> Value {
 /// The static request/response path dispatches by `id` + `options`
 /// through the exchange registry.
 pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
-    let mut m = match optional_args.get(0) {
-        Some(Value::Map(om)) => om.clone(),
+    let cfg = optional_args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
+    let id = match &exchange_id { Value::Str(s) => s.clone(), _ => String::new() };
+    // Snapshot the real exchange so its `describe()` output (notably
+    // `options.brokerId` / `options.broker`, which broker-id tests
+    // assert) is present. Falls back to a bare config map for ids with
+    // no registered Core.
+    let snap = crate::registry::exchange_snapshot(&id, cfg.clone());
+    if let Value::Map(mut m) = snap {
+        m.insert("id".to_string(), exchange_id);
+        return Value::Map(m);
+    }
+    let mut m = match cfg {
+        Value::Map(om) => om,
         _ => HashMap::new(),
     };
     m.insert("id".to_string(), exchange_id);
@@ -320,10 +346,11 @@ pub trait ExchangeOps {
     fn set_sandbox_mode(&self, enabled: Value);
     fn extend_exchange_options(&mut self, options: Value) -> Value;
     fn check_required_credentials(&self, optional_args: &[Value]) -> Value;
-    fn create_order(&self, symbol: Value, type_var: Value, side: Value, amount: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
-    fn create_orders(&self, orders: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
+    fn create_order(&mut self, symbol: Value, type_var: Value, side: Value, amount: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
+    fn create_orders(&mut self, orders: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
     fn fetch_ticker(&self, symbol: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
     fn load_markets(&self, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
+    fn sleep(&self, ms: Value) -> impl std::future::Future<Output = Value>;
 }
 
 impl ExchangeOps for Value {
@@ -360,8 +387,24 @@ impl ExchangeOps for Value {
         merged
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
-    async fn create_order(&self, _symbol: Value, _type_var: Value, _side: Value, _amount: Value, _o: &[Value]) -> Value { Value::Null }
-    async fn create_orders(&self, _orders: Value, _o: &[Value]) -> Value { Value::Null }
+    /// Offline `createOrder` — dispatches through the registry (which
+    /// builds the request and stashes `last_request_*` onto `self`),
+    /// then panics to mimic the exchange throwing (no server to answer).
+    /// The transpiled `try { createOrder } catch { capture }` relies on
+    /// that throw to run its capture branch.
+    async fn create_order(&mut self, symbol: Value, type_var: Value, side: Value, amount: Value, o: &[Value]) -> Value {
+        let mut args = vec![symbol, type_var, side, amount];
+        args.extend_from_slice(o);
+        callExchangeMethodDynamically(self, Value::Str("createOrder".to_string()), Value::Array(args)).await;
+        panic!("offline createOrder");
+    }
+    async fn create_orders(&mut self, orders: Value, _o: &[Value]) -> Value {
+        callExchangeMethodDynamically(self, Value::Str("createOrders".to_string()), Value::Array(vec![orders])).await;
+        panic!("offline createOrders");
+    }
     async fn fetch_ticker(&self, _symbol: Value, _o: &[Value]) -> Value { Value::Null }
     async fn load_markets(&self, _o: &[Value]) -> Value { Value::Null }
+    /// Offline tests don't really wait — `sleep` is a no-op so retry
+    /// loops resolve instantly.
+    async fn sleep(&self, _ms: Value) -> Value { Value::Null }
 }

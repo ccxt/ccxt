@@ -6,8 +6,17 @@
 
 use ccxt::Value;
 use ccxt::exchanges::{
-    binance::BinanceCore, bybit::BybitCore, okx::OkxCore, kucoin::KucoinCore,
-    bitget::BitgetCore, hyperliquid::HyperliquidCore, gate::GateCore,
+    backpack::BackpackCore, binance::BinanceCore, bingx::BingxCore,
+    bitget::BitgetCore, bitmart::BitmartCore, blofin::BlofinCore,
+    bybit::BybitCore, coinbase::CoinbaseCore,
+    coinbaseinternational::CoinbaseinternationalCore, coinex::CoinexCore,
+    cryptocom::CryptocomCore, cryptomus::CryptomusCore, derive::DeriveCore,
+    gate::GateCore, hashkey::HashkeyCore, htx::HtxCore,
+    hyperliquid::HyperliquidCore, kucoin::KucoinCore,
+    kucoinfutures::KucoinfuturesCore, mexc::MexcCore, modetrade::ModetradeCore,
+    okx::OkxCore, oxfun::OxfunCore, paradex::ParadexCore, phemex::PhemexCore,
+    toobit::ToobitCore, weex::WeexCore, woo::WooCore, woofipro::WoofiproCore,
+    xt::XtCore,
 };
 use std::collections::HashMap;
 use std::panic;
@@ -23,8 +32,13 @@ pub struct Captured {
 
 /// True iff a Core for this id exists.
 pub fn has(id: &str) -> bool {
-    matches!(id, "binance" | "bybit" | "okx" | "kucoin"
-        | "bitget" | "hyperliquid" | "gate")
+    matches!(id,
+        "backpack" | "binance" | "bingx" | "bitget" | "bitmart" | "blofin"
+        | "bybit" | "coinbase" | "coinbaseinternational" | "coinex"
+        | "cryptocom" | "cryptomus" | "derive" | "gate" | "hashkey" | "htx"
+        | "hyperliquid" | "kucoin" | "kucoinfutures" | "mexc" | "modetrade"
+        | "okx" | "oxfun" | "paradex" | "phemex" | "toobit" | "weex" | "woo"
+        | "woofipro" | "xt")
 }
 
 /// Run `method(args)` in offline mode and capture last_request_*.
@@ -45,13 +59,36 @@ pub async fn dispatch(id: &str, method: &str, args: Vec<Value>, fixture_options:
         }};
     }
     match id {
-        "binance"     => go!(BinanceCore),
-        "bybit"       => go!(BybitCore),
-        "okx"         => go!(OkxCore),
-        "kucoin"      => go!(KucoinCore),
-        "bitget"      => go!(BitgetCore),
-        "hyperliquid" => go!(HyperliquidCore),
-        "gate"        => go!(GateCore),
+        "backpack"              => go!(BackpackCore),
+        "binance"               => go!(BinanceCore),
+        "bingx"                 => go!(BingxCore),
+        "bitget"                => go!(BitgetCore),
+        "bitmart"               => go!(BitmartCore),
+        "blofin"                => go!(BlofinCore),
+        "bybit"                 => go!(BybitCore),
+        "coinbase"              => go!(CoinbaseCore),
+        "coinbaseinternational" => go!(CoinbaseinternationalCore),
+        "coinex"                => go!(CoinexCore),
+        "cryptocom"             => go!(CryptocomCore),
+        "cryptomus"             => go!(CryptomusCore),
+        "derive"                => go!(DeriveCore),
+        "gate"                  => go!(GateCore),
+        "hashkey"               => go!(HashkeyCore),
+        "htx"                   => go!(HtxCore),
+        "hyperliquid"           => go!(HyperliquidCore),
+        "kucoin"                => go!(KucoinCore),
+        "kucoinfutures"         => go!(KucoinfuturesCore),
+        "mexc"                  => go!(MexcCore),
+        "modetrade"             => go!(ModetradeCore),
+        "okx"                   => go!(OkxCore),
+        "oxfun"                 => go!(OxfunCore),
+        "paradex"               => go!(ParadexCore),
+        "phemex"                => go!(PhemexCore),
+        "toobit"                => go!(ToobitCore),
+        "weex"                  => go!(WeexCore),
+        "woo"                   => go!(WooCore),
+        "woofipro"              => go!(WoofiproCore),
+        "xt"                    => go!(XtCore),
         _ => Captured::default(),
     }
 }
@@ -76,13 +113,85 @@ pub async fn dispatch_response(
         }};
     }
     match id {
-        "binance"     => go!(BinanceCore),
-        "bybit"       => go!(BybitCore),
-        "okx"         => go!(OkxCore),
-        "kucoin"      => go!(KucoinCore),
-        "bitget"      => go!(BitgetCore),
-        "hyperliquid" => go!(HyperliquidCore),
-        "gate"        => go!(GateCore),
+        "backpack"              => go!(BackpackCore),
+        "binance"               => go!(BinanceCore),
+        "bingx"                 => go!(BingxCore),
+        "bitget"                => go!(BitgetCore),
+        "bitmart"               => go!(BitmartCore),
+        "blofin"                => go!(BlofinCore),
+        "bybit"                 => go!(BybitCore),
+        "coinbase"              => go!(CoinbaseCore),
+        "coinbaseinternational" => go!(CoinbaseinternationalCore),
+        "coinex"                => go!(CoinexCore),
+        "cryptocom"             => go!(CryptocomCore),
+        "cryptomus"             => go!(CryptomusCore),
+        "derive"                => go!(DeriveCore),
+        "gate"                  => go!(GateCore),
+        "hashkey"               => go!(HashkeyCore),
+        "htx"                   => go!(HtxCore),
+        "hyperliquid"           => go!(HyperliquidCore),
+        "kucoin"                => go!(KucoinCore),
+        "kucoinfutures"         => go!(KucoinfuturesCore),
+        "mexc"                  => go!(MexcCore),
+        "modetrade"             => go!(ModetradeCore),
+        "okx"                   => go!(OkxCore),
+        "oxfun"                 => go!(OxfunCore),
+        "paradex"               => go!(ParadexCore),
+        "phemex"                => go!(PhemexCore),
+        "toobit"                => go!(ToobitCore),
+        "weex"                  => go!(WeexCore),
+        "woo"                   => go!(WooCore),
+        "woofipro"              => go!(WoofiproCore),
+        "xt"                    => go!(XtCore),
+        _ => Value::Null,
+    }
+}
+
+/// Builds the real exchange Core from `cfg` and snapshots it to a
+/// `Value` (via `Exchange::to_value()`). Unlike a bare config map, the
+/// snapshot carries the exchange's `describe()` output — `options`
+/// (incl. `brokerId` / `broker`), `has`, `urls`, etc. — which the
+/// broker-id tests assert against. Returns `Value::Null` for an id with
+/// no registered Core so callers can fall back to a plain config map.
+pub fn exchange_snapshot(id: &str, cfg: Value) -> Value {
+    macro_rules! go {
+        ($core:ty) => {{
+            let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
+            ex.bind();
+            ex.exchange.to_value()
+        }};
+    }
+    match id {
+        "backpack"              => go!(BackpackCore),
+        "binance"               => go!(BinanceCore),
+        "bingx"                 => go!(BingxCore),
+        "bitget"                => go!(BitgetCore),
+        "bitmart"               => go!(BitmartCore),
+        "blofin"                => go!(BlofinCore),
+        "bybit"                 => go!(BybitCore),
+        "coinbase"              => go!(CoinbaseCore),
+        "coinbaseinternational" => go!(CoinbaseinternationalCore),
+        "coinex"                => go!(CoinexCore),
+        "cryptocom"             => go!(CryptocomCore),
+        "cryptomus"             => go!(CryptomusCore),
+        "derive"                => go!(DeriveCore),
+        "gate"                  => go!(GateCore),
+        "hashkey"               => go!(HashkeyCore),
+        "htx"                   => go!(HtxCore),
+        "hyperliquid"           => go!(HyperliquidCore),
+        "kucoin"                => go!(KucoinCore),
+        "kucoinfutures"         => go!(KucoinfuturesCore),
+        "mexc"                  => go!(MexcCore),
+        "modetrade"             => go!(ModetradeCore),
+        "okx"                   => go!(OkxCore),
+        "oxfun"                 => go!(OxfunCore),
+        "paradex"               => go!(ParadexCore),
+        "phemex"                => go!(PhemexCore),
+        "toobit"                => go!(ToobitCore),
+        "weex"                  => go!(WeexCore),
+        "woo"                   => go!(WooCore),
+        "woofipro"              => go!(WoofiproCore),
+        "xt"                    => go!(XtCore),
         _ => Value::Null,
     }
 }
