@@ -2965,7 +2965,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseCurrency (rawCurrency): Currency {
+    parseCurrency (rawCurrency: Dict): Currency {
         const marginablesById = this.safeDict (this.options, '_fetchCurrencies_marginablesById');
         if (rawCurrency !== undefined) {
             //
