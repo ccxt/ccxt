@@ -124,6 +124,38 @@ interface MethodInfo {
     isWatch: boolean;
 }
 
+// User-facing methods with no required params for which we DO emit typed
+// zero-arg + truncation overloads. The default rule (skip if no required
+// params) protects against collisions with internal `this.method()` and
+// `this.method(null)` calls in transpiled WS Core code that expect the
+// parent's `Object... varargs` to match. For these methods we've audited
+// the TS sources, confirmed no internal zero-arg call sites remain (the
+// few that existed were updated to pass `params` / `{}`), and the typed
+// overloads are safe to emit.
+//
+// Adding to this list requires:
+//   1. `grep -r "await this\.<method>\s*(\s*)" ts/src/` returns no hits
+//   2. None of the remaining call sites pass `null` literally without an
+//      explicit cast — they should always pass a typed value
+//
+// loadMarkets / loadAccounts / loadTimeDifference / signIn etc. are NOT in
+// this list because their internal call sites are too numerous to refactor
+// (loadMarkets alone has 3000+ `this.loadMarkets()` zero-arg call sites).
+const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
+    'fetchBalance',
+    'fetchOrders',
+    'fetchMyTrades',
+    'fetchOpenOrders',
+    'fetchClosedOrders',
+    'fetchCanceledOrders',
+    'fetchTime',
+    'fetchStatus',
+    'fetchTickers',
+    'fetchPositions',
+    'fetchAccounts',
+    'fetchCurrencies',
+]);
+
 function parseMethodsFromTS(): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const baseFile: any = transpiler.transpileJavaByPath(TS_BASE_FILE);
@@ -269,14 +301,17 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     // unambiguous at every call site (no `null`-trap from sibling overloads
     // at the same arity).
     //
-    // Skipped when there are no required params: the resulting zero-arg /
-    // single-null overloads collide with internal `this.method()` and
-    // `this.method(null)` calls in transpiled WS Core code (which extend
-    // typed REST and inherit these overloads), where overload resolution
-    // would shadow the parent's `Object...` method and break the internal
-    // CompletableFuture binding. Users of zero-required methods can fall
-    // back to the full typed signature.
-    if (m.requiredParams.length > 0) {
+    // For methods with zero required params we only emit these overloads
+    // when the method is on the ZERO_REQUIRED_TYPED_WHITELIST. The default
+    // rule skips them because the resulting zero-arg / single-null overloads
+    // can collide with internal `this.method()` / `this.method(null)` calls
+    // in transpiled WS Core code that expect the parent's `Object... varargs`
+    // signature (e.g. `this.loadMarkets()` zero-arg, called from 3000+ sites).
+    // Whitelisted methods have had their internal zero-arg call sites
+    // audited and fixed in TS source — see the whitelist comment above.
+    const emitTruncations = m.requiredParams.length > 0
+        || ZERO_REQUIRED_TYPED_WHITELIST.has(m.name);
+    if (emitTruncations) {
         const defaultExpr = (p: ParamInfo) =>
             p.defaultValue && p.defaultValue !== 'null'
                 ? p.defaultValue
@@ -297,6 +332,26 @@ function genMethod(m: MethodInfo, castToObject = false): string {
         lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
         lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
         lines.push(`    }`);
+    }
+
+    // Async truncation overloads — symmetric with the sync truncations above.
+    // Without these, `binance.fetchOrdersAsync()` would fall through to the
+    // base `Object...` method and return `CompletableFuture<Object>` instead
+    // of `CompletableFuture<List<Order>>`. Gated on the same `emitTruncations`
+    // flag so the whitelist applies symmetrically.
+    if (!m.isWatch && emitTruncations) {
+        const defaultExpr = (p: ParamInfo) =>
+            p.defaultValue && p.defaultValue !== 'null'
+                ? p.defaultValue
+                : `(${p.javaType}) null`;
+        for (let k = 0; k < m.optionalParams.length; k++) {
+            const presentParams = [...m.requiredParams, ...m.optionalParams.slice(0, k)];
+            const presentDecl = presentParams.map(p => `${p.javaType} ${p.name}`).join(', ');
+            const presentArgs = presentParams.map(p => p.name).join(', ');
+            const trailingDefaults = m.optionalParams.slice(k).map(defaultExpr).join(', ');
+            const allArgs = presentArgs ? `${presentArgs}, ${trailingDefaults}` : trailingDefaults;
+            lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${presentDecl}) { return ${methodName}Async(${allArgs}); }`);
+        }
     }
 
     // String[] ergonomic overload at FULL ARITY for any List<String> param.

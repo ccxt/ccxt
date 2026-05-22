@@ -340,7 +340,7 @@ export default class coinbaseinternational extends Exchange {
         if ((defaultPortfolio !== undefined) && (defaultPortfolio !== '')) {
             return [ defaultPortfolio, params ];
         }
-        const accounts = await this.fetchAccounts ();
+        const accounts = await this.fetchAccounts (params);
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeDict (account, 'info', {});

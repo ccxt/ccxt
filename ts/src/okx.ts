@@ -5437,7 +5437,7 @@ export default class okx extends Exchange {
         }
         let fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            const currencies = await this.fetchCurrencies ();
+            const currencies = await this.fetchCurrencies (params);
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
             const targetNetwork = this.safeDict (currency['networks'], this.networkIdToCode (network, currency['code']), {});
             fee = this.safeString (targetNetwork, 'fee');
@@ -6978,7 +6978,7 @@ export default class okx extends Exchange {
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
-        const accounts = await this.fetchAccounts ();
+        const accounts = await this.fetchAccounts (params);
         const length = accounts.length;
         let selectedAccount = undefined;
         if (length > 1) {
