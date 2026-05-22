@@ -34,10 +34,46 @@ impl Value {
     /// real struct in Rust.
     pub fn reduce(&mut self) { /* no-op */ }
 
-    /// `append(item)` on an Array — pushes the item. No-op on other
-    /// variants. Mirrors TS `array.push` shape (single arg, no return).
+    /// `append(item)` on an Array — pushes the item. Mirrors TS
+    /// `array.push` shape (single arg, no return).
+    ///
+    /// On a WS-cache Map (carrying a `__cacheKind` marker — see the
+    /// cache shims in `rust/tests/src/tests_support.rs`) it pushes to
+    /// `_data` and updates the `hashmap` index keyed by the cache kind.
     pub fn append(&mut self, item: Value) {
-        if let Value::Array(a) = self { a.push(item); }
+        match self {
+            Value::Array(a) => a.push(item),
+            Value::Map(m) if m.contains_key("__cacheKind") => {
+                let kind = match m.get("__cacheKind") {
+                    Some(Value::Str(s)) => s.clone(),
+                    _ => String::new(),
+                };
+                if let Some(Value::Array(data)) = m.get_mut("_data") {
+                    data.push(item.clone());
+                }
+                let get_str = |v: &Value, k: &str| -> Option<String> {
+                    match v { Value::Map(im) => match im.get(k) {
+                        Some(Value::Str(s)) => Some(s.clone()), _ => None,
+                    }, _ => None }
+                };
+                let symbol = get_str(&item, "symbol");
+                let second = match kind.as_str() {
+                    "ArrayCacheBySymbolById"   => get_str(&item, "id"),
+                    "ArrayCacheBySymbolBySide" => get_str(&item, "side"),
+                    _ => None,
+                };
+                if let (Some(sym), Some(key)) = (symbol, second) {
+                    if let Some(Value::Map(hm)) = m.get_mut("hashmap") {
+                        let bucket = hm.entry(sym)
+                            .or_insert_with(|| Value::Map(HashMap::new()));
+                        if let Value::Map(bm) = bucket {
+                            bm.insert(key, item);
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 
     /// Constructor named to match the ast-transpiler's emission shape:

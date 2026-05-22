@@ -30,25 +30,32 @@ pub fn equals(a: Value, b: Value) -> bool {
 /// processor can rewrite `testSharedMethods.assertDeepEqual(...)` to
 /// `crate::tests_support::shared::assert_deep_equal(...)`.
 // Stub types for the WS Cache classes referenced by some base tests.
-// Their `new` constructors return `Value` (a stand-in Map) so the
-// transpiled tests — which treat the result as a Value — compile
-// without further reshaping. Real implementations live in the
-// not-yet-ported `rust/ccxt/src/pro/{Cache,Client,...}.rs`.
+// Their `new` constructors return a `Value::Map` carrying a `__cacheKind`
+// marker, a `hashmap` index and a `_data` list. `Value::append` reads
+// `__cacheKind` to update both — see `value.rs`. Real implementations
+// live in the not-yet-ported `rust/ccxt/src/pro/{Cache,Client,...}.rs`.
+fn new_cache(kind: &str) -> Value {
+    let mut m = std::collections::HashMap::new();
+    m.insert("__cacheKind".to_string(), Value::Str(kind.to_string()));
+    m.insert("hashmap".to_string(), Value::Map(std::collections::HashMap::new()));
+    m.insert("_data".to_string(), Value::Array(Vec::new()));
+    Value::Map(m)
+}
 pub struct ArrayCache;
 impl ArrayCache {
-    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCache") }
 }
 pub struct ArrayCacheByTimestamp;
 impl ArrayCacheByTimestamp {
-    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCacheByTimestamp") }
 }
 pub struct ArrayCacheBySymbolById;
 impl ArrayCacheBySymbolById {
-    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCacheBySymbolById") }
 }
 pub struct ArrayCacheBySymbolBySide;
 impl ArrayCacheBySymbolBySide {
-    pub fn new(_max_length: Value) -> Value { Value::Map(std::collections::HashMap::new()) }
+    pub fn new(_max_length: Value) -> Value { new_cache("ArrayCacheBySymbolBySide") }
 }
 
 pub mod shared {
@@ -63,9 +70,11 @@ pub mod shared {
     pub trait AsValue { fn as_value(&self) -> Value; }
     impl AsValue for Value { fn as_value(&self) -> Value { self.clone() } }
     impl AsValue for &Value { fn as_value(&self) -> Value { (*self).clone() } }
-    impl AsValue for &mut ccxt::exchange::Exchange { fn as_value(&self) -> Value { Value::Null } }
-    impl AsValue for &ccxt::exchange::Exchange    { fn as_value(&self) -> Value { Value::Null } }
-    impl AsValue for ccxt::exchange::Exchange     { fn as_value(&self) -> Value { Value::Null } }
+    // The exchange exposes its fields as a `Value::Map` via `to_value()`,
+    // so `exchangeProp(exchange, 'key')` reads real constructor state.
+    impl AsValue for &mut ccxt::exchange::Exchange { fn as_value(&self) -> Value { self.to_value() } }
+    impl AsValue for &ccxt::exchange::Exchange    { fn as_value(&self) -> Value { self.to_value() } }
+    impl AsValue for ccxt::exchange::Exchange     { fn as_value(&self) -> Value { self.to_value() } }
 
     fn method_str(m: &Value) -> String {
         match m { Value::Str(s) => s.clone(), _ => format!("{m:?}") }

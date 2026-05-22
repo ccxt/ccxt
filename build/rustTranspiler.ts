@@ -686,9 +686,9 @@ class RustTranspilerBuilder {
                 'pub async fn $1(&mut self)'],
 
             // Specific sync methods known to mutate self.
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|enable_demo_trading|clean_cache|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
                 'pub fn $1(&mut self,'],
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|enable_demo_trading|clean_cache|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror)\(&self\)/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror)\(&self\)/g,
                 'pub fn $1(&mut self)'],
 
             // (`}\nimpl X {\n` collapse is applied per-call-site in
@@ -4374,6 +4374,19 @@ impl std::ops::DerefMut for ${coreName} {
                             '    Value::Bool(true)',
                             '}',
                         ].join('\n'),
+                    );
+                }
+
+                // `test.setMarketsFromExchange` passes Exchange *instances*
+                // around as values (`setMarketsFromExchange(otherExchange)`,
+                // `getProperty(otherExchange, …)`) and relies on try/catch —
+                // neither maps onto the Value-bag model. Go skips the same
+                // body via `@SKIP_START_GO`; strip it here so Rust runs the
+                // identical minimal smoke test (construct + `describe()`).
+                if (testName === 'test.setMarketsFromExchange') {
+                    content = content.replace(
+                        /\/\/ @SKIP_START_GO[\s\S]*?\/\/ @SKIP_END_GO/g,
+                        '// @SKIP (rust): Exchange-as-value not supported',
                     );
                 }
 

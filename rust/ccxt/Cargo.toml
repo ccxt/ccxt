@@ -30,6 +30,15 @@ hmac = "0.12"
 sha2 = "0.10"
 sha1 = "0.10"
 md-5 = "0.10"
+# Keccak-256 (ETH hashing)
+sha3 = "0.10"
+# secp256k1 ECDSA with public-key recovery (ETH signing)
+k256 = { version = "0.13", features = ["ecdsa"] }
+# MessagePack (hyperliquid L1 action hashing)
+rmp-serde = "1"
+rmpv = "1"
+# RSA signing (jwt RS256, exchange rsa())
+rsa = { version = "0.9", features = ["sha2"] }
 # Base64
 base64 = "0.22"
 # URL encoding

@@ -127,6 +127,13 @@ static DEFAULT_DERIVED: DefaultDerived = DefaultDerived;
 unsafe impl Send for Internals {}
 unsafe impl Sync for Internals {}
 
+// A cloned Exchange gets a fresh `Internals` — the http client, derived
+// pointers and dispatch state are per-instance and must not be aliased.
+// Test-only callers (`clone_self`) only read `Value` fields off the copy.
+impl Clone for Internals {
+    fn clone(&self) -> Self { Internals::default() }
+}
+
 impl Default for Internals {
     fn default() -> Self {
         Self {
@@ -148,6 +155,7 @@ impl Default for Internals {
 // Every transpiler-visible field is `Value`. Both camelCase and snake_case
 // names appear because the TS source uses both interchangeably.
 
+#[derive(Clone)]
 pub struct Exchange {
     // identity
     pub id:          Value,
@@ -242,11 +250,19 @@ pub struct Exchange {
     pub bidsasks:          Value,
     pub ohlcvs:            Value,
     pub clients:           Value,
+    pub balance:           Value,
+    pub liquidations:      Value,
+    pub myLiquidations:    Value,
+    pub transactions:      Value,
+    pub reloadingMarkets:  Value,
+    pub marketsLoading:    Value,
 
     // last-* tracking
     pub last_request_url:        Value,
     pub last_request_headers:    Value,
     pub last_request_body:       Value,
+    pub last_http_response:      Value,
+    pub last_response_headers:   Value,
     /// When `Bool(true)`, `fetch_typed` records the request and returns
     /// `Err(OfflineMode)` without hitting the network. Used by static
     /// request tests to assert URL/body without needing a live exchange.
@@ -265,6 +281,9 @@ pub struct Exchange {
     pub reduceFees:                Value,
     pub minFundingAddressLength:   Value,
     pub MAX_VALUE:                 Value,
+    pub returnResponseHeaders:     Value,
+    pub httpExceptions:            Value,
+    pub status:                    Value,
 
     // user-agent / fetch behavior
     pub userAgent:                 Value,
@@ -283,12 +302,112 @@ impl Default for Exchange {
     fn default() -> Self { Self::new(None) }
 }
 
+// ── base-class describe() defaults (Exchange.ts) ────────────────────────────
+// Mirrors the constant sub-objects returned by the base `describe()` so a
+// plain `Exchange` carries the same shape as CCXT (verified by the
+// transpiled `test.afterConstructor` base test).
+
+fn vmap(pairs: &[(&str, Value)]) -> Value {
+    let mut m = HashMap::new();
+    for (k, v) in pairs { m.insert((*k).to_string(), v.clone()); }
+    Value::Map(m)
+}
+
+fn min_max() -> Value { vmap(&[("min", Value::Null), ("max", Value::Null)]) }
+
+fn base_limits() -> Value {
+    vmap(&[
+        ("leverage", min_max()),
+        ("amount",   min_max()),
+        ("price",    min_max()),
+        ("cost",     min_max()),
+    ])
+}
+
+fn base_fees() -> Value {
+    vmap(&[
+        ("trading", vmap(&[
+            ("tierBased",  Value::Null),
+            ("percentage", Value::Null),
+            ("taker",      Value::Null),
+            ("maker",      Value::Null),
+        ])),
+        ("funding", vmap(&[
+            ("tierBased",  Value::Null),
+            ("percentage", Value::Null),
+            ("withdraw",   Value::Map(HashMap::new())),
+            ("deposit",    Value::Map(HashMap::new())),
+        ])),
+    ])
+}
+
+fn base_urls() -> Value {
+    vmap(&[
+        ("logo", Value::Null), ("api", Value::Null), ("test", Value::Null),
+        ("www", Value::Null), ("doc", Value::Null), ("api_management", Value::Null),
+        ("fees", Value::Null), ("referral", Value::Null),
+    ])
+}
+
+fn base_status() -> Value {
+    vmap(&[
+        ("status",  Value::Str("ok".to_string())),
+        ("updated", Value::Null),
+        ("eta",     Value::Null),
+        ("url",     Value::Null),
+        ("info",    Value::Null),
+    ])
+}
+
+/// `deepExtend(a, b)` — recursive merge; `b` wins on scalar conflicts,
+/// nested maps merge key-by-key.
+fn deep_merge(a: &Value, b: &Value) -> Value {
+    match (a, b) {
+        (Value::Map(am), Value::Map(bm)) => {
+            let mut out = am.clone();
+            for (k, bv) in bm {
+                let merged = match out.get(k) {
+                    Some(av) => deep_merge(av, bv),
+                    None     => bv.clone(),
+                };
+                out.insert(k.clone(), merged);
+            }
+            Value::Map(out)
+        }
+        _ => b.clone(),
+    }
+}
+
+fn base_http_exceptions() -> Value {
+    let mut m = HashMap::new();
+    for (code, class) in [
+        ("422", "ExchangeError"),         ("418", "DDoSProtection"),
+        ("429", "RateLimitExceeded"),     ("404", "ExchangeNotAvailable"),
+        ("409", "ExchangeNotAvailable"),  ("410", "ExchangeNotAvailable"),
+        ("451", "ExchangeNotAvailable"),  ("500", "ExchangeNotAvailable"),
+        ("501", "ExchangeNotAvailable"),  ("502", "ExchangeNotAvailable"),
+        ("520", "ExchangeNotAvailable"),  ("521", "ExchangeNotAvailable"),
+        ("522", "ExchangeNotAvailable"),  ("525", "ExchangeNotAvailable"),
+        ("526", "ExchangeNotAvailable"),  ("400", "ExchangeNotAvailable"),
+        ("403", "ExchangeNotAvailable"),  ("405", "ExchangeNotAvailable"),
+        ("503", "ExchangeNotAvailable"),  ("530", "ExchangeNotAvailable"),
+        ("408", "RequestTimeout"),        ("504", "RequestTimeout"),
+        ("401", "AuthenticationError"),   ("407", "AuthenticationError"),
+        ("511", "AuthenticationError"),
+    ] {
+        m.insert(code.to_string(), Value::Str(class.to_string()));
+    }
+    Value::Map(m)
+}
+
 impl Exchange {
     pub fn new(config: Option<Value>) -> Self {
         let mut ex = Exchange {
-            id:        Value::Str(String::new()),
-            name:      Value::Str(String::new()),
-            countries: Value::Array(vec![]),
+            // Base-class id (Exchange.ts describe()). A derived exchange's
+            // describe() overrides this with its own id.
+            id:        Value::Str("Exchange".to_string()),
+            name:      Value::Null,
+            countries: Value::Null,
             version:   Value::Null,
             alias:     Value::Bool(false),
             certified: Value::Bool(false),
@@ -313,6 +432,7 @@ impl Exchange {
                 m.insert("apiKey".to_string(),        Value::Bool(true));
                 m.insert("secret".to_string(),        Value::Bool(true));
                 m.insert("uid".to_string(),           Value::Bool(false));
+                m.insert("accountId".to_string(),     Value::Bool(false));
                 m.insert("login".to_string(),         Value::Bool(false));
                 m.insert("password".to_string(),      Value::Bool(false));
                 m.insert("twofa".to_string(),         Value::Bool(false));
@@ -325,8 +445,8 @@ impl Exchange {
             timeout:              Value::Int(10_000),
             rateLimit:            Value::Int(2_000),
             enableRateLimit:      Value::Bool(true),
-            rateLimiterAlgorithm: Value::Null,
-            rollingWindowSize:    Value::Null,
+            rateLimiterAlgorithm: Value::Str("leakyBucket".to_string()),
+            rollingWindowSize:    Value::Int(60_000),
             tokenBucket:          Value::Map(HashMap::new()),
             verbose:              Value::Bool(false),
             isSandboxModeEnabled: Value::Bool(false),
@@ -357,23 +477,28 @@ impl Exchange {
 
             markets:           Value::Null,
             markets_by_id:     Value::Null,
-            currencies:        Value::Null,
+            currencies:        Value::Map(HashMap::new()),
             currencies_by_id:  Value::Null,
-            commonCurrencies:  Value::Map(HashMap::new()),
-            baseCurrencies:    Value::Map(HashMap::new()),
-            quoteCurrencies:   Value::Map(HashMap::new()),
-            symbols:           Value::Array(vec![]),
-            ids:               Value::Array(vec![]),
-            codes:             Value::Array(vec![]),
-            timeframes:        Value::Map(HashMap::new()),
-            precision:         Value::Map(HashMap::new()),
-            limits:            Value::Map(HashMap::new()),
-            fees:              Value::Map(HashMap::new()),
-            features:          Value::Map(HashMap::new()),
+            commonCurrencies:  {
+                let mut m = std::collections::HashMap::new();
+                m.insert("XBT".to_string(),   Value::Str("BTC".to_string()));
+                m.insert("BCHSV".to_string(), Value::Str("BSV".to_string()));
+                Value::Map(m)
+            },
+            baseCurrencies:    Value::Null,
+            quoteCurrencies:   Value::Null,
+            symbols:           Value::Null,
+            ids:               Value::Null,
+            codes:             Value::Null,
+            timeframes:        Value::Null,
+            precision:         Value::Null,
+            limits:            base_limits(),
+            fees:              base_fees(),
+            features:          Value::Null,
             has:               Value::Map(HashMap::new()),
-            exceptions:        Value::Map(HashMap::new()),
-            urls:              Value::Map(HashMap::new()),
-            api:               Value::Map(HashMap::new()),
+            exceptions:        Value::Null,
+            urls:              base_urls(),
+            api:               Value::Null,
             // Base-class default `options` (Exchange.ts describe()). Kept
             // when an exchange's describe() omits it — `super.describe()`
             // is stubbed, so it wouldn't otherwise flow through.
@@ -395,22 +520,30 @@ impl Exchange {
                 Value::Map(o)
             },
             headers:           Value::Map(HashMap::new()),
-            accounts:          Value::Array(vec![]),
-            accountsById:      Value::Map(HashMap::new()),
+            accounts:          Value::Null,
+            accountsById:      Value::Null,
 
             orderbooks:    Value::Map(HashMap::new()),
-            orders:        Value::Map(HashMap::new()),
+            orders:        Value::Null,
             trades:        Value::Map(HashMap::new()),
-            myTrades:      Value::Map(HashMap::new()),
-            positions:     Value::Map(HashMap::new()),
+            myTrades:      Value::Null,
+            positions:     Value::Null,
             tickers:       Value::Map(HashMap::new()),
             bidsasks:      Value::Map(HashMap::new()),
             ohlcvs:        Value::Map(HashMap::new()),
             clients:       Value::Map(HashMap::new()),
+            balance:       Value::Map(HashMap::new()),
+            liquidations:  Value::Null,
+            myLiquidations: Value::Null,
+            transactions:  Value::Map(HashMap::new()),
+            reloadingMarkets: Value::Null,
+            marketsLoading:   Value::Null,
 
             last_request_url:           Value::Null,
             last_request_headers:       Value::Null,
             last_request_body:          Value::Null,
+            last_http_response:         Value::Null,
+            last_response_headers:      Value::Null,
             offline_mode:               Value::Bool(false),
             mock_response:              Value::Null,
             last_json_response:         Value::Null,
@@ -422,6 +555,9 @@ impl Exchange {
             reduceFees:                        Value::Bool(true),
             minFundingAddressLength:           Value::Int(1),
             MAX_VALUE:                         Value::Float(f64::MAX),
+            returnResponseHeaders:             Value::Bool(false),
+            httpExceptions:                    base_http_exceptions(),
+            status:                            base_status(),
 
             userAgent:   Value::Null,
             user_agent:  Value::Null,
@@ -439,11 +575,24 @@ impl Exchange {
             internals: Internals::default(),
         };
         if let Some(cfg) = config { ex.apply_config(&cfg); }
+        // `afterConstruct()` (Exchange.ts) — builds `networksById`, the
+        // features table, `tokenBucket`, predefined markets and applies
+        // sandbox mode from `options.sandbox` / `options.testnet`.
+        ex.after_construct();
         ex
     }
 
     fn apply_config(&mut self, cfg: &Value) {
         use crate::value::safe_string;
+        if let Some(v) = safe_string(cfg, "id",       None) { self.id       = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "name",     None) { self.name     = Value::Str(v); }
+        if let Some(v) = safe_string(cfg, "hostname", None) { self.hostname = Value::Str(v); }
+        let rate_limit = crate::get_value(cfg, &Value::Str("rateLimit".to_string()));
+        if matches!(rate_limit, Value::Int(_) | Value::Float(_)) { self.rateLimit = rate_limit; }
+        let timeout = crate::get_value(cfg, &Value::Str("timeout".to_string()));
+        if matches!(timeout, Value::Int(_) | Value::Float(_)) { self.timeout = timeout; }
+        let urls = crate::get_value(cfg, &Value::Str("urls".to_string()));
+        if let Value::Map(_) = urls { self.urls = deep_merge(&self.urls, &urls); }
         if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v); }
         if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v); }
         if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v); }

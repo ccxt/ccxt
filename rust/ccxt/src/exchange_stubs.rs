@@ -1151,10 +1151,10 @@ impl Exchange {
     /// state. We don't implement structural clone (the trait pointer
     /// can't be cloned safely) — return a fresh empty Exchange so the
     /// call compiles and tests can move on.
-    /// Stub for the no-arg `exchange.clone()` form. Returns a fresh
-    /// Exchange (not a structural copy) — sufficient to satisfy the
-    /// transpiled tests which only check shape, not identity.
-    pub fn clone_self(&self) -> Exchange { Exchange::new(None) }
+    /// No-arg `exchange.clone()` form — a structural copy of every
+    /// `Value` field. The copy gets a fresh `Internals` (no shared http
+    /// client / derived pointers), which is all the transpiled tests need.
+    pub fn clone_self(&self) -> Exchange { Clone::clone(self) }
 
     /// `clone(v)` — deep-clone a Value. Matches TS `exchange.clone(x)`.
     /// Note: keep this name even though it shadows the (manual) `clone_self`,
@@ -1164,46 +1164,89 @@ impl Exchange {
 
     /// Dynamic-property lookup for transpiled base tests. The TS code
     /// does `exchange['options']`, `exchange['markets']`, etc. — this
-    /// returns the field value as a Value when known, else Null.
+    /// reads from the unified `to_value()` view so both access paths
+    /// (`exchange.prop(k)` and `testSharedMethods.exchangeProp`) agree.
     pub fn prop(&self, key: &Value) -> Value {
-        let k = match key { Value::Str(s) => s.as_str(), _ => return Value::Null };
-        match k {
-            "id"             => self.id.clone(),
-            "name"           => self.name.clone(),
-            "version"        => self.version.clone(),
-            "hostname"       => self.hostname.clone(),
-            "apiKey"         => self.apiKey.clone(),
-            "secret"         => self.secret.clone(),
-            "password"       => self.password.clone(),
-            "uid"            => self.uid.clone(),
-            "walletAddress"  => self.walletAddress.clone(),
-            "privateKey"     => self.privateKey.clone(),
-            "twofa"          => self.twofa.clone(),
-            "token"          => self.token.clone(),
-            "login"          => self.login.clone(),
-            "accountId"      => self.accountId.clone(),
-            "accounts"       => self.accounts.clone(),
-            "options"        => self.options.clone(),
-            "markets"        => self.markets.clone(),
-            "markets_by_id"  => self.markets_by_id.clone(),
-            "symbols"        => self.symbols.clone(),
-            "currencies"     => self.currencies.clone(),
-            "has"            => self.has.clone(),
-            "api"            => self.api.clone(),
-            "urls"           => self.urls.clone(),
-            "exceptions"     => self.exceptions.clone(),
-            "precisionMode"  => self.precisionMode.clone(),
-            "timeout"        => self.timeout.clone(),
-            "rateLimit"      => self.rateLimit.clone(),
-            "enableRateLimit"=> self.enableRateLimit.clone(),
-            "verbose"        => self.verbose.clone(),
-            "tokenBucket"    => self.tokenBucket.clone(),
-            "requiredCredentials" => self.requiredCredentials.clone(),
-            "last_request_url"     => self.last_request_url.clone(),
-            "last_request_headers" => self.last_request_headers.clone(),
-            "last_request_body"    => self.last_request_body.clone(),
-            _                => Value::Null,
-        }
+        crate::get_value(&self.to_value(), key)
+    }
+
+    /// Full `Value::Map` snapshot of every transpiler-visible field —
+    /// the Rust analogue of indexing a JS object by property name.
+    /// Used by `prop()` and by the base-test `exchangeProp` shim.
+    pub fn to_value(&self) -> Value {
+        let mut m = std::collections::HashMap::new();
+        let mut put = |k: &str, v: &Value| { m.insert(k.to_string(), v.clone()); };
+        put("id", &self.id);                       put("name", &self.name);
+        put("countries", &self.countries);         put("version", &self.version);
+        put("alias", &self.alias);                 put("certified", &self.certified);
+        put("pro", &self.pro);                     put("hostname", &self.hostname);
+        put("apiKey", &self.apiKey);               put("secret", &self.secret);
+        put("password", &self.password);           put("uid", &self.uid);
+        put("walletAddress", &self.walletAddress); put("privateKey", &self.privateKey);
+        put("twofa", &self.twofa);                 put("token", &self.token);
+        put("login", &self.login);                 put("accountId", &self.accountId);
+        put("requiredCredentials", &self.requiredCredentials);
+        put("timeout", &self.timeout);             put("rateLimit", &self.rateLimit);
+        put("enableRateLimit", &self.enableRateLimit);
+        put("rateLimiterAlgorithm", &self.rateLimiterAlgorithm);
+        put("rollingWindowSize", &self.rollingWindowSize);
+        put("tokenBucket", &self.tokenBucket);     put("verbose", &self.verbose);
+        put("isSandboxModeEnabled", &self.isSandboxModeEnabled);
+        put("proxy", &self.proxy);                 put("proxyUrl", &self.proxyUrl);
+        put("proxy_url", &self.proxy_url);         put("proxyUrlCallback", &self.proxyUrlCallback);
+        put("proxy_url_callback", &self.proxy_url_callback);
+        put("httpProxy", &self.httpProxy);         put("http_proxy", &self.http_proxy);
+        put("httpProxyCallback", &self.httpProxyCallback);
+        put("http_proxy_callback", &self.http_proxy_callback);
+        put("httpsProxy", &self.httpsProxy);       put("https_proxy", &self.https_proxy);
+        put("httpsProxyCallback", &self.httpsProxyCallback);
+        put("https_proxy_callback", &self.https_proxy_callback);
+        put("socksProxy", &self.socksProxy);       put("socks_proxy", &self.socks_proxy);
+        put("socksProxyCallback", &self.socksProxyCallback);
+        put("socks_proxy_callback", &self.socks_proxy_callback);
+        put("wsProxy", &self.wsProxy);             put("ws_proxy", &self.ws_proxy);
+        put("wssProxy", &self.wssProxy);           put("wss_proxy", &self.wss_proxy);
+        put("wsSocksProxy", &self.wsSocksProxy);   put("ws_socks_proxy", &self.ws_socks_proxy);
+        put("markets", &self.markets);             put("markets_by_id", &self.markets_by_id);
+        put("currencies", &self.currencies);       put("currencies_by_id", &self.currencies_by_id);
+        put("commonCurrencies", &self.commonCurrencies);
+        put("baseCurrencies", &self.baseCurrencies);
+        put("quoteCurrencies", &self.quoteCurrencies);
+        put("symbols", &self.symbols);             put("ids", &self.ids);
+        put("codes", &self.codes);                 put("timeframes", &self.timeframes);
+        put("precision", &self.precision);         put("limits", &self.limits);
+        put("fees", &self.fees);                   put("features", &self.features);
+        put("has", &self.has);                     put("exceptions", &self.exceptions);
+        put("urls", &self.urls);                   put("api", &self.api);
+        put("options", &self.options);             put("headers", &self.headers);
+        put("accounts", &self.accounts);           put("accountsById", &self.accountsById);
+        put("orderbooks", &self.orderbooks);       put("orders", &self.orders);
+        put("trades", &self.trades);               put("myTrades", &self.myTrades);
+        put("positions", &self.positions);         put("tickers", &self.tickers);
+        put("bidsasks", &self.bidsasks);           put("ohlcvs", &self.ohlcvs);
+        put("clients", &self.clients);             put("balance", &self.balance);
+        put("liquidations", &self.liquidations);   put("myLiquidations", &self.myLiquidations);
+        put("transactions", &self.transactions);
+        put("reloadingMarkets", &self.reloadingMarkets);
+        put("marketsLoading", &self.marketsLoading);
+        put("last_request_url", &self.last_request_url);
+        put("last_request_headers", &self.last_request_headers);
+        put("last_request_body", &self.last_request_body);
+        put("last_http_response", &self.last_http_response);
+        put("last_response_headers", &self.last_response_headers);
+        put("last_json_response", &self.last_json_response);
+        put("lastRestRequestTimestamp", &self.lastRestRequestTimestamp);
+        put("paddingMode", &self.paddingMode);     put("precisionMode", &self.precisionMode);
+        put("substituteCommonCurrencyCodes", &self.substituteCommonCurrencyCodes);
+        put("reduceFees", &self.reduceFees);
+        put("minFundingAddressLength", &self.minFundingAddressLength);
+        put("MAX_VALUE", &self.MAX_VALUE);
+        put("returnResponseHeaders", &self.returnResponseHeaders);
+        put("httpExceptions", &self.httpExceptions);
+        put("status", &self.status);
+        put("userAgent", &self.userAgent);         put("user_agent", &self.user_agent);
+        put("userAgents", &self.userAgents);
+        Value::Map(m)
     }
 
 
