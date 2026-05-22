@@ -1185,7 +1185,7 @@ export default class hitbtc extends Exchange {
         //         "open": "0.020913",
         //         "volume": "138444.3666",
         //         "volume_quote": "2853.6874972480",
-        //         "timestamp": "2021-06-02T17:52:36.731Z"
+        //         "timestamp": "2021-06-02T17:52:36.732Z"
         //     }
         //
         return this.parseTicker (response, market) as Ticker;
