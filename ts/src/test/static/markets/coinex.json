@@ -1,286 +1,525 @@
 {
     "ETH/USDT": {
         "id": "ETHUSDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.0005
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.0005,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "ETH",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "ETHUSDT",
             "min_amount": "0.0005",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDT": {
         "id": "BTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.0001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.00005,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "BTC",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "BTCUSDT",
-            "min_amount": "0.0001",
+            "min_amount": "0.00005",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USDT": {
         "id": "LTCUSDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.05
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "LTC",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "LTCUSDT",
-            "min_amount": "0.05",
+            "min_amount": "0.01",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ADA/USDT": {
         "id": "ADAUSDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 5
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 5,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "ADA",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "ADAUSDT",
             "min_amount": "5",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "4",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "XRP/USDT": {
         "id": "XRPUSDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 5
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.5,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "XRP",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "XRPUSDT",
-            "min_amount": "5",
+            "min_amount": "0.5",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "4",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "SOL/USDT": {
         "id": "SOLUSDT",
+        "lowercaseId": null,
         "symbol": "SOL/USDT",
         "base": "SOL",
         "quote": "USDT",
+        "settle": null,
         "baseId": "SOL",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.01
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "SOL",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "SOLUSDT",
             "min_amount": "0.01",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "TRX/USDT": {
         "id": "TRXUSDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": null,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.002,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 10
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 5,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "TRX",
             "base_ccy_precision": "8",
             "is_amm_available": false,
+            "is_api_trading_available": true,
             "is_margin_available": true,
+            "is_pre_market_trading_available": false,
             "maker_fee_rate": "0.002",
             "market": "TRXUSDT",
-            "min_amount": "10",
+            "min_amount": "5",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "6",
+            "status": "online",
             "taker_fee_rate": "0.002"
-        }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USDT:USDT": {
         "id": "LTCUSDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT:USDT",
         "base": "LTC",
         "quote": "USDT",
@@ -294,6 +533,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -301,8 +542,12 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 0.01,
             "price": 0.01
         },
         "limits": {
@@ -311,15 +556,29 @@
                 "max": 50
             },
             "amount": {
-                "min": 0.1
+                "min": 0.05,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "LTC",
-            "base_ccy_precision": "8",
+            "base_ccy_precision": "2",
             "contract_type": "linear",
+            "is_copy_trading_available": false,
+            "is_market_available": true,
             "leverage": [
                 "1",
                 "2",
@@ -332,17 +591,22 @@
                 "30",
                 "50"
             ],
-            "maker_fee_rate": "0",
+            "maker_fee_rate": "0.0003",
             "market": "LTCUSDT",
-            "min_amount": "0.1",
-            "open_interest_volume": "3761.69",
+            "min_amount": "0.05",
+            "open_interest_volume": "44919.8",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
-            "taker_fee_rate": "0"
-        }
+            "status": "online",
+            "taker_fee_rate": "0.0005",
+            "tick_size": "0.01"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDT:USDT": {
         "id": "BTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT:USDT",
         "base": "BTC",
         "quote": "USDT",
@@ -356,6 +620,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -363,8 +629,12 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 0.0001,
             "price": 0.01
         },
         "limits": {
@@ -373,15 +643,29 @@
                 "max": 100
             },
             "amount": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "BTC",
-            "base_ccy_precision": "8",
+            "base_ccy_precision": "4",
             "contract_type": "linear",
+            "is_copy_trading_available": true,
+            "is_market_available": true,
             "leverage": [
                 "1",
                 "2",
@@ -395,17 +679,22 @@
                 "50",
                 "100"
             ],
-            "maker_fee_rate": "0",
+            "maker_fee_rate": "0.0003",
             "market": "BTCUSDT",
             "min_amount": "0.0001",
-            "open_interest_volume": "158.922",
+            "open_interest_volume": "1109.6155",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
-            "taker_fee_rate": "0"
-        }
+            "status": "online",
+            "taker_fee_rate": "0.0005",
+            "tick_size": "0.01"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ADA/USDT:USDT": {
         "id": "ADAUSDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT:USDT",
         "base": "ADA",
         "quote": "USDT",
@@ -419,6 +708,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -426,8 +717,12 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 1,
             "price": 0.0001
         },
         "limits": {
@@ -436,15 +731,29 @@
                 "max": 50
             },
             "amount": {
-                "min": 50
+                "min": 10,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "ADA",
-            "base_ccy_precision": "8",
+            "base_ccy_precision": "0",
             "contract_type": "linear",
+            "is_copy_trading_available": false,
+            "is_market_available": true,
             "leverage": [
                 "1",
                 "2",
@@ -457,17 +766,22 @@
                 "30",
                 "50"
             ],
-            "maker_fee_rate": "0",
+            "maker_fee_rate": "0.0003",
             "market": "ADAUSDT",
-            "min_amount": "50",
-            "open_interest_volume": "1321993",
+            "min_amount": "10",
+            "open_interest_volume": "10952580",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "4",
-            "taker_fee_rate": "0"
-        }
+            "status": "online",
+            "taker_fee_rate": "0.0005",
+            "tick_size": "0.0001"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "XRP/USDT:USDT": {
         "id": "XRPUSDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT:USDT",
         "base": "XRP",
         "quote": "USDT",
@@ -481,6 +795,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -488,8 +804,12 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 1,
             "price": 0.0001
         },
         "limits": {
@@ -498,15 +818,29 @@
                 "max": 50
             },
             "amount": {
-                "min": 50
+                "min": 5,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "XRP",
-            "base_ccy_precision": "8",
+            "base_ccy_precision": "0",
             "contract_type": "linear",
+            "is_copy_trading_available": true,
+            "is_market_available": true,
             "leverage": [
                 "1",
                 "2",
@@ -519,17 +853,22 @@
                 "30",
                 "50"
             ],
-            "maker_fee_rate": "0",
+            "maker_fee_rate": "0.0003",
             "market": "XRPUSDT",
-            "min_amount": "50",
-            "open_interest_volume": "2334910",
+            "min_amount": "5",
+            "open_interest_volume": "9533285",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "4",
-            "taker_fee_rate": "0"
-        }
+            "status": "online",
+            "taker_fee_rate": "0.0005",
+            "tick_size": "0.0001"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "TRX/USDT:USDT": {
         "id": "TRXUSDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT:USDT",
         "base": "TRX",
         "quote": "USDT",
@@ -543,6 +882,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -550,8 +891,12 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 1,
             "price": 0.000001
         },
         "limits": {
@@ -560,15 +905,29 @@
                 "max": 50
             },
             "amount": {
-                "min": 50
+                "min": 50,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "TRX",
-            "base_ccy_precision": "8",
+            "base_ccy_precision": "0",
             "contract_type": "linear",
+            "is_copy_trading_available": false,
+            "is_market_available": true,
             "leverage": [
                 "1",
                 "2",
@@ -581,17 +940,22 @@
                 "30",
                 "50"
             ],
-            "maker_fee_rate": "0",
+            "maker_fee_rate": "0.0003",
             "market": "TRXUSDT",
             "min_amount": "50",
-            "open_interest_volume": "1331105",
+            "open_interest_volume": "7596615",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "6",
-            "taker_fee_rate": "0"
-        }
+            "status": "online",
+            "taker_fee_rate": "0.0005",
+            "tick_size": "0.000001"
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USDT:USDT": {
         "id": "ETHUSDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
         "quote": "USDT",
@@ -605,6 +969,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -612,8 +978,12 @@
         "taker": 0.001,
         "maker": 0.001,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
+            "amount": 0.001,
             "price": 0.01
         },
         "limits": {
@@ -622,15 +992,29 @@
                 "max": 100
             },
             "amount": {
-                "min": 0.005
+                "min": 0.005,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "base_ccy": "ETH",
-            "base_ccy_precision": "8",
+            "base_ccy_precision": "3",
             "contract_type": "linear",
+            "is_copy_trading_available": true,
+            "is_market_available": true,
             "leverage": [
                 "1",
                 "2",
@@ -644,13 +1028,17 @@
                 "50",
                 "100"
             ],
-            "maker_fee_rate": "0",
+            "maker_fee_rate": "0.0003",
             "market": "ETHUSDT",
             "min_amount": "0.005",
-            "open_interest_volume": "2011.734",
+            "open_interest_volume": "16960.68",
             "quote_ccy": "USDT",
             "quote_ccy_precision": "2",
-            "taker_fee_rate": "0"
-        }
+            "status": "online",
+            "taker_fee_rate": "0.0005",
+            "tick_size": "0.01"
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }
