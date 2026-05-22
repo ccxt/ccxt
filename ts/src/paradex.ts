@@ -1913,8 +1913,8 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
-        const hasOrderIds = (ids !== undefined) && (ids.length > 0);
-        const hasClientOrderIds = (clientOrderIds !== undefined) && (clientOrderIds.length > 0);
+        const hasOrderIds = (ids !== undefined) && (Array.isArray (ids));
+        const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray (clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
         }
