@@ -1778,10 +1778,13 @@ public class Exchange {
             urlClient.subscriptionsMap().clear();
             urlClient.reject(wrapAsNetworkError(error));
             clientsMap.remove(client.url);
-            // Shut down the per-client messageExecutor + interrupt pingThread.
-            // Without this, every disconnect leaks a virtual-thread-backed
-            // executor until GC. close() is idempotent.
-            urlClient.close();
+            // NOTE: do NOT call urlClient.close() here. Empirical test (full
+            // Java WS sweep) showed close()'s messageExecutor.shutdown() races
+            // with in-flight handleMessage tasks the per-exchange tests still
+            // need, causing 15 new exchanges to time out vs the baseline.
+            // The leak the close() was meant to fix is slow-drip (virtual
+            // threads ~1KB each); we'll address it via a different mechanism
+            // (e.g. shutdown-on-Exchange.close() only, or a delayed shutdown).
         }
     }
 
