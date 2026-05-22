@@ -280,14 +280,21 @@ pub async fn callExchangeMethodDynamically(
         return crate::registry::dispatch_response(&id, &method, arg_vec, &options, mock).await;
     }
     let captured = crate::registry::dispatch(&id, &method, arg_vec, &options).await;
-    ccxt::set_value(exchange, &Value::Str("last_request_url".to_string()),
-                    Value::Str(captured.url));
-    ccxt::set_value(exchange, &Value::Str("last_request_body".to_string()),
-                    match captured.body { Some(b) => Value::Str(b), None => Value::Null });
-    let mut hm = HashMap::new();
-    for (k, v) in captured.headers { hm.insert(k, Value::Str(v)); }
-    ccxt::set_value(exchange, &Value::Str("last_request_headers".to_string()),
-                    Value::Map(hm));
+    // Only refresh last_request_* when the call actually built a request.
+    // A method that throws before `fetch` (e.g. htx's inverse createOrder,
+    // which requires `params.offset`) leaves the previous request in
+    // place — matching how one persistent exchange behaves in TS/Go,
+    // where broker-id tests read the prior call's `last_request_body`.
+    if !captured.url.is_empty() || captured.body.is_some() {
+        ccxt::set_value(exchange, &Value::Str("last_request_url".to_string()),
+                        Value::Str(captured.url));
+        ccxt::set_value(exchange, &Value::Str("last_request_body".to_string()),
+                        match captured.body { Some(b) => Value::Str(b), None => Value::Null });
+        let mut hm = HashMap::new();
+        for (k, v) in captured.headers { hm.insert(k, Value::Str(v)); }
+        ccxt::set_value(exchange, &Value::Str("last_request_headers".to_string()),
+                        Value::Map(hm));
+    }
     Value::Null
 }
 

@@ -3366,7 +3366,7 @@ class RustTranspilerBuilder {
         return this.emitCallDynamic(sigs, true);
     }
 
-    emitCallDynamic(sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, isBase: boolean = false): string {
+    emitCallDynamic(sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, isBase: boolean = false, parentCore: string | null = null): string {
         if (sigs.length === 0) return '';
         const arms: string[] = [];
         for (const { name, isAsync, paramKinds } of sigs) {
@@ -3398,7 +3398,9 @@ class RustTranspilerBuilder {
 ${arms.join('\n')}
 ${isBase
     ? '            _ => crate::Value::Null,'
-    : '            // Fall through to the base Exchange impl so inherited\n            // methods (cancelOrderWithClientOrderId, …) dispatch.\n            _ => self.exchange.call_dynamic(method, args).await,'}
+    : parentCore
+        ? '            // Go-style inheritance: an un-overridden method dispatches\n            // to the parent exchange Core.\n            _ => self.parent.call_dynamic(method, args).await,'
+        : '            // Fall through to the base Exchange impl so inherited\n            // methods (cancelOrderWithClientOrderId, …) dispatch.\n            _ => self.exchange.call_dynamic(method, args).await,'}
         }
     }`;
     }
@@ -3409,21 +3411,27 @@ ${isBase
      * inherent method. Methods this exchange doesn't override fall back
      * to the trait's default impl (returns Value::Null).
      */
-    emitDerivedExchangeImpl(coreName: string, inherent: Set<string>, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>): string {
+    emitDerivedExchangeImpl(coreName: string, inherent: Set<string>, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null = null): string {
         const traitSigs = this.traitMethodSignatures();
         const inherentSigs = new Map(sigs.map(s => [s.name, s]));
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
         for (const [name, args] of Object.entries(traitSigs)) {
-            if (!inherent.has(name)) continue;
             const inh = inherentSigs.get(name);
-            if (!inh) continue;
-            // The trait shim is sync (`fn name(&self, …) -> Value`); an
-            // async inherent method can't be forwarded from it without a
-            // blocking executor. Skip — consistent with dispatchArmFor(),
-            // which also skips async methods. (Some parse_* methods get
-            // spuriously marked async by the transpiler even with no
-            // `.await` in the body.)
-            if (inh.isAsync) continue;
+            // A method this exchange doesn't override (or overrides only
+            // as an async variant the sync trait can't forward to) must,
+            // for a subclass, delegate to the parent's trait impl — that
+            // is Go-style inheritance. A base exchange falls back to the
+            // trait default.
+            if (!inherent.has(name) || !inh || inh.isAsync) {
+                if (parentCore) {
+                    const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
+                    const fwd = args.join(', ');
+                    out.push(`    fn ${name}(&self, ${traitParams}) -> crate::Value {`);
+                    out.push(`        crate::exchange::DerivedExchange::${name}(&self.parent${fwd ? ', ' + fwd : ''})`);
+                    out.push(`    }`);
+                }
+                continue;
+            }
             // Trait declares (self, ...args : Value).
             const traitParams = args.map(a => `${a}: crate::Value`).join(', ');
             // Forwarding call: align inherent param shape (some methods
@@ -3483,6 +3491,23 @@ ${isBase
     createRustExchange(className: string, rustResult: any, ws = false): string {
         const coreName = capitalize(className) + 'Core';
         const header = this.createGeneratedHeader().join('\n');
+
+        // Go-style inheritance: a `class X extends Y` (Y a real exchange,
+        // not the base `Exchange`) becomes `struct XCore { parent: YCore }`
+        // with `Deref<Target = YCore>`, so X transparently inherits all of
+        // Y's methods (mirrors Go's struct embedding).
+        let parentCore: string | null = null;
+        let parentMod: string | null = null;
+        if (!ws) {
+            try {
+                const tsSrc = fs.readFileSync(`./ts/src/${className}.ts`, 'utf8');
+                const m = tsSrc.match(/\bclass\s+\w+\s+extends\s+([A-Za-z_]\w*)/);
+                if (m && m[1] !== 'Exchange') {
+                    parentMod  = m[1].toLowerCase();
+                    parentCore = `crate::exchanges::${parentMod}::${capitalize(m[1])}Core`;
+                }
+            } catch { /* no parent */ }
+        }
 
         // Collect async method names from methodsTypes for post-processing
         const asyncMethods = new Set<string>(
@@ -3567,6 +3592,14 @@ ${isBase
             content = this.regexAll(content, this.getWsRegexes());
         }
 
+        // Go-style inheritance: `super.X(...)` (emitted by the ast as
+        // `self.super_x(...)`) on a subclass routes straight to the
+        // embedded parent Core — `self.parent.x(...)`. Method resolution
+        // then finds the parent's `x` (or the parent's parent, …).
+        if (parentCore) {
+            content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
+        }
+
         // Rename the struct/impl to CoreName convention (BinanceCore)
         content = content
             .replace(new RegExp(`pub struct ${capitalize(className)}\\b`, 'g'), `pub struct ${coreName}`)
@@ -3599,20 +3632,33 @@ use crate::runtime::*;
         // impl block that forwards trait methods to the inherent ones.
         const methodSigs = this.collectExchangeMethodSignatures(content);
         const methodNames = new Set(methodSigs.map(s => s.name));
-        const traitImpl = this.emitDerivedExchangeImpl(coreName, methodNames, methodSigs);
-        const callDynamic = this.emitCallDynamic(methodSigs);
+        const traitImpl = this.emitDerivedExchangeImpl(coreName, methodNames, methodSigs, parentCore);
+        const callDynamic = this.emitCallDynamic(methodSigs, false, parentCore);
+
+        // Struct layout: a subclass holds its parent Core as `parent` and
+        // `Deref`s to it (Go-style embedding); a base exchange holds the
+        // `Exchange` directly. Either way `self.exchange` resolves through
+        // the Deref chain, so the `init`/`bind` boilerplate is shared.
+        const structField = parentCore
+            ? `    pub parent: ${parentCore},`
+            : `    pub exchange: crate::exchange::Exchange,`;
+        const newInit = parentCore
+            ? `Self { parent: ${parentCore}::new(config) }`
+            : `Self { exchange: crate::exchange::Exchange::new(config) }`;
+        const derefTarget = parentCore ?? 'crate::exchange::Exchange';
+        const derefField  = parentCore ? 'parent' : 'exchange';
 
         // Proper struct + Deref delegation + trait impl. `bind()` must be
         // called once after construction (typically inside `Box::new`) so
         // Exchange.ts virtual calls resolve to this exchange's overrides.
         const structDecl = `
 pub struct ${coreName} {
-    pub exchange: crate::exchange::Exchange,
+${structField}
 }
 
 impl ${coreName} {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
+        let mut s = ${newInit};
         s.init();
         s
     }
@@ -3718,12 +3764,12 @@ ${callDynamic}
 ${traitImpl}
 
 impl std::ops::Deref for ${coreName} {
-    type Target = crate::exchange::Exchange;
-    fn deref(&self) -> &Self::Target { &self.exchange }
+    type Target = ${derefTarget};
+    fn deref(&self) -> &Self::Target { &self.${derefField} }
 }
 
 impl std::ops::DerefMut for ${coreName} {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.exchange }
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.${derefField} }
 }
 `;
 
