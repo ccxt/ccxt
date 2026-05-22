@@ -25,7 +25,8 @@ from typing import Dict
 
 from bip_utils.bip.conf.bip84.bip84_coins import Bip84Coins
 from bip_utils.bip.conf.bip84.bip84_conf import Bip84Conf
-from  import BipCoinConf, BipCoins
+from ..common.bip_coin_conf import BipCoinConf
+from ..common.bip_coins import BipCoins
 
 
 class Bip84ConfGetterConst:
