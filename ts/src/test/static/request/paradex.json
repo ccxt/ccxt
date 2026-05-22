@@ -63,6 +63,24 @@
                 "input": []
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.testnet.paradex.trade/v1/markets?market=BTC-USD-PERP",
+                "input": [
+                    "BTC/USD:USDC"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.testnet.paradex.trade/v1/markets",
+                "input": []
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "mark ohlcv",

@@ -1083,6 +1083,294 @@
                 ]
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": "1696431006398",
+                            "expiry_at": "0",
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "position_limit": "300",
+                            "price_bands_width": "0.05",
+                            "max_slippage": "0.001",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0.02",
+                            "delta1_cross_margin_params": {
+                                "imf_base": "0.02",
+                                "imf_shift": "0",
+                                "imf_factor": "0",
+                                "mmf_factor": "0.5"
+                            },
+                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+                            "oracle_ewma_factor": "0.12945779635696708",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0.0002",
+                            "max_tob_spread": "0.01",
+                            "interest_rate": "0.0001",
+                            "clamp_rate": "0.0005",
+                            "funding_period_hours": "8",
+                            "funding_multiplier": "1",
+                            "tags": [
+                                "LAYER-1"
+                            ],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USD-PERP",
+                        "base_currency": "BTC",
+                        "quote_currency": "USD",
+                        "settlement_currency": "USDC",
+                        "order_size_increment": "0.00001",
+                        "price_tick_size": "0.1",
+                        "min_notional": "10",
+                        "open_at": "1696431006398",
+                        "expiry_at": "0",
+                        "asset_kind": "PERP",
+                        "market_kind": "cross",
+                        "position_limit": "300",
+                        "price_bands_width": "0.05",
+                        "max_slippage": "0.001",
+                        "max_open_orders": "150",
+                        "max_funding_rate": "0.02",
+                        "delta1_cross_margin_params": {
+                            "imf_base": "0.02",
+                            "imf_shift": "0",
+                            "imf_factor": "0",
+                            "mmf_factor": "0.5"
+                        },
+                        "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+                        "oracle_ewma_factor": "0.12945779635696708",
+                        "max_order_size": "100",
+                        "max_funding_rate_change": "0.0002",
+                        "max_tob_spread": "0.01",
+                        "interest_rate": "0.0001",
+                        "clamp_rate": "0.0005",
+                        "funding_period_hours": "8",
+                        "funding_multiplier": "1",
+                        "tags": [
+                            "LAYER-1"
+                        ],
+                        "fee_config": {
+                            "interactive_fee": {
+                                "maker_fee": {
+                                    "fee": "0"
+                                },
+                                "taker_fee": {
+                                    "fee": "0.000075"
+                                }
+                            },
+                            "api_fee": {
+                                "maker_fee": {
+                                    "fee": "0"
+                                },
+                                "taker_fee": {
+                                    "fee": "0.0002"
+                                }
+                            },
+                            "rpi_fee": {
+                                "maker_fee": {
+                                    "fee": "0"
+                                },
+                                "taker_fee": {
+                                    "fee": "0.0002"
+                                }
+                            }
+                        }
+                    },
+                    "symbol": "BTC/USD:USDC",
+                    "maker": 0,
+                    "taker": 0.0002,
+                    "percentage": true,
+                    "tierBased": false
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": "1696431006398",
+                            "expiry_at": "0",
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "position_limit": "300",
+                            "price_bands_width": "0.05",
+                            "max_slippage": "0.001",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0.02",
+                            "delta1_cross_margin_params": {
+                                "imf_base": "0.02",
+                                "imf_shift": "0",
+                                "imf_factor": "0",
+                                "mmf_factor": "0.5"
+                            },
+                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+                            "oracle_ewma_factor": "0.12945779635696708",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0.0002",
+                            "max_tob_spread": "0.01",
+                            "interest_rate": "0.0001",
+                            "clamp_rate": "0.0005",
+                            "funding_period_hours": "8",
+                            "funding_multiplier": "1",
+                            "tags": [
+                                "LAYER-1"
+                            ],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:USDC": {
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": "1696431006398",
+                            "expiry_at": "0",
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "position_limit": "300",
+                            "price_bands_width": "0.05",
+                            "max_slippage": "0.001",
+                            "max_open_orders": "150",
+                            "max_funding_rate": "0.02",
+                            "delta1_cross_margin_params": {
+                                "imf_base": "0.02",
+                                "imf_shift": "0",
+                                "imf_factor": "0",
+                                "mmf_factor": "0.5"
+                            },
+                            "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
+                            "oracle_ewma_factor": "0.12945779635696708",
+                            "max_order_size": "100",
+                            "max_funding_rate_change": "0.0002",
+                            "max_tob_spread": "0.01",
+                            "interest_rate": "0.0001",
+                            "clamp_rate": "0.0005",
+                            "funding_period_hours": "8",
+                            "funding_multiplier": "1",
+                            "tags": [
+                                "LAYER-1"
+                            ],
+                            "fee_config": {
+                                "interactive_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.000075"
+                                    }
+                                },
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                },
+                                "rpi_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            }
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "maker": 0,
+                        "taker": 0.0002,
+                        "percentage": true,
+                        "tierBased": false
+                    }
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV",

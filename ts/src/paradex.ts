@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
 import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, OrderRequest } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, OrderRequest } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -106,8 +106,8 @@ export default class paradex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -681,6 +681,125 @@ export default class paradex extends Exchange {
             'created': undefined,
             'info': market,
         });
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        //
+        //     {
+        //         "symbol": "BTC-USD-PERP",
+        //         "fee_config": {
+        //             "api_fee": {
+        //                 "maker_fee": {
+        //                     "fee": "0.000075",
+        //                     "fee_cap": "0.125",
+        //                     "fee_floor": "-0.125"
+        //                 },
+        //                 "taker_fee": {
+        //                     "fee": "0.000125",
+        //                     "fee_cap": "0.125",
+        //                     "fee_floor": "-0.125"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const feeConfig = this.safeDict (fee, 'fee_config', {});
+        const apiFee = this.safeDict (feeConfig, 'api_fee', {});
+        const makerFee = this.safeDict (apiFee, 'maker_fee', {});
+        const takerFee = this.safeDict (apiFee, 'taker_fee', {});
+        return {
+            'info': fee,
+            'symbol': market['symbol'],
+            'maker': this.safeNumber (makerFee, 'fee', this.safeNumber (market, 'maker')),
+            'taker': this.safeNumber (takerFee, 'fee', this.safeNumber (market, 'taker')),
+            'percentage': true,
+            'tierBased': false,
+        };
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTradingFee() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetMarkets (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-PERP",
+        //                 "fee_config": {
+        //                     "api_fee": {
+        //                         "maker_fee": {
+        //                             "fee": "0.000075"
+        //                         },
+        //                         "taker_fee": {
+        //                             "fee": "0.000125"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'results', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parseTradingFee (first, market);
+    }
+
+    /**
+     * @method
+     * @name paradex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "symbol": "BTC-USD-PERP",
+        //                 "fee_config": {
+        //                     "api_fee": {
+        //                         "maker_fee": {
+        //                             "fee": "0.000075"
+        //                         },
+        //                         "taker_fee": {
+        //                             "fee": "0.000125"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const fees = this.safeList (response, 'results', []);
+        const result: Dict = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result as TradingFees;
     }
 
     /**
