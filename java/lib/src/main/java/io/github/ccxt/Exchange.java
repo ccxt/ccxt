@@ -1778,6 +1778,10 @@ public class Exchange {
             urlClient.subscriptionsMap().clear();
             urlClient.reject(wrapAsNetworkError(error));
             clientsMap.remove(client.url);
+            // Shut down the per-client messageExecutor + interrupt pingThread.
+            // Without this, every disconnect leaks a virtual-thread-backed
+            // executor until GC. close() is idempotent.
+            urlClient.close();
         }
     }
 
@@ -2839,9 +2843,10 @@ public class Exchange {
     // (more specific than `Object... varargs`) which also returns a Future
     // and chains `.join()` cleanly with typed return.
     //
-    // Must stay in sync with WHITELISTED_ZERO_ARG_CALL_RE in
-    // build/javaTranspiler.ts and ZERO_REQUIRED_TYPED_WHITELIST in
-    // build/generateJavaWrappers.ts.
+    // Canonical list lives in ZERO_REQUIRED_TYPED_WHITELIST
+    // (build/generateJavaWrappers.ts) — build/javaTranspiler.ts imports it
+    // and `transpileJava` fails loudly if any whitelisted method is missing
+    // an alias below.
 
     public java.util.concurrent.CompletableFuture<Object> fetchBalanceAsync(Object... args) { return fetchBalance(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchOrdersAsync(Object... args) { return fetchOrders(args); }

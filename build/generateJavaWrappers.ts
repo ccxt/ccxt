@@ -141,7 +141,7 @@ interface MethodInfo {
 // loadMarkets / loadAccounts / loadTimeDifference / signIn etc. are NOT in
 // this list because their internal call sites are too numerous to refactor
 // (loadMarkets alone has 3000+ `this.loadMarkets()` zero-arg call sites).
-const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
+export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     // REST
     'fetchBalance',
     'fetchOrders',
@@ -589,4 +589,24 @@ if (fs.existsSync(WS_EXCHANGES_FOLDER)) {
 }
 
 console.log(`\nGenerated ${generated} typed exchange wrappers in ${EXCHANGES_FOLDER}`);
+
+// Safety net: verify Exchange.java has an Object... varargs alias for every
+// whitelisted method. Missing aliases produced the silent CI break that
+// motivated this whitelist; loud-failing here prevents the same trap.
+const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+if (fs.existsSync(EXCHANGE_BASE_FILE)) {
+    const baseSrc = fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
+    const missing: string[] = [];
+    for (const m of ZERO_REQUIRED_TYPED_WHITELIST) {
+        const aliasRe = new RegExp(`\\b${m}Async\\s*\\(\\s*Object\\.\\.\\.\\s*\\w+\\s*\\)`);
+        if (!aliasRe.test(baseSrc)) missing.push(`${m}Async(Object... args)`);
+    }
+    if (missing.length > 0) {
+        console.error(`\nERROR: Exchange.java is missing untyped async aliases for ${missing.length} whitelisted method(s):`);
+        for (const m of missing) console.error(`  - public CompletableFuture<Object> ${m} { return ${m.replace('Async', '').replace(/\(.*/, '')}(args); }`);
+        console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in ${EXCHANGE_BASE_FILE}.`);
+        process.exit(1);
+    }
+}
+
 console.log('Done!');

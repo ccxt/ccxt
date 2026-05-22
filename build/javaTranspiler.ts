@@ -14,6 +14,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
+import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
 
@@ -64,37 +65,13 @@ function overwriteFileAndFolder(path: string, content: string) {
 // (which lacks the typed-async siblings) is unaffected because it's
 // emitted via a different code path (`transpileBaseMethods`).
 //
-// Must stay in sync with ZERO_REQUIRED_TYPED_WHITELIST in
-// build/generateJavaWrappers.ts. Keep both lists identical.
+// Whitelist is the single source of truth in build/generateJavaWrappers.ts.
+// Match both zero-arg `()` and explicit single-null `(null)` (the latter is
+// what `await this.fetchX (undefined)` in TS transpiles to in Java). Both are
+// semantically "all defaults"; both must route through Async to avoid
+// colliding with the typed sync overload's `(List<String>)` etc.
 const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
-    '\\bthis\\.(' + [
-        // REST
-        'fetchBalance',
-        'fetchOrders',
-        'fetchMyTrades',
-        'fetchOpenOrders',
-        'fetchClosedOrders',
-        'fetchCanceledOrders',
-        'fetchTime',
-        'fetchStatus',
-        'fetchTickers',
-        'fetchPositions',
-        'fetchAccounts',
-        'fetchCurrencies',
-        'fetchMarkets',
-        // WebSocket variants
-        'fetchBalanceWs',
-        'fetchOrdersWs',
-        'fetchMyTradesWs',
-        'fetchOpenOrdersWs',
-        'fetchClosedOrdersWs',
-        'fetchTickersWs',
-        'fetchPositionsWs',
-    // Match both zero-arg `()` and explicit single-null `(null)` (the latter
-    // is what `await this.fetchX (undefined)` in TS transpiles to in Java).
-    // Both are semantically "all defaults"; both must route through Async to
-    // avoid colliding with the typed sync overload's `(List<String>)` etc.
-    ].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
+    '\\bthis\\.(' + [...ZERO_REQUIRED_TYPED_WHITELIST].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
     'g',
 );
 

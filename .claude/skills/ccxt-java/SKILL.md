@@ -50,10 +50,10 @@ System.out.println(ticker.last);
 import io.github.ccxt.exchanges.pro.Binance;
 
 var exchange = new Binance();
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 while (true) {
-    Object ticker = exchange.watchTicker("BTC/USDT").join();
-    System.out.println(ticker);
+    Ticker ticker = exchange.watchTicker("BTC/USDT"); // typed sync, blocks for one update
+    System.out.println(ticker.last);
 }
 ```
 
@@ -270,32 +270,31 @@ WebSocket classes are in `io.github.ccxt.exchanges.pro`. They return `Completabl
 import io.github.ccxt.exchanges.pro.Binance;
 
 var exchange = new Binance();
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 while (true) {
-    Map<String, Object> ticker = (Map<String, Object>) exchange.watchTicker("BTC/USDT").join();
-    System.out.println("Last: " + ticker.get("last"));
+    Ticker ticker = exchange.watchTicker("BTC/USDT"); // typed sync, blocks for one update
+    System.out.println("Last: " + ticker.last);
 }
 ```
 
 ### Watching Order Book
 ```java
 var exchange = new Binance();
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 while (true) {
-    Map<String, Object> ob = (Map<String, Object>) exchange.watchOrderBook("BTC/USDT").join();
-    List<List<Object>> bids = (List<List<Object>>) ob.get("bids");
-    System.out.println("Best bid: " + bids.get(0));
+    OrderBook ob = exchange.watchOrderBook("BTC/USDT");
+    System.out.println("Best bid: " + ob.bids.get(0));
 }
 ```
 
 ### Watching Trades
 ```java
 var exchange = new Binance();
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 while (true) {
-    List<Map<String, Object>> trades = (List<Map<String, Object>>) exchange.watchTrades("BTC/USDT").join();
-    for (var t : trades) {
-        System.out.println(t.get("price") + " " + t.get("amount") + " " + t.get("side"));
+    List<Trade> trades = exchange.watchTrades("BTC/USDT");
+    for (Trade t : trades) {
+        System.out.println(t.price + " " + t.amount + " " + t.side);
     }
 }
 ```
@@ -304,9 +303,9 @@ while (true) {
 ```java
 Map<String, Object> config = Map.of("apiKey", "KEY", "secret", "SECRET");
 var exchange = new Binance(config);
-exchange.loadMarkets().join();
+exchange.loadMarkets(false);
 while (true) {
-    var orders = exchange.watchOrders("BTC/USDT").join();
+    List<Order> orders = exchange.watchOrders("BTC/USDT");
     System.out.println(orders);
 }
 ```
@@ -502,23 +501,29 @@ No `CompletionException` boilerplate, no `.getCause()` unwrap needed.
    catch (BaseError e) { ... }
    ```
 
-2. **Passing `null` to a sync method can be ambiguous.** When a method has both a typed
-   overload `fetchX(Map<String, Object> params)` and the base async varargs `fetchX(Object...)`,
-   Java can't decide which one `null` belongs to:
+2. **Passing `null` to a sync method can be ambiguous** for the 13 zero-required-param methods
+   (`fetchBalance`, `fetchOrders`, `fetchMyTrades`, `fetchOpenOrders`, `fetchClosedOrders`,
+   `fetchCanceledOrders`, `fetchTime`, `fetchStatus`, `fetchTickers`, `fetchPositions`,
+   `fetchAccounts`, `fetchCurrencies`, `fetchMarkets`) plus their `*Ws` siblings. These ship both
+   a typed `fetchX(Map<String, Object> params)` and the base `fetchX(Object...)` varargs, so a
+   bare `null` matches both:
    ```java
    // ❌ "reference to fetchBalance is ambiguous"
    exchange.fetchBalance(null);
 
-   // ✅ either use the typed zero-arg overload
+   // ✅ use the typed zero-arg overload (these 13 methods ship one)
    exchange.fetchBalance();
 
-   // ✅ or cast to disambiguate
+   // ✅ or cast to disambiguate (always works)
    exchange.fetchBalance((Map<String, Object>) null);
    ```
-   Same applies to `fetchBalanceAsync(null)` etc.
+   Same applies to `fetchBalanceAsync(null)` etc. For methods outside the list, the typed
+   zero-arg form doesn't exist — pass an explicit argument or use the cast form.
 
-3. **The JVM stays alive after `main()` returns** because of internal HTTP/scheduler threads.
-   In standalone programs, call `System.exit(0)` at the end (or use a shutdown hook).
+3. **The JVM stays alive after `main()` returns** because of internal HTTP/scheduler threads
+   (Netty event loop, virtual-thread executors per WS connection). Call `exchange.close()` to
+   release them; as a last resort `System.exit(0)` will force-exit. Avoid `Runtime.addShutdownHook`
+   — a shutdown hook runs *during* JVM shutdown, it doesn't trigger one.
 
 ### Specific Exception Handling
 
@@ -643,9 +648,9 @@ while (true) {
 
 // Correct - use WebSocket
 var wsExchange = new io.github.ccxt.exchanges.pro.Binance();
-wsExchange.loadMarkets().join();
+wsExchange.loadMarkets(false);
 while (true) {
-    Object ticker = wsExchange.watchTicker("BTC/USDT").join();
+    Ticker ticker = wsExchange.watchTicker("BTC/USDT"); // typed sync
 }
 ```
 
