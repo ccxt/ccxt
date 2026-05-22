@@ -522,61 +522,60 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #     "display_name": "USDT"
         #   }
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'id')
-            name = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(id)
-            details = self.safe_dict(currency, 'details', {})
-            networks: dict = {}
-            supportedNetworks = self.safe_list(currency, 'supported_networks', [])
-            for j in range(0, len(supportedNetworks)):
-                network = supportedNetworks[j]
-                networkId = self.safe_string(network, 'id')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'name': self.safe_string(network, 'name'),
-                    'network': networkCode,
-                    'active': self.safe_string(network, 'status') == 'online',
-                    'withdraw': None,
-                    'deposit': None,
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'min_withdrawal_amount'),
-                            'max': self.safe_number(network, 'max_withdrawal_amount'),
-                        },
-                    },
-                    'contract': self.safe_string(network, 'contract_address'),
-                    'info': network,
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': self.safe_string(details, 'type'),
-                'name': name,
-                'active': self.safe_string(currency, 'status') == 'online',
-                'deposit': None,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency) -> Currency:
+        id = self.safe_string(rawCurrency, 'id')
+        name = self.safe_string(rawCurrency, 'name')
+        code = self.safe_currency_code(id)
+        details = self.safe_dict(rawCurrency, 'details', {})
+        networks: dict = {}
+        supportedNetworks = self.safe_list(rawCurrency, 'supported_networks', [])
+        for j in range(0, len(supportedNetworks)):
+            network = supportedNetworks[j]
+            networkId = self.safe_string(network, 'id')
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'id': networkId,
+                'name': self.safe_string(network, 'name'),
+                'network': networkCode,
+                'active': self.safe_string(network, 'status') == 'online',
                 'withdraw': None,
+                'deposit': None,
                 'fee': None,
-                'precision': self.safe_number(currency, 'max_precision'),
+                'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': self.safe_number(details, 'min_size'),
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': self.safe_number(details, 'min_withdrawal_amount'),
-                        'max': self.safe_number(details, 'max_withdrawal_amount'),
+                        'min': self.safe_number(network, 'min_withdrawal_amount'),
+                        'max': self.safe_number(network, 'max_withdrawal_amount'),
                     },
                 },
-                'networks': networks,
-            })
-        return result
+                'contract': self.safe_string(network, 'contract_address'),
+                'info': network,
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': self.safe_string(details, 'type'),
+            'name': name,
+            'active': self.safe_string(rawCurrency, 'status') == 'online',
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.safe_number(rawCurrency, 'max_precision'),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(details, 'min_size'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(details, 'min_withdrawal_amount'),
+                    'max': self.safe_number(details, 'max_withdrawal_amount'),
+                },
+            },
+            'networks': networks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
