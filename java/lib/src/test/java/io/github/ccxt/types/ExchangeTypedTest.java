@@ -51,13 +51,13 @@ class ExchangeTypedTest {
 
     @Test
     void testBadSymbolThrowsThroughTypedWrapper() {
-        // fetchTicker with an invalid symbol should throw BadSymbol
-        Exception ex = assertThrows(CompletionException.class, () -> {
+        // fetchTicker with an invalid symbol throws BadSymbol directly
+        // (typed wrappers unwrap CompletionException — see Helpers.joinUnwrapped)
+        ExchangeError ex = assertThrows(ExchangeError.class, () -> {
             exchange.fetchTicker("INVALID/NOTEXIST");
         });
-        Throwable cause = unwrap(ex);
-        assertTrue(cause instanceof BadSymbol || cause instanceof BadRequest || cause instanceof ExchangeError,
-                "Expected BadSymbol/BadRequest/ExchangeError, got: " + cause.getClass().getSimpleName() + ": " + cause.getMessage());
+        assertTrue(ex instanceof BadSymbol || ex instanceof BadRequest || ex instanceof ExchangeError,
+                "Expected BadSymbol/BadRequest/ExchangeError, got: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
     }
 
     @Test
@@ -75,24 +75,25 @@ class ExchangeTypedTest {
 
     @Test
     void testAuthenticationErrorOnPrivateEndpoint() {
-        // Calling a private endpoint without credentials should throw AuthenticationError
-        Exception ex = assertThrows(CompletionException.class, () -> {
+        // Private endpoint without credentials throws AuthenticationError directly
+        // (typed wrappers unwrap CompletionException — see Helpers.joinUnwrapped)
+        ExchangeError ex = assertThrows(ExchangeError.class, () -> {
             exchange.fetchBalance((Map<String, Object>) null);
         });
-        Throwable cause = unwrap(ex);
-        assertTrue(cause instanceof AuthenticationError || cause instanceof ExchangeError,
-                "Expected AuthenticationError, got: " + cause.getClass().getSimpleName() + ": " + cause.getMessage());
+        assertTrue(ex instanceof AuthenticationError || ex instanceof ExchangeError,
+                "Expected AuthenticationError, got: " + ex.getClass().getSimpleName() + ": " + ex.getMessage());
     }
 
     @Test
     void testExceptionPreservesMessage() {
+        // Typed wrappers unwrap CompletionException — caller catches the
+        // ccxt error directly (see Helpers.joinUnwrapped).
         try {
             exchange.fetchTicker("TOTALLY/BOGUS");
             fail("Should have thrown");
-        } catch (CompletionException ex) {
-            Throwable cause = unwrap(ex);
-            assertNotNull(cause.getMessage());
-            assertTrue(cause.getMessage().length() > 0, "Error message should not be empty");
+        } catch (ExchangeError ex) {
+            assertNotNull(ex.getMessage());
+            assertTrue(ex.getMessage().length() > 0, "Error message should not be empty");
         }
     }
 
