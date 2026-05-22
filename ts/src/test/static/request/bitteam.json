@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://bit.team/trade/api/cmc/assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot market buy",
