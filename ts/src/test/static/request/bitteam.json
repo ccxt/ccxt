@@ -5,9 +5,10 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "default",
+                "disabled": true,
+                "description": "default (disabled bcz of multi request needed)",
                 "method": "fetchCurrencies",
-                "url": "https://bit.team/trade/api/currencies",
+                "url": "https://bit.team/trade/api/cmc/assets",
                 "input": [],
                 "output": null
             }
