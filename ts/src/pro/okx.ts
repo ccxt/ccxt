@@ -1353,7 +1353,7 @@ export default class okx extends okxRest {
         const prevSeqId = this.safeInteger (message, 'prevSeqId');
         const nonce = orderbook['nonce'];
         let error = undefined;
-        if (prevSeqId !== -1 && nonce !== prevSeqId) {
+        if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
         }
         if (error !== undefined) {
