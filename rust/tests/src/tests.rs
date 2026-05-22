@@ -6,6 +6,7 @@ use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
 use crate::test_helpers::*;
+use futures::FutureExt;
 
 #[derive(Debug, Clone)]
 pub struct TestMainClass {
@@ -152,24 +153,24 @@ impl TestMainClass {
     pub fn check_if_specific_test_is_chosen(&self, mut methodArgv: Value) {
         if !is_equal(&methodArgv, &Value::Null) {
             let mut testFileNames: Value = object_keys(&self.testFiles);
-            let mut possibleMethodNames: Value = split(&methodArgv, &Value::Str(",".to_string())); // get_value(&i, &Value::Str("e".to_string())). `get_value(&test, &Value::Str("ts".to_string())) binance fetchBalance,fetchDeposits`
+            let mut possibleMethodNames: Value = split(&methodArgv, &Value::Str(",".to_string())); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if is_greater_than_or_equal(&get_array_length(&possibleMethodNames), &Value::Int(1)) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&testFileNames)) {
+                    let mut __for_first_42: bool = true;
+                    while { if !__for_first_42 { i = add(&i, &Value::Int(1)); } __for_first_42 = false; is_less_than(&i, &get_array_length(&testFileNames)) } {
                     let mut testFileName: Value = get_value(&testFileNames, &i);
                     {
                                                 let mut j: Value = Value::Int(0);
-                        while is_less_than(&j, &get_array_length(&possibleMethodNames)) {
+                        let mut __for_first_41: bool = true;
+                        while { if !__for_first_41 { j = add(&j, &Value::Int(1)); } __for_first_41 = false; is_less_than(&j, &get_array_length(&possibleMethodNames)) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
                         methodName = replace_str(&methodName, &Value::Str("()".to_string()), &Value::Str("".to_string()));
                         if is_equal(&testFileName, &methodName) {
                             append_to_array(&mut self.onlySpecificTests.clone(), testFileName.clone());
                         }
-                        j = add(&j, &Value::Int(1));
                     }
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
             }
@@ -195,7 +196,8 @@ impl TestMainClass {
         let mut objkeys: Value = object_keys(&reqCreds);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&objkeys)) {
+            let mut __for_first_43: bool = true;
+            while { if !__for_first_43 { i = add(&i, &Value::Int(1)); } __for_first_43 = false; is_less_than(&i, &get_array_length(&objkeys)) } {
             let mut credential: Value = get_value(&objkeys, &i);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if is_true(&isRequired) && is_equal(&getExchangeProp(exchange.clone(), credential.clone(), &[]), &Value::Null) {
@@ -207,7 +209,6 @@ impl TestMainClass {
                     setExchangeProp(exchange.clone(), credential.clone(), credentialValue.clone());
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
 }
@@ -241,7 +242,8 @@ impl TestMainClass {
             let mut settingKeys: Value = object_keys(&exchangeSettings);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&settingKeys)) {
+                let mut __for_first_44: bool = true;
+                while { if !__for_first_44 { i = add(&i, &Value::Int(1)); } __for_first_44 = false; is_less_than(&i, &get_array_length(&settingKeys)) } {
                 let mut key: Value = get_value(&settingKeys, &i);
                 if is_true(&get_value(&exchangeSettings, &key)) {
                     let mut finalValue: Value = Value::Null;
@@ -256,7 +258,6 @@ impl TestMainClass {
                     }
                     setExchangeProp(exchange.clone(), key.clone(), finalValue.clone());
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -301,9 +302,9 @@ impl TestMainClass {
         if is_greater_than(&missingSpace, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &missingSpace) {
+                let mut __for_first_45: bool = true;
+                while { if !__for_first_45 { i = add(&i, &Value::Int(1)); } __for_first_45 = false; is_less_than(&i, &missingSpace) } {
                 res = add(&res, &Value::Str(" ".to_string()));
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -366,7 +367,7 @@ impl TestMainClass {
         }
         // add to the list of successed tests
         if is_true(&isPublic) {
-            add_element_to_object(&mut self.checkedPublicTests.clone(), &methodName, Value::Bool(true));
+            add_element_to_object(&mut self.checkedPublicTests, &methodName, Value::Bool(true));
         }
         return Value::Bool(true);
 
@@ -378,21 +379,21 @@ impl TestMainClass {
             let mut m = std::collections::HashMap::new();
             m
         });
-        // check the exact method (get_value(&i, &Value::Str("e".to_string())). `fetchTrades`) and language-specific (get_value(&i, &Value::Str("e".to_string())). `get_value(&fetchTrades, &Value::Str("php".to_string()))`)
+        // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
         let mut methodNames: Value = Value::List(vec![methodName.clone(), add(&add(&methodName, &Value::Str(".".to_string())), &self.ext)]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&methodNames)) {
+            let mut __for_first_46: bool = true;
+            while { if !__for_first_46 { i = add(&i, &Value::Int(1)); } __for_first_46 = false; is_less_than(&i, &get_array_length(&methodNames)) } {
             let mut mName: Value = get_value(&methodNames, &i);
             if is_true(&Value::Bool(in_op(&self.skippedMethods, &mName))) {
-                // if whole method is skipped, by assigning a string to it, get_value(&i, &Value::Str("e".to_string())). "fetchOrders":"blabla"
+                // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
                 if is_string(&get_value(&self.skippedMethods, &mName)) {
                     return get_value(&self.skippedMethods, &mName);
                 }  else {
                     finalSkips = exchange.deep_extend(finalSkips.clone(), &[get_value(&self.skippedMethods, &mName)]);
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         // get "object-specific" skips
@@ -410,11 +411,12 @@ impl TestMainClass {
         let mut objectNames: Value = object_keys(&objectSkips);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&objectNames)) {
+            let mut __for_first_47: bool = true;
+            while { if !__for_first_47 { i = add(&i, &Value::Int(1)); } __for_first_47 = false; is_less_than(&i, &get_array_length(&objectNames)) } {
             let mut objectName: Value = get_value(&objectNames, &i);
             let mut objectMethods: Value = get_value(&objectSkips, &objectName);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
-                // if whole object is skipped, by assigning a string to it, get_value(&i, &Value::Str("e".to_string())). "orderBook":"blabla"
+                // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
                 if is_true(&(Value::Bool(in_op(&self.skippedMethods, &objectName)))) && is_true(&(is_string(&get_value(&self.skippedMethods, &objectName)))) {
                     return get_value(&self.skippedMethods, &objectName);
                 }
@@ -424,7 +426,6 @@ impl TestMainClass {
                 })]);
                 finalSkips = exchange.deep_extend(finalSkips.clone(), &[extraSkips.clone()]);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         // extend related skips
@@ -451,17 +452,17 @@ impl TestMainClass {
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
         // formatted message "[TEST_FAILURE] ..." and that output is then regex-matched by
-        // run-get_value(&tests, &Value::Str("js".to_string())), so the exceptions are still printed out to console from there.
+        // run-tests.js, so the exceptions are still printed out to console from there.
         let mut maxRetries: Value = Value::Int(3);
         let mut argsStringified: Value = exchange.json(args.clone()); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.to_string()" breaks bcz of "array to string conversion"
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &maxRetries) {
+            let mut __for_first_48: bool = true;
+            while { if !__for_first_48 { i = add(&i, &Value::Int(1)); } __for_first_48 = false; is_less_than(&i, &maxRetries) } {
             {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Bool(true);
@@ -528,27 +529,27 @@ impl TestMainClass {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&testNames)) {
+            let mut __for_first_49: bool = true;
+            while { if !__for_first_49 { i = add(&i, &Value::Int(1)); } __for_first_49 = false; is_less_than(&i, &get_array_length(&testNames)) } {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testArgs: Value = get_value(&tests, &testName);
             append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
-            i = add(&i, &Value::Int(1));
         }
         }
         // todo - not yet ready in other langs too
-        // get_value(&promises, &Value::Str("push".to_string())) (testThrottle ());
+        // promises.push (testThrottle ());
         let mut results: Value = promise_all(&promises).await;
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
         let mut failedMethods: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&testNames)) {
+            let mut __for_first_50: bool = true;
+            while { if !__for_first_50 { i = add(&i, &Value::Int(1)); } __for_first_50 = false; is_less_than(&i, &get_array_length(&testNames)) } {
             let mut testName: Value = get_value(&testNames, &i);
             let mut testReturnedValue: Value = get_value(&results, &i);
             if !is_true(&testReturnedValue) {
                 append_to_array(&mut failedMethods, testName.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut testPrefixString: Value = ternary(is_true(&isPublicTest), Value::Str("PUBLIC_TESTS".to_string()), Value::Str("PRIVATE_TESTS".to_string()));
@@ -587,7 +588,8 @@ impl TestMainClass {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&symbols)) {
+            let mut __for_first_51: bool = true;
+            while { if !__for_first_51 { i = add(&i, &Value::Int(1)); } __for_first_51 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut s: Value = get_value(&symbols, &i);
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".to_string())), s.clone(), &[]);
             if !is_equal(&market, &Value::Null) {
@@ -597,7 +599,6 @@ impl TestMainClass {
                     break;
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return symbol;
@@ -613,11 +614,11 @@ impl TestMainClass {
         let mut code: Value = get_value(&codes, &Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&codes)) {
+            let mut __for_first_52: bool = true;
+            while { if !__for_first_52 { i = add(&i, &Value::Int(1)); } __for_first_52 = false; is_less_than(&i, &get_array_length(&codes)) } {
             if is_true(&Value::Bool(in_op(&get_value(&exchange, &Value::Str("currencies".to_string())), &get_value(&codes, &i)))) {
                 return get_value(&codes, &i);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return code;
@@ -635,7 +636,8 @@ impl TestMainClass {
         let mut keys: Value = object_keys(&markets);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_53: bool = true;
+            while { if !__for_first_53 { i = add(&i, &Value::Int(1)); } __for_first_53 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&markets, &key);
             if is_true(&spot) && is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -643,7 +645,6 @@ impl TestMainClass {
             }  else if !is_true(&spot) && !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
                 add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".to_string())), market.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return res;
@@ -663,7 +664,8 @@ impl TestMainClass {
         if is_equal(&symbol, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&codes)) {
+                let mut __for_first_54: bool = true;
+                while { if !__for_first_54 { i = add(&i, &Value::Int(1)); } __for_first_54 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut currentCode: Value = get_value(&codes, &i);
                 let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".to_string()), currentCode.clone(), &[]);
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".to_string()));
@@ -673,7 +675,6 @@ impl TestMainClass {
                     symbol = self.get_test_symbol(exchange.clone(), spot.clone(), symbolsArrayForCurrentCode.clone());
                     break;
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -683,9 +684,9 @@ impl TestMainClass {
             let mut activeSymbols: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&activeMarkets)) {
+                let mut __for_first_55: bool = true;
+                while { if !__for_first_55 { i = add(&i, &Value::Int(1)); } __for_first_55 = false; is_less_than(&i, &get_array_length(&activeMarkets)) } {
                 append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".to_string())));
-                i = add(&i, &Value::Int(1));
             }
             }
             symbol = self.get_test_symbol(exchange.clone(), spot.clone(), activeSymbols.clone());
@@ -735,7 +736,7 @@ impl TestMainClass {
             dump(&[Value::Str("[INFO:MAIN] Selected SWAP SYMBOL:".to_string()), exchange.json(swapSymbols.clone())]);
         }
         if !is_true(&self.privateTestOnly) {
-            // note, spot & swap tests should run sequentially, because of conflicting `get_value(&exchange, &Value::Str("options".to_string()))['defaultType']` setting
+            // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
             if is_true(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &Value::Str("spot".to_string()))) && !is_equal(&spotSymbols, &Value::Null) {
                 if is_true(&self.info) {
                     dump(&[Value::Str("[INFO] ### SPOT TESTS ###".to_string())]);
@@ -772,7 +773,7 @@ impl TestMainClass {
             return Value::Bool(true);
         }
         let mut code: Value = self.get_exchange_code(exchange.clone(), &[]);
-        // if (get_value(&exchange, &Value::Str("deepExtendedTest".to_string()))) {
+        // if (exchange.deepExtendedTest) {
         //     await test ('InvalidNonce', exchange, symbol);
         //     await test ('OrderNotFound', exchange, symbol);
         //     await test ('InvalidOrder', exchange, symbol);
@@ -840,7 +841,7 @@ impl TestMainClass {
                 add_element_to_object(&mut tests, &Value::Str("fetchFundingHistory".to_string()), Value::List(vec![symbol.clone()]));
             }
         }
-        // const combinedTests = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&this, &Value::Str("publicTests".to_string())), privateTests);
+        // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
         self.run_tests(exchange.clone(), tests.clone(), Value::Bool(false)).await;
         return Value::Bool(true);
 
@@ -859,19 +860,19 @@ impl TestMainClass {
         let mut exception: Value = Value::Null;
         {
                         let mut j: Value = Value::Int(0);
-            while is_less_than(&j, &maxRetries) {
+            let mut __for_first_56: bool = true;
+            while { if !__for_first_56 { j = add(&j, &Value::Int(1)); } __for_first_56 = false; is_less_than(&j, &maxRetries) } {
             {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::List(vec![]), Value::Bool(true)).await;
                 return Value::Bool(true);
             }
-            j = add(&j, &Value::Int(1));
         }
         }
         // if exception was set, then throw it
         if !is_equal(&exception, &Value::Null) {
             let mut errorMessage: Value = add(&add(&add(&Value::Str("[TEST_FAILURE] Failed ".to_string()), &proxyTestName), &Value::Str(" : ".to_string())), &exceptionMessage(exception.clone()));
             // temporary comment the below, because c# transpilation failure
-            // throw new Exchange Error (get_value(&errorMessage, &Value::Str("toString".to_string())) ());
+            // throw new Exchange Error (errorMessage.toString ());
             dump(&[add(&Value::Str("[TEST_WARNING]".to_string()), &errorMessage)]);
         }
         return Value::Bool(true);
@@ -915,7 +916,7 @@ impl TestMainClass {
             return Value::Bool(true);
         }
         self.check_constructor(exchange.clone());
-        // await get_value(&this, &Value::Str("testReturnResponseHeaders".to_string())) (exchange);
+        // await this.testReturnResponseHeaders (exchange);
         if is_true(&self.sandbox) || is_true(&getExchangeProp(exchange.clone(), Value::Str("sandbox".to_string()), &[])) {
             exchange.set_sandbox_mode(Value::Bool(true));
         }
@@ -927,9 +928,9 @@ impl TestMainClass {
                 }
                 return Value::Bool(true);
             }
-            // if (get_value(&exchange, &Value::Str("id".to_string())) === 'binance') {
+            // if (exchange.id === 'binance') {
             //     // we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
-            //     // await get_value(&this, &Value::Str("testProxies".to_string())) (exchange);
+            //     // await this.testProxies (exchange);
             // }
             self.test_exchange(exchange.clone(), &[symbolArgv.clone()]).await;
             if !is_true(&isSync()) {
@@ -995,12 +996,12 @@ impl TestMainClass {
         let mut files: Value = ioDirRead(folder.clone());
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&files)) {
+            let mut __for_first_57: bool = true;
+            while { if !__for_first_57 { i = add(&i, &Value::Int(1)); } __for_first_57 = false; is_less_than(&i, &get_array_length(&files)) } {
             let mut file: Value = get_value(&files, &i);
             let mut exchangeName: Value = replace_str(&file, &Value::Str(".json".to_string()), &Value::Str("".to_string()));
             let mut content: Value = ioFileRead(add(&folder, &file), &[]);
             add_element_to_object(&mut result, &exchangeName, content.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -1016,7 +1017,8 @@ impl TestMainClass {
         let mut res: Value = Value::Str("".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&urlParts)) {
+            let mut __for_first_58: bool = true;
+            while { if !__for_first_58 { i = add(&i, &Value::Int(1)); } __for_first_58 = false; is_less_than(&i, &get_array_length(&urlParts)) } {
             if is_greater_than(&i, &Value::Int(2)) {
                 let mut current: Value = get_value(&urlParts, &i);
                 if is_greater_than(&get_index_of(&current, &Value::Str("?".to_string())), &negate(&Value::Int(1))) {
@@ -1029,7 +1031,6 @@ impl TestMainClass {
                 res = add(&res, &Value::Str("/".to_string()));
                 res = add(&res, &current);
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return res;
@@ -1045,7 +1046,8 @@ impl TestMainClass {
         let mut parts: Value = split(&url, &Value::Str("&".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&parts)) {
+            let mut __for_first_59: bool = true;
+            while { if !__for_first_59 { i = add(&i, &Value::Int(1)); } __for_first_59 = false; is_less_than(&i, &get_array_length(&parts)) } {
             let mut part: Value = get_value(&parts, &i);
             let mut keyValue: Value = split(&part, &Value::Str("=".to_string()));
             let mut keysLength: Value = get_array_length(&keyValue);
@@ -1059,10 +1061,11 @@ impl TestMainClass {
                 value = jsonParse(value.clone());
             }
             add_element_to_object(&mut result, &key, value.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
+
+    Value::Null
 }
 
     pub fn assert_new_and_stored_output_inner(&self, mut exchange: Value, mut skipKeys: Value, mut newOutput: Value, mut storedOutput: Value, optional_args: &[Value]) -> Value {
@@ -1087,11 +1090,11 @@ impl TestMainClass {
             self.assert_static_error(Value::Bool(is_equal(&storedKeysLength, &newKeysLength)), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&storedOutputKeys)) {
-        'cont0: {
+                let mut __for_first_60: bool = true;
+                while { if !__for_first_60 { i = add(&i, &Value::Int(1)); } __for_first_60 = false; is_less_than(&i, &get_array_length(&storedOutputKeys)) } {
                 let mut key: Value = get_value(&storedOutputKeys, &i);
                 if is_true(&exchange.in_array(key.clone(), skipKeys.clone())) {
-                    break 'cont0;
+                    continue;
                 }
                 if !is_true(&(exchange.in_array(key.clone(), newOutputKeys.clone()))) {
                     self.assert_static_error(Value::Bool(false), add(&Value::Str("output key missing: ".to_string()), &key), storedOutput.clone(), newOutput.clone(), &[]);
@@ -1099,8 +1102,6 @@ impl TestMainClass {
                 let mut storedValue: Value = get_value(&storedOutput, &key);
                 let mut newValue: Value = get_value(&newOutput, &key);
                 self.assert_new_and_stored_output(exchange.clone(), skipKeys.clone(), newValue.clone(), storedValue.clone(), &[strictTypeCheck.clone(), key.clone()]);
-        }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if is_true(&Value::Bool(is_array(&storedOutput))) && is_true(&(Value::Bool(is_array(&newOutput)))) {
@@ -1109,11 +1110,11 @@ impl TestMainClass {
             self.assert_static_error(Value::Bool(is_equal(&storedArrayLength, &newArrayLength)), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&storedOutput)) {
+                let mut __for_first_61: bool = true;
+                while { if !__for_first_61 { i = add(&i, &Value::Int(1)); } __for_first_61 = false; is_less_than(&i, &get_array_length(&storedOutput)) } {
                 let mut storedItem: Value = get_value(&storedOutput, &i);
                 let mut newItem: Value = get_value(&newOutput, &i);
                 self.assert_new_and_stored_output(exchange.clone(), skipKeys.clone(), newItem.clone(), storedItem.clone(), &[strictTypeCheck.clone()]);
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
@@ -1211,7 +1212,7 @@ impl TestMainClass {
             self.assert_static_error(Value::Bool(is_equal(&firstPath, &secondPath)), Value::Str("url mismatch".to_string()), firstPath.clone(), secondPath.clone(), &[]);
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
-        // example: "https://open-get_value(&api, &Value::Str("bingx".to_string())).com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
         if is_true(&(is_equal(&storedOutput, &Value::Null))) && is_true(&(is_equal(&newOutput, &Value::Null))) {
             if is_true(&(!is_equal(&storedUrl, &Value::Null))) && is_true(&(!is_equal(&requestUrl, &Value::Null))) {
                 let mut storedUrlParts: Value = split(&storedUrl, &Value::Str("?".to_string()));
@@ -1248,6 +1249,8 @@ impl TestMainClass {
         }
         self.assert_new_and_stored_output(exchange.clone(), skipKeys.clone(), newOutput.clone(), storedOutput.clone(), &[]);
         return Value::Bool(true);
+
+    Value::Null
 }
 
     pub fn assert_static_response_output(&self, mut exchange: Value, mut skipKeys: Value, mut computedResult: Value, mut storedResult: Value) {
@@ -1262,14 +1265,14 @@ impl TestMainClass {
         let mut newInput: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&input)) {
+            let mut __for_first_62: bool = true;
+            while { if !__for_first_62 { i = add(&i, &Value::Int(1)); } __for_first_62 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut current: Value = get_value(&input, &i);
             if is_true(&isNullValue(current.clone())) {
                 append_to_array(&mut newInput, Value::Null);
             }  else {
                 append_to_array(&mut newInput, current.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return newInput;
@@ -1327,10 +1330,10 @@ impl TestMainClass {
         let mut currencies: Value = self.load_currencies_from_file(exchangeName.clone());
         let mut wasmExecPath: Value = Value::Null;
         let mut libraryPath: Value = Value::Null;
-        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/get_value(&wasm_exec, &Value::Str("js".to_string()))';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/get_value(&lighter, &Value::Str("wasm".to_string()))';
-        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-get_value(&amd64, &Value::Str("so".to_string()))';
-        // const librarypath = (get_value(&this, &Value::Str("lang".to_string())) === 'JS') ? ligherWasmPath : binaryPath;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         let mut basePath: Value = add(&getRootDir(), &Value::Str("ts/src/test/static/binaries/".to_string()));
         if is_equal(&exchangeName, &Value::Str("lighter".to_string())) {
@@ -1443,7 +1446,7 @@ impl TestMainClass {
         if is_true(&accounts) {
             ccxt::set_value(&mut exchange, &Value::Str("accounts".to_string()), accounts);
         }
-        // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&exchange, &Value::Str("options".to_string())), globalOptions); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+        // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extend_exchange_options(globalOptions.clone());
         let mut methods: Value = exchange.safe_value(exchangeData.clone(), Value::Str("methods".to_string()), &[Value::Map({
             let mut m = std::collections::HashMap::new();
@@ -1452,55 +1455,61 @@ impl TestMainClass {
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&methodsNames)) {
+            let mut __for_first_64: bool = true;
+            while { if !__for_first_64 { i = add(&i, &Value::Int(1)); } __for_first_64 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&results)) {
-        'cont1: {
+                let mut __for_first_63: bool = true;
+                while { if !__for_first_63 { j = add(&j, &Value::Int(1)); } __for_first_63 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
                     let mut m = std::collections::HashMap::new();
                     m
                 })]);
-                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, testExchangeOptions); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 let __eeo0 = exchange.deepExtend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo0);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 if is_true(&(!is_equal(&testName, &Value::Null))) && is_true(&(!is_equal(&testName, &description))) {
-                    break 'cont1;
+                    continue;
                 }
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabled) {
-                    break 'cont1;
+                    continue;
                 }
                 let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".to_string()), &[Value::Str("".to_string())]);
                 if !is_equal(&disabledString, &Value::Str("".to_string())) {
-                    break 'cont1;
+                    continue;
                 }
                 let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledCSharp) && is_true(&(is_equal(&self.lang, &Value::Str("C#".to_string())))) {
-                    break 'cont1;
+                    continue;
                 }
                 let mut isDisabledGo: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledGo) && is_true(&(is_equal(&self.lang, &Value::Str("GO".to_string())))) {
-                    break 'cont1;
+                    continue;
                 }
                 let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".to_string()), &[]);
                 let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
-                self.test_request_statically(exchange.clone(), method.clone(), result.clone(), type_var.clone(), skipKeys.clone()).await;
+                match std::panic::AssertUnwindSafe(self.test_request_statically(exchange.clone(), method.clone(), result.clone(), type_var.clone(), skipKeys.clone())).catch_unwind().await {
+            Ok(_) => {},
+            Err(__e) => {
+                self.requestTestsFailed = Value::Bool(true);
+                let __m = __e.downcast_ref::<String>().map(|s| s.as_str())
+                    .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");
+                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);
+            }
+        }
                 // reset options
                 { let __sv_tmp = exchange.convert_to_safe_dictionary(exchange.deepExtend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = std::collections::HashMap::new();
                     m
                 })])); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
-        }
-                j = add(&j, &Value::Int(1));
             }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         if !is_true(&isSync()) {
@@ -1543,18 +1552,19 @@ impl TestMainClass {
             let mut m = std::collections::HashMap::new();
             m
         })]);
-        // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (get_value(&exchange, &Value::Str("options".to_string())), options); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+        // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
         exchange.extend_exchange_options(options.clone());
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&methodsNames)) {
+            let mut __for_first_66: bool = true;
+            while { if !__for_first_66 { i = add(&i, &Value::Int(1)); } __for_first_66 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&results)) {
-        'cont2: {
+                let mut __for_first_65: bool = true;
+                while { if !__for_first_65 { j = add(&j, &Value::Int(1)); } __for_first_65 = false; is_less_than(&j, &get_array_length(&results)) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
@@ -1562,42 +1572,47 @@ impl TestMainClass {
                     let mut m = std::collections::HashMap::new();
                     m
                 })]);
-                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, testExchangeOptions); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); } // custom options to be used in the tests
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 let __eeo1 = exchange.deepExtend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo1);
                 let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabled) {
-                    break 'cont2;
+                    continue;
                 }
                 let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledCSharp) && is_true(&(is_equal(&self.lang, &Value::Str("C#".to_string())))) {
-                    break 'cont2;
+                    continue;
                 }
                 let mut isDisabledPHP: Value = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledPHP) && is_true(&(is_equal(&self.lang, &Value::Str("PHP".to_string())))) {
-                    break 'cont2;
+                    continue;
                 }
                 if is_true(&(!is_equal(&testName, &Value::Null))) && is_true(&(!is_equal(&testName, &description))) {
-                    break 'cont2;
+                    continue;
                 }
                 let mut isDisabledGO: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".to_string()), &[Value::Bool(false)]);
                 if is_true(&isDisabledGO) && is_true(&(is_equal(&self.lang, &Value::Str("GO".to_string())))) {
-                    break 'cont2;
+                    continue;
                 }
                 let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
-                self.test_response_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone()).await;
+                match std::panic::AssertUnwindSafe(self.test_response_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone())).catch_unwind().await {
+            Ok(_) => {},
+            Err(__e) => {
+                self.responseTestsFailed = Value::Bool(true);
+                let __m = __e.downcast_ref::<String>().map(|s| s.as_str())
+                    .or_else(|| __e.downcast_ref::<&str>().copied()).unwrap_or("panic");
+                dump(&[Value::Str(format!("[TEST_FAILURE] {}", __m))]);
+            }
+        }
                 // reset options
-                // { let __sv_tmp = get_value(&exchange, &Value::Str("deepExtend".to_string())) (oldExchangeOptions, {}); ccxt::set_value(&mut exchange, &Value::Str("options".to_string()), __sv_tmp); }
+                // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 let __eeo2 = exchange.deepExtend(oldExchangeOptions.clone(), &[Value::Map({
                     let mut m = std::collections::HashMap::new();
                     m
                 })]);
                 exchange.extend_exchange_options(__eeo2);
-        }
-                j = add(&j, &Value::Int(1));
             }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         if !is_true(&isSync()) {
@@ -1618,12 +1633,12 @@ impl TestMainClass {
         let mut methodsNames: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&methodsNames)) {
+            let mut __for_first_67: bool = true;
+            while { if !__for_first_67 { i = add(&i, &Value::Int(1)); } __for_first_67 = false; is_less_than(&i, &get_array_length(&methodsNames)) } {
             let mut method: Value = get_value(&methodsNames, &i);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
             sum = exchange.sum(&[sum.clone(), resultsLength.clone()]);
-            i = add(&i, &Value::Int(1));
         }
         }
         return sum;
@@ -1693,13 +1708,13 @@ impl TestMainClass {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&exchanges)) {
-        'cont3: {
+            let mut __for_first_68: bool = true;
+            while { if !__for_first_68 { i = add(&i, &Value::Int(1)); } __for_first_68 = false; is_less_than(&i, &get_array_length(&exchanges)) } {
             let mut exchangeName: Value = get_value(&exchanges, &i);
             let mut exchangeData: Value = get_value(&staticData, &exchangeName);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
             if is_true(&disabled) {
-                break 'cont3;
+                continue;
             }
             let mut numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
             sum = exchange.sum(&[sum.clone(), numberOfTests.clone()]);
@@ -1708,8 +1723,6 @@ impl TestMainClass {
             }  else {
                 append_to_array(&mut promises, self.test_exchange_response_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }
-        }
-            i = add(&i, &Value::Int(1));
         }
         }
         {
@@ -1818,11 +1831,11 @@ impl TestMainClass {
         let mut batchOrders: Value = get_value(&createOrdersRequest, &Value::Str("batchOrders".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&batchOrders)) {
+            let mut __for_first_69: bool = true;
+            while { if !__for_first_69 { i = add(&i, &Value::Int(1)); } __for_first_69 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
             assert(Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &[add(&add(&add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), &Value::Str(" does not start with swapId".to_string())), &swapIdString)]);
-            i = add(&i, &Value::Int(1));
         }
         }
         if !is_true(&isSync()) {
@@ -2156,13 +2169,13 @@ impl TestMainClass {
 }
 
 // async testHyperliquid () {
-//     const exchange = get_value(&this, &Value::Str("initOfflineExchange".to_string())) ('hyperliquid');
+//     const exchange = this.initOfflineExchange ('hyperliquid');
 //     const id = '1';
 //     let request = undefined;
 //     {
-//         await get_value(&exchange, &Value::Str("createOrder".to_string())) ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+//         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
 //     } catch (e) {
-//         request = jsonParse (get_value(&exchange, &Value::Str("last_request_body".to_string())));
+//         request = jsonParse (exchange.last_request_body);
 //     }
 //     const brokerId = (request['action']['brokerCode']).toString ();
 //     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);

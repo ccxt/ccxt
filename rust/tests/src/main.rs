@@ -39,21 +39,32 @@ async fn main() -> ExitCode {
                       || is_true(&getCliArgValue(Value::Str("-v".to_string())));
 
     // ── base tests ──────────────────────────────────────────────────
+    // Mirrors `go/tests/main.go`: run the transpiled `baseTestsInit()`
+    // aggregator (generated from `ts/src/test/base/tests.init.ts`) and
+    // fail on the first panicking assertion.
     if run_base_tests {
         if let Err(e) = base_tests::run(ws_tests) {
             eprintln!("Hand-written base tests failed: {e}");
             return ExitCode::FAILURE;
         }
-        println!("Hand-written base {} tests passed!", if ws_tests { "WS" } else { "REST" });
         #[cfg(feature = "transpiled-tests")]
-        {
-            println!("Running transpiled base tests:");
-            if let Err(e) = base_transpiled::run_all() {
-                eprintln!("Transpiled base tests failed: {e}");
+        if !ws_tests {
+            if !verbose {
+                std::panic::set_hook(Box::new(|_| {}));
+            }
+            let outcome = std::panic::AssertUnwindSafe(
+                base_transpiled::baseTestsInit()
+            ).catch_unwind().await;
+            let _ = std::panic::take_hook();
+            if let Err(e) = outcome {
+                let msg = e.downcast_ref::<String>().map(|s| s.as_str())
+                    .or_else(|| e.downcast_ref::<&str>().copied())
+                    .unwrap_or("<panic>");
+                eprintln!("Base tests failed: {msg}");
                 return ExitCode::FAILURE;
             }
-            println!("Transpiled base tests passed!");
         }
+        println!("Base {} tests passed!", if ws_tests { "WS" } else { "REST" });
         return ExitCode::SUCCESS;
     }
 

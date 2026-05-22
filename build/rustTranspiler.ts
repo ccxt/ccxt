@@ -4412,8 +4412,46 @@ impl std::ops::DerefMut for ${coreName} {
                 log.red(`[rust] Error transpiling test ${testName}:`, e.message ?? e);
             }
         }
-        // Emit a mod.rs that wires up the tests we managed to write.
+        // Transpile the Go-style aggregator (`tests.init.ts` →
+        // `baseTestsInit()`), then emit a mod.rs that wires everything up.
+        this.transpileBaseTestsInit(outDir, written);
         this.writeBaseTestsModFile(outDir, written);
+    }
+
+    /**
+     * Transpiles `ts/src/test/base/tests.init.ts` → `tests.init.rs`,
+     * exposing `baseTestsInit()` — the Go-style aggregator (cf.
+     * `go/tests/base/tests.init.go`) that runs every base test in
+     * sequence. Calls to tests that didn't transpile are dropped so the
+     * file always compiles.
+     */
+    transpileBaseTestsInit(outDir: string, written: string[]) {
+        const tsFile = './ts/src/test/base/tests.init.ts';
+        if (!fs.existsSync(tsFile)) return;
+        const result = this.transpiler.transpileRustByPath(tsFile);
+        let content = (result.content ?? '').trim();
+        // Keep only calls to base tests we actually transpiled — e.g.
+        // `testLanguageSpecific()` lives in a subfolder we don't emit.
+        const validFns = new Set(written.map(n => this.testEntryPointFor(n)));
+        content = content.split('\n').filter((line) => {
+            const m = line.match(/^\s*(test[A-Z][a-zA-Z0-9]*)\s*\(\)/);
+            return !m || validFns.has(m[1]);
+        }).join('\n');
+        // `fn baseTestsInit() -> Value {` → `pub async fn baseTestsInit() {`
+        // (the body `.await`s the async base tests, so the fn is async).
+        content = content.replace(
+            /\bfn\s+baseTestsInit\s*\(\s*\)\s*(?:->\s*Value\s*)?\{/,
+            'pub async fn baseTestsInit() {',
+        );
+        const file = [
+            ...this.createGeneratedHeader(),
+            '#![allow(non_snake_case, unused, dead_code, clippy::all)]',
+            '// Each base-test entry point is re-exported from `mod.rs`.',
+            'use super::*;',
+            '',
+            content,
+        ].join('\n');
+        overwriteFileAndFolder(`${outDir}/tests.init.rs`, file);
     }
 
     /**
@@ -4425,44 +4463,16 @@ impl std::ops::DerefMut for ${coreName} {
      * `test_safe_methods` after the rust-port's snake-case conversion).
      */
     writeBaseTestsModFile(outDir: string, names: string[]) {
-        // Include every transpiled base test. Each test is its own
-        // module so a single missing helper only breaks that file.
+        // Each base test is its own module (so a single missing helper
+        // only breaks that file). Re-export every entry point so the
+        // transpiled `baseTestsInit()` — which calls them bare, mirroring
+        // Go's single `package base` namespace — resolves via `super::*`.
         const modLines = names
-            .map(n => `#[path = "${n}.rs"] pub mod ${this.modIdentFor(n)};`)
-            .join('\n');
-        const runArms = names
             .map(n => {
                 const ident = this.modIdentFor(n);
-                const fnName = this.testEntryPointFor(n);
-                // Check whether the test fn is async — if so, await
-                // it inside an in-place tokio runtime so the runner
-                // stays sync.
-                const filePath = `${outDir}/${n}.rs`;
-                let isAsync = false;
-                try {
-                    const src = fs.readFileSync(filePath).toString();
-                    isAsync = new RegExp(`\\bpub\\s+async\\s+fn\\s+${fnName}\\b`).test(src);
-                } catch (_) { /* ignore */ }
-                // Each test runs on its own OS thread — `thread::join`
-                // catches panics and (for async tests) the fresh thread
-                // gets its own tokio runtime, sidestepping the
-                // "runtime within a runtime" error since `run_all` is
-                // itself invoked from `#[tokio::main]`.
-                const body = isAsync
-                    ? `        tokio::runtime::Runtime::new().unwrap().block_on(${ident}::${fnName}());`
-                    : `        ${ident}::${fnName}();`;
-                return `    match std::thread::spawn(|| {\n` +
-                       `${body}\n` +
-                       `    }).join() {\n` +
-                       `        Ok(_)  => { passed += 1; println!("  ✓ ${n}"); }\n` +
-                       `        Err(e) => {\n` +
-                       `            let msg = e.downcast_ref::<String>().map(|s| s.as_str())\n` +
-                       `                .or_else(|| e.downcast_ref::<&str>().copied())\n` +
-                       `                .unwrap_or("<non-string panic>");\n` +
-                       `            failed.push(format!("${n}: {msg}"));\n` +
-                       `            println!("  ✗ ${n} — {msg}");\n` +
-                       `        }\n` +
-                       `    }`;
+                const entry = this.testEntryPointFor(n);
+                return `#[path = "${n}.rs"] pub mod ${ident};\n` +
+                       `pub use ${ident}::${entry};`;
             })
             .join('\n');
         const file = [
@@ -4471,21 +4481,9 @@ impl std::ops::DerefMut for ${coreName} {
             '',
             modLines,
             '',
-            'pub fn run_all() -> Result<(), String> {',
-            '    // Silence panic backtraces — failures are tallied below.',
-            '    std::panic::set_hook(Box::new(|_| {}));',
-            '    let mut passed = 0;',
-            '    let mut failed: Vec<String> = Vec::new();',
-            runArms,
-            '    let _ = std::panic::take_hook();',
-            '    let total = passed + failed.len();',
-            '    println!("Transpiled base tests: {}/{} passed", passed, total);',
-            '    if failed.is_empty() {',
-            '        Ok(())',
-            '    } else {',
-            '        Err(format!("{} transpiled base test(s) failed:\\n  {}", failed.len(), failed.join("\\n  ")))',
-            '    }',
-            '}',
+            '// Go-style aggregator — transpiled from ts/src/test/base/tests.init.ts.',
+            '#[path = "tests.init.rs"] pub mod tests_init;',
+            'pub use tests_init::baseTestsInit;',
             '',
         ].join('\n');
         overwriteFileAndFolder(`${outDir}/mod.rs`, file);
