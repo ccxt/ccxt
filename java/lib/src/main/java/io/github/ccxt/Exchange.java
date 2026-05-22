@@ -2821,6 +2821,49 @@ public class Exchange {
     }
 
     // ------------------------------------------------------------------------
+    // Untyped async aliases for whitelisted user-facing methods.
+    //
+    // These exist solely so that transpiled internal code (per-exchange
+    // `*Core.java` files) can call `this.fetchBalanceAsync()` etc. and get
+    // back a `CompletableFuture<Object>` to chain `.join()` on. The Java
+    // transpiler's regex pass in build/javaTranspiler.ts rewrites internal
+    // zero-arg calls `this.fetchBalance()` → `this.fetchBalanceAsync()` so
+    // they route through the Async path and don't accidentally pick the
+    // typed sync overload added by the typed wrapper (which would break
+    // the `.join()` chain).
+    //
+    // REST `*Core.java` doesn't extend the typed wrapper, so the typed
+    // Async overloads aren't visible there — these untyped Async aliases
+    // on the base class are. For WS `*Core.java` (which extends the typed
+    // REST wrapper), Java's overload resolution picks the typed Async
+    // (more specific than `Object... varargs`) which also returns a Future
+    // and chains `.join()` cleanly with typed return.
+    //
+    // Must stay in sync with WHITELISTED_ZERO_ARG_CALL_RE in
+    // build/javaTranspiler.ts and ZERO_REQUIRED_TYPED_WHITELIST in
+    // build/generateJavaWrappers.ts.
+
+    public java.util.concurrent.CompletableFuture<Object> fetchBalanceAsync(Object... args) { return fetchBalance(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchOrdersAsync(Object... args) { return fetchOrders(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesAsync(Object... args) { return fetchMyTrades(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersAsync(Object... args) { return fetchOpenOrders(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersAsync(Object... args) { return fetchClosedOrders(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrdersAsync(Object... args) { return fetchCanceledOrders(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchTimeAsync(Object... args) { return fetchTime(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchStatusAsync(Object... args) { return fetchStatus(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchTickersAsync(Object... args) { return fetchTickers(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchPositionsAsync(Object... args) { return fetchPositions(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchAccountsAsync(Object... args) { return fetchAccounts(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchCurrenciesAsync(Object... args) { return fetchCurrencies(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchBalanceWsAsync(Object... args) { return fetchBalanceWs(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchOrdersWsAsync(Object... args) { return fetchOrdersWs(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchMyTradesWsAsync(Object... args) { return fetchMyTradesWs(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrdersWsAsync(Object... args) { return fetchOpenOrdersWs(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrdersWsAsync(Object... args) { return fetchClosedOrdersWs(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchTickersWsAsync(Object... args) { return fetchTickersWs(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchPositionsWsAsync(Object... args) { return fetchPositionsWs(args); }
+
+    // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
 public Object describe()

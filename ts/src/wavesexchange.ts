@@ -1483,7 +1483,7 @@ export default class wavesexchange extends Exchange {
             const feeCurrency = this.currency (feeAsset);
             matcherFeeAssetId = this.safeString (feeCurrency, 'id');
         }
-        const balances = await this.fetchBalance (params);
+        const balances = await this.fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
                 throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);

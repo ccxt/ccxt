@@ -441,7 +441,7 @@ export default class coinmetro extends Exchange {
         const promises = [];
         promises.push (this.publicGetMarkets (params));
         if (this.safeValue (this.options, 'currenciesByIdForParseMarket') === undefined) {
-            promises.push (this.fetchCurrencies (params));
+            promises.push (this.fetchCurrencies ());
         }
         const responses = await Promise.all (promises);
         const response = responses[0];

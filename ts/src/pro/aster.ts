@@ -1462,7 +1462,7 @@ export default class aster extends asterRest {
     }
 
     async loadPositionsSnapshot (client, messageHash) {
-        const positions = await this.fetchPositions (undefined, {});
+        const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {

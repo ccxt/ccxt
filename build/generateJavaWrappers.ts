@@ -142,6 +142,7 @@ interface MethodInfo {
 // this list because their internal call sites are too numerous to refactor
 // (loadMarkets alone has 3000+ `this.loadMarkets()` zero-arg call sites).
 const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
+    // REST
     'fetchBalance',
     'fetchOrders',
     'fetchMyTrades',
@@ -154,6 +155,19 @@ const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchPositions',
     'fetchAccounts',
     'fetchCurrencies',
+    // WebSocket variants — same zero-required-param shape, same typed return.
+    // Only includes methods that exist on at least one exchange's TS source AND
+    // have a base `Object... varargs` definition on Exchange.java (so the
+    // untyped async alias `fetchXWsAsync(Object...)` can delegate to it).
+    // `fetchCurrenciesWs` is excluded because its TS body uses `new Promise()`
+    // which doesn't transpile to Java — no base method, no delegate target.
+    'fetchBalanceWs',
+    'fetchOrdersWs',
+    'fetchMyTradesWs',
+    'fetchOpenOrdersWs',
+    'fetchClosedOrdersWs',
+    'fetchTickersWs',
+    'fetchPositionsWs',
 ]);
 
 function parseMethodsFromTS(): MethodInfo[] {

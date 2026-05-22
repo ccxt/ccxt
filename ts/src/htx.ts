@@ -6794,7 +6794,7 @@ export default class htx extends Exchange {
         if (this.safeBool (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
-                const currencies = await this.fetchCurrencies (params);
+                const currencies = await this.fetchCurrencies ();
                 this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
                 const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
                 fee = this.safeNumber (targetNetwork, 'fee');

@@ -38,6 +38,65 @@ function overwriteFileAndFolder(path: string, content: string) {
     writeFile(path, content);
 }
 
+// User-facing typed-wrapper methods that ship BOTH a typed sync overload
+// (`Balances fetchBalance()`) AND a typed async sibling
+// (`CompletableFuture<Balances> fetchBalanceAsync()`). Internal calls in
+// transpiled `*Core.java` files that resolve to the typed sync overload
+// would break the parent's CompletableFuture chain (`.join()` doesn't
+// exist on `Balances`), and inside `Promise.all` they'd silently run
+// synchronously instead of in parallel.
+//
+// Only the ZERO-ARG call shape needs rewriting:
+//   - `this.fetchBalance()`         → Java picks typed sync (more specific
+//     than varargs) → returns `Balances` → `.join()` fails. REWRITE.
+//   - `this.fetchBalance(params)`   → Java transpiler emits `(Object) params`
+//     cast; `Object` not assignable to typed `Map`, so it routes to the
+//     base `fetchBalance(Object... varargs)`. Already correct. DON'T touch.
+//   - `this.fetchBalance(undef)`    → same as above. DON'T touch.
+//
+// Rewriting non-zero-arg calls would break compilation because there is
+// no `fetchBalanceAsync(Object... varargs)` on the base class — only the
+// typed-arity variants exist.
+//
+// Anchored on `this.` so we don't rewrite `super.<method>(...)` calls
+// that the typed wrappers themselves use to delegate to the base class.
+// Applies only to per-exchange Core .java output — base `Exchange.java`
+// (which lacks the typed-async siblings) is unaffected because it's
+// emitted via a different code path (`transpileBaseMethods`).
+//
+// Must stay in sync with ZERO_REQUIRED_TYPED_WHITELIST in
+// build/generateJavaWrappers.ts. Keep both lists identical.
+const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
+    '\\bthis\\.(' + [
+        // REST
+        'fetchBalance',
+        'fetchOrders',
+        'fetchMyTrades',
+        'fetchOpenOrders',
+        'fetchClosedOrders',
+        'fetchCanceledOrders',
+        'fetchTime',
+        'fetchStatus',
+        'fetchTickers',
+        'fetchPositions',
+        'fetchAccounts',
+        'fetchCurrencies',
+        // WebSocket variants
+        'fetchBalanceWs',
+        'fetchOrdersWs',
+        'fetchMyTradesWs',
+        'fetchOpenOrdersWs',
+        'fetchClosedOrdersWs',
+        'fetchTickersWs',
+        'fetchPositionsWs',
+    ].join('|') + ')\\(\\s*\\)',
+    'g',
+);
+
+function routeWhitelistedInternalCallsToAsync(javaSource: string): string {
+    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1Async()');
+}
+
 // Split a comma-separated argument list, respecting nested () [] {} and
 // string literals (so that `()` inside a quoted string is not counted as
 // paren depth). Used to rewrite multi-arg System.out.println calls in
@@ -2430,12 +2489,13 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
-        const csharp = this.createJavaClass(fileNameNoExt, csharpResult, ws)
+        let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws)
+        javaSource = routeWhitelistedInternalCallsToAsync(javaSource)
 
         if (javaFolder) {
             // Both REST and WS classes get Core suffix (e.g., BinanceCore.java, pro/BinanceCore.java)
             const outputName = this.capitalize(fileNameNoExt) + 'Core.java';
-            overwriteFileAndFolder(javaFolder + outputName, csharp)
+            overwriteFileAndFolder(javaFolder + outputName, javaSource)
         }
     }
 
