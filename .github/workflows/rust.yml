@@ -39,7 +39,7 @@ jobs:
         run: npm run emitAPI # if we emit go only, the implicit API will be problematic for new exchanges
       - name: Transpile To Rust
         if: env.important_modified == 'true'
-        run: tsx build/rustTranspiler.ts && tsx build/rustTranspiler.ts --ws
+        run: tsx build/rustTranspiler.ts #&& tsx build/rustTranspiler.ts --ws
       - name: Transpile to Rust (specific)
         if: env.important_modified == 'false'
         run: |
@@ -76,8 +76,8 @@ jobs:
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
         run: npm run buildRust
-      - name: Build Ws
-        run: npm run buildRust --ws
+      # - name: Build Ws
+      #   run: npm run buildRust --ws
       - name: Build tests
         run: npm run buildRust --tests
       # - name: Test GO Types
