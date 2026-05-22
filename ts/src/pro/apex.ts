@@ -793,7 +793,7 @@ export default class apex extends apexRest {
     async loadPositionsSnapshot (client, messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
-            this.fetchPositions (undefined, {}),
+            this.fetchPositions (),
         ];
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();

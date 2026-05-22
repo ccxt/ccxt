@@ -90,7 +90,11 @@ const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
         'fetchClosedOrdersWs',
         'fetchTickersWs',
         'fetchPositionsWs',
-    ].join('|') + ')\\(\\s*\\)',
+    // Match both zero-arg `()` and explicit single-null `(null)` (the latter
+    // is what `await this.fetchX (undefined)` in TS transpiles to in Java).
+    // Both are semantically "all defaults"; both must route through Async to
+    // avoid colliding with the typed sync overload's `(List<String>)` etc.
+    ].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
     'g',
 );
 
