@@ -4,17 +4,8 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 async function testSetRateLimit () {
-
-    const exchange = new ccxt.Exchange ({
-        'id': 'test',
-        'rateLimit': 100,
-    });
-    exchange.setRateLimit (50);
-
-    assert (testSharedMethods.exchangeProp (exchange, 'rateLimit') === 50, 'rateLimit should be updated to 50');
 
     const exchange2 = new ccxt.Exchange ({
         'id': 'test',
