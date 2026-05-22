@@ -1372,7 +1372,22 @@ impl Exchange {
             Value::Array(a)
         } else { v }
     }
-    pub fn round_timeframe(&self, _tf: Value, ts: Value, _direction: Value) -> Value { ts }
+    /// `roundTimeframe(timeframe, timestamp, direction)` — snap a
+    /// timestamp to the timeframe boundary (down by default, up for
+    /// `ROUND_UP`).
+    pub fn round_timeframe(&self, tf: Value, ts: Value, direction: Value) -> Value {
+        let secs = match self.parse_timeframe(tf) {
+            Value::Int(s) => s,
+            Value::Float(s) => s as i64,
+            _ => return ts,
+        };
+        let ms = secs * 1000;
+        let t = match &ts { Value::Int(i) => *i, Value::Float(f) => *f as i64, _ => return ts };
+        if ms == 0 { return ts; }
+        let offset = t % ms;
+        let is_up = matches!(&direction, Value::Int(d) if *d == crate::runtime::ROUND_UP);
+        Value::Int(t - offset + if is_up { ms } else { 0 })
+    }
     pub async fn sleep(&self, ms: Value) -> Value {
         if let Some(n) = match ms { Value::Int(n) => Some(n), Value::Float(f) => Some(f as i64), _ => None } {
             if n > 0 {
@@ -1381,7 +1396,19 @@ impl Exchange {
         }
         Value::Null
     }
-    pub fn eth_get_address_from_private_key(&self, _pk: Value, _optional_args: &[Value]) -> Value { Value::Str(String::new()) }
+    /// `ethGetAddressFromPrivateKey(pk)` — derive the Ethereum address
+    /// (keccak256 of the uncompressed secp256k1 public key, last 20 bytes).
+    pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> Value {
+        use k256::ecdsa::SigningKey;
+        use k256::elliptic_curve::sec1::ToEncodedPoint;
+        let pk_s = match &pk { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return Value::Str(String::new()) };
+        let pk_bytes = match hex::decode(&pk_s) { Ok(b) => b, Err(_) => return Value::Str(String::new()) };
+        let sk = match SigningKey::from_slice(&pk_bytes) { Ok(k) => k, Err(_) => return Value::Str(String::new()) };
+        let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
+        let pubkey = &point.as_bytes()[1..]; // 64 bytes
+        let hash = crate::exchange::hash_raw(pubkey, "keccak");
+        Value::Str(format!("0x{}", hex::encode(&hash[12..32])))
+    }
     pub fn exists_file(&self, p: Value) -> Value {
         match &p {
             Value::Str(path) => Value::Bool(std::path::Path::new(path).is_file()),
@@ -1480,15 +1507,33 @@ impl Exchange {
     /// `packb(action)` — MessagePack pack stub. Hyperliquid signs the
     /// packed bytes of an action. Returning empty bytes here is enough
     /// to make the call compile; live signing won't be correct.
-    pub fn packb(&self, _action: Value, _optional_args: &[Value]) -> Value {
-        Value::Array(vec![])
+    /// `packb(value)` — MessagePack-encode a Value into a byte array.
+    pub fn packb(&self, action: Value, _optional_args: &[Value]) -> Value {
+        fn to_rmpv(v: &Value) -> rmpv::Value {
+            match v {
+                Value::Null      => rmpv::Value::Nil,
+                Value::Bool(b)   => rmpv::Value::Boolean(*b),
+                Value::Int(i)    => rmpv::Value::Integer((*i).into()),
+                Value::Float(f)  => rmpv::Value::F64(*f),
+                Value::Str(s)    => rmpv::Value::String(s.clone().into()),
+                Value::Array(a)  => rmpv::Value::Array(a.iter().map(to_rmpv).collect()),
+                Value::Map(m)    => rmpv::Value::Map(
+                    m.iter().map(|(k, v)| (rmpv::Value::String(k.clone().into()), to_rmpv(v))).collect()),
+            }
+        }
+        let mut buf: Vec<u8> = Vec::new();
+        match rmpv::encode::write_value(&mut buf, &to_rmpv(&action)) {
+            Ok(_)  => Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect()),
+            Err(_) => Value::Null,
+        }
     }
 
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
-    /// encoder stub. Returns Null; live signing won't work without a
-    /// real implementation.
-    pub fn eth_encode_structured_data(&self, _domain: Value, _types: Value, _message: Value) -> Value {
-        Value::Null
+    /// encoding: returns the `\x19\x01 || domainSeparator || structHash`
+    /// preimage that the caller keccak-hashes before signing.
+    pub fn eth_encode_structured_data(&self, domain: Value, types: Value, message: Value) -> Value {
+        let bytes = crate::exchange::eip712_encode(&domain, &types, &message);
+        Value::Array(bytes.iter().map(|b| Value::Int(*b as i64)).collect())
     }
 
     /// `uuid22()` — pseudo-random 22-char hex id.

@@ -4102,13 +4102,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
-                // `exchange['field'] = X` on the typed test exchange
-                // becomes `set_value(&mut exchange, …)` — but `exchange`
-                // is an `Exchange` struct, not a `Value`. Route to the
-                // real field assignment.
-                content = content.replace(
-                    /(?:crate::|ccxt::)?set_value\(&mut exchange,\s*&Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\),\s*([^;]+?)\)/g,
-                    'exchange.$1 = $2');
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
                 content = this.splitGetValueMutAdds(content);
@@ -4352,6 +4345,18 @@ impl std::ops::DerefMut for ${coreName} {
                     /\bexchange\.extend\((extended|opts|obj\d*)\.clone\(\)\s*,/g,
                     'exchange.extend($1.clone(),',
                 );
+                // `exchange['field'] = X` / `exchange['field']['k'] = v` on
+                // the typed test exchange resolve to `set_value(&mut
+                // exchange, …)` / `&mut exchange.prop(…)` — `exchange` is
+                // an `Exchange` struct (not a Value) and `prop()` returns
+                // a clone. Route both to the real struct field. (Run last,
+                // after the get_value_mut/prop rewrites have settled.)
+                content = content.replace(
+                    /(?:crate::|ccxt::)?set_value\(&mut exchange,\s*&Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\),\s*([^;]+?)\)/g,
+                    'exchange.$1 = $2');
+                content = content.replace(
+                    /&mut exchange\.prop\(&&?Value::Str\("([a-zA-Z_][a-zA-Z0-9_]*)"\.to_string\(\)\)\)/g,
+                    '&mut exchange.$1');
 
                 // test.cryptography's `equals` helper has a `for…of` over
                 // `Object.keys` that the transpiler drops — replace the

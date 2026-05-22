@@ -374,7 +374,26 @@ impl Exchange {
             exceptions:        Value::Map(HashMap::new()),
             urls:              Value::Map(HashMap::new()),
             api:               Value::Map(HashMap::new()),
-            options:           Value::Map(HashMap::new()),
+            // Base-class default `options` (Exchange.ts describe()). Kept
+            // when an exchange's describe() omits it — `super.describe()`
+            // is stubbed, so it wouldn't otherwise flow through.
+            options: {
+                let mk = |p: &str, s: &str, d: &str| {
+                    let mut e = HashMap::new();
+                    e.insert("primary".to_string(),   Value::Str(p.to_string()));
+                    e.insert("secondary".to_string(), Value::Str(s.to_string()));
+                    e.insert("default".to_string(),   Value::Str(d.to_string()));
+                    Value::Map(e)
+                };
+                let mut repl = HashMap::new();
+                repl.insert("ETH".to_string(), mk("ETH", "ERC20", "secondary"));
+                repl.insert("CRO".to_string(), mk("CRONOS", "CRC20", "secondary"));
+                repl.insert("TRX".to_string(), mk("TRX", "TRC20", "secondary"));
+                repl.insert("BTC".to_string(), mk("BTC", "BRC20", "primary"));
+                let mut o = HashMap::new();
+                o.insert("defaultNetworkCodeReplacements".to_string(), Value::Map(repl));
+                Value::Map(o)
+            },
             headers:           Value::Map(HashMap::new()),
             accounts:          Value::Array(vec![]),
             accountsById:      Value::Map(HashMap::new()),
