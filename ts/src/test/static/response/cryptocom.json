@@ -177,7 +177,8 @@
                                         "deposit_enabled": true,
                                         "confirmation_required": "100"
                                     }
-                                ]
+                                ],
+                                "_coin_id": "USDT"
                             }
                         }
                     }
@@ -236,7 +237,8 @@
                                     "deposit_enabled": true,
                                     "confirmation_required": "100"
                                 }
-                            ]
+                            ],
+                            "_coin_id": "USDT"
                         },
                         "id": "USDT",
                         "numericId": null,
