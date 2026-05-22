@@ -253,7 +253,7 @@
                             "amount": 0.2,
                             "price": 200,
                             "params": {
-                                "clientOrderId": "batchSell"
+                                "clientOrderId": "1234"
                             }
                         }
                     ]
@@ -273,7 +273,7 @@
                             "created_at": "1748360402936",
                             "last_updated_at": "1748360402936",
                             "timestamp": "1748360402000",
-                            "client_id": "batchBuy",
+                            "client_id": null,
                             "seq_no": "1748360402936413772",
                             "instruction": "GTC",
                             "avg_fill_price": "",
@@ -296,7 +296,7 @@
                             "created_at": "1748360403936",
                             "last_updated_at": "1748360403936",
                             "timestamp": "1748360403000",
-                            "client_id": "batchSell",
+                            "client_id": "1234",
                             "seq_no": "1748360403936413772",
                             "instruction": "GTC",
                             "avg_fill_price": "",
@@ -312,7 +312,7 @@
                 "parsedResponse": [
                     {
                         "id": "1748360402930201709192260002",
-                        "clientOrderId": "batchBuy",
+                        "clientOrderId": null,
                         "timestamp": 1748360402936,
                         "datetime": "2025-05-27T15:40:02.936Z",
                         "lastTradeTimestamp": null,
@@ -351,7 +351,7 @@
                             "created_at": "1748360402936",
                             "last_updated_at": "1748360402936",
                             "timestamp": "1748360402000",
-                            "client_id": "batchBuy",
+                            "client_id": null,
                             "seq_no": "1748360402936413772",
                             "instruction": "GTC",
                             "avg_fill_price": "",
@@ -371,7 +371,7 @@
                     },
                     {
                         "id": "1748360402930201709192260003",
-                        "clientOrderId": "batchSell",
+                        "clientOrderId": "1234",
                         "timestamp": 1748360403936,
                         "datetime": "2025-05-27T15:40:03.936Z",
                         "lastTradeTimestamp": null,
@@ -410,7 +410,7 @@
                             "created_at": "1748360403936",
                             "last_updated_at": "1748360403936",
                             "timestamp": "1748360403000",
-                            "client_id": "batchSell",
+                            "client_id": "1234",
                             "seq_no": "1748360403936413772",
                             "instruction": "GTC",
                             "avg_fill_price": "",
@@ -456,7 +456,7 @@
                     "created_at": "1748360402936",
                     "last_updated_at": "1748360412936",
                     "timestamp": "1748360412000",
-                    "client_id": "batchBuy",
+                    "client_id": "123456",
                     "seq_no": "1748360412936413772",
                     "instruction": "GTC",
                     "avg_fill_price": "",
@@ -468,7 +468,7 @@
                 },
                 "parsedResponse": {
                     "id": "1748360402930201709192260002",
-                    "clientOrderId": "batchBuy",
+                    "clientOrderId": "123456",
                     "timestamp": 1748360402936,
                     "datetime": "2025-05-27T15:40:02.936Z",
                     "lastTradeTimestamp": null,
@@ -507,7 +507,7 @@
                         "created_at": "1748360402936",
                         "last_updated_at": "1748360412936",
                         "timestamp": "1748360412000",
-                        "client_id": "batchBuy",
+                        "client_id": "123456",
                         "seq_no": "1748360412936413772",
                         "instruction": "GTC",
                         "avg_fill_price": "",
@@ -540,7 +540,7 @@
                     "results": [
                         {
                             "id": "1748360402930201709192260002",
-                            "client_id": "batchBuy",
+                            "client_id": "123456",
                             "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
                             "market": "SOL-USD-PERP",
                             "status": "QUEUED_FOR_CANCELLATION"
@@ -551,13 +551,13 @@
                     {
                         "info": {
                             "id": "1748360402930201709192260002",
-                            "client_id": "batchBuy",
+                            "client_id": "123456",
                             "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941ec6cfd3b31402ec42d72e",
                             "market": "SOL-USD-PERP",
                             "status": "QUEUED_FOR_CANCELLATION"
                         },
                         "id": "1748360402930201709192260002",
-                        "clientOrderId": "batchBuy",
+                        "clientOrderId": "123456",
                         "status": "canceled",
                         "symbol": "SOL/USD:USDC",
                         "fees": [],
