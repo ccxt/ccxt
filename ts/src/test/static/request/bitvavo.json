@@ -6,6 +6,15 @@
     },
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bitvavo.com/v2/assets",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchDeposits": [
             {
                 "description": "Fetch deposits",
