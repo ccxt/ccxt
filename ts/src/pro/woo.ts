@@ -1287,7 +1287,7 @@ export default class woo extends wooRest {
     }
 
     async loadPositionsSnapshot (client, messageHash) {
-        const positions = await this.fetchPositions ({});
+        const positions = await this.fetchPositions (undefined, {});
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
