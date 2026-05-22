@@ -81,7 +81,7 @@ export default class paradex extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
-                'fetchLiquidations': true,
+                'fetchLiquidations': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
@@ -482,7 +482,7 @@ export default class paradex extends Exchange {
     /**
      * @method
      * @name paradex#fetchMarkets
-     * @description retrieves data on all markets for bitget
+     * @description retrieves data on all markets for paradex
      * @see https://docs.paradex.trade/api/prod/markets/get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -2420,44 +2420,6 @@ export default class paradex extends Exchange {
 
     /**
      * @method
-     * @name paradex#fetchLiquidations
-     * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
-     * @param {string} symbol unified CCXT market symbol
-     * @param {int} [since] the earliest time in ms to fetch liquidations for
-     * @param {int} [limit] the maximum number of liquidation structures to retrieve
-     * @param {object} [params] exchange specific parameters for the huobi api endpoint
-     * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
-     */
-    async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.authenticateRest ();
-        await this.loadMarkets ();
-        let request: Dict = {};
-        if (since !== undefined) {
-            request['from'] = since;
-        } else {
-            request['from'] = 1;
-        }
-        const market = this.market (symbol);
-        [ request, params ] = this.handleUntilOption ('to', request, params);
-        const response = await this.privateGetLiquidations (this.extend (request, params));
-        //
-        //     {
-        //         "results": [
-        //             {
-        //                 "created_at": 1697213130097,
-        //                 "id": "0x123456789"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'results', []);
-        return this.parseLiquidations (data, market, since, limit);
-    }
-
-    /**
-     * @method
      * @name paradex#fetchMyLiquidations
      * @description retrieves the users liquidated positions
      * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
@@ -2521,7 +2483,7 @@ export default class paradex extends Exchange {
 
     /**
      * @method
-     * @name paradex#fetchTransfers
+     * @name paradex#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://docs.paradex.trade/api/prod/transfers/get
      * @param {string} code unified currency code
