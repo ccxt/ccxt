@@ -528,52 +528,23 @@ export default class ascendex extends Exchange {
         //    }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const id = this.safeString(currency, 'assetCode');
-            const code = this.safeCurrencyCode(id);
-            const chains = this.safeList(currency, 'blockChain', []);
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'nativeScale')));
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const networkEtnry = chains[j];
-                const networkId = this.safeString(networkEtnry, 'chainName');
-                const networkCode = this.networkCodeToId(networkId);
-                networks[networkCode] = {
-                    'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
-                    'active': undefined,
-                    'withdraw': this.safeBool(networkEtnry, 'allowWithdraw'),
-                    'deposit': this.safeBool(networkEtnry, 'allowDeposit'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.safeNumber(networkEtnry, 'minWithdrawal'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEtnry, 'minDepositAmt'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': undefined,
-                'margin': undefined,
-                'name': this.safeString(currency, 'assetName'),
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'assetCode');
+        const code = this.safeCurrencyCode(id);
+        const chains = this.safeList(rawCurrency, 'blockChain', []);
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'nativeScale')));
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const networkEtnry = chains[j];
+            const networkId = this.safeString(networkEtnry, 'chainName');
+            const networkCode = this.networkCodeToId(networkId);
+            networks[networkCode] = {
+                'fee': this.safeNumber(networkEtnry, 'withdrawFee'),
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+                'withdraw': this.safeBool(networkEtnry, 'allowWithdraw'),
+                'deposit': this.safeBool(networkEtnry, 'allowDeposit'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -581,14 +552,41 @@ export default class ascendex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber(currency, 'minWithdrawalAmt'),
+                        'min': this.safeNumber(networkEtnry, 'minWithdrawal'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber(networkEtnry, 'minDepositAmt'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': undefined,
+            'margin': undefined,
+            'name': this.safeString(rawCurrency, 'assetName'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber(rawCurrency, 'minWithdrawalAmt'),
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
