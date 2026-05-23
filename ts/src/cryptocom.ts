@@ -628,7 +628,7 @@ export default class cryptocom extends Exchange {
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'network_id');
-            const network = this.networkIdToCode (networkId);
+            const network = this.networkIdToCode (networkId, code);
             networks[network] = {
                 'info': chain,
                 'id': networkId,
