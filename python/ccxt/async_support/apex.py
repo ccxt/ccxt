@@ -500,74 +500,77 @@ class apex(Exchange, ImplicitAPI):
         # }
         rows = self.safe_list(spotConfig, 'assets', [])
         chains = self.safe_list(multiChain, 'chains', [])
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'token')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'displayName')
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                tokens = self.safe_list(chain, 'tokens', [])
-                for f in range(0, len(tokens)):
-                    token = tokens[f]
-                    tokenName = self.safe_string(token, 'token')
-                    if tokenName == currencyId:
-                        networkId = self.safe_string(chain, 'chainId')
-                        networkCode = self.network_id_to_code(networkId)
-                        networks[networkCode] = {
-                            'info': chain,
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': None,
-                            'deposit': not self.safe_bool(chain, 'depositDisable'),
-                            'withdraw': self.safe_bool(token, 'withdrawEnable'),
-                            'fee': self.safe_number(token, 'minFee'),
-                            'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
-                            'limits': {
-                                'withdraw': {
-                                    'min': self.safe_number(token, 'minWithdraw'),
-                                    'max': None,
-                                },
-                                'deposit': {
-                                    'min': self.safe_number(chain, 'minDeposit'),
-                                    'max': None,
-                                },
-                            },
-                        }
-            networkKeys = list(networks.keys())
-            networksLength = len(networkKeys)
-            emptyChains = networksLength == 0  # non-functional coins
-            valueForEmpty = False if emptyChains else None
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
-                'active': None,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': networks,
-            })
+        self.options['_temp_currencies_chains'] = chains
+        result = self.parse_currencies(rows)
+        del self.options['_temp_currencies_chains']
         return result
+
+    def parse_currency(self, currency: dict) -> Currency:
+        currencyId = self.safe_string(currency, 'token')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(currency, 'displayName')
+        networks: dict = {}
+        chains = self.options['_temp_currencies_chains']
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            tokens = self.safe_list(chain, 'tokens', [])
+            for f in range(0, len(tokens)):
+                token = tokens[f]
+                tokenName = self.safe_string(token, 'token')
+                if tokenName == currencyId:
+                    networkId = self.safe_string(chain, 'chainId')
+                    networkCode = self.network_id_to_code(networkId)
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': None,
+                        'deposit': not self.safe_bool(chain, 'depositDisable'),
+                        'withdraw': self.safe_bool(token, 'withdrawEnable'),
+                        'fee': self.safe_number(token, 'minFee'),
+                        'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': self.safe_number(token, 'minWithdraw'),
+                                'max': None,
+                            },
+                            'deposit': {
+                                'min': self.safe_number(chain, 'minDeposit'),
+                                'max': None,
+                            },
+                        },
+                    }
+        networkKeys = list(networks.keys())
+        networksLength = len(networkKeys)
+        emptyChains = networksLength == 0  # non-functional coins
+        valueForEmpty = False if emptyChains else None
+        return self.safe_currency_structure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': None,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
