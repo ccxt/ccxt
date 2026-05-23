@@ -507,79 +507,82 @@ class apex extends Exchange {
             // }
             $rows = $this->safe_list($spotConfig, 'assets', array());
             $chains = $this->safe_list($multiChain, 'chains', array());
-            $result = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $currency = $rows[$i];
-                $currencyId = $this->safe_string($currency, 'token');
-                $code = $this->safe_currency_code($currencyId);
-                $name = $this->safe_string($currency, 'displayName');
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $tokens = $this->safe_list($chain, 'tokens', array());
-                    for ($f = 0; $f < count($tokens); $f++) {
-                        $token = $tokens[$f];
-                        $tokenName = $this->safe_string($token, 'token');
-                        if ($tokenName === $currencyId) {
-                            $networkId = $this->safe_string($chain, 'chainId');
-                            $networkCode = $this->network_id_to_code($networkId);
-                            $networks[$networkCode] = array(
-                                'info' => $chain,
-                                'id' => $networkId,
-                                'network' => $networkCode,
-                                'active' => null,
-                                'deposit' => !$this->safe_bool($chain, 'depositDisable'),
-                                'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
-                                'fee' => $this->safe_number($token, 'minFee'),
-                                'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
-                                'limits' => array(
-                                    'withdraw' => array(
-                                        'min' => $this->safe_number($token, 'minWithdraw'),
-                                        'max' => null,
-                                    ),
-                                    'deposit' => array(
-                                        'min' => $this->safe_number($chain, 'minDeposit'),
-                                        'max' => null,
-                                    ),
-                                ),
-                            );
-                        }
-                    }
-                }
-                $networkKeys = is_array($networks) ? array_keys($networks) : array();
-                $networksLength = count($networkKeys);
-                $emptyChains = $networksLength === 0; // non-functional coins
-                $valueForEmpty = $emptyChains ? false : null;
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'type' => 'crypto',
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => $valueForEmpty,
-                    'withdraw' => $valueForEmpty,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                ));
-            }
+            $this->options['_temp_currencies_chains'] = $chains;
+            $result = $this->parse_currencies($rows);
+            unset($this->options['_temp_currencies_chains']);
             return $result;
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $this->safe_string($currency, 'token');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($currency, 'displayName');
+        $networks = array();
+        $chains = $this->options['_temp_currencies_chains'];
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $tokens = $this->safe_list($chain, 'tokens', array());
+            for ($f = 0; $f < count($tokens); $f++) {
+                $token = $tokens[$f];
+                $tokenName = $this->safe_string($token, 'token');
+                if ($tokenName === $currencyId) {
+                    $networkId = $this->safe_string($chain, 'chainId');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $networkCode,
+                        'active' => null,
+                        'deposit' => !$this->safe_bool($chain, 'depositDisable'),
+                        'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
+                        'fee' => $this->safe_number($token, 'minFee'),
+                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($token, 'minWithdraw'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'minDeposit'),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
+            }
+        }
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkKeys);
+        $emptyChains = $networksLength === 0; // non-functional coins
+        $valueForEmpty = $emptyChains ? false : null;
+        return $this->safe_currency_structure(array(
+            'info' => $currency,
+            'code' => $code,
+            'id' => $currencyId,
+            'type' => 'crypto',
+            'name' => $name,
+            'active' => null,
+            'deposit' => $valueForEmpty,
+            'withdraw' => $valueForEmpty,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
