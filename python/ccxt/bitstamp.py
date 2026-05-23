@@ -836,24 +836,30 @@ class bitstamp(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            market = response[i]
-            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            description = self.safe_string(market, 'description')
-            baseDescription, quoteDescription = description.split(' / ')
-            minimumOrder = self.safe_string(market, 'minimum_order_value')
-            parts = minimumOrder.split(' ')
-            cost = parts[0]
-            if not (base in result):
-                baseDecimals = self.safe_integer(market, 'base_decimals')
-                result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
-            if not (quote in result):
-                counterDecimals = self.safe_integer(market, 'counter_decimals')
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
-        return result
+        self.options['_temp_currencies_result'] = {}
+        result = self.parse_currencies(response)
+        finalResult = self.deep_extend(result, self.options['_temp_currencies_result'])
+        del self.options['_temp_currencies_result']
+        return finalResult
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        market = rawCurrency
+        existing = self.safe_dict(self.options, '_temp_currencies_result', {})
+        baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        description = self.safe_string(market, 'description')
+        baseDescription, quoteDescription = description.split(' / ')
+        minimumOrder = self.safe_string(market, 'minimum_order_value')
+        parts = minimumOrder.split(' ')
+        cost = parts[0]
+        if not (base in existing):
+            baseDecimals = self.safe_integer(market, 'base_decimals')
+            self.options['_temp_currencies_result'][base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
+        if not (quote in existing):
+            counterDecimals = self.safe_integer(market, 'counter_decimals')
+            self.options['_temp_currencies_result'][quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
+        return self.options['_temp_currencies_result'][quote]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """

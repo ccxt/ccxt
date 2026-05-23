@@ -668,100 +668,102 @@ func (this *BitteamCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		statusesResponse = this.IndexBy(statusesResponse, "unified_cryptoasset_id")
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-			var currency any = GetValue(currencies, i)
-			var id any = this.SafeString(currency, "symbol")
-			var numericId any = this.SafeInteger(currency, "id")
-			var code any = this.SafeCurrencyCode(id)
-			var active any = this.SafeBool(currency, "active", false)
-			var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
-			var txLimits any = this.SafeValue(currency, "txLimits", map[string]any{})
-			var minWithdraw any = this.SafeString(txLimits, "minWithdraw")
-			var maxWithdraw any = this.SafeString(txLimits, "maxWithdraw")
-			var minDeposit any = this.SafeString(txLimits, "minDeposit")
-			var fee any = nil
-			var withdrawCommissionFixed any = this.SafeValue(txLimits, "withdrawCommissionFixed", map[string]any{})
-			var feesByNetworkId any = map[string]any{}
-			var blockChain any = this.SafeString(currency, "blockChain")
-			// if only one blockChain
-			if IsTrue(IsTrue((!IsEqual(blockChain, nil))) && IsTrue((!IsEqual(blockChain, "")))) {
-				fee = this.ParseNumber(withdrawCommissionFixed)
-				AddElementToObject(feesByNetworkId, blockChain, fee)
-			} else {
-				feesByNetworkId = withdrawCommissionFixed
-			}
-			var statuses any = this.SafeValue(statusesResponse, numericId, map[string]any{})
-			var deposit any = this.SafeValue(statuses, "depositStatus")
-			var withdraw any = this.SafeValue(statuses, "withdrawStatus")
-			var networkIds any = ObjectKeys(feesByNetworkId)
-			var networks any = map[string]any{}
-			var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
-			var typeRaw any = this.SafeString(currency, "type")
-			for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
-				var networkId any = GetValue(networkIds, j)
-				var networkCode any = this.NetworkIdToCode(networkId, code)
-				var networkFee any = this.SafeNumber(feesByNetworkId, networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"id":        networkId,
-					"network":   networkCode,
-					"deposit":   deposit,
-					"withdraw":  withdraw,
-					"active":    active,
-					"fee":       networkFee,
-					"precision": networkPrecision,
-					"limits": map[string]any{
-						"amount": map[string]any{
-							"min": nil,
-							"max": nil,
-						},
-						"withdraw": map[string]any{
-							"min": this.ParseNumber(minWithdraw),
-							"max": this.ParseNumber(maxWithdraw),
-						},
-						"deposit": map[string]any{
-							"min": this.ParseNumber(minDeposit),
-							"max": nil,
-						},
-					},
-					"info": currency,
-				})
-			}
-			AddElementToObject(result, code, map[string]any{
-				"id":        id,
-				"numericId": numericId,
-				"code":      code,
-				"name":      code,
-				"info":      currency,
-				"active":    active,
-				"deposit":   deposit,
-				"withdraw":  withdraw,
-				"fee":       fee,
-				"precision": precision,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": this.ParseNumber(minWithdraw),
-						"max": this.ParseNumber(maxWithdraw),
-					},
-					"deposit": map[string]any{
-						"min": this.ParseNumber(minDeposit),
-						"max": nil,
-					},
-				},
-				"type":     typeRaw,
-				"networks": networks,
-			})
-		}
+		AddElementToObject(this.Options, "_temp_currencies_statuses", statusesResponse)
+		var result any = this.ParseCurrencies(currencies)
+		Remove(this.Options, "_temp_currencies_statuses")
 
 		ch <- result
 		return nil
 
 	}()
 	return ch
+}
+func (this *BitteamCore) ParseCurrency(currency any) any {
+	var statusesResponse any = this.SafeValue(this.Options, "_temp_currencies_statuses", map[string]any{})
+	var id any = this.SafeString(currency, "symbol")
+	var numericId any = this.SafeInteger(currency, "id")
+	var code any = this.SafeCurrencyCode(id)
+	var active any = this.SafeBool(currency, "active", false)
+	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
+	var txLimits any = this.SafeValue(currency, "txLimits", map[string]any{})
+	var minWithdraw any = this.SafeString(txLimits, "minWithdraw")
+	var maxWithdraw any = this.SafeString(txLimits, "maxWithdraw")
+	var minDeposit any = this.SafeString(txLimits, "minDeposit")
+	var fee any = nil
+	var withdrawCommissionFixed any = this.SafeValue(txLimits, "withdrawCommissionFixed", map[string]any{})
+	var feesByNetworkId any = map[string]any{}
+	var blockChain any = this.SafeString(currency, "blockChain")
+	// if only one blockChain
+	if IsTrue(IsTrue((!IsEqual(blockChain, nil))) && IsTrue((!IsEqual(blockChain, "")))) {
+		fee = this.ParseNumber(withdrawCommissionFixed)
+		AddElementToObject(feesByNetworkId, blockChain, fee)
+	} else {
+		feesByNetworkId = withdrawCommissionFixed
+	}
+	var statuses any = this.SafeValue(statusesResponse, numericId, map[string]any{})
+	var deposit any = this.SafeValue(statuses, "depositStatus")
+	var withdraw any = this.SafeValue(statuses, "withdrawStatus")
+	var networkIds any = ObjectKeys(feesByNetworkId)
+	var networks any = map[string]any{}
+	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
+	var typeRaw any = this.SafeString(currency, "type")
+	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
+		var networkId any = GetValue(networkIds, j)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
+		var networkFee any = this.SafeNumber(feesByNetworkId, networkId)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"id":        networkId,
+			"network":   networkCode,
+			"deposit":   deposit,
+			"withdraw":  withdraw,
+			"active":    active,
+			"fee":       networkFee,
+			"precision": networkPrecision,
+			"limits": map[string]any{
+				"amount": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"withdraw": map[string]any{
+					"min": this.ParseNumber(minWithdraw),
+					"max": this.ParseNumber(maxWithdraw),
+				},
+				"deposit": map[string]any{
+					"min": this.ParseNumber(minDeposit),
+					"max": nil,
+				},
+			},
+			"info": currency,
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"numericId": numericId,
+		"code":      code,
+		"name":      code,
+		"info":      currency,
+		"active":    active,
+		"deposit":   deposit,
+		"withdraw":  withdraw,
+		"fee":       fee,
+		"precision": precision,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": this.ParseNumber(minWithdraw),
+				"max": this.ParseNumber(maxWithdraw),
+			},
+			"deposit": map[string]any{
+				"min": this.ParseNumber(minDeposit),
+				"max": nil,
+			},
+		},
+		"type":     typeRaw,
+		"networks": networks,
+	})
 }
 
 /**
@@ -789,8 +791,8 @@ func (this *BitteamCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes7558 := (<-this.LoadMarkets())
-		PanicOnError(retRes7558)
+		retRes7588 := (<-this.LoadMarkets())
+		PanicOnError(retRes7588)
 		var market any = this.Market(symbol)
 		var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request any = map[string]any{
@@ -872,8 +874,8 @@ func (this *BitteamCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8278 := (<-this.LoadMarkets())
-		PanicOnError(retRes8278)
+		retRes8308 := (<-this.LoadMarkets())
+		PanicOnError(retRes8308)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -944,8 +946,8 @@ func (this *BitteamCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes8788 := (<-this.LoadMarkets())
-		PanicOnError(retRes8788)
+		retRes8818 := (<-this.LoadMarkets())
+		PanicOnError(retRes8818)
 		var typeVar any = this.SafeString(params, "type", "all")
 		var request any = map[string]any{
 			"type": typeVar,
@@ -1073,8 +1075,8 @@ func (this *BitteamCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9908 := (<-this.LoadMarkets())
-		PanicOnError(retRes9908)
+		retRes9938 := (<-this.LoadMarkets())
+		PanicOnError(retRes9938)
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -1156,15 +1158,15 @@ func (this *BitteamCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10528 := (<-this.LoadMarkets())
-		PanicOnError(retRes10528)
+		retRes10558 := (<-this.LoadMarkets())
+		PanicOnError(retRes10558)
 		var request any = map[string]any{
 			"type": "active",
 		}
 
-		retRes105615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes105615)
-		ch <- retRes105615
+		retRes105915 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes105915)
+		ch <- retRes105915
 		return nil
 
 	}()
@@ -1196,15 +1198,15 @@ func (this *BitteamCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10718 := (<-this.LoadMarkets())
-		PanicOnError(retRes10718)
+		retRes10748 := (<-this.LoadMarkets())
+		PanicOnError(retRes10748)
 		var request any = map[string]any{
 			"type": "closed",
 		}
 
-		retRes107515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes107515)
-		ch <- retRes107515
+		retRes107815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes107815)
+		ch <- retRes107815
 		return nil
 
 	}()
@@ -1236,15 +1238,15 @@ func (this *BitteamCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10908 := (<-this.LoadMarkets())
-		PanicOnError(retRes10908)
+		retRes10938 := (<-this.LoadMarkets())
+		PanicOnError(retRes10938)
 		var request any = map[string]any{
 			"type": "cancelled",
 		}
 
-		retRes109415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes109415)
-		ch <- retRes109415
+		retRes109715 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes109715)
+		ch <- retRes109715
 		return nil
 
 	}()
@@ -1274,8 +1276,8 @@ func (this *BitteamCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11118 := (<-this.LoadMarkets())
-		PanicOnError(retRes11118)
+		retRes11148 := (<-this.LoadMarkets())
+		PanicOnError(retRes11148)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pairId": ToString(GetValue(market, "numericId")),
@@ -1345,8 +1347,8 @@ func (this *BitteamCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11658 := (<-this.LoadMarkets())
-		PanicOnError(retRes11658)
+		retRes11688 := (<-this.LoadMarkets())
+		PanicOnError(retRes11688)
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -1389,8 +1391,8 @@ func (this *BitteamCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11928 := (<-this.LoadMarkets())
-		PanicOnError(retRes11928)
+		retRes11958 := (<-this.LoadMarkets())
+		PanicOnError(retRes11958)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1611,8 +1613,8 @@ func (this *BitteamCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes13998 := (<-this.LoadMarkets())
-		PanicOnError(retRes13998)
+		retRes14028 := (<-this.LoadMarkets())
+		PanicOnError(retRes14028)
 
 		response := (<-this.PublicGetTradeApiCmcSummary())
 		PanicOnError(response)
@@ -1681,8 +1683,8 @@ func (this *BitteamCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14548 := (<-this.LoadMarkets())
-		PanicOnError(retRes14548)
+		retRes14578 := (<-this.LoadMarkets())
+		PanicOnError(retRes14578)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"name": GetValue(market, "id"),
@@ -2035,8 +2037,8 @@ func (this *BitteamCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes17888 := (<-this.LoadMarkets())
-		PanicOnError(retRes17888)
+		retRes17918 := (<-this.LoadMarkets())
+		PanicOnError(retRes17918)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -2098,8 +2100,8 @@ func (this *BitteamCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18308 := (<-this.LoadMarkets())
-		PanicOnError(retRes18308)
+		retRes18338 := (<-this.LoadMarkets())
+		PanicOnError(retRes18338)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2379,8 +2381,8 @@ func (this *BitteamCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20958 := (<-this.LoadMarkets())
-		PanicOnError(retRes20958)
+		retRes20988 := (<-this.LoadMarkets())
+		PanicOnError(retRes20988)
 
 		response := (<-this.PrivateGetTradeApiCcxtBalance(params))
 		PanicOnError(response)
@@ -2483,8 +2485,8 @@ func (this *BitteamCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes21798 := (<-this.LoadMarkets())
-		PanicOnError(retRes21798)
+		retRes21828 := (<-this.LoadMarkets())
+		PanicOnError(retRes21828)
 		var currency any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {

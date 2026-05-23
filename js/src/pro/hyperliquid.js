@@ -719,6 +719,10 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         //
         const entry = this.safeList(message, 'data', []);
+        const entryLength = entry.length;
+        if (entryLength === 0) {
+            return;
+        }
         const first = this.safeDict(entry, 0, {});
         const coin = this.safeString(first, 'coin');
         const marketId = this.coinToMarketId(coin);

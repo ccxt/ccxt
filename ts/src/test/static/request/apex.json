@@ -12,6 +12,15 @@
         "accountId": "495274990579220581"
     },
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://omni.apex.exchange/api/v3/symbols",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "private trades",

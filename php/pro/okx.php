@@ -11,7 +11,6 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
-use ccxt\ChecksumError;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -1393,41 +1392,19 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedBids, $bids);
         $marketId = $this->safe_string($message, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
         $seqId = $this->safe_integer($message, 'seqId');
-        if ($checksum) {
-            $prevSeqId = $this->safe_integer($message, 'prevSeqId');
-            $nonce = $orderbook['nonce'];
-            $asksLength = count($storedAsks);
-            $bidsLength = count($storedBids);
-            $payloadArray = array();
-            for ($i = 0; $i < 25; $i++) {
-                if ($i < $bidsLength) {
-                    $payloadArray[] = $this->number_to_string($storedBids[$i][0]);
-                    $payloadArray[] = $this->number_to_string($storedBids[$i][1]);
-                }
-                if ($i < $asksLength) {
-                    $payloadArray[] = $this->number_to_string($storedAsks[$i][0]);
-                    $payloadArray[] = $this->number_to_string($storedAsks[$i][1]);
-                }
+        $prevSeqId = $this->safe_integer($message, 'prevSeqId');
+        $nonce = $orderbook['nonce'];
+        $error = null;
+        if ($prevSeqId !== null && $prevSeqId !== -1 && $nonce !== $prevSeqId) {
+            $error = new InvalidNonce ($this->id . ' watchOrderBook received invalid nonce');
+        }
+        if ($error !== null) {
+            unset($client->subscriptions[$messageHash]);
+            if ($symbol !== null) {
+                unset($this->orderbooks[$symbol]);
             }
-            $payload = implode(':', $payloadArray);
-            $responseChecksum = $this->safe_integer($message, 'checksum');
-            $localChecksum = $this->crc32($payload, true);
-            $error = null;
-            if ($prevSeqId !== -1 && $nonce !== $prevSeqId) {
-                $error = new InvalidNonce ($this->id . ' watchOrderBook received invalid nonce');
-            }
-            if ($responseChecksum !== $localChecksum) {
-                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
-            }
-            if ($error !== null) {
-                unset($client->subscriptions[$messageHash]);
-                if ($symbol !== null) {
-                    unset($this->orderbooks[$symbol]);
-                }
-                $client->reject ($error, $messageHash);
-            }
+            $client->reject ($error, $messageHash);
         }
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook['nonce'] = $seqId;

@@ -496,82 +496,85 @@ public partial class apex : Exchange
         // }
         object rows = this.safeList(spotConfig, "assets", new List<object>() {});
         object chains = this.safeList(multiChain, "chains", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        ((IDictionary<string,object>)this.options)["_temp_currencies_chains"] = chains;
+        object result = this.parseCurrencies(rows);
+        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_chains");
+        return result;
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object currencyId = this.safeString(currency, "token");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(currency, "displayName");
+        object networks = new Dictionary<string, object>() {};
+        object chains = getValue(this.options, "_temp_currencies_chains");
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "token");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "displayName");
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object chain = getValue(chains, j);
+            object tokens = this.safeList(chain, "tokens", new List<object>() {});
+            for (object f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
             {
-                object chain = getValue(chains, j);
-                object tokens = this.safeList(chain, "tokens", new List<object>() {});
-                for (object f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
+                object token = getValue(tokens, f);
+                object tokenName = this.safeString(token, "token");
+                if (isTrue(isEqual(tokenName, currencyId)))
                 {
-                    object token = getValue(tokens, f);
-                    object tokenName = this.safeString(token, "token");
-                    if (isTrue(isEqual(tokenName, currencyId)))
-                    {
-                        object networkId = this.safeString(chain, "chainId");
-                        object networkCode = this.networkIdToCode(networkId);
-                        ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                            { "info", chain },
-                            { "id", networkId },
-                            { "network", networkCode },
-                            { "active", null },
-                            { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
-                            { "withdraw", this.safeBool(token, "withdrawEnable") },
-                            { "fee", this.safeNumber(token, "minFee") },
-                            { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
-                            { "limits", new Dictionary<string, object>() {
-                                { "withdraw", new Dictionary<string, object>() {
-                                    { "min", this.safeNumber(token, "minWithdraw") },
-                                    { "max", null },
-                                } },
-                                { "deposit", new Dictionary<string, object>() {
-                                    { "min", this.safeNumber(chain, "minDeposit") },
-                                    { "max", null },
-                                } },
+                    object networkId = this.safeString(chain, "chainId");
+                    object networkCode = this.networkIdToCode(networkId);
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                        { "info", chain },
+                        { "id", networkId },
+                        { "network", networkCode },
+                        { "active", null },
+                        { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
+                        { "withdraw", this.safeBool(token, "withdrawEnable") },
+                        { "fee", this.safeNumber(token, "minFee") },
+                        { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
+                        { "limits", new Dictionary<string, object>() {
+                            { "withdraw", new Dictionary<string, object>() {
+                                { "min", this.safeNumber(token, "minWithdraw") },
+                                { "max", null },
                             } },
-                        };
-                    }
+                            { "deposit", new Dictionary<string, object>() {
+                                { "min", this.safeNumber(chain, "minDeposit") },
+                                { "max", null },
+                            } },
+                        } },
+                    };
                 }
             }
-            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-            object networksLength = getArrayLength(networkKeys);
-            object emptyChains = isEqual(networksLength, 0); // non-functional coins
-            object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "type", "crypto" },
-                { "name", name },
-                { "active", null },
-                { "deposit", valueForEmpty },
-                { "withdraw", valueForEmpty },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", networks },
-            });
         }
-        return result;
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkKeys);
+        object emptyChains = isEqual(networksLength, 0); // non-functional coins
+        object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "code", code },
+            { "id", currencyId },
+            { "type", "crypto" },
+            { "name", name },
+            { "active", null },
+            { "deposit", valueForEmpty },
+            { "withdraw", valueForEmpty },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**

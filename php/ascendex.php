@@ -522,52 +522,24 @@ class ascendex extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $currency = $data[$i];
-            $id = $this->safe_string($currency, 'assetCode');
-            $code = $this->safe_currency_code($id);
-            $chains = $this->safe_list($currency, 'blockChain', array());
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'nativeScale')));
-            $networks = array();
-            for ($j = 0; $j < count($chains); $j++) {
-                $networkEtnry = $chains[$j];
-                $networkId = $this->safe_string($networkEtnry, 'chainName');
-                $networkCode = $this->network_code_to_id($networkId);
-                $networks[$networkCode] = array(
-                    'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
-                    'active' => null,
-                    'withdraw' => $this->safe_bool($networkEtnry, 'allowWithdraw'),
-                    'deposit' => $this->safe_bool($networkEtnry, 'allowDeposit'),
-                    'precision' => $precision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($networkEtnry, 'minWithdrawal'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($networkEtnry, 'minDepositAmt'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            // todo type => if (chainsLength === 0 && (str_ends_with(assetName, ' Staking') || mb_strpos(assetName, ' Reward ') !== false || mb_strpos(assetName, 'Slot Auction') !== false || mb_strpos(assetName, ' Freeze Asset') !== false))
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'type' => null,
-                'margin' => null,
-                'name' => $this->safe_string($currency, 'assetName'),
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'assetCode');
+        $code = $this->safe_currency_code($id);
+        $chains = $this->safe_list($rawCurrency, 'blockChain', array());
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'nativeScale')));
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $networkEtnry = $chains[$j];
+            $networkId = $this->safe_string($networkEtnry, 'chainName');
+            $networkCode = $this->network_code_to_id($networkId);
+            $networks[$networkCode] = array(
+                'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
                 'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
+                'withdraw' => $this->safe_bool($networkEtnry, 'allowWithdraw'),
+                'deposit' => $this->safe_bool($networkEtnry, 'allowDeposit'),
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
@@ -575,14 +547,41 @@ class ascendex extends Exchange {
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'minWithdrawalAmt'),
+                        'min' => $this->safe_number($networkEtnry, 'minWithdrawal'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEtnry, 'minDepositAmt'),
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        // todo type => if (chainsLength === 0 && (str_ends_with(assetName, ' Staking') || mb_strpos(assetName, ' Reward ') !== false || mb_strpos(assetName, 'Slot Auction') !== false || mb_strpos(assetName, ' Freeze Asset') !== false))
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'type' => null,
+            'margin' => null,
+            'name' => $this->safe_string($rawCurrency, 'assetName'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'minWithdrawalAmt'),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {

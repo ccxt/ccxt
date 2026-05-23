@@ -615,56 +615,55 @@ export default class coinsph extends Exchange {
         //        }
         //    ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const id = this.safeString (entry, 'coin');
-            const code = this.safeCurrencyCode (id);
-            const isFiat = this.safeBool (entry, 'isLegalMoney');
-            const networkList = this.safeList (entry, 'networkList', []);
-            const networks: Dict = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkItem = networkList[j];
-                const network = this.safeString (networkItem, 'network');
-                const networkCode = this.networkIdToCode (network);
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeBool (networkItem, 'depositEnable'),
-                    'withdraw': this.safeBool (networkItem, 'withdrawEnable'),
-                    'fee': this.safeNumber (networkItem, 'withdrawFee'),
-                    'precision': this.safeNumber (networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (networkItem, 'withdrawMin'),
-                            'max': this.safeNumber (networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': this.safeString (entry, 'name'),
-                'code': code,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'transferPrecision'))),
-                'info': entry,
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'coin');
+        const code = this.safeCurrencyCode (id);
+        const isFiat = this.safeBool (rawCurrency, 'isLegalMoney');
+        const networkList = this.safeList (rawCurrency, 'networkList', []);
+        const networks: Dict = {};
+        for (let j = 0; j < networkList.length; j++) {
+            const networkItem = networkList[j];
+            const network = this.safeString (networkItem, 'network');
+            const networkCode = this.networkIdToCode (network);
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': this.safeBool (entry, 'depositAllEnable'),
-                'withdraw': this.safeBool (entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'limits': {},
-            });
+                'deposit': this.safeBool (networkItem, 'depositEnable'),
+                'withdraw': this.safeBool (networkItem, 'withdrawEnable'),
+                'fee': this.safeNumber (networkItem, 'withdrawFee'),
+                'precision': this.safeNumber (networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (networkItem, 'withdrawMin'),
+                        'max': this.safeNumber (networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': this.safeString (rawCurrency, 'name'),
+            'code': code,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'depositAllEnable'),
+            'withdraw': this.safeBool (rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'limits': {},
+        });
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {

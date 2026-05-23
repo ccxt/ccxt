@@ -8,6 +8,8 @@
 * [fetchTime](#fetchtime)
 * [fetchStatus](#fetchstatus)
 * [fetchMarkets](#fetchmarkets)
+* [fetchTradingFee](#fetchtradingfee)
+* [fetchTradingFees](#fetchtradingfees)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
@@ -15,7 +17,10 @@
 * [fetchTrades](#fetchtrades)
 * [fetchOpenInterest](#fetchopeninterest)
 * [createOrder](#createorder)
+* [editOrder](#editorder)
+* [createOrders](#createorders)
 * [cancelOrder](#cancelorder)
+* [cancelOrders](#cancelorders)
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
@@ -24,15 +29,17 @@
 * [fetchMyTrades](#fetchmytrades)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
-* [fetchLiquidations](#fetchliquidations)
-* [fetchTransfers](#fetchtransfers)
+* [fetchMyLiquidations](#fetchmyliquidations)
+* [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchTransfers](#fetchtransfers)
 * [fetchMarginMode](#fetchmarginmode)
 * [setMarginMode](#setmarginmode)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
 * [fetchGreeks](#fetchgreeks)
 * [fetchAllGreeks](#fetchallgreeks)
+* [fetchFundingHistory](#fetchfundinghistory)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 
 <a name="paradex" id="paradex"></a>
@@ -91,7 +98,7 @@ paradex.fetchStatus ([params])
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ### fetchMarkets{docsify-ignore}
-retrieves data on all markets for bitget
+retrieves data on all markets for paradex
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -105,6 +112,47 @@ retrieves data on all markets for bitget
 
 ```javascript
 paradex.fetchMarkets ([params])
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchTradingFee (symbol[, params])
+```
+
+
+<a name="fetchTradingFees" id="fetchtradingfees"></a>
+
+### fetchTradingFees{docsify-ignore}
+fetch the trading fees for multiple markets
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchTradingFees ([params])
 ```
 
 
@@ -277,6 +325,55 @@ paradex.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+edit an open limit order or TPSL order
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.paradex.trade/api-reference/prod/orders/modify  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market to edit an order in |
+| type | <code>string</code> | Yes | 'limit' or a TPSL order type |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
+| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.stopPrice | <code>float</code> | No | alias for triggerPrice |
+| params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+
+
+```javascript
+paradex.editOrder (id, symbol, type, side, amount, price[, params])
+```
+
+
+<a name="createOrders" id="createorders"></a>
+
+### createOrders{docsify-ignore}
+create a list of trade orders
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.paradex.trade/api/prod/orders/batch  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.createOrders (orders[, params])
+```
+
+
 <a name="cancelOrder" id="cancelorder"></a>
 
 ### cancelOrder{docsify-ignore}
@@ -301,6 +398,29 @@ cancels an open order
 
 ```javascript
 paradex.cancelOrder (id, symbol[, params])
+```
+
+
+<a name="cancelOrders" id="cancelorders"></a>
+
+### cancelOrders{docsify-ignore}
+cancel multiple orders
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.paradex.trade/api/prod/orders/cancel-batch  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
+| symbol | <code>string</code> | No | unified market symbol, not used by paradex cancelOrders() |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderIds | <code>Array&lt;string&gt;</code> | No | client order ids |
+
+
+```javascript
+paradex.cancelOrders (ids[, symbol, params])
 ```
 
 
@@ -488,10 +608,10 @@ paradex.fetchPositions ([symbols, params])
 ```
 
 
-<a name="fetchLiquidations" id="fetchliquidations"></a>
+<a name="fetchMyLiquidations" id="fetchmyliquidations"></a>
 
-### fetchLiquidations{docsify-ignore}
-retrieves the public liquidations of a trading pair
+### fetchMyLiquidations{docsify-ignore}
+retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
@@ -500,21 +620,21 @@ retrieves the public liquidations of a trading pair
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified CCXT market symbol |
+| symbol | <code>string</code> | No | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the huobi api endpoint |
+| params | <code>object</code> | No | exchange specific parameters |
 | params.until | <code>int</code> | No | timestamp in ms of the latest liquidation |
 
 
 ```javascript
-paradex.fetchLiquidations (symbol[, since, limit, params])
+paradex.fetchMyLiquidations ([symbol, since, limit, params])
 ```
 
 
-<a name="fetchTransfers" id="fetchtransfers"></a>
+<a name="fetchDeposits" id="fetchdeposits"></a>
 
-### fetchTransfers{docsify-ignore}
+### fetchDeposits{docsify-ignore}
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
@@ -529,11 +649,11 @@ fetch all deposits made to an account
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
-paradex.fetchTransfers (code[, since, limit, params])
+paradex.fetchDeposits (code[, since, limit, params])
 ```
 
 
@@ -554,11 +674,36 @@ fetch all withdrawals made from an account
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch withdrawals for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript
 paradex.fetchWithdrawals (code[, since, limit, params])
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of transfers made on an account
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://docs.paradex.trade/api/prod/transfers/get  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+paradex.fetchTransfers (code[, since, limit, params])
 ```
 
 
@@ -689,6 +834,32 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 
 ```javascript
 paradex.fetchAllGreeks ([symbols, params])
+```
+
+
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetch the history of funding payments paid and received on this account
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
+
+**See**: https://docs.paradex.trade/api/prod/account/get-funding  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch funding history for |
+| limit | <code>int</code> | No | the maximum number of funding history structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.cursor | <code>string</code> | No | returns the next paginated page |
+| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+paradex.fetchFundingHistory (symbol[, since, limit, params])
 ```
 
 

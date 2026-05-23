@@ -498,78 +498,81 @@ export default class apex extends Exchange {
         // }
         const rows = this.safeList (spotConfig, 'assets', []);
         const chains = this.safeList (multiChain, 'chains', []);
-        const result: Dict = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString (currency, 'token');
-            const code = this.safeCurrencyCode (currencyId);
-            const name = this.safeString (currency, 'displayName');
-            const networks: Dict = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const tokens = this.safeList (chain, 'tokens', []);
-                for (let f = 0; f < tokens.length; f++) {
-                    const token = tokens[f];
-                    const tokenName = this.safeString (token, 'token');
-                    if (tokenName === currencyId) {
-                        const networkId = this.safeString (chain, 'chainId');
-                        const networkCode = this.networkIdToCode (networkId);
-                        networks[networkCode] = {
-                            'info': chain,
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': undefined,
-                            'deposit': !this.safeBool (chain, 'depositDisable'),
-                            'withdraw': this.safeBool (token, 'withdrawEnable'),
-                            'fee': this.safeNumber (token, 'minFee'),
-                            'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
-                            'limits': {
-                                'withdraw': {
-                                    'min': this.safeNumber (token, 'minWithdraw'),
-                                    'max': undefined,
-                                },
-                                'deposit': {
-                                    'min': this.safeNumber (chain, 'minDeposit'),
-                                    'max': undefined,
-                                },
+        this.options['_temp_currencies_chains'] = chains;
+        const result = this.parseCurrencies (rows);
+        delete this.options['_temp_currencies_chains'];
+        return result;
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const currencyId = this.safeString (currency, 'token');
+        const code = this.safeCurrencyCode (currencyId);
+        const name = this.safeString (currency, 'displayName');
+        const networks: Dict = {};
+        const chains = this.options['_temp_currencies_chains'];
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const tokens = this.safeList (chain, 'tokens', []);
+            for (let f = 0; f < tokens.length; f++) {
+                const token = tokens[f];
+                const tokenName = this.safeString (token, 'token');
+                if (tokenName === currencyId) {
+                    const networkId = this.safeString (chain, 'chainId');
+                    const networkCode = this.networkIdToCode (networkId);
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': undefined,
+                        'deposit': !this.safeBool (chain, 'depositDisable'),
+                        'withdraw': this.safeBool (token, 'withdrawEnable'),
+                        'fee': this.safeNumber (token, 'minFee'),
+                        'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': this.safeNumber (token, 'minWithdraw'),
+                                'max': undefined,
                             },
-                        };
-                    }
+                            'deposit': {
+                                'min': this.safeNumber (chain, 'minDeposit'),
+                                'max': undefined,
+                            },
+                        },
+                    };
                 }
             }
-            const networkKeys = Object.keys (networks);
-            const networksLength = networkKeys.length;
-            const emptyChains = networksLength === 0; // non-functional coins
-            const valueForEmpty = emptyChains ? false : undefined;
-            result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
-                'active': undefined,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-            });
         }
-        return result;
+        const networkKeys = Object.keys (networks);
+        const networksLength = networkKeys.length;
+        const emptyChains = networksLength === 0; // non-functional coins
+        const valueForEmpty = emptyChains ? false : undefined;
+        return this.safeCurrencyStructure ({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': undefined,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
 
     /**

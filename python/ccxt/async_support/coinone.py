@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -332,39 +332,38 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
         currencies = self.safe_list(response, 'currencies', [])
-        for i in range(0, len(currencies)):
-            entry = currencies[i]
-            id = self.safe_string(entry, 'symbol')
-            code = self.safe_currency_code(id)
-            isWithdrawEnabled = self.safe_string(entry, 'withdraw_status', '') == 'normal'
-            isDepositEnabled = self.safe_string(entry, 'deposit_status', '') == 'normal'
-            type = 'crypto' if (code != 'KRW') else 'fiat'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': entry,
-                'name': self.safe_string(entry, 'name'),
-                'active': None,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': self.safe_number(entry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'max_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(entry, 'withdrawal_min_amount'),
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        isWithdrawEnabled = self.safe_string(rawCurrency, 'withdraw_status', '') == 'normal'
+        isDepositEnabled = self.safe_string(rawCurrency, 'deposit_status', '') == 'normal'
+        type = 'crypto' if (code != 'KRW') else 'fiat'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'active': None,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
+            'fee': self.safe_number(rawCurrency, 'withdrawal_fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'max_precision'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-                'type': type,
-            })
-        return result
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'withdrawal_min_amount'),
+                    'max': None,
+                },
+            },
+            'networks': {},
+            'type': type,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

@@ -2513,84 +2513,84 @@ export default class bitget extends Exchange {
         //            },
         //            ...
         //
-        const result: Dict = {};
         const data = this.safeValue (response, 'data', []);
+        return this.parseCurrencies (data);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
         const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-            const code = this.safeCurrencyCode (id);
-            const chains = this.safeValue (entry, 'chains', []);
-            const networks: Dict = {};
-            let withdraw = undefined;
-            let deposit = undefined;
-            const chainsLength = chains.length;
-            if (chainsLength === 0) {
-                withdraw = false;
-                deposit = false;
-            }
-            for (let j = 0; j < chainsLength; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
-                let network = this.networkIdToCode (networkId, code);
-                network = network.toUpperCase ();
-                const withdrawable = (this.safeString (chain, 'withdrawable') === 'true');
-                const rechargeable = (this.safeString (chain, 'rechargeable') === 'true');
-                withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
-                deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (chain, 'minWithdrawAmount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (chain, 'minDepositAmount'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'withdraw': withdrawable,
-                    'deposit': rechargeable,
-                    'fee': this.safeNumber (chain, 'withdrawFee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
-                };
-            }
-            const active = withdraw && deposit;
-            const isFiat = this.inArray (code, fiatCurrencies);
-            result[code] = this.safeCurrencyStructure ({
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'type': isFiat ? 'fiat' : 'crypto',
-                'name': undefined,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': undefined,
-                'precision': undefined,
+        const entry = rawCurrency;
+        const id = this.safeString (entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+        const code = this.safeCurrencyCode (id);
+        const chains = this.safeList (entry, 'chains', []);
+        const networks: Dict = {};
+        let withdraw = undefined;
+        let deposit = undefined;
+        const chainsLength = chains.length;
+        if (chainsLength === 0) {
+            withdraw = false;
+            deposit = false;
+        }
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'chain');
+            let network = this.networkIdToCode (networkId, code);
+            network = network.toUpperCase ();
+            const withdrawable = (this.safeString (chain, 'withdrawable') === 'true');
+            const rechargeable = (this.safeString (chain, 'rechargeable') === 'true');
+            withdraw = (withdraw === undefined) ? withdrawable : (withdraw || withdrawable);
+            deposit = (deposit === undefined) ? rechargeable : (deposit || rechargeable);
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (chain, 'minWithdrawAmount'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber (chain, 'minDepositAmount'),
                         'max': undefined,
                     },
                 },
-                'created': undefined,
-            });
+                'active': undefined,
+                'withdraw': withdrawable,
+                'deposit': rechargeable,
+                'fee': this.safeNumber (chain, 'withdrawFee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'withdrawMinScale'))),
+            };
         }
-        return result;
+        const active = withdraw && deposit;
+        const isFiat = this.inArray (code, fiatCurrencies);
+        return this.safeCurrencyStructure ({
+            'info': entry,
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'name': undefined,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+        });
     }
 
     /**

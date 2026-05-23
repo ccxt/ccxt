@@ -1157,49 +1157,48 @@ public partial class bittrade : Exchange
         //     }
         //
         object currencies = this.safeValue(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = getValue(currencies, i);
-            object id = this.safeValue(currency, "name");
-            object code = this.safeCurrencyCode(id);
-            object depositEnabled = this.safeValue(currency, "deposit-enabled");
-            object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
-            object countryDisabled = this.safeValue(currency, "country-disabled");
-            object visible = this.safeBool(currency, "visible", false);
-            object state = this.safeString(currency, "state");
-            object active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
-            object name = this.safeString(currency, "display-name");
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "type", "crypto" },
-                { "name", name },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", null },
-                { "precision", precision },
-                { "networks", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "deposit-min-amount") },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "withdraw-min-amount") },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeValue(currency, "name");
+        object code = this.safeCurrencyCode(id);
+        object depositEnabled = this.safeValue(currency, "deposit-enabled");
+        object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
+        object countryDisabled = this.safeValue(currency, "country-disabled");
+        object visible = this.safeBool(currency, "visible", false);
+        object state = this.safeString(currency, "state");
+        object active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
+        object name = this.safeString(currency, "display-name");
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "type", "crypto" },
+            { "name", name },
+            { "active", active },
+            { "deposit", depositEnabled },
+            { "withdraw", withdrawEnabled },
+            { "fee", null },
+            { "precision", precision },
+            { "networks", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", precision },
+                    { "max", null },
                 } },
-                { "info", currency },
-            };
-        }
-        return result;
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(currency, "deposit-min-amount") },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(currency, "withdraw-min-amount") },
+                    { "max", null },
+                } },
+            } },
+            { "info", currency },
+        });
     }
 
     public override object parseBalance(object response)

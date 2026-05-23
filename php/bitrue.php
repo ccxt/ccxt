@@ -760,58 +760,57 @@ class bitrue extends Exchange {
         //         ),
         //     }
         //
-        $result = array();
         $coins = $this->safe_list($response, 'coins', array());
-        for ($i = 0; $i < count($coins); $i++) {
-            $currency = $coins[$i];
-            $id = $this->safe_string($currency, 'coin');
-            $name = $this->safe_string($currency, 'coinFulName');
-            $code = $this->safe_currency_code($id);
-            $networkDetails = $this->safe_list($currency, 'chainDetail', array());
-            $networks = array();
-            for ($j = 0; $j < count($networkDetails); $j++) {
-                $entry = $networkDetails[$j];
-                $networkId = $this->safe_string($entry, 'chain');
-                $network = $this->network_id_to_code($networkId, $code);
-                $networks[$network] = array(
-                    'info' => $entry,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'deposit' => $this->safe_bool($entry, 'enableDeposit'),
-                    'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
-                    'active' => null,
-                    'fee' => $this->safe_number($entry, 'withdrawFee'),
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($entry, 'minWithdraw'),
-                            'max' => $this->safe_number($entry, 'maxWithdraw'),
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'name' => $name,
-                'code' => $code,
-                'precision' => null,
-                'info' => $currency,
+        return $this->parse_currencies($coins);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'coin');
+        $name = $this->safe_string($rawCurrency, 'coinFulName');
+        $code = $this->safe_currency_code($id);
+        $networkDetails = $this->safe_list($rawCurrency, 'chainDetail', array());
+        $networks = array();
+        for ($j = 0; $j < count($networkDetails); $j++) {
+            $entry = $networkDetails[$j];
+            $networkId = $this->safe_string($entry, 'chain');
+            $network = $this->network_id_to_code($networkId, $code);
+            $networks[$network] = array(
+                'info' => $entry,
+                'id' => $networkId,
+                'network' => $network,
+                'deposit' => $this->safe_bool($entry, 'enableDeposit'),
+                'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
                 'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'networks' => $networks,
-                'fee' => null,
-                'fees' => null,
-                'type' => 'crypto',
+                'fee' => $this->safe_number($entry, 'withdrawFee'),
+                'precision' => null,
                 'limits' => array(
                     'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($entry, 'minWithdraw'),
+                        'max' => $this->safe_number($entry, 'maxWithdraw'),
                     ),
                 ),
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $name,
+            'code' => $code,
+            'precision' => null,
+            'info' => $rawCurrency,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => $networks,
+            'fee' => null,
+            'fees' => null,
+            'type' => 'crypto',
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+        ));
     }
 
     public function fetch_markets($params = array ()): array {
