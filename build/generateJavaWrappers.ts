@@ -171,6 +171,20 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchPositionsWs',
 ]);
 
+// WS subscription methods (watch*) with all-optional parameters. They get
+// typed truncation overloads only — NO async siblings (watch* methods ship
+// sync-only by design) and NO base-class alias / regex rewrite (their
+// internal call sites don't trigger overload-resolution collisions; verified
+// via grep over ts/src/pro/*.ts). Keeps the user-facing surface symmetric
+// with their REST `fetch*` counterparts which already get truncations.
+const WATCH_ZERO_ARG_WHITELIST = new Set([
+    'watchTickers',
+    'watchBalance',
+    'watchOrders',
+    'watchMyTrades',
+    'watchPositions',
+]);
+
 function parseMethodsFromTS(): MethodInfo[] {
     const transpiler = new Transpiler({ verbose: false, csharp: { parser: { ELEMENT_ACCESS_WRAPPER_OPEN: "getValue(", ELEMENT_ACCESS_WRAPPER_CLOSE: ")" } } });
     const baseFile: any = transpiler.transpileJavaByPath(TS_BASE_FILE);
@@ -325,7 +339,8 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     // Whitelisted methods have had their internal zero-arg call sites
     // audited and fixed in TS source — see the whitelist comment above.
     const emitTruncations = m.requiredParams.length > 0
-        || ZERO_REQUIRED_TYPED_WHITELIST.has(m.name);
+        || ZERO_REQUIRED_TYPED_WHITELIST.has(m.name)
+        || WATCH_ZERO_ARG_WHITELIST.has(m.name);
     if (emitTruncations) {
         const defaultExpr = (p: ParamInfo) =>
             p.defaultValue && p.defaultValue !== 'null'
