@@ -2505,84 +2505,84 @@ class bitget extends Exchange {
         //            ),
         //            ...
         //
-        $result = array();
         $data = $this->safe_value($response, 'data', array());
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
         $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
-            $code = $this->safe_currency_code($id);
-            $chains = $this->safe_value($entry, 'chains', array());
-            $networks = array();
-            $withdraw = null;
-            $deposit = null;
-            $chainsLength = count($chains);
-            if ($chainsLength === 0) {
-                $withdraw = false;
-                $deposit = false;
-            }
-            for ($j = 0; $j < $chainsLength; $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $network = $this->network_id_to_code($networkId, $code);
-                $network = strtoupper($network);
-                $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
-                $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
-                $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
-                $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'minWithdrawAmount'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'minDepositAmount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'active' => null,
-                    'withdraw' => $withdrawable,
-                    'deposit' => $rechargeable,
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
-                );
-            }
-            $active = $withdraw && $deposit;
-            $isFiat = $this->in_array($code, $fiatCurrencies);
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => $networks,
-                'type' => $isFiat ? 'fiat' : 'crypto',
-                'name' => null,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => null,
-                'precision' => null,
+        $entry = $rawCurrency;
+        $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+        $code = $this->safe_currency_code($id);
+        $chains = $this->safe_list($entry, 'chains', array());
+        $networks = array();
+        $withdraw = null;
+        $deposit = null;
+        $chainsLength = count($chains);
+        if ($chainsLength === 0) {
+            $withdraw = false;
+            $deposit = false;
+        }
+        for ($j = 0; $j < $chainsLength; $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chain');
+            $network = $this->network_id_to_code($networkId, $code);
+            $network = strtoupper($network);
+            $withdrawable = ($this->safe_string($chain, 'withdrawable') === 'true');
+            $rechargeable = ($this->safe_string($chain, 'rechargeable') === 'true');
+            $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
+            $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'minWithdrawAmount'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'minDepositAmount'),
                         'max' => null,
                     ),
                 ),
-                'created' => null,
-            ));
+                'active' => null,
+                'withdraw' => $withdrawable,
+                'deposit' => $rechargeable,
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawMinScale'))),
+            );
         }
-        return $result;
+        $active = $withdraw && $deposit;
+        $isFiat = $this->in_array($code, $fiatCurrencies);
+        return $this->safe_currency_structure(array(
+            'info' => $entry,
+            'id' => $id,
+            'code' => $code,
+            'networks' => $networks,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'name' => null,
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+        ));
     }
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
