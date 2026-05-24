@@ -1057,10 +1057,23 @@ impl Exchange {
             (Some(f), p) if !p.is_null() => (f, p),
             _ => return None,
         };
+        // Push the method onto the re-entry stack, then run the derived
+        // call under `catch_unwind` so we can pop the stack BEFORE the
+        // panic resumes. Without this, an InvalidProxySettings panic
+        // inside the derived call (the static-request offline mode does
+        // this on every dispatched method) would leave `method` on the
+        // stack forever, and every subsequent fixture for the same
+        // method on the same Core would hit the re-entry guard and
+        // silently fall through to the base `not_supported` panic.
         self.internals.dispatch_stack.push(method.to_string());
-        let result = call_fn(core_ptr, method, args).await;
+        let outcome = futures::FutureExt::catch_unwind(
+            std::panic::AssertUnwindSafe(call_fn(core_ptr, method, args))
+        ).await;
         self.internals.dispatch_stack.pop();
-        Some(result)
+        match outcome {
+            Ok(v)        => Some(v),
+            Err(payload) => std::panic::resume_unwind(payload),
+        }
     }
 
     /// Returns the derived exchange trait object. Falls back to the
