@@ -356,20 +356,22 @@ function genMethod(m: MethodInfo, castToObject = false): string {
         }
     }
 
-    // Async method (full params)
-    if (!m.isWatch) {
-        lines.push(`    @SuppressWarnings("unchecked")`);
-        lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
-        lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
-        lines.push(`    }`);
-    }
+    // Async method (full params). Emitted for both fetch* (REST) and watch*
+    // (WS) — symmetric typed-async surface. For watch*, the sync wrapper
+    // joins on the same `super.<method>(...)` Future; the async wrapper
+    // hands the typed Future back to the caller so they can compose without
+    // blocking the calling thread.
+    lines.push(`    @SuppressWarnings("unchecked")`);
+    lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
+    lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
+    lines.push(`    }`);
 
     // Async truncation overloads — symmetric with the sync truncations above.
     // Without these, `binance.fetchOrdersAsync()` would fall through to the
     // base `Object...` method and return `CompletableFuture<Object>` instead
     // of `CompletableFuture<List<Order>>`. Gated on the same `emitTruncations`
     // flag so the whitelist applies symmetrically.
-    if (!m.isWatch && emitTruncations) {
+    if (emitTruncations) {
         const defaultExpr = (p: ParamInfo) =>
             p.defaultValue && p.defaultValue !== 'null'
                 ? p.defaultValue
@@ -407,9 +409,7 @@ function genMethod(m: MethodInfo, castToObject = false): string {
                 : p.name
         ).join(', ');
         lines.push(`    public ${m.javaReturnType} ${methodName}(${stringArrDecl}) { return ${methodName}(${delegateArgs}); }`);
-        if (!m.isWatch) {
-            lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
-        }
+        lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${stringArrDecl}) { return ${methodName}Async(${delegateArgs}); }`);
     }
 
     return lines.join('\n');

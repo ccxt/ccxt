@@ -312,20 +312,37 @@ while (true) {
 
 ## Sync vs Async
 
-Java CCXT provides three patterns:
+Java CCXT provides three patterns — and the symmetry applies to both REST `fetch*` and WS `watch*` methods.
 
 ### 1. Typed Sync (blocking)
 ```java
+// REST — blocks until one HTTP response
 Binance exchange = new Binance();
-Ticker ticker = exchange.fetchTicker("BTC/USDT");  // blocks until result
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+
+// WS — blocks until one streaming update
+var wsExchange = new io.github.ccxt.exchanges.pro.Binance();
+Ticker tick = wsExchange.watchTicker("BTC/USDT");
 ```
 
 ### 2. Typed Async (non-blocking)
 ```java
-Binance exchange = new Binance();
+// REST async
 CompletableFuture<Ticker> future = exchange.fetchTickerAsync("BTC/USDT", null);
 future.thenAccept(ticker -> System.out.println(ticker.last));
+
+// WS async — same shape, returns CompletableFuture<Ticker> that completes on next update
+CompletableFuture<Ticker> wsFuture = wsExchange.watchTickerAsync("BTC/USDT", null);
+wsFuture.thenAccept(tick -> System.out.println(tick.last));
+
+// Compose multiple watches without blocking the calling thread:
+CompletableFuture.allOf(
+    wsExchange.watchTickerAsync("BTC/USDT", null),
+    wsExchange.watchOrderBookAsync("ETH/USDT", null, null)
+).join();
 ```
+
+Every typed `fetch*` and `watch*` method has a matching `*Async` overload at every supported arity, including zero-arg (where the method allows it). Same return-type symmetry: `Ticker fetchTicker(...)` ↔ `CompletableFuture<Ticker> fetchTickerAsync(...)`; `Tickers watchTickers(...)` ↔ `CompletableFuture<Tickers> watchTickersAsync(...)`.
 
 ### 3. Untyped (CompletableFuture\<Object\>)
 ```java
