@@ -917,6 +917,8 @@ class NewTranspiler {
         // Pattern 2: } closing an if/else where both branches terminate, followed by return null
         // This is unreachable but the lambda requires a return — Java compiler sees it as error
 
+        baseClass = this.addDeprecatedAnnotations(baseClass);
+
         // // WS fixes
         // baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
 
@@ -1212,6 +1214,7 @@ class NewTranspiler {
             content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
             content = this.postProcessWsJava(content, name);
         }
+        content = this.addDeprecatedAnnotations(content);
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return javaImports + content;
     }
@@ -1416,6 +1419,16 @@ class NewTranspiler {
             }
         }
         return content;
+    }
+
+    /**
+     * Insert `@Deprecated` annotation on every method whose preceding JSDoc
+     * block contains an `@deprecated` tag. Silences javac `[dep-ann]` warnings
+     * and lets IDEs surface the deprecation on callers.
+     */
+    addDeprecatedAnnotations(content: string): string {
+        const re = /(\/\*\*(?:[^*]|\*(?!\/))*?@deprecated(?:[^*]|\*(?!\/))*?\*\/)(\s*\n)(?!\s*@Deprecated\b)([ \t]*)(public|protected|private)\b/g;
+        return content.replace(re, '$1$2$3@Deprecated\n$3$4');
     }
 
     /**
