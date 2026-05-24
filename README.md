@@ -369,20 +369,30 @@ Ticker ticker = exchange.fetchTicker("BTC/USDT");
 System.out.println(ticker.symbol + " " + ticker.last);
 ```
 
-Each exchange has its own typed subclass with strongly-typed return values. Async methods returning `CompletableFuture` are also available:
+Each exchange has its own typed subclass with strongly-typed return values. Every typed method ships both a blocking sync and a non-blocking `CompletableFuture`-returning async overload — pick the idiom that fits your call site:
 
 ```Java
+// Sync — blocks until the response arrives
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+
+// Async — returns immediately, completes when the response arrives
 CompletableFuture<Ticker> future = exchange.fetchTickerAsync("BTC/USDT", null);
+future.thenAccept(t -> System.out.println(t.last));
 ```
 
-WebSocket support is available via the pro exchange classes:
+WebSocket support is available via the pro exchange classes, with the same sync/async symmetry — `watchTicker` blocks for one update; `watchTickerAsync` returns a `CompletableFuture<Ticker>` you can compose:
 
 ```Java
 import io.github.ccxt.exchanges.pro.Binance;
 
-Exchange exchange = new Binance();
-exchange.loadMarkets().join();
-Object ticker = exchange.watchTicker("BTC/USDT").get(30, TimeUnit.SECONDS);
+var exchange = new Binance();
+exchange.loadMarkets(false);
+
+// Sync — blocks for one update
+Ticker tick = exchange.watchTicker("BTC/USDT");
+
+// Async — returns a typed CompletableFuture (composable with allOf, anyOf, etc.)
+CompletableFuture<Ticker> future = exchange.watchTickerAsync("BTC/USDT", null);
 ```
 
 See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for more usage examples.

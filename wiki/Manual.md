@@ -1976,7 +1976,10 @@ See further examples in the `examples/php` directory; look for filenames that in
 
 #### **Java**
 
-In Java, each exchange has its own typed subclass with synchronous methods that block until the result is available, as well as async variants returning `CompletableFuture`:
+In Java, each exchange has its own typed subclass. Every typed method ships
+**both** a blocking sync overload and a non-blocking `CompletableFuture`-returning
+async overload — symmetric for REST `fetch*` / `fetch*Async` and WS `watch*` /
+`watch*Async`:
 
 ```java
 // Java
@@ -1988,13 +1991,30 @@ import java.util.concurrent.CompletableFuture;
 Kraken kraken = new Kraken();
 kraken.loadMarkets(false);
 
-// Synchronous
+// REST — synchronous
 Ticker ticker = kraken.fetchTicker("BTC/USDT");
 System.out.println(ticker.last);
 
-// Asynchronous
+// REST — asynchronous
 CompletableFuture<Ticker> future = kraken.fetchTickerAsync("BTC/USDT", null);
 future.thenAccept(t -> System.out.println(t.last));
+```
+
+The same sync/async pair applies to the pro (WebSocket) classes — `watchTicker`
+blocks for one update; `watchTickerAsync` returns a `CompletableFuture<Ticker>`
+that completes on the next update:
+
+```java
+import io.github.ccxt.exchanges.pro.Binance;
+
+var ws = new Binance();
+ws.loadMarkets(false);
+
+// WS — synchronous (blocks for one update)
+Ticker tick = ws.watchTicker("BTC/USDT");
+
+// WS — asynchronous (composable with allOf, anyOf, thenApply, ...)
+CompletableFuture<Ticker> stream = ws.watchTickerAsync("BTC/USDT", null);
 ```
 
 <!-- tabs:end -->

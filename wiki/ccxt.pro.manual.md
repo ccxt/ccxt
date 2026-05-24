@@ -514,17 +514,23 @@ using ccxt.pro;
 
 #### **Java**
 ```java
-import io.github.ccxt.Exchange;
 import io.github.ccxt.exchanges.pro.Binance;
+import io.github.ccxt.types.Ticker;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-Exchange exchange = new Binance();
-exchange.loadMarkets().join();
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
 
+// Sync: blocks until next update
 while (true) {
-    Object ticker = exchange.watchTicker("BTC/USDT").get(30, TimeUnit.SECONDS);
-    System.out.println(ticker);
+    Ticker ticker = exchange.watchTicker("BTC/USDT");
+    System.out.println(ticker.last);
 }
+
+// Or async: returns CompletableFuture<Ticker> — composable, supports timeouts
+CompletableFuture<Ticker> next = exchange.watchTickerAsync("BTC/USDT", null);
+Ticker tick = next.get(30, TimeUnit.SECONDS);
 ```
 
 <!-- tabs:end -->
@@ -698,12 +704,14 @@ if ($exchange->has['watchOrderBook']) {
 ```
 #### **Java**
 ```java
-Exchange exchange = new Binance();
-exchange.loadMarkets().join();
+import io.github.ccxt.types.OrderBook;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
 while (true) {
     try {
-        Object orderbook = exchange.watchOrderBook(symbol).get(30, TimeUnit.SECONDS);
-        System.out.println(orderbook);
+        OrderBook orderbook = exchange.watchOrderBook(symbol);
+        System.out.println(orderbook.bids.get(0));
     } catch (Exception e) {
         System.out.println(e.getMessage());
     }
