@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 # -*- coding: utf-8 -*-
 
 import os
@@ -29,7 +31,7 @@ market = exchange.markets[symbol]
 starting_date = '2017-01-01T00:00:00'
 now = exchange.milliseconds()
 
-print("\nFetching history for:", symbol, "\n")
+logger.info("\nFetching history for:", symbol, "\n")
 
 all_orders = []
 since = exchange.parse8601(starting_date)
@@ -38,9 +40,9 @@ while since < now:
 
     try:
 
-        print('Fetching history for', symbol, 'since', exchange.iso8601(since))
+        logger.info('Fetching history for', symbol, 'since', exchange.iso8601(since))
         orders = exchange.fetch_closed_orders(symbol, since)
-        print('Fetched', len(orders), 'orders')
+        logger.info('Fetched', len(orders), 'orders')
 
         all_orders = all_orders + orders
 
@@ -55,7 +57,7 @@ while since < now:
 
     except Exception as e:
 
-            print(e)
+            logger.info(e)
 
 
 # omit the following keys for a compact table output
@@ -67,7 +69,7 @@ omitted_keys = [
     'fee',
 ]
 
-print(table([exchange.omit(order, omitted_keys) for order in all_orders]))
-print('Fetched', len(all_orders), symbol, 'orders in total')
+logger.info(table([exchange.omit(order, omitted_keys) for order in all_orders]))
+logger.info('Fetched', len(all_orders), symbol, 'orders in total')
 
 # do whatever you want to do with them, calculate profit loss, etc...
