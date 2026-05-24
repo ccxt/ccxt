@@ -649,7 +649,7 @@ class aster(Exchange, ImplicitAPI):
                     '-4184': InvalidOrder,  # PRICE_LOWER_THAN_STOP_MULTIPLIER_DOWN
                     '-5060': OperationRejected,  # {"code":-5060,"msg":"The limit order price does not meet the PERCENT_PRICE filter limit."}
                     '-5076': OperationRejected,  # {"code":-5076,"msg":"Total order value should be more than 5 USDT"}
-                    # occured errors:
+                    # occurred errors:
                     '-4168': OperationRejected,  # Unable to adjust to isolated-margin mode under the Multi-Assets mode.
                 },
                 'broad': {
