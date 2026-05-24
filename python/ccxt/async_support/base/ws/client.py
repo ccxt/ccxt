@@ -226,7 +226,7 @@ class Client(object):
         ensure_future(self.aiohttp_close(), loop=self.asyncio_loop)
 
     def log(self, *args):
-        print(*args)
+        self.log(iso8601(milliseconds()), "verbose:", *args)
 
     def closed(self):
         return (self.connection is None) or self.connection.closed
