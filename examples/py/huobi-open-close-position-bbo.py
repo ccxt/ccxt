@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 # -*- coding: utf-8 -*-
 
 import asyncio
@@ -12,7 +14,7 @@ sys.path.append(root + '/python')
 import ccxt.async_support as ccxt  # noqa: E402
 
 
-print('CCXT Version:', ccxt.__version__)
+logger.info('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.huobi({
     'apiKey': 'YOUR_API_KEY',
@@ -25,7 +27,7 @@ async def example_1():
 
     # fetch swap balance
     balance = await exchange.fetch_balance()
-    print(balance)
+    logger.info(balance)
 
     # create market order and open position
     symbol = 'ADA/USDT:USDT'
@@ -37,12 +39,12 @@ async def example_1():
     amount = 1
     price = None
     create_order = await exchange.create_order(symbol, type, side, amount, price)
-    print('Create order id:', create_order['id'])
+    logger.info('Create order id:', create_order['id'])
 
     # check opened position
     symbols = [ symbol ]
     positions = await exchange.fetch_positions(symbols)
-    print(positions)
+    logger.info(positions)
 
     # Close position by issuing a order in the opposite direction
     side = 'sell'
@@ -50,7 +52,7 @@ async def example_1():
         'reduceOnly': True
     }
     close_position_order = await exchange.createOrder(symbol, type, side, amount, price, params)
-    print(close_position_order)
+    logger.info(close_position_order)
 
 # -------------------------------------------------------------------------------------------
 
@@ -58,7 +60,7 @@ async def main():
     try:
         await example_1()
     except Exception as e:
-        print(e)
+        logger.info(e)
     await exchange.close()
     
 
