@@ -2079,6 +2079,200 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    /**
+     * Wraps every `crate::tests_support::shared::<name>(arg1, restArgs)`
+     * call so the args after the exchange are folded into a `&[Value]`
+     * slice — matches the unified `(exchange, args: &[Value])` signature
+     * the `shared::assert_*` helpers carry, which lets calls of varying
+     * arity (TS allows omitting trailing optional args) all resolve.
+     */
+    wrapSharedHelperCalls(content: string): string {
+        const prefix = 'crate::tests_support::shared::';
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const idx = content.indexOf(prefix, i);
+            if (idx < 0) { out += content.slice(i); break; }
+            out += content.slice(i, idx);
+            // Read the helper name following the prefix.
+            let n = idx + prefix.length;
+            let nameEnd = n;
+            while (nameEnd < content.length && /[A-Za-z0-9_]/.test(content[nameEnd])) nameEnd++;
+            const name = content.slice(n, nameEnd);
+            // Wrap helpers whose signature is `(exchange, args: &[Value])`.
+            // `exchange_prop`/`log_template`/`string_value` etc. take a
+            // typed second arg — clone the first arg defensively but
+            // don't re-shape the call.
+            const wrappable = name.startsWith('assert_')
+                || ['fetch_order', 'set_proxy_options',
+                    'remove_proxy_options', 'check_precision_accuracy'].includes(name);
+            if (content[nameEnd] !== '(') {
+                out += content.slice(idx, nameEnd);
+                i = nameEnd;
+                continue;
+            }
+            // Brace-balanced walk to the closing paren.
+            const callStart = nameEnd + 1;
+            let depth = 1, j = callStart, inStr = false, esc = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (esc) { esc = false; j++; continue; }
+                if (c === '\\' && inStr) { esc = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(idx); break; }
+            const inside = content.slice(callStart, j);
+            const args = this.splitArgs(inside) ?? [];
+            // Recurse on each arg so nested shared calls also get wrapped.
+            const recArgs = args.map(a => this.wrapSharedHelperCalls(a));
+            // Defensive: clone bare-ident args so `exchange`-typed locals
+            // aren't moved when the same call site is re-entered.
+            const cloned = (a: string): string => {
+                const t = a.trim();
+                if (/\.clone(?:_self)?\(\)\s*$/.test(t)) return a;
+                if (/^&/.test(t)) return a;
+                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t)) return `${a}.clone()`;
+                return a;
+            };
+            if (!wrappable) {
+                // Non-wrappable (typed-second-arg) helpers: just clone
+                // bare-ident args defensively, don't reshape.
+                const clonedArgs = recArgs.map(cloned);
+                out += `${prefix}${name}(${clonedArgs.join(', ')})`;
+                i = j + 1;
+                continue;
+            }
+            if (recArgs.length <= 1) {
+                const exchangeArg = recArgs[0] ? cloned(recArgs[0]) : '';
+                out += `${prefix}${name}(${exchangeArg}${exchangeArg ? ', ' : ''}&[])`;
+            } else {
+                const last = recArgs[recArgs.length - 1].trim();
+                if (last.startsWith('&[')) {
+                    const wrappedRest = recArgs.slice(0, -1).map(cloned).concat(recArgs[recArgs.length - 1]);
+                    out += `${prefix}${name}(${wrappedRest.join(', ')})`;
+                } else {
+                    const head = cloned(recArgs[0]);
+                    const rest = recArgs.slice(1).map(a => a.trim().endsWith('.clone()') ? a : `${a}.clone()`).join(', ');
+                    out += `${prefix}${name}(${head}, &[${rest}])`;
+                }
+            }
+            i = j + 1;
+        }
+        return out;
+    }
+
+    /**
+     * Rewrites `<receiver>.<live_method>(args)` → `crate::live_dispatch::dispatch(&<receiver>, "<method>", vec![args])`.
+     *
+     * Mirrors Go's `exchange ccxt.ICoreExchange` typed parameter: the
+     * transpiler retypes the exchange-method call to go through the
+     * interface vtable to the real Core. In Rust we don't have a vtable
+     * trait — instead we route through the live_dispatch cache keyed by
+     * the exchange's id field. Same effective result: tests run the same
+     * code a user gets from `ccxt`, no hand-written ExchangeOps surface
+     * to maintain.
+     *
+     * Only LIVE methods are rewritten. Pure helpers (`safe_value`,
+     * `parse_number`, etc.) stay on the Value via ExchangeOps because
+     * they work on the snapshot data, not on a cached Core.
+     *
+     * Arg spreading: `&[a, b]` (variadic-slice form emitted upstream)
+     * is flattened into the vec — `dispatch(&ex, "m", vec![a, b])`
+     * rather than `vec![a, b, &[a, b]]`.
+     */
+    rewriteExchangeMethodCalls(content: string): string {
+        const LIVE_METHODS = new Set([
+            'cancel_all_orders', 'cancel_order', 'cancel_orders',
+            'create_order', 'create_orders', 'edit_order',
+            'fetch_accounts', 'fetch_balance', 'fetch_borrow_interest',
+            'fetch_closed_orders', 'fetch_currencies', 'fetch_deposit_address',
+            'fetch_deposit_addresses', 'fetch_deposits', 'fetch_funding_history',
+            'fetch_funding_rate', 'fetch_funding_rate_history', 'fetch_funding_rates',
+            'fetch_l2_order_book', 'fetch_last_prices', 'fetch_ledger',
+            'fetch_ledger_entry', 'fetch_leverage_tiers', 'fetch_liquidations',
+            'fetch_margin_mode', 'fetch_margin_modes', 'fetch_market_leverage_tiers',
+            'fetch_markets', 'fetch_my_liquidations', 'fetch_my_trades',
+            'fetch_ohlcv', 'fetch_open_interest', 'fetch_open_interest_history',
+            'fetch_open_orders', 'fetch_order', 'fetch_order_book',
+            'fetch_order_books', 'fetch_order_trades', 'fetch_orders',
+            'fetch_position', 'fetch_position_mode', 'fetch_positions',
+            'fetch_status', 'fetch_ticker', 'fetch_tickers', 'fetch_time',
+            'fetch_trades', 'fetch_trading_fee', 'fetch_trading_fees',
+            'fetch_trading_limits', 'fetch_transactions', 'fetch_transfers',
+            'fetch_withdrawals',
+            'load_markets', 'sign_in', 'set_leverage', 'set_margin_mode',
+            'set_position_mode', 'transfer',
+        ]);
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            // Find next `<word>.<word>(`.
+            const m = /([a-zA-Z_][a-zA-Z0-9_]*)\.([a-z_][a-z0-9_]*)\s*\(/.exec(content.slice(i));
+            if (!m) { out += content.slice(i); break; }
+            const callStart = i + (m.index ?? 0);
+            const [, receiver, method] = m;
+            const parenStart = callStart + m[0].length; // points past '('
+            if (!LIVE_METHODS.has(method)) {
+                out += content.slice(i, parenStart);
+                i = parenStart;
+                continue;
+            }
+            // Paren-balanced walk to closing ')'.
+            let depth = 1, j = parenStart, inStr = false, esc = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (esc) { esc = false; j++; continue; }
+                if (c === '\\' && inStr) { esc = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(i); break; }
+            const inside = content.slice(parenStart, j);
+            // Recurse so nested exchange-method calls also get rewritten.
+            const insideRewritten = this.rewriteExchangeMethodCalls(inside);
+            const args = this.splitArgs(insideRewritten) ?? [];
+            // Spread `&[a, b]` into the vec.
+            const flat: string[] = [];
+            for (const a of args) {
+                const t = a.trim();
+                if (t.startsWith('&[') && t.endsWith(']')) {
+                    const inner = t.slice(2, -1).trim();
+                    if (inner) {
+                        const subs = this.splitArgs(inner) ?? [];
+                        for (const s of subs) flat.push(s.trim());
+                    }
+                } else if (t) {
+                    flat.push(t);
+                }
+            }
+            // `dispatch` takes `&mut <snapshot>` so it can sync the
+            // captured `last_request_*` fields from the live Core back
+            // onto the snapshot Map after the call. Without `&mut`, the
+            // transpiled `exchange.last_request_body` reads after the
+            // dispatch would always see the stale initial snapshot.
+            const refReceiver = receiver.startsWith('&mut ')
+                ? receiver
+                : (receiver.startsWith('&')
+                    ? `&mut ${receiver.slice(1)}`
+                    : `&mut ${receiver}`);
+            out += content.slice(i, callStart)
+                + `crate::live_dispatch::dispatch(${refReceiver}, "${method}", vec![${flat.join(', ')}])`;
+            i = j + 1;
+        }
+        return out;
+    }
+
     stripCatchBlocks(content: string): string {
         const pattern = /\}\s*catch\s+\w+\s+\w+\s*\{/;
         let i = 0;
@@ -3050,6 +3244,30 @@ class RustTranspilerBuilder {
             array_slice:   2,
             parse_number:  1,
             decimal_to_precision: 3,
+            // ExchangeOps surface used by the unified-method tests.
+            // All take a trailing `optional_args: &[Value]` slot.
+            safeString:           2,
+            create_order:         4,
+            create_orders:        1,
+            fetch_ticker:         1,
+            fetch_balance:        0,
+            fetch_positions:      0,
+            fetch_ledger:         0,
+            fetch_last_prices:    0,
+            fetch_withdrawals:    0,
+            fetch_transactions:   0,
+            fetch_trading_fees:   0,
+            fetch:                1,
+            sign_in:              0,
+            load_markets:         0,
+            fetch_trading_fee:    1,
+            fetch_trades:         1,
+            fetch_tickers:        0,
+            fetch_status:         0,
+            fetch_orders:         0,
+            fetch_open_orders:    0,
+            fetch_order_book:     1,
+            fetch_order_books:    0,
         };
     }
 
@@ -3747,7 +3965,7 @@ impl ${coreName} {
     /// Casts the void pointer back to \`*mut Self\` and forwards to the
     /// real \`call_dynamic\`. Safety: the pointer must come from the
     /// matching Core's bind() — guaranteed by Exchange::bind_call_async.
-    fn __call_dynamic_dispatch<'a>(
+    pub fn __call_dynamic_dispatch<'a>(
         ptr: *mut (),
         method: &'a str,
         args: Vec<crate::Value>,
@@ -4327,6 +4545,10 @@ impl std::ops::DerefMut for ${coreName} {
                     [/\bassert\s*\(/g, 'assert!('],
                     [/assert!!+\(/g,   'assert!('],
                 ]).trim();
+                // `crate::tests_support::shared::assert_X(e, …)` calls
+                // — fold trailing args into `&[…]` to match the unified
+                // `(exchange, args: &[Value])` signature.
+                content = this.wrapSharedHelperCalls(content);
                 // Drop assert!'s second arg (a Value::Str message) —
                 // Rust's `assert!` requires a string-literal format,
                 // not a Value. Done paren-balanced so the regex above
@@ -4737,40 +4959,204 @@ impl std::ops::DerefMut for ${coreName} {
         return 'test' + stem.charAt(0).toUpperCase() + stem.slice(1);
     }
 
+    /**
+     * Runs the shared per-test-file pipeline (async detection, variadic
+     * wraps, namespace rewrites, assert handling, …). Used by both the
+     * base-test and exchange-test transpilation so they stay in sync.
+     */
+    runExchangeTestPipeline(content: string, asyncMethods: Set<string>): string {
+        content = this.regexAll(content, this.getRustRegexes(asyncMethods));
+        content = this.rewriteHashAlgoConstants(content);
+        content = this.rewriteBareErrorClassRefs(content);
+        content = this.rewriteDynamicThrows(content);
+        content = this.normalizeJwtCalls(content);
+        content = this.wrapBoolValueArgs(content);
+        content = this.rewriteTryCatchAsync(content);
+        content = this.rewriteNamespaceCalls(content, 'Math',    'crate::runtime::Math',    true);
+        content = this.rewriteNamespaceCalls(content, 'Precise', 'crate::precise::Precise', true);
+        content = this.renamePreciseStringDivPrec(content);
+        content = this.dropExtraPreciseArgs(content);
+        content = this.wrapVariadicCalls(content, this.handWrittenVariadics());
+        content = this.autoCloneCallArgs(content);
+        content = this.cloneInArrayLiterals(content);
+        content = this.rewriteValueFieldAccess(content);
+        content = this.rewriteGetValueAssignments(content);
+        content = this.splitAddElementBorrowConflicts(content);
+        content = this.splitGetValueMutAdds(content);
+        content = this.markMethodsAsyncIfBodyAwaits(content);
+        // Belt + braces: mark a fn async if its body holds `.await`.
+        content = content.replace(
+            /(^|\n)(\s*)(pub\s+)?fn\s+(\w+)\s*\(/g,
+            (full, before, indent, pub_, _name) => {
+                const startIdx = content.indexOf(full);
+                const braceIdx = content.indexOf('{', startIdx);
+                if (braceIdx < 0) return full;
+                let depth = 1, j = braceIdx + 1, inStr = false, esc = false;
+                while (j < content.length && depth > 0) {
+                    const c = content[j];
+                    if (esc) { esc = false; j++; continue; }
+                    if (c === '\\' && inStr) { esc = true; j++; continue; }
+                    if (c === '"') { inStr = !inStr; j++; continue; }
+                    if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
+                    if (depth === 0) break;
+                    j++;
+                }
+                if (!content.slice(braceIdx, j).includes('.await')) return full;
+                if ((pub_ || '').includes('async')) return full;
+                return `${before}${indent}${pub_ || ''}async fn ${_name}(`;
+            },
+        );
+        content = this.appendValueNullToVoidEnds(content);
+        content = this.regexAll(content, [
+            [/^(\s*)fn (test[A-Za-z0-9_]*)\(/gm, '$1pub fn $2('],
+            [/^(\s*)async fn (test[A-Za-z0-9_]*)\(/gm, '$1pub async fn $2('],
+            [/\bcrate::runtime\b/g,         'ccxt::runtime'],
+            [/\bcrate::Value\b/g,           'ccxt::Value'],
+            [/\bcrate::get_value\b/g,       'ccxt::get_value'],
+            [/\bcrate::set_value\b/g,       'ccxt::set_value'],
+            [/\bcrate::value\b/g,           'ccxt::value'],
+            [/\bcrate::exchange_errors\b/g, 'ccxt::exchange_errors'],
+            [/\bcrate::exchange::/g,        'ccxt::exchange::'],
+            [/\bcrate::precise\b/g,         'ccxt::precise'],
+            [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
+            [/ccxt::Exchange::new\(/g, 'crate::tests_support::make_exchange('],
+            [/\btestSharedMethods\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g, (_: string, name: string) =>
+                `crate::tests_support::shared::${toSnakeCase(name)}(`],
+            [/\bEqualsMethod\b/g, ''],
+            [/\bassert\s*\(/g, 'assert!('],
+            [/assert!!+\(/g,   'assert!('],
+        ]).trim();
+        content = this.wrapSharedHelperCalls(content);
+        // Go-style: retype exchange-method calls to dispatch through
+        // the cached real Core (mirrors `exchange ccxt.ICoreExchange`
+        // interface dispatch in Go). Replaces what was hand-stubbed
+        // in `ExchangeOps` for fetch_*/create_*/load_markets/sign_in/etc.
+        content = this.rewriteExchangeMethodCalls(content);
+        content = this.stripAssertSecondArg(content);
+        content = this.wrapAssertInIsTrue(content);
+        return content;
+    }
+
+    /**
+     * Transpiles the unified-method tests (`ts/src/test/Exchange/*.ts`)
+     * and the structure validators (`ts/src/test/Exchange/base/*.ts`)
+     * into `rust/tests/exchange/`, plus a `mod.rs` that re-exports each
+     * entry point and emits a `call_test` dispatcher. Mirrors Go's
+     * `transpileExchangeTests` + `createFunctionsMapFile`.
+     */
     transpileExchangeTests(outDir: string) {
-        const tsFolder = './ts/src/test/Exchange';
-        if (!fs.existsSync(tsFolder)) return;
-
-        const testFiles = fs.readdirSync(tsFolder)
-            .filter(f => f.endsWith('.ts'))
-            .map(f => f.replace('.ts', ''));
-
-        for (const testName of testFiles) {
-            const tsFile = `${tsFolder}/${testName}.ts`;
-            const outFile = `${outDir}/${testName}.rs`;
-            log.magenta('Transpiling from', (tsFile as any).yellow);
-
-            try {
-                const result = this.transpiler.transpileRustByPath(tsFile);
-                let content = result.content ?? '';
-                content = this.regexAll(content, [
-                    [/assert/g, 'assert!'],
-                    [/object exchange/g, 'exchange: &dyn crate::exchange::ExchangeTrait'],
-                ]).trim();
-
-                const file = [
-                    ...this.createGeneratedHeader(),
-                    'use crate::*;',
-                    '',
-                    content,
-                ].join('\n');
-
-                overwriteFileAndFolder(outFile, file);
-                log.magenta('→', (outFile as any).yellow);
-            } catch (e: any) {
-                log.red(`[rust] Error transpiling exchange test ${testName}:`, e.message ?? e);
+        // [folder, isValidator]
+        const folders: Array<[string, boolean]> = [
+            ['./ts/src/test/Exchange/base', true],
+            ['./ts/src/test/Exchange',      false],
+        ];
+        const written: Array<{ name: string, entry: string, isAsync: boolean, extraArgs: number, isMethodTest: boolean }> = [];
+        for (const [folder, isValidator] of folders) {
+            if (!fs.existsSync(folder)) continue;
+            const files = fs.readdirSync(folder)
+                .filter(f => f.endsWith('.ts'))
+                .map(f => f.replace('.ts', ''));
+            for (const testName of files) {
+                // `test.sharedMethods` stays hand-written (`tests_support::shared`).
+                if (testName === 'test.sharedMethods') continue;
+                const tsFile = `${folder}/${testName}.ts`;
+                if (fs.readFileSync(tsFile, 'utf8').includes('// NO_AUTO_TRANSPILE')) continue;
+                try {
+                    const result = this.transpiler.transpileRustByPath(tsFile);
+                    const asyncMethods = new Set<string>(
+                        (result.methodsTypes || [])
+                            .filter((m: any) => m.async)
+                            .map((m: any) => m.name),
+                    );
+                    let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                    // Locate the entry fn: `test<Stem>`, else the first `test*`.
+                    const stem = testName.replace(/^test\./, '');
+                    const cand = 'test' + stem.charAt(0).toUpperCase() + stem.slice(1);
+                    let entry = cand;
+                    let m = content.match(new RegExp(`\\bfn\\s+(${cand})\\s*\\(([^)]*)\\)`));
+                    if (!m) m = content.match(/\bfn\s+(test[A-Za-z0-9_]*)\s*\(([^)]*)\)/);
+                    let extraArgs = 0;
+                    let isAsync = false;
+                    if (m) {
+                        entry = m[1];
+                        const params = m[2].split(',').map(s => s.trim()).filter(Boolean);
+                        // params 0,1 are exchange + skippedProperties; the rest
+                        // come from the `args` list passed to callMethod.
+                        extraArgs = Math.max(0, params.length - 2);
+                        isAsync = new RegExp(`\\bpub\\s+async\\s+fn\\s+${entry}\\b`).test(content);
+                    }
+                    const file = [
+                        ...this.createGeneratedHeader(),
+                        '#![allow(unused, non_snake_case, dead_code, clippy::all)]',
+                        'use ccxt::Value;',
+                        'use ccxt::get_value;',
+                        'use ccxt::runtime::*;',
+                        'use crate::test_helpers::*;',
+                        '// sibling validators / method tests are re-exported from mod.rs',
+                        'use super::*;',
+                        '',
+                        content,
+                    ].join('\n');
+                    overwriteFileAndFolder(`${outDir}/${testName}.rs`, file);
+                    written.push({ name: testName, entry, isAsync, extraArgs, isMethodTest: !isValidator });
+                } catch (e: any) {
+                    log.red(`[rust] Error transpiling exchange test ${testName}:`, e.message ?? e);
+                }
             }
         }
+        this.writeExchangeTestsModFile(outDir, written);
+    }
+
+    /**
+     * Emits `rust/tests/exchange/mod.rs` — declares each test module,
+     * re-exports its entry point (so method tests can call validators
+     * as bare `testTicker(...)`), and generates `call_test(name, …)` —
+     * the Go `FunctionsMap` + `CallMethod` equivalent.
+     */
+    writeExchangeTestsModFile(
+        outDir: string,
+        written: Array<{ name: string, entry: string, isAsync: boolean, extraArgs: number, isMethodTest: boolean }>,
+    ) {
+        const modLines = written.map(w =>
+            `#[path = "${w.name}.rs"] pub mod ${this.modIdentFor(w.name)};\n` +
+            `pub use ${this.modIdentFor(w.name)}::${w.entry};`,
+        ).join('\n');
+        const methodTests = written.filter(w => w.isMethodTest);
+        const arms = methodTests.map(w => {
+            const stem = w.name.replace(/^test\./, '');
+            const extra = Array.from({ length: w.extraArgs },
+                (_, i) => `, get_value(&args, &Value::Int(${i}))`).join('');
+            const call = `${w.entry}(exchange, skipped${extra})${w.isAsync ? '.await' : ''}`;
+            return `        "${stem}" => { ${call}; }`;
+        }).join('\n');
+        const markers = methodTests.map(w =>
+            `    m.insert("${w.name.replace(/^test\./, '')}".to_string(), Value::Bool(true));`,
+        ).join('\n');
+        const file = [
+            ...this.createGeneratedHeader(),
+            '#![allow(unused, non_snake_case, dead_code, clippy::all)]',
+            'use ccxt::Value;',
+            'use ccxt::get_value;',
+            '',
+            modLines,
+            '',
+            '/// Marker map of available method tests (Go `FunctionsMap`).',
+            'pub fn available_tests() -> Value {',
+            '    let mut m = std::collections::HashMap::new();',
+            markers,
+            '    Value::Map(m)',
+            '}',
+            '',
+            '/// Dispatch a unified-method test by name (Go `CallMethod`).',
+            'pub async fn call_test(name: &str, exchange: Value, skipped: Value, args: Value) {',
+            '    match name {',
+            arms,
+            '        _ => {}',
+            '    }',
+            '}',
+            '',
+        ].join('\n');
+        overwriteFileAndFolder(`${outDir}/mod.rs`, file);
     }
 
     transpileTests() {
@@ -4833,6 +5219,12 @@ impl std::ops::DerefMut for ${coreName} {
                 check_required_credentials: 0,
                 deepExtend:                 1,
             });
+            // Go-style interface dispatch: retype `exchange.<live_method>(args)`
+            // → `crate::live_dispatch::dispatch(&exchange, "<method>", vec![args])`.
+            // Mirrors what runExchangeTestPipeline does for the per-test
+            // files. Has to run AFTER wrapVariadicCalls so `&[]` slices
+            // are already formed and can be flattened into the vec.
+            content = this.rewriteExchangeMethodCalls(content);
             content = this.autoCloneCallArgs(content);
             content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);

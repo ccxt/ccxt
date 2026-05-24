@@ -181,7 +181,20 @@ pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float
 pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
 pub fn is_integer(v: &Value)  -> bool { matches!(v, Value::Int(_)) }
 pub fn is_function(_v: &Value)-> bool { false }
-pub fn is_instance(_a: &Value, _b: &Value) -> bool { false }
+/// Mirrors TS `e instanceof <ClassName>`: panic payloads in the
+/// transpiled tests are `Value::Str(format!("[{kind}] {message}"))`
+/// (see `ExchangeError`'s `Display` impl), so the class name is whatever
+/// sits between the first pair of square brackets. Matches the
+/// expected-error-class names that broker-id and static-request tests
+/// pass as `Value::Str("InvalidProxySettings")`.
+pub fn is_instance(value: &Value, class: &Value) -> bool {
+    let (msg, cls) = match (value, class) {
+        (Value::Str(s), Value::Str(c)) => (s, c),
+        _ => return false,
+    };
+    let bracketed = format!("[{cls}]");
+    msg.contains(&bracketed)
+}
 
 // ── element access ───────────────────────────────────────────────────────────
 

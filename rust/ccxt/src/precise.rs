@@ -276,9 +276,34 @@ impl Precise {
     fn vopt(s: Option<String>) -> crate::Value { match s { Some(s) => crate::Value::Str(s), None => crate::Value::Null } }
     fn vbool(b: Option<bool>)  -> crate::Value { match b { Some(b) => crate::Value::Bool(b), None => crate::Value::Null } }
 
-    pub fn stringAdd(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::vopt(string_add(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringSub(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::vopt(string_sub(&Self::vstr(a), &Self::vstr(b))) }
-    pub fn stringMul(a: &crate::Value, b: &crate::Value) -> crate::Value { Self::vopt(string_mul(&Self::vstr(a), &Self::vstr(b))) }
+    /// Mirrors TS `Precise.stringAdd`: when one operand is `undefined` /
+    /// `null` it returns the OTHER side (treating the missing value as the
+    /// arithmetic identity). Bitget's `parsePosition` relies on this when
+    /// `keepMarginRate` is missing (UTA response uses `mmr` instead), so
+    /// `Precise.stringAdd(undefined, feeToClose)` should yield `feeToClose`.
+    pub fn stringAdd(a: &crate::Value, b: &crate::Value) -> crate::Value {
+        match (matches!(a, crate::Value::Null), matches!(b, crate::Value::Null)) {
+            (true, true)   => crate::Value::Null,
+            (true, false)  => b.clone(),
+            (false, true)  => a.clone(),
+            (false, false) => Self::vopt(string_add(&Self::vstr(a), &Self::vstr(b))),
+        }
+    }
+    /// Mirrors TS `Precise.stringSub`: either operand undefined → undefined.
+    pub fn stringSub(a: &crate::Value, b: &crate::Value) -> crate::Value {
+        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+            return crate::Value::Null;
+        }
+        Self::vopt(string_sub(&Self::vstr(a), &Self::vstr(b)))
+    }
+    /// Mirrors TS `Precise.stringMul`: any undefined operand → undefined
+    /// (matches the typescript `x * undefined === NaN → undefined` chain).
+    pub fn stringMul(a: &crate::Value, b: &crate::Value) -> crate::Value {
+        if matches!(a, crate::Value::Null) || matches!(b, crate::Value::Null) {
+            return crate::Value::Null;
+        }
+        Self::vopt(string_mul(&Self::vstr(a), &Self::vstr(b)))
+    }
     pub fn stringDiv(a: &crate::Value, b: &crate::Value) -> crate::Value {
         // TS `Precise.stringDiv` defaults to precision 18 (truncating).
         Self::vopt(string_div_prec(&Self::vstr(a), &Self::vstr(b), 18))

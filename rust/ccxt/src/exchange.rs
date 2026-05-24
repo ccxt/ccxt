@@ -263,13 +263,10 @@ pub struct Exchange {
     pub last_request_body:       Value,
     pub last_http_response:      Value,
     pub last_response_headers:   Value,
-    /// When `Bool(true)`, `fetch_typed` records the request and returns
-    /// `Err(OfflineMode)` without hitting the network. Used by static
-    /// request tests to assert URL/body without needing a live exchange.
-    pub offline_mode:            Value,
     /// Canned HTTP response for static *response* tests — when set,
-    /// `fetch` returns it instead of erroring in offline mode, so the
-    /// exchange's parser runs against fixture data.
+    /// `fetch_typed` returns it without hitting the network so the
+    /// exchange's parser runs against fixture data. Mirrors Go's
+    /// `MockResponse` field. Cleared back to `Null` after dispatch.
     pub mock_response:           Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
@@ -544,7 +541,6 @@ impl Exchange {
             last_request_body:          Value::Null,
             last_http_response:         Value::Null,
             last_response_headers:      Value::Null,
-            offline_mode:               Value::Bool(false),
             mock_response:              Value::Null,
             last_json_response:         Value::Null,
             lastRestRequestTimestamp:   Value::Int(0),
@@ -606,7 +602,6 @@ impl Exchange {
         if let Some(v) = safe_string(cfg, "httpsProxy",    None) { self.httpsProxy    = Value::Str(v); }
         if let Some(b) = crate::value::safe_bool(cfg, "verbose",         None) { self.verbose         = Value::Bool(b); }
         if let Some(b) = crate::value::safe_bool(cfg, "enableRateLimit", None) { self.enableRateLimit = Value::Bool(b); }
-        if let Some(b) = crate::value::safe_bool(cfg, "offline",         None) { self.offline_mode    = Value::Bool(b); }
         // Pre-populated state (mirrors CCXT TS Exchange constructor):
         // markets/currencies/options arrive ready to use from offline
         // tests, the CLI, or library users seeding state. `setMarkets`
@@ -688,7 +683,16 @@ impl Exchange {
     }
 
     fn proxy_str(&self) -> Option<&str> {
-        match &self.proxy { Value::Str(s) if !s.is_empty() => Some(s.as_str()), _ => None }
+        // Honour `proxy` first (legacy CCXT setter), then the scheme-
+        // specific aliases. Offline broker-id / static tests rely on
+        // `httpsProxy` pointing at a fake host so requests fail locally
+        // instead of leaving the machine.
+        for v in [&self.proxy, &self.httpsProxy, &self.https_proxy, &self.httpProxy, &self.http_proxy] {
+            if let Value::Str(s) = v {
+                if !s.is_empty() { return Some(s.as_str()); }
+            }
+        }
+        None
     }
 
     fn is_verbose(&self) -> bool {
@@ -737,17 +741,37 @@ impl Exchange {
             Some(b) => Value::Str(b.clone()),
             None    => Value::Null,
         };
-        // Offline mode: short-circuit before any network I/O. Test
-        // runners flip this via `set_offline_mode(true)`.
-        if matches!(self.offline_mode, Value::Bool(true)) {
-            // Static *response* tests inject a canned response — return
-            // it so the exchange's parser runs against fixture data.
-            if !matches!(self.mock_response, Value::Null) {
-                return Ok(self.mock_response.clone());
-            }
+        // Static *response* tests stash a canned response on the
+        // exchange — return it without hitting the network so the
+        // exchange's parser runs against fixture data. Mirrors Go's
+        // `FetchResponse`: persistent for the lifetime of the test
+        // case, so methods that make multiple fetches (e.g. gate's
+        // `fetchMyTrades` follow-up calls) all see the same payload.
+        // The test harness clears it explicitly with `setFetchResponse(_, null)`.
+        if !matches!(self.mock_response, Value::Null) {
+            return Ok(self.mock_response.clone());
+        }
+        // Mirror TS `checkProxySettings` — static request tests set
+        // both `httpProxy` and `httpsProxy` to a sentinel value to make
+        // the offline path throw `InvalidProxySettings` *after* the
+        // request URL/body have been recorded. The test catch block
+        // looks for that specific error class and reads back
+        // `last_request_*`. Without this throw, dispatch silently
+        // network-fails and the catch block never runs.
+        let proxy_defined = |v: &Value| matches!(v, Value::Str(s) if !s.is_empty());
+        // Pair up snake/camel aliases so setting (e.g.) `httpProxy` doesn't
+        // double-count as `http_proxy`. Mirrors TS `checkProxySettings`
+        // where each proxy "slot" is consulted via two property names.
+        let used_proxies = [
+            proxy_defined(&self.httpProxy)  || proxy_defined(&self.http_proxy),
+            proxy_defined(&self.httpsProxy) || proxy_defined(&self.https_proxy),
+            proxy_defined(&self.socksProxy) || proxy_defined(&self.socks_proxy),
+        ].iter().filter(|x| **x).count();
+        if used_proxies > 1 {
             return Err(ExchangeError::new(
-                "OfflineMode",
-                format!("offline mode active — no network call made for {method} {url}"),
+                "InvalidProxySettings",
+                format!("{} you have multiple conflicting proxy settings, please use only one from: httpProxy, httpsProxy, socksProxy",
+                    match &self.id { Value::Str(s) => s.as_str(), _ => "" }),
             ));
         }
         let client = self.http_client().clone();

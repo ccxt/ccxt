@@ -217,10 +217,17 @@ pub fn setFetchResponse(exchange: &mut Value, response: Value) -> Value {
 pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     let cfg = optional_args.get(0).cloned().unwrap_or(Value::Map(HashMap::new()));
     let id = match &exchange_id { Value::Str(s) => s.clone(), _ => String::new() };
+    // Always build the real exchange Core so `exchange.<method>(...)` in
+    // tests runs the same code a user gets from `ccxt` (mirrors Go's
+    // typed-interface dispatch). `apply_config` accepts pre-loaded
+    // `markets` / `options` from offline harnesses (broker-id tests,
+    // static request/response) — the cached Core simply uses them.
+    if !id.is_empty() {
+        crate::live_dispatch::ensure_live_core(&id, cfg.clone());
+    }
     // Snapshot the real exchange so its `describe()` output (notably
-    // `options.brokerId` / `options.broker`, which broker-id tests
-    // assert) is present. Falls back to a bare config map for ids with
-    // no registered Core.
+    // `options.brokerId`, which broker-id tests assert) is present.
+    // Falls back to a bare config map for ids with no registered Core.
     let snap = crate::registry::exchange_snapshot(&id, cfg.clone());
     if let Value::Map(mut m) = snap {
         m.insert("id".to_string(), exchange_id);
@@ -236,6 +243,16 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
 
 pub async fn close(_exchange: Value) -> Value { Value::Null }
 
+#[cfg(feature = "exchange-tests")]
+pub async fn callMethod(
+    _test_files: Value, method_name: Value, exchange: Value,
+    skipped_properties: Value, args: Value,
+) -> Value {
+    let name = match &method_name { Value::Str(s) => s.clone(), _ => return Value::Null };
+    crate::exchange_transpiled::call_test(&name, exchange, skipped_properties, args).await;
+    Value::Null
+}
+#[cfg(not(feature = "exchange-tests"))]
 pub async fn callMethod(
     _test_files: Value, _method_name: Value, _exchange: Value,
     _skipped_properties: Value, _args: Value,
@@ -258,10 +275,6 @@ pub fn callMethodSync(
 pub async fn callExchangeMethodDynamically(
     exchange: &mut Value, method_name: Value, args: Value,
 ) -> Value {
-    let id = match ccxt::get_value(exchange, &Value::Str("id".to_string())) {
-        Value::Str(s) => s,
-        _ => return Value::Null,
-    };
     let method = match &method_name {
         Value::Str(s) => s.clone(),
         _ => return Value::Null,
@@ -271,31 +284,12 @@ pub async fn callExchangeMethodDynamically(
         Value::Null     => Vec::new(),
         other           => vec![other],
     };
-    let options = ccxt::get_value(exchange, &Value::Str("options".to_string()));
-    // Static *response* test: a mock was stashed by `setFetchResponse`
-    // — dispatch through the mocked-response path and return the parsed
-    // result the caller compares against `parsedResponse`.
-    let mock = ccxt::get_value(exchange, &Value::Str("__fetchResponse".to_string()));
-    if !matches!(mock, Value::Null) {
-        return crate::registry::dispatch_response(&id, &method, arg_vec, &options, mock).await;
-    }
-    let captured = crate::registry::dispatch(&id, &method, arg_vec, &options).await;
-    // Only refresh last_request_* when the call actually built a request.
-    // A method that throws before `fetch` (e.g. htx's inverse createOrder,
-    // which requires `params.offset`) leaves the previous request in
-    // place — matching how one persistent exchange behaves in TS/Go,
-    // where broker-id tests read the prior call's `last_request_body`.
-    if !captured.url.is_empty() || captured.body.is_some() {
-        ccxt::set_value(exchange, &Value::Str("last_request_url".to_string()),
-                        Value::Str(captured.url));
-        ccxt::set_value(exchange, &Value::Str("last_request_body".to_string()),
-                        match captured.body { Some(b) => Value::Str(b), None => Value::Null });
-        let mut hm = HashMap::new();
-        for (k, v) in captured.headers { hm.insert(k, Value::Str(v)); }
-        ccxt::set_value(exchange, &Value::Str("last_request_headers".to_string()),
-                        Value::Map(hm));
-    }
-    Value::Null
+    // Static *response* test: a canned response was stashed via
+    // `setFetchResponse`. Live dispatch consumes it inside `fetch_typed`
+    // (mirrors Go's `mockResponse`), then runs the exchange parser
+    // against it. No proxy throw fires because the canned response
+    // short-circuits the network path.
+    crate::live_dispatch::dispatch(exchange, &method, arg_vec).await
 }
 
 pub fn callExchangeMethodDynamicallySync(
@@ -304,28 +298,38 @@ pub fn callExchangeMethodDynamicallySync(
     Value::Null
 }
 
+#[cfg(feature = "exchange-tests")]
+pub async fn getTestFiles(_properties: Value, _ws: Value) -> Value {
+    crate::exchange_transpiled::available_tests()
+}
+#[cfg(not(feature = "exchange-tests"))]
 pub async fn getTestFiles(_properties: Value, _ws: Value) -> Value {
     Value::Map(HashMap::new())
 }
 
+#[cfg(feature = "exchange-tests")]
+pub fn getTestFilesSync(_properties: Value, _ws: Value) -> Value {
+    crate::exchange_transpiled::available_tests()
+}
+#[cfg(not(feature = "exchange-tests"))]
 pub fn getTestFilesSync(_properties: Value, _ws: Value) -> Value {
     Value::Map(HashMap::new())
 }
 
 // ── exchange-method surface (`ExchangeOps`) ─────────────────────────────────
 //
-// The transpiled `tests.rs` calls a handful of methods directly on its
-// `exchange` values (`exchange.safeValue(...)`, `exchange.createOrder(...)`,
-// …). In Go these resolve because `exchange` is typed `ICoreExchange`.
-// Here `exchange` stays a `Value`, so this extension trait supplies the
-// surface — avoiding a full retype-and-thread-`Exchange` cascade.
+// PURE-HELPER ONLY. Live methods (`fetch_*`, `create_*`, `load_markets`,
+// `sign_in`, etc.) are NOT here — the transpiler now rewrites those calls
+// to `live_dispatch::dispatch(&exchange, "<method>", vec![args])`, which
+// forwards to the cached real `<X>Core`. Mirrors Go's `exchange
+// ccxt.ICoreExchange` typed-interface dispatch: same code in tests as
+// users get from `ccxt`.
 //
-//   * Pure base methods delegate to a throwaway `Exchange` instance
-//     (they don't read exchange state).
-//   * Stateful / live methods (`createOrder`, `loadMarkets`, …) are
-//     stubs — the static request/response path dispatches through
-//     `callExchangeMethodDynamically`, and the broker-id / live paths
-//     aren't exercised by the offline test runs.
+// What stays here are the pure base helpers (`safe_value`, `parse_number`,
+// `deep_extend`, …) that operate on the exchange Value's data, not on a
+// cached Core. They're still callable as `exchange.safe_value(...)` from
+// the transpiled tests, and route through a throwaway base Exchange
+// instance — no network, no per-exchange state.
 
 use ccxt::exchange::Exchange;
 
@@ -353,10 +357,24 @@ pub trait ExchangeOps {
     fn set_sandbox_mode(&self, enabled: Value);
     fn extend_exchange_options(&mut self, options: Value) -> Value;
     fn check_required_credentials(&self, optional_args: &[Value]) -> Value;
-    fn create_order(&mut self, symbol: Value, type_var: Value, side: Value, amount: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
-    fn create_orders(&mut self, orders: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
-    fn fetch_ticker(&self, symbol: Value, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
-    fn load_markets(&self, optional_args: &[Value]) -> impl std::future::Future<Output = Value>;
+    fn parse_number(&self, n: Value, optional_args: &[Value]) -> Value;
+    fn safe_number(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_integer(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
+    fn safe_string_n(&self, d: Value, keys: Value, optional_args: &[Value]) -> Value;
+    fn omit_zero(&self, s: Value) -> Value;
+    fn array_concat(&self, a: Value, b: Value) -> Value;
+    /// Reflects `exchange.setProperty(exchange, key, value)` from TS —
+    /// the receiver and first arg are the same Value, hence the
+    /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
+    fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
+    fn parse_timeframe(&self, tf: Value) -> Value;
+    fn iso8601(&self, ts: Value) -> Value;
+    fn milliseconds(&self) -> Value;
+    fn safeString(&self, d: Value, key: Value, optional_args: &[Value]) -> Value;
+    fn exception_message(&self, e: Value) -> Value;
+    fn decimal_to_precision(&self, n: Value, rounding: Value, precision: Value, optional_args: &[Value]) -> Value;
+    /// Offline tests don't really wait — `sleep` is a no-op so retry
+    /// loops resolve instantly.
     fn sleep(&self, ms: Value) -> impl std::future::Future<Output = Value>;
 }
 
@@ -394,24 +412,28 @@ impl ExchangeOps for Value {
         merged
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
-    /// Offline `createOrder` — dispatches through the registry (which
-    /// builds the request and stashes `last_request_*` onto `self`),
-    /// then panics to mimic the exchange throwing (no server to answer).
-    /// The transpiled `try { createOrder } catch { capture }` relies on
-    /// that throw to run its capture branch.
-    async fn create_order(&mut self, symbol: Value, type_var: Value, side: Value, amount: Value, o: &[Value]) -> Value {
-        let mut args = vec![symbol, type_var, side, amount];
-        args.extend_from_slice(o);
-        callExchangeMethodDynamically(self, Value::Str("createOrder".to_string()), Value::Array(args)).await;
-        panic!("offline createOrder");
+    fn parse_number(&self, n: Value, o: &[Value]) -> Value { base_exchange().parse_number(n, o) }
+    fn safe_number(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_number(d, key, o) }
+    fn safe_integer(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_integer(d, key, o) }
+    fn safe_string_n(&self, d: Value, keys: Value, o: &[Value]) -> Value { base_exchange().safe_string_n(d, keys, o) }
+    fn omit_zero(&self, s: Value)                -> Value { base_exchange().omit_zero(s) }
+    fn array_concat(&self, a: Value, b: Value)   -> Value { base_exchange().array_concat(a, b) }
+    fn parse_timeframe(&self, tf: Value)         -> Value { base_exchange().parse_timeframe(tf) }
+    fn iso8601(&self, ts: Value)                 -> Value { base_exchange().iso8601(ts) }
+    fn milliseconds(&self)                        -> Value { base_exchange().milliseconds() }
+    /// Set a field on the exchange Value-map by key. The
+    /// transpiled tests use this to inject precision/markets/etc.
+    /// Three-arg form matches TS `setProperty(exchange, key, value)`.
+    fn set_property(&mut self, _redundant_exchange: Value, key: Value, value: Value) {
+        ccxt::set_value(self, &key, value);
     }
-    async fn create_orders(&mut self, orders: Value, _o: &[Value]) -> Value {
-        callExchangeMethodDynamically(self, Value::Str("createOrders".to_string()), Value::Array(vec![orders])).await;
-        panic!("offline createOrders");
+    /// camelCase alias — some test files slip through the snake-case rewrite.
+    fn safeString(&self, d: Value, key: Value, o: &[Value]) -> Value {
+        base_exchange().safe_string(d, key, o)
     }
-    async fn fetch_ticker(&self, _symbol: Value, _o: &[Value]) -> Value { Value::Null }
-    async fn load_markets(&self, _o: &[Value]) -> Value { Value::Null }
-    /// Offline tests don't really wait — `sleep` is a no-op so retry
-    /// loops resolve instantly.
+    fn exception_message(&self, e: Value) -> Value { exceptionMessage(e) }
+    fn decimal_to_precision(&self, n: Value, rounding: Value, precision: Value, o: &[Value]) -> Value {
+        base_exchange().decimal_to_precision(n, rounding, precision, o)
+    }
     async fn sleep(&self, _ms: Value) -> Value { Value::Null }
 }

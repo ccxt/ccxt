@@ -6,21 +6,173 @@
 
 use ccxt::Value;
 use ccxt::exchanges::{
-    backpack::BackpackCore, binance::BinanceCore, bingx::BingxCore,
-    bitget::BitgetCore, bitmart::BitmartCore, blofin::BlofinCore,
-    bybit::BybitCore, coinbase::CoinbaseCore,
-    coinbaseinternational::CoinbaseinternationalCore, coinex::CoinexCore,
-    cryptocom::CryptocomCore, cryptomus::CryptomusCore, derive::DeriveCore,
-    gate::GateCore, hashkey::HashkeyCore, htx::HtxCore,
-    hyperliquid::HyperliquidCore, kucoin::KucoinCore,
-    kucoinfutures::KucoinfuturesCore, mexc::MexcCore, modetrade::ModetradeCore,
-    okx::OkxCore, oxfun::OxfunCore, paradex::ParadexCore, phemex::PhemexCore,
-    toobit::ToobitCore, weex::WeexCore, woo::WooCore, woofipro::WoofiproCore,
-    xt::XtCore,
+    aftermath::AftermathCore, alpaca::AlpacaCore, apex::ApexCore,
+    arkham::ArkhamCore, ascendex::AscendexCore, aster::AsterCore,
+    backpack::BackpackCore, bequant::BequantCore, bigone::BigoneCore,
+    binance::BinanceCore, binancecoinm::BinancecoinmCore,
+    binanceus::BinanceusCore, binanceusdm::BinanceusdmCore,
+    bingx::BingxCore, bit2c::Bit2cCore, bitbank::BitbankCore,
+    bitbns::BitbnsCore, bitfinex::BitfinexCore, bitflyer::BitflyerCore,
+    bitget::BitgetCore, bithumb::BithumbCore, bitmart::BitmartCore,
+    bitmex::BitmexCore, bitopro::BitoproCore, bitrue::BitrueCore,
+    bitso::BitsoCore, bitstamp::BitstampCore, bitteam::BitteamCore,
+    bittrade::BittradeCore, bitvavo::BitvavoCore,
+    blockchaincom::BlockchaincomCore, blofin::BlofinCore,
+    btcbox::BtcboxCore, btcmarkets::BtcmarketsCore, btcturk::BtcturkCore,
+    bullish::BullishCore, bybit::BybitCore, bydfi::BydfiCore, cex::CexCore,
+    coinbase::CoinbaseCore, coinbaseadvanced::CoinbaseadvancedCore,
+    coinbaseexchange::CoinbaseexchangeCore,
+    coinbaseinternational::CoinbaseinternationalCore,
+    coincheck::CoincheckCore, coinex::CoinexCore, coinmate::CoinmateCore,
+    coinmetro::CoinmetroCore, coinone::CoinoneCore, coinsph::CoinsphCore,
+    coinspot::CoinspotCore, cryptocom::CryptocomCore,
+    cryptomus::CryptomusCore, deepcoin::DeepcoinCore, delta::DeltaCore,
+    deribit::DeribitCore, derive::DeriveCore, digifinex::DigifinexCore,
+    dydx::DydxCore, exmo::ExmoCore, fmfwio::FmfwioCore, foxbit::FoxbitCore,
+    gate::GateCore, gateio::GateioCore, gemini::GeminiCore, grvt::GrvtCore,
+    hashkey::HashkeyCore, hibachi::HibachiCore, hitbtc::HitbtcCore,
+    hollaex::HollaexCore, htx::HtxCore, huobi::HuobiCore,
+    hyperliquid::HyperliquidCore,
+    independentreserve::IndependentreserveCore, indodax::IndodaxCore,
+    kraken::KrakenCore, krakenfutures::KrakenfuturesCore,
+    kucoin::KucoinCore, kucoinfutures::KucoinfuturesCore,
+    latoken::LatokenCore, lbank::LbankCore, lighter::LighterCore,
+    luno::LunoCore, mercado::MercadoCore, mexc::MexcCore,
+    modetrade::ModetradeCore, myokx::MyokxCore, ndax::NdaxCore,
+    novadax::NovadaxCore, okx::OkxCore, okxus::OkxusCore,
+    onetrading::OnetradingCore, oxfun::OxfunCore, p2b::P2bCore,
+    pacifica::PacificaCore, paradex::ParadexCore, paymium::PaymiumCore,
+    phemex::PhemexCore, poloniex::PoloniexCore, tokocrypto::TokocryptoCore,
+    toobit::ToobitCore, upbit::UpbitCore, wavesexchange::WavesexchangeCore,
+    weex::WeexCore, whitebit::WhitebitCore, woo::WooCore,
+    woofipro::WoofiproCore, xt::XtCore, yobit::YobitCore, zaif::ZaifCore,
+    zebpay::ZebpayCore,
 };
 use std::collections::HashMap;
 use std::panic;
 use futures::FutureExt;
+
+/// One macro definition, three matches. Each consumer defines its own
+/// per-id callback macro (`arm!`, `snapshot_arm!`, `has_arm!`) then
+/// invokes `for_each_core!(arm)` to expand the same id list across all
+/// 110 exchanges. Source of truth for "which exchanges are testable
+/// offline" lives in exactly one place — adding a new exchange means
+/// one line here. Keep this in sync with `rust/ccxt/src/exchanges/mod.rs`.
+macro_rules! for_each_core {
+    ($cb:ident) => {
+        $cb!(aftermath, AftermathCore);
+        $cb!(alpaca, AlpacaCore);
+        $cb!(apex, ApexCore);
+        $cb!(arkham, ArkhamCore);
+        $cb!(ascendex, AscendexCore);
+        $cb!(aster, AsterCore);
+        $cb!(backpack, BackpackCore);
+        $cb!(bequant, BequantCore);
+        $cb!(bigone, BigoneCore);
+        $cb!(binance, BinanceCore);
+        $cb!(binancecoinm, BinancecoinmCore);
+        $cb!(binanceus, BinanceusCore);
+        $cb!(binanceusdm, BinanceusdmCore);
+        $cb!(bingx, BingxCore);
+        $cb!(bit2c, Bit2cCore);
+        $cb!(bitbank, BitbankCore);
+        $cb!(bitbns, BitbnsCore);
+        $cb!(bitfinex, BitfinexCore);
+        $cb!(bitflyer, BitflyerCore);
+        $cb!(bitget, BitgetCore);
+        $cb!(bithumb, BithumbCore);
+        $cb!(bitmart, BitmartCore);
+        $cb!(bitmex, BitmexCore);
+        $cb!(bitopro, BitoproCore);
+        $cb!(bitrue, BitrueCore);
+        $cb!(bitso, BitsoCore);
+        $cb!(bitstamp, BitstampCore);
+        $cb!(bitteam, BitteamCore);
+        $cb!(bittrade, BittradeCore);
+        $cb!(bitvavo, BitvavoCore);
+        $cb!(blockchaincom, BlockchaincomCore);
+        $cb!(blofin, BlofinCore);
+        $cb!(btcbox, BtcboxCore);
+        $cb!(btcmarkets, BtcmarketsCore);
+        $cb!(btcturk, BtcturkCore);
+        $cb!(bullish, BullishCore);
+        $cb!(bybit, BybitCore);
+        $cb!(bydfi, BydfiCore);
+        $cb!(cex, CexCore);
+        $cb!(coinbase, CoinbaseCore);
+        $cb!(coinbaseadvanced, CoinbaseadvancedCore);
+        $cb!(coinbaseexchange, CoinbaseexchangeCore);
+        $cb!(coinbaseinternational, CoinbaseinternationalCore);
+        $cb!(coincheck, CoincheckCore);
+        $cb!(coinex, CoinexCore);
+        $cb!(coinmate, CoinmateCore);
+        $cb!(coinmetro, CoinmetroCore);
+        $cb!(coinone, CoinoneCore);
+        $cb!(coinsph, CoinsphCore);
+        $cb!(coinspot, CoinspotCore);
+        $cb!(cryptocom, CryptocomCore);
+        $cb!(cryptomus, CryptomusCore);
+        $cb!(deepcoin, DeepcoinCore);
+        $cb!(delta, DeltaCore);
+        $cb!(deribit, DeribitCore);
+        $cb!(derive, DeriveCore);
+        $cb!(digifinex, DigifinexCore);
+        $cb!(dydx, DydxCore);
+        $cb!(exmo, ExmoCore);
+        $cb!(fmfwio, FmfwioCore);
+        $cb!(foxbit, FoxbitCore);
+        $cb!(gate, GateCore);
+        $cb!(gateio, GateioCore);
+        $cb!(gemini, GeminiCore);
+        $cb!(grvt, GrvtCore);
+        $cb!(hashkey, HashkeyCore);
+        $cb!(hibachi, HibachiCore);
+        $cb!(hitbtc, HitbtcCore);
+        $cb!(hollaex, HollaexCore);
+        $cb!(htx, HtxCore);
+        $cb!(huobi, HuobiCore);
+        $cb!(hyperliquid, HyperliquidCore);
+        $cb!(independentreserve, IndependentreserveCore);
+        $cb!(indodax, IndodaxCore);
+        $cb!(kraken, KrakenCore);
+        $cb!(krakenfutures, KrakenfuturesCore);
+        $cb!(kucoin, KucoinCore);
+        $cb!(kucoinfutures, KucoinfuturesCore);
+        $cb!(latoken, LatokenCore);
+        $cb!(lbank, LbankCore);
+        $cb!(lighter, LighterCore);
+        $cb!(luno, LunoCore);
+        $cb!(mercado, MercadoCore);
+        $cb!(mexc, MexcCore);
+        $cb!(modetrade, ModetradeCore);
+        $cb!(myokx, MyokxCore);
+        $cb!(ndax, NdaxCore);
+        $cb!(novadax, NovadaxCore);
+        $cb!(okx, OkxCore);
+        $cb!(okxus, OkxusCore);
+        $cb!(onetrading, OnetradingCore);
+        $cb!(oxfun, OxfunCore);
+        $cb!(p2b, P2bCore);
+        $cb!(pacifica, PacificaCore);
+        $cb!(paradex, ParadexCore);
+        $cb!(paymium, PaymiumCore);
+        $cb!(phemex, PhemexCore);
+        $cb!(poloniex, PoloniexCore);
+        $cb!(tokocrypto, TokocryptoCore);
+        $cb!(toobit, ToobitCore);
+        $cb!(upbit, UpbitCore);
+        $cb!(wavesexchange, WavesexchangeCore);
+        $cb!(weex, WeexCore);
+        $cb!(whitebit, WhitebitCore);
+        $cb!(woo, WooCore);
+        $cb!(woofipro, WoofiproCore);
+        $cb!(xt, XtCore);
+        $cb!(yobit, YobitCore);
+        $cb!(zaif, ZaifCore);
+        $cb!(zebpay, ZebpayCore);
+    };
+}
+pub(crate) use for_each_core;
 
 #[derive(Debug, Default, Clone)]
 pub struct Captured {
@@ -32,13 +184,11 @@ pub struct Captured {
 
 /// True iff a Core for this id exists.
 pub fn has(id: &str) -> bool {
-    matches!(id,
-        "backpack" | "binance" | "bingx" | "bitget" | "bitmart" | "blofin"
-        | "bybit" | "coinbase" | "coinbaseinternational" | "coinex"
-        | "cryptocom" | "cryptomus" | "derive" | "gate" | "hashkey" | "htx"
-        | "hyperliquid" | "kucoin" | "kucoinfutures" | "mexc" | "modetrade"
-        | "okx" | "oxfun" | "paradex" | "phemex" | "toobit" | "weex" | "woo"
-        | "woofipro" | "xt")
+    macro_rules! check { ($name:ident, $core:ident) => {
+        if id == stringify!($name) { return true; }
+    }; }
+    for_each_core!(check);
+    false
 }
 
 /// Run `method(args)` in offline mode and capture last_request_*.
@@ -47,50 +197,20 @@ pub fn has(id: &str) -> bool {
 ///   `load_markets()` sees them already cached and never hits the wire.
 pub async fn dispatch(id: &str, method: &str, args: Vec<Value>, fixture_options: &Value) -> Captured {
     let cfg = build_offline_config(id, fixture_options);
-    macro_rules! go {
-        ($core:ty) => {{
+    // call_dynamic expects snake_case names; fixtures use camelCase.
+    let m = camel_to_snake(method);
+    // Each arm clones `args` because the borrow checker has to assume
+    // every arm might fire — at runtime only one does.
+    macro_rules! arm { ($name:ident, $core:ident) => {
+        if id == stringify!($name) {
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
             ex.bind();
-            ex.exchange.offline_mode = Value::Bool(true);
-            // call_dynamic expects snake_case names; fixtures use camelCase.
-            let m = camel_to_snake(method);
-            let _ = panic::AssertUnwindSafe(ex.call_dynamic(&m, args)).catch_unwind().await;
-            capture(&ex.exchange)
-        }};
-    }
-    match id {
-        "backpack"              => go!(BackpackCore),
-        "binance"               => go!(BinanceCore),
-        "bingx"                 => go!(BingxCore),
-        "bitget"                => go!(BitgetCore),
-        "bitmart"               => go!(BitmartCore),
-        "blofin"                => go!(BlofinCore),
-        "bybit"                 => go!(BybitCore),
-        "coinbase"              => go!(CoinbaseCore),
-        "coinbaseinternational" => go!(CoinbaseinternationalCore),
-        "coinex"                => go!(CoinexCore),
-        "cryptocom"             => go!(CryptocomCore),
-        "cryptomus"             => go!(CryptomusCore),
-        "derive"                => go!(DeriveCore),
-        "gate"                  => go!(GateCore),
-        "hashkey"               => go!(HashkeyCore),
-        "htx"                   => go!(HtxCore),
-        "hyperliquid"           => go!(HyperliquidCore),
-        "kucoin"                => go!(KucoinCore),
-        "kucoinfutures"         => go!(KucoinfuturesCore),
-        "mexc"                  => go!(MexcCore),
-        "modetrade"             => go!(ModetradeCore),
-        "okx"                   => go!(OkxCore),
-        "oxfun"                 => go!(OxfunCore),
-        "paradex"               => go!(ParadexCore),
-        "phemex"                => go!(PhemexCore),
-        "toobit"                => go!(ToobitCore),
-        "weex"                  => go!(WeexCore),
-        "woo"                   => go!(WooCore),
-        "woofipro"              => go!(WoofiproCore),
-        "xt"                    => go!(XtCore),
-        _ => Captured::default(),
-    }
+            let _ = panic::AssertUnwindSafe(ex.call_dynamic(&m, args.clone())).catch_unwind().await;
+            return capture(&ex.exchange);
+        }
+    }; }
+    for_each_core!(arm);
+    Captured::default()
 }
 
 /// Static *response* test dispatch — injects `mock` as the canned HTTP
@@ -99,52 +219,20 @@ pub async fn dispatch_response(
     id: &str, method: &str, args: Vec<Value>, fixture_options: &Value, mock: Value,
 ) -> Value {
     let cfg = build_offline_config(id, fixture_options);
-    macro_rules! go {
-        ($core:ty) => {{
+    let m = camel_to_snake(method);
+    macro_rules! arm { ($name:ident, $core:ident) => {
+        if id == stringify!($name) {
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
             ex.bind();
-            ex.exchange.offline_mode  = Value::Bool(true);
             ex.exchange.mock_response = mock.clone();
-            let m = camel_to_snake(method);
-            match panic::AssertUnwindSafe(ex.call_dynamic(&m, args)).catch_unwind().await {
+            return match panic::AssertUnwindSafe(ex.call_dynamic(&m, args.clone())).catch_unwind().await {
                 Ok(v)  => v,
                 Err(_) => Value::Null,
-            }
-        }};
-    }
-    match id {
-        "backpack"              => go!(BackpackCore),
-        "binance"               => go!(BinanceCore),
-        "bingx"                 => go!(BingxCore),
-        "bitget"                => go!(BitgetCore),
-        "bitmart"               => go!(BitmartCore),
-        "blofin"                => go!(BlofinCore),
-        "bybit"                 => go!(BybitCore),
-        "coinbase"              => go!(CoinbaseCore),
-        "coinbaseinternational" => go!(CoinbaseinternationalCore),
-        "coinex"                => go!(CoinexCore),
-        "cryptocom"             => go!(CryptocomCore),
-        "cryptomus"             => go!(CryptomusCore),
-        "derive"                => go!(DeriveCore),
-        "gate"                  => go!(GateCore),
-        "hashkey"               => go!(HashkeyCore),
-        "htx"                   => go!(HtxCore),
-        "hyperliquid"           => go!(HyperliquidCore),
-        "kucoin"                => go!(KucoinCore),
-        "kucoinfutures"         => go!(KucoinfuturesCore),
-        "mexc"                  => go!(MexcCore),
-        "modetrade"             => go!(ModetradeCore),
-        "okx"                   => go!(OkxCore),
-        "oxfun"                 => go!(OxfunCore),
-        "paradex"               => go!(ParadexCore),
-        "phemex"                => go!(PhemexCore),
-        "toobit"                => go!(ToobitCore),
-        "weex"                  => go!(WeexCore),
-        "woo"                   => go!(WooCore),
-        "woofipro"              => go!(WoofiproCore),
-        "xt"                    => go!(XtCore),
-        _ => Value::Null,
-    }
+            };
+        }
+    }; }
+    for_each_core!(arm);
+    Value::Null
 }
 
 /// Builds the real exchange Core from `cfg` and snapshots it to a
@@ -154,46 +242,15 @@ pub async fn dispatch_response(
 /// broker-id tests assert against. Returns `Value::Null` for an id with
 /// no registered Core so callers can fall back to a plain config map.
 pub fn exchange_snapshot(id: &str, cfg: Value) -> Value {
-    macro_rules! go {
-        ($core:ty) => {{
+    macro_rules! arm { ($name:ident, $core:ident) => {
+        if id == stringify!($name) {
             let mut ex = Box::new(<$core>::new(Some(cfg.clone())));
             ex.bind();
-            ex.exchange.to_value()
-        }};
-    }
-    match id {
-        "backpack"              => go!(BackpackCore),
-        "binance"               => go!(BinanceCore),
-        "bingx"                 => go!(BingxCore),
-        "bitget"                => go!(BitgetCore),
-        "bitmart"               => go!(BitmartCore),
-        "blofin"                => go!(BlofinCore),
-        "bybit"                 => go!(BybitCore),
-        "coinbase"              => go!(CoinbaseCore),
-        "coinbaseinternational" => go!(CoinbaseinternationalCore),
-        "coinex"                => go!(CoinexCore),
-        "cryptocom"             => go!(CryptocomCore),
-        "cryptomus"             => go!(CryptomusCore),
-        "derive"                => go!(DeriveCore),
-        "gate"                  => go!(GateCore),
-        "hashkey"               => go!(HashkeyCore),
-        "htx"                   => go!(HtxCore),
-        "hyperliquid"           => go!(HyperliquidCore),
-        "kucoin"                => go!(KucoinCore),
-        "kucoinfutures"         => go!(KucoinfuturesCore),
-        "mexc"                  => go!(MexcCore),
-        "modetrade"             => go!(ModetradeCore),
-        "okx"                   => go!(OkxCore),
-        "oxfun"                 => go!(OxfunCore),
-        "paradex"               => go!(ParadexCore),
-        "phemex"                => go!(PhemexCore),
-        "toobit"                => go!(ToobitCore),
-        "weex"                  => go!(WeexCore),
-        "woo"                   => go!(WooCore),
-        "woofipro"              => go!(WoofiproCore),
-        "xt"                    => go!(XtCore),
-        _ => Value::Null,
-    }
+            return ex.exchange.to_value();
+        }
+    }; }
+    for_each_core!(arm);
+    Value::Null
 }
 
 /// Mirrors Go's `InitOfflineExchange` — fake credentials + sentinel
@@ -250,7 +307,6 @@ fn build_offline_config(id: &str, fixture_options: &Value) -> Value {
     cfg.insert("login".to_string(),           Value::Str("login".to_string()));
     cfg.insert("accountId".to_string(),       Value::Str("12345".to_string()));
     cfg.insert("accounts".to_string(),        Value::Array(vec![Value::Map(accounts_a), Value::Map(accounts_b)]));
-    cfg.insert("offline".to_string(),         Value::Bool(true));
     cfg.insert("options".to_string(),         Value::Map(nested_options));
     // Top-level fixture credential overrides (apiKey/secret/etc.)
     if let Value::Map(fm) = fixture_options {

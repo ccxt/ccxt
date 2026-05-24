@@ -352,7 +352,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if is_true(&isLoadMarkets) {
-            exchange.load_markets(&[Value::Bool(true)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![Value::Bool(true)]).await;
         }
         let mut name: Value = get_value(&exchange, &Value::Str("id".to_string()));
         if is_true(&skipMessage) {
@@ -905,7 +905,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
             return Value::Bool(false);
         }
         ccxt::set_value(&mut exchange, &Value::Str("returnResponseHeaders".to_string()), Value::Bool(true));
-        let mut ticker: Value = exchange.fetch_ticker(Value::Str("BTC/USDT".to_string()), &[]).await;
+        let mut ticker: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ticker", vec![Value::Str("BTC/USDT".to_string())]).await;
         let mut info: Value = get_value(&ticker, &Value::Str("info".to_string()));
         let mut headers: Value = get_value(&info, &Value::Str("responseHeaders".to_string()));
         let mut headersKeys: Value = object_keys(&headers);
@@ -1816,7 +1816,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut inverseSwapId: Value = Value::Str("x-xcKtGhcu".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             spotOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -1826,14 +1826,14 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(starts_with(&clientOrderId, &spotIdString)), &[add(&add(&add(&Value::Str("binance - spot clientOrderId: ".to_string()), &clientOrderId), &Value::Str(" does not start with spotId".to_string())), &spotIdString)]);
         let mut swapOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             swapOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
         }
         let mut swapInverseOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             swapInverseOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -1848,7 +1848,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         // linear swap conditional order
         let mut swapAlgoOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Float(0.002), &[Value::Int(102000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Float(0.002), Value::Int(102000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("triggerPrice".to_string(), Value::Int(101000));
                 m
@@ -1881,7 +1881,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         m.insert("amount".to_string(), Value::Int(1));
     m
 })]);
-            exchange.create_orders(orders.clone(), &[]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_orders", vec![orders.clone()]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             createOrdersRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -1909,7 +1909,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("6b9ad766b55dBCDE".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -1921,7 +1921,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&spotTag, &id)), &[add(&add(&add(&Value::Str("okx - id: ".to_string()), &id), &Value::Str(" different from spot tag: ".to_string())), &spotTag)]);
         let mut swapOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -1941,10 +1941,10 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
     pub async fn test_cryptocom(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptocom".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -1965,7 +1965,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
@@ -1993,7 +1993,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&futureId, &Value::Str("ccxtfutures".to_string()))), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &futureId), &Value::Str(" not in options.".to_string()))]);
         assert(Value::Bool(is_equal(&futureKey, &Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string()))), &[add(&add(&Value::Str("kucoin - key: ".to_string()), &futureKey), &Value::Str(" not in options.".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
@@ -2002,7 +2002,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("ccxt".to_string());
         assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for spot orders.".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
@@ -2014,14 +2014,14 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for spot uta orders.".to_string()))]);
         id = Value::Str("ccxtfutures".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
         }
         assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoin - id: ".to_string()), &id), &Value::Str(" not in headers for swap orders.".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
@@ -2049,7 +2049,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&futureKey, &Value::Str("1b327198-f30c-4f14-a0ac-918871282f15".to_string()))), &[add(&add(&Value::Str("kucoinfutures - key: ".to_string()), &futureKey), &Value::Str(" not in options.".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(false));
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
@@ -2057,7 +2057,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&get_value(&reqHeaders, &Value::Str("KC-API-PARTNER".to_string())), &id)), &[add(&add(&Value::Str("kucoinfutures - id: ".to_string()), &id), &Value::Str(" not in headers.".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("uta".to_string()), Value::Bool(true));
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
@@ -2077,7 +2077,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("p4sve".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("bitget - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
@@ -2096,9 +2096,9 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("mexc - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
@@ -2118,7 +2118,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("AA03022abc".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2129,14 +2129,14 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         // swap test
         let mut swapOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
         }
         let mut swapInverseOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:BTC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             swapInverseOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2159,7 +2159,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2170,7 +2170,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         // swap test
         let mut stopOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000), Value::Map({
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000), Value::Map({
                 let mut m = std::collections::HashMap::new();
                     m.insert("stopPrice".to_string(), Value::Int(30000));
                 m
@@ -2194,9 +2194,9 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXTxBitmart000".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[add(&add(&Value::Str("bitmart - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
@@ -2216,7 +2216,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[add(&add(&Value::Str("coinex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let mut spotOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2238,7 +2238,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("bingx - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
@@ -2258,7 +2258,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("CCXT123456".to_string());
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2279,7 +2279,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("ec6dd3a7dd982d0b".to_string());
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("LTC/USDT:USDT".to_string()), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LTC/USDT:USDT".to_string()), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(1)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2318,7 +2318,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2339,7 +2339,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("brokerId".to_string())), &id)), &[Value::Str("id not in options".to_string())]);
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2358,10 +2358,10 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut exchange: Value = self.init_offline_exchange(Value::Str("woofipro".to_string()));
         ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Str("CCXT".to_string());
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2380,10 +2380,10 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut exchange: Value = self.init_offline_exchange(Value::Str("oxfun".to_string()));
         ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Int(1000);
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USD:OX".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:OX".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2402,7 +2402,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut id: Value = Value::Str("CCXT".to_string());
         let mut spotOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2411,7 +2411,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&spotMedia, &id)), &[add(&add(&add(&Value::Str("xt - id: ".to_string()), &id), &Value::Str(" different from swap tag: ".to_string())), &spotMedia)]);
         let mut swapOrderRequest: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             swapOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2462,9 +2462,9 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("CCXT".to_string());
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("broker".to_string())), &id)), &[add(&add(&Value::Str("paradex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USD:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USD:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             reqHeaders = get_value(&exchange, &Value::Str("last_request_headers".to_string()));
@@ -2483,7 +2483,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("10000700011".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
@@ -2502,7 +2502,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut exchange: Value = self.init_offline_exchange(Value::Str("cryptomus".to_string()));
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2532,7 +2532,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
             });
             ccxt::set_value(&mut exchange, &Value::Str("walletAddress".to_string()), Value::Str("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749".to_string()));
             ccxt::set_value(&mut exchange, &Value::Str("privateKey".to_string()), Value::Str("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5".to_string()));
-            exchange.create_order(Value::Str("LBTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Float(0.01), &[Value::Int(3000), params.clone()]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("LBTC/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("sell".to_string()), Value::Float(0.01), Value::Int(3000), params.clone()]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2550,10 +2550,10 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut exchange: Value = self.init_offline_exchange(Value::Str("modetrade".to_string()));
         ccxt::set_value(&mut exchange, &Value::Str("secret".to_string()), Value::Str("secretsecretsecretsecretsecretsecretsecrets".to_string()));
         let mut id: Value = Value::Str("CCXTMODE".to_string());
-        exchange.load_markets(&[]).await;
+        crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDC:USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2575,7 +2575,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("1400".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("ETH/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(5000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("ETH/USDC".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(5000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
@@ -2595,7 +2595,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut reqHeaders: Value = Value::Null;
         let mut id: Value = Value::Str("177321641268789".to_string());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             // we expect an error here, we're only interested in the headers
@@ -2616,7 +2616,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         assert(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("partner".to_string())), &id)), &[add(&add(&Value::Str("weex - id: ".to_string()), &id), &Value::Str(" not in options".to_string()))]);
         let mut request: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));
@@ -2624,7 +2624,7 @@ if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_t
         let mut clientOrderId: Value = get_value(&request, &Value::Str("newClientOrderId".to_string()));
         assert(Value::Bool(starts_with(&clientOrderId, &id)), &[add(&add(&add(&Value::Str("weex - newClientOrderId: ".to_string()), &clientOrderId), &Value::Str(" for spot order does not start with id: ".to_string())), &id)]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            exchange.create_order(Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), &[Value::Int(20000)]).await;
+            crate::live_dispatch::dispatch(&mut exchange, "create_order", vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("limit".to_string()), Value::Str("buy".to_string()), Value::Int(1), Value::Int(20000)]).await;
         })).await;
 if let Err(_try_err) = _try_result { let e: Value = crate::test_helpers::panic_to_value(_try_err);
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".to_string())));

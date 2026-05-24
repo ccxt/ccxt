@@ -19,11 +19,19 @@ mod fixtures;
 mod registry;
 pub mod tests_support;  // public so transpiled base/ tests can reach it
 pub mod test_helpers;   // hand-written harness helpers for the transpiled tests.rs
+pub mod live_dispatch;  // one persistent real Core per id for live tests
 // Transpiled base tests (test.safeMethods.rs, test.precise.rs, …),
 // generated from ts/src/test/base/. Behind a feature flag.
 #[cfg(feature = "transpiled-tests")]
 #[path = "../base/mod.rs"]
 mod base_transpiled;
+// Transpiled exchange tests (unified-method tests + structure
+// validators), generated from ts/src/test/Exchange/. Behind its own
+// feature while the harness surface (ExchangeOps, validators) is
+// completed — keeps base + id tests building meanwhile.
+#[cfg(feature = "exchange-tests")]
+#[path = "../exchange/mod.rs"]
+pub mod exchange_transpiled;
 // `tests.rs` — the transpiled `TestMainClass` test harness, generated
 // from `ts/src/test/tests.ts` by `tsx build/rustTranspiler.ts --testMain`.
 mod tests;
