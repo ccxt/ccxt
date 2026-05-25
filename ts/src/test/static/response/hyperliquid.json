@@ -255,6 +255,7 @@
         ],
         "fetchCurrencies": [
             {
+                "disbled": true,
                 "description": "fetchCurrencies",
                 "disabled": true,
                 "reason": "using spotMeta now",
