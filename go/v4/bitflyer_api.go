@@ -7,142 +7,142 @@
 
 package ccxt
 
-func (this *BitflyerCore) PublicGetGetmarketsUsa (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetmarketsUsa", args...)
+func (this *BitflyerCore) PublicGetGetmarketsUsa(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetmarketsUsa", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetmarketsEu (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetmarketsEu", args...)
+func (this *BitflyerCore) PublicGetGetmarketsEu(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetmarketsEu", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetmarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetmarkets", args...)
+func (this *BitflyerCore) PublicGetGetmarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetmarkets", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetboard (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetboard", args...)
+func (this *BitflyerCore) PublicGetGetboard(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetboard", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetticker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetticker", args...)
+func (this *BitflyerCore) PublicGetGetticker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetticker", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetexecutions (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetexecutions", args...)
+func (this *BitflyerCore) PublicGetGetexecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetexecutions", args...)
 }
 
-func (this *BitflyerCore) PublicGetGethealth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGethealth", args...)
+func (this *BitflyerCore) PublicGetGethealth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGethealth", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetboardstate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetboardstate", args...)
+func (this *BitflyerCore) PublicGetGetboardstate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetboardstate", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetchats (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetchats", args...)
+func (this *BitflyerCore) PublicGetGetchats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetchats", args...)
 }
 
-func (this *BitflyerCore) PublicGetGetfundingrate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetGetfundingrate", args...)
+func (this *BitflyerCore) PublicGetGetfundingrate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetfundingrate", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetpermissions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetpermissions", args...)
+func (this *BitflyerCore) PrivateGetGetpermissions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetpermissions", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetbalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetbalance", args...)
+func (this *BitflyerCore) PrivateGetGetbalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetbalance", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetbalancehistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetbalancehistory", args...)
+func (this *BitflyerCore) PrivateGetGetbalancehistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetbalancehistory", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetcollateral (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetcollateral", args...)
+func (this *BitflyerCore) PrivateGetGetcollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetcollateral", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetcollateralhistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetcollateralhistory", args...)
+func (this *BitflyerCore) PrivateGetGetcollateralhistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetcollateralhistory", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetcollateralaccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetcollateralaccounts", args...)
+func (this *BitflyerCore) PrivateGetGetcollateralaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetcollateralaccounts", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetaddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetaddresses", args...)
+func (this *BitflyerCore) PrivateGetGetaddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetaddresses", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetcoinins (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetcoinins", args...)
+func (this *BitflyerCore) PrivateGetGetcoinins(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetcoinins", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetcoinouts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetcoinouts", args...)
+func (this *BitflyerCore) PrivateGetGetcoinouts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetcoinouts", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetbankaccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetbankaccounts", args...)
+func (this *BitflyerCore) PrivateGetGetbankaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetbankaccounts", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetdeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetdeposits", args...)
+func (this *BitflyerCore) PrivateGetGetdeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetdeposits", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetwithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetwithdrawals", args...)
+func (this *BitflyerCore) PrivateGetGetwithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetwithdrawals", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetchildorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetchildorders", args...)
+func (this *BitflyerCore) PrivateGetGetchildorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetchildorders", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetparentorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetparentorders", args...)
+func (this *BitflyerCore) PrivateGetGetparentorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetparentorders", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetparentorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetparentorder", args...)
+func (this *BitflyerCore) PrivateGetGetparentorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetparentorder", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetexecutions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetexecutions", args...)
+func (this *BitflyerCore) PrivateGetGetexecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetexecutions", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGetpositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGetpositions", args...)
+func (this *BitflyerCore) PrivateGetGetpositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetpositions", args...)
 }
 
-func (this *BitflyerCore) PrivateGetGettradingcommission (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetGettradingcommission", args...)
+func (this *BitflyerCore) PrivateGetGettradingcommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGettradingcommission", args...)
 }
 
-func (this *BitflyerCore) PrivatePostSendcoin (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSendcoin", args...)
+func (this *BitflyerCore) PrivatePostSendcoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSendcoin", args...)
 }
 
-func (this *BitflyerCore) PrivatePostWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdraw", args...)
+func (this *BitflyerCore) PrivatePostWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *BitflyerCore) PrivatePostSendchildorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSendchildorder", args...)
+func (this *BitflyerCore) PrivatePostSendchildorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSendchildorder", args...)
 }
 
-func (this *BitflyerCore) PrivatePostCancelchildorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelchildorder", args...)
+func (this *BitflyerCore) PrivatePostCancelchildorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelchildorder", args...)
 }
 
-func (this *BitflyerCore) PrivatePostSendparentorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSendparentorder", args...)
+func (this *BitflyerCore) PrivatePostSendparentorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSendparentorder", args...)
 }
 
-func (this *BitflyerCore) PrivatePostCancelparentorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelparentorder", args...)
+func (this *BitflyerCore) PrivatePostCancelparentorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelparentorder", args...)
 }
 
-func (this *BitflyerCore) PrivatePostCancelallchildorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelallchildorders", args...)
+func (this *BitflyerCore) PrivatePostCancelallchildorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelallchildorders", args...)
 }

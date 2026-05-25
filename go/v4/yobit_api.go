@@ -7,50 +7,50 @@
 
 package ccxt
 
-func (this *YobitCore) PublicGetDepthPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetDepthPair", args...)
+func (this *YobitCore) PublicGetDepthPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDepthPair", args...)
 }
 
-func (this *YobitCore) PublicGetInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetInfo", args...)
+func (this *YobitCore) PublicGetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInfo", args...)
 }
 
-func (this *YobitCore) PublicGetTickerPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickerPair", args...)
+func (this *YobitCore) PublicGetTickerPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerPair", args...)
 }
 
-func (this *YobitCore) PublicGetTradesPair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTradesPair", args...)
+func (this *YobitCore) PublicGetTradesPair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradesPair", args...)
 }
 
-func (this *YobitCore) PrivatePostActiveOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostActiveOrders", args...)
+func (this *YobitCore) PrivatePostActiveOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostActiveOrders", args...)
 }
 
-func (this *YobitCore) PrivatePostCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *YobitCore) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *YobitCore) PrivatePostGetDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostGetDepositAddress", args...)
+func (this *YobitCore) PrivatePostGetDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetDepositAddress", args...)
 }
 
-func (this *YobitCore) PrivatePostGetInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostGetInfo", args...)
+func (this *YobitCore) PrivatePostGetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetInfo", args...)
 }
 
-func (this *YobitCore) PrivatePostOrderInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderInfo", args...)
+func (this *YobitCore) PrivatePostOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderInfo", args...)
 }
 
-func (this *YobitCore) PrivatePostTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTrade", args...)
+func (this *YobitCore) PrivatePostTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTrade", args...)
 }
 
-func (this *YobitCore) PrivatePostTradeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeHistory", args...)
+func (this *YobitCore) PrivatePostTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
-func (this *YobitCore) PrivatePostWithdrawCoinsToAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdrawCoinsToAddress", args...)
+func (this *YobitCore) PrivatePostWithdrawCoinsToAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawCoinsToAddress", args...)
 }

@@ -7,118 +7,118 @@
 
 package ccxt
 
-func (this *CoincheckCore) PublicGetExchangeOrdersRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetExchangeOrdersRate", args...)
+func (this *CoincheckCore) PublicGetExchangeOrdersRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangeOrdersRate", args...)
 }
 
-func (this *CoincheckCore) PublicGetOrderBooks (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderBooks", args...)
+func (this *CoincheckCore) PublicGetOrderBooks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderBooks", args...)
 }
 
-func (this *CoincheckCore) PublicGetRatePair (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetRatePair", args...)
+func (this *CoincheckCore) PublicGetRatePair(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetRatePair", args...)
 }
 
-func (this *CoincheckCore) PublicGetTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *CoincheckCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *CoincheckCore) PublicGetTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *CoincheckCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *CoincheckCore) PrivateGetAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *CoincheckCore) PrivateGetAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *CoincheckCore) PrivateGetAccountsBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsBalance", args...)
+func (this *CoincheckCore) PrivateGetAccountsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsBalance", args...)
 }
 
-func (this *CoincheckCore) PrivateGetAccountsLeverageBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsLeverageBalance", args...)
+func (this *CoincheckCore) PrivateGetAccountsLeverageBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsLeverageBalance", args...)
 }
 
-func (this *CoincheckCore) PrivateGetBankAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBankAccounts", args...)
+func (this *CoincheckCore) PrivateGetBankAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBankAccounts", args...)
 }
 
-func (this *CoincheckCore) PrivateGetDepositMoney (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetDepositMoney", args...)
+func (this *CoincheckCore) PrivateGetDepositMoney(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDepositMoney", args...)
 }
 
-func (this *CoincheckCore) PrivateGetExchangeOrdersOpens (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeOrdersOpens", args...)
+func (this *CoincheckCore) PrivateGetExchangeOrdersOpens(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersOpens", args...)
 }
 
-func (this *CoincheckCore) PrivateGetExchangeOrdersTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeOrdersTransactions", args...)
+func (this *CoincheckCore) PrivateGetExchangeOrdersTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersTransactions", args...)
 }
 
-func (this *CoincheckCore) PrivateGetExchangeOrdersTransactionsPagination (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeOrdersTransactionsPagination", args...)
+func (this *CoincheckCore) PrivateGetExchangeOrdersTransactionsPagination(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeOrdersTransactionsPagination", args...)
 }
 
-func (this *CoincheckCore) PrivateGetExchangeLeveragePositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetExchangeLeveragePositions", args...)
+func (this *CoincheckCore) PrivateGetExchangeLeveragePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExchangeLeveragePositions", args...)
 }
 
-func (this *CoincheckCore) PrivateGetLendingBorrowsMatches (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetLendingBorrowsMatches", args...)
+func (this *CoincheckCore) PrivateGetLendingBorrowsMatches(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLendingBorrowsMatches", args...)
 }
 
-func (this *CoincheckCore) PrivateGetSendMoney (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSendMoney", args...)
+func (this *CoincheckCore) PrivateGetSendMoney(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSendMoney", args...)
 }
 
-func (this *CoincheckCore) PrivateGetWithdraws (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWithdraws", args...)
+func (this *CoincheckCore) PrivateGetWithdraws(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWithdraws", args...)
 }
 
-func (this *CoincheckCore) PrivatePostBankAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBankAccounts", args...)
+func (this *CoincheckCore) PrivatePostBankAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBankAccounts", args...)
 }
 
-func (this *CoincheckCore) PrivatePostDepositMoneyIdFast (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostDepositMoneyIdFast", args...)
+func (this *CoincheckCore) PrivatePostDepositMoneyIdFast(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositMoneyIdFast", args...)
 }
 
-func (this *CoincheckCore) PrivatePostExchangeOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeOrders", args...)
+func (this *CoincheckCore) PrivatePostExchangeOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeOrders", args...)
 }
 
-func (this *CoincheckCore) PrivatePostExchangeTransfersToLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeTransfersToLeverage", args...)
+func (this *CoincheckCore) PrivatePostExchangeTransfersToLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeTransfersToLeverage", args...)
 }
 
-func (this *CoincheckCore) PrivatePostExchangeTransfersFromLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostExchangeTransfersFromLeverage", args...)
+func (this *CoincheckCore) PrivatePostExchangeTransfersFromLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExchangeTransfersFromLeverage", args...)
 }
 
-func (this *CoincheckCore) PrivatePostLendingBorrows (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostLendingBorrows", args...)
+func (this *CoincheckCore) PrivatePostLendingBorrows(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLendingBorrows", args...)
 }
 
-func (this *CoincheckCore) PrivatePostLendingBorrowsIdRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostLendingBorrowsIdRepay", args...)
+func (this *CoincheckCore) PrivatePostLendingBorrowsIdRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLendingBorrowsIdRepay", args...)
 }
 
-func (this *CoincheckCore) PrivatePostSendMoney (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSendMoney", args...)
+func (this *CoincheckCore) PrivatePostSendMoney(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSendMoney", args...)
 }
 
-func (this *CoincheckCore) PrivatePostWithdraws (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdraws", args...)
+func (this *CoincheckCore) PrivatePostWithdraws(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdraws", args...)
 }
 
-func (this *CoincheckCore) PrivateDeleteBankAccountsId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteBankAccountsId", args...)
+func (this *CoincheckCore) PrivateDeleteBankAccountsId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteBankAccountsId", args...)
 }
 
-func (this *CoincheckCore) PrivateDeleteExchangeOrdersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteExchangeOrdersId", args...)
+func (this *CoincheckCore) PrivateDeleteExchangeOrdersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteExchangeOrdersId", args...)
 }
 
-func (this *CoincheckCore) PrivateDeleteWithdrawsId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteWithdrawsId", args...)
+func (this *CoincheckCore) PrivateDeleteWithdrawsId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteWithdrawsId", args...)
 }

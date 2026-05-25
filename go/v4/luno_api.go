@@ -7,138 +7,138 @@
 
 package ccxt
 
-func (this *LunoCore) ExchangeGetMarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("exchangeGetMarkets", args...)
+func (this *LunoCore) ExchangeGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangeGetMarkets", args...)
 }
 
-func (this *LunoCore) ExchangePrivateGetCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("exchangePrivateGetCandles", args...)
+func (this *LunoCore) ExchangePrivateGetCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("exchangePrivateGetCandles", args...)
 }
 
-func (this *LunoCore) PublicGetOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *LunoCore) PublicGetOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *LunoCore) PublicGetOrderbookTop (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderbookTop", args...)
+func (this *LunoCore) PublicGetOrderbookTop(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbookTop", args...)
 }
 
-func (this *LunoCore) PublicGetTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *LunoCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *LunoCore) PublicGetTickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickers", args...)
+func (this *LunoCore) PublicGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *LunoCore) PublicGetTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *LunoCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *LunoCore) PrivateGetAccountsIdPending (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsIdPending", args...)
+func (this *LunoCore) PrivateGetAccountsIdPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsIdPending", args...)
 }
 
-func (this *LunoCore) PrivateGetAccountsIdTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetAccountsIdTransactions", args...)
+func (this *LunoCore) PrivateGetAccountsIdTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountsIdTransactions", args...)
 }
 
-func (this *LunoCore) PrivateGetBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBalance", args...)
+func (this *LunoCore) PrivateGetBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *LunoCore) PrivateGetBeneficiaries (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetBeneficiaries", args...)
+func (this *LunoCore) PrivateGetBeneficiaries(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBeneficiaries", args...)
 }
 
-func (this *LunoCore) PrivateGetSendNetworks (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSendNetworks", args...)
+func (this *LunoCore) PrivateGetSendNetworks(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSendNetworks", args...)
 }
 
-func (this *LunoCore) PrivateGetFeeInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFeeInfo", args...)
+func (this *LunoCore) PrivateGetFeeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFeeInfo", args...)
 }
 
-func (this *LunoCore) PrivateGetFundingAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFundingAddress", args...)
+func (this *LunoCore) PrivateGetFundingAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFundingAddress", args...)
 }
 
-func (this *LunoCore) PrivateGetListorders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetListorders", args...)
+func (this *LunoCore) PrivateGetListorders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetListorders", args...)
 }
 
-func (this *LunoCore) PrivateGetListtrades (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetListtrades", args...)
+func (this *LunoCore) PrivateGetListtrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetListtrades", args...)
 }
 
-func (this *LunoCore) PrivateGetSendFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSendFee", args...)
+func (this *LunoCore) PrivateGetSendFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSendFee", args...)
 }
 
-func (this *LunoCore) PrivateGetOrdersId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetOrdersId", args...)
+func (this *LunoCore) PrivateGetOrdersId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *LunoCore) PrivateGetWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *LunoCore) PrivateGetWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *LunoCore) PrivateGetWithdrawalsId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWithdrawalsId", args...)
+func (this *LunoCore) PrivateGetWithdrawalsId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWithdrawalsId", args...)
 }
 
-func (this *LunoCore) PrivateGetTransfers (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetTransfers", args...)
+func (this *LunoCore) PrivateGetTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *LunoCore) PrivatePostAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAccounts", args...)
+func (this *LunoCore) PrivatePostAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccounts", args...)
 }
 
-func (this *LunoCore) PrivatePostAddressValidate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAddressValidate", args...)
+func (this *LunoCore) PrivatePostAddressValidate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddressValidate", args...)
 }
 
-func (this *LunoCore) PrivatePostPostorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPostorder", args...)
+func (this *LunoCore) PrivatePostPostorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPostorder", args...)
 }
 
-func (this *LunoCore) PrivatePostMarketorder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarketorder", args...)
+func (this *LunoCore) PrivatePostMarketorder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarketorder", args...)
 }
 
-func (this *LunoCore) PrivatePostStoporder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostStoporder", args...)
+func (this *LunoCore) PrivatePostStoporder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostStoporder", args...)
 }
 
-func (this *LunoCore) PrivatePostFundingAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFundingAddress", args...)
+func (this *LunoCore) PrivatePostFundingAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFundingAddress", args...)
 }
 
-func (this *LunoCore) PrivatePostWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdrawals", args...)
+func (this *LunoCore) PrivatePostWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *LunoCore) PrivatePostSend (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSend", args...)
+func (this *LunoCore) PrivatePostSend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSend", args...)
 }
 
-func (this *LunoCore) PrivatePostOauth2Grant (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOauth2Grant", args...)
+func (this *LunoCore) PrivatePostOauth2Grant(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOauth2Grant", args...)
 }
 
-func (this *LunoCore) PrivatePostBeneficiaries (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBeneficiaries", args...)
+func (this *LunoCore) PrivatePostBeneficiaries(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBeneficiaries", args...)
 }
 
-func (this *LunoCore) PrivatePutAccountsIdName (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutAccountsIdName", args...)
+func (this *LunoCore) PrivatePutAccountsIdName(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAccountsIdName", args...)
 }
 
-func (this *LunoCore) PrivateDeleteWithdrawalsId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteWithdrawalsId", args...)
+func (this *LunoCore) PrivateDeleteWithdrawalsId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteWithdrawalsId", args...)
 }
 
-func (this *LunoCore) PrivateDeleteBeneficiariesId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteBeneficiariesId", args...)
+func (this *LunoCore) PrivateDeleteBeneficiariesId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteBeneficiariesId", args...)
 }
