@@ -1866,12 +1866,19 @@ class hyperliquid extends hyperliquid$1["default"] {
                 response = await this.publicPostInfo(this.extend(request, params));
             }
             catch (e) {
+                if (e instanceof errors.InvalidProxySettings) {
+                    throw e; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+                }
                 response = undefined; // ignore this error and assume unified margin is not enabled
             }
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            enableUnifiedMargin = response === '"unifiedAccount"';
+            if (response !== undefined) {
+                response = response.replace('"', '');
+                response = response.replace('"', '');
+                enableUnifiedMargin = response === 'unifiedAccount';
+            }
             // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
         }
