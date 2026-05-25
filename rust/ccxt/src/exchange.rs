@@ -91,6 +91,8 @@ pub trait DerivedExchange: Send + Sync {
     fn parse_position(&self, _position: Value, _market: Value) -> Value { Value::Null }
     fn parse_funding_rate(&self, _rate: Value, _market: Value) -> Value { Value::Null }
     fn parse_deposit(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_deposit_address(&self, _addr: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_last_price(&self, _entry: Value, _market: Value) -> Value { Value::Null }
     fn parse_withdrawal(&self, _tx: Value, _currency: Value) -> Value { Value::Null }
     fn parse_ledger_entry(&self, _entry: Value, _currency: Value) -> Value { Value::Null }
     fn parse_transfer(&self, _transfer: Value, _currency: Value) -> Value { Value::Null }

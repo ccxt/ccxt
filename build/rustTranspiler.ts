@@ -2056,23 +2056,42 @@ class RustTranspilerBuilder {
             // Recurse so nested try/catch in either body is handled too.
             const tryBody   = this.rewriteTryCatchAsync(inner);
             const catchPart = this.rewriteTryCatchAsync(catchBody);
-            // A `return` / `break` / `continue` in the try body must act on
-            // the enclosing fn/loop — wrapping it in a closure or `async {}`
-            // would change its meaning. Fall back to a plain block (the
-            // catch is dropped, as the old `stripCatchBlocks` did).
-            if (/\b(return|break|continue)\b/.test(inner)) {
+            // `break` / `continue` in the try body would refer to an
+            // outer loop — wrapping it in `async {}` or a closure
+            // changes their target. Fall back to a plain block in that
+            // case (the catch is dropped, matching the old
+            // `stripCatchBlocks` behaviour).
+            //
+            // `return` is different: inside an `async {}` block, `return
+            // X` produces X as the future's output, so we can capture it
+            // via `Ok(v) => return v` after `catch_unwind`. This
+            // preserves the testSafe pattern
+            //   for retries { try { await ...; return true; } catch { ... } }
+            // where the early-return was the only thing keeping `return`
+            // out of the rewrite.
+            const hasBreakContinue = /\b(break|continue)\b/.test(inner);
+            if (hasBreakContinue) {
                 out += `{${tryBody}}`;
             } else {
                 // The catch binding is the panic payload (`Box<dyn Any>`);
                 // convert it to a `Value` so the catch body (which treats
                 // `e` as an error object) type-checks.
-                const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = crate::test_helpers::panic_to_value(_try_err);`;
+                const hasReturn = /\breturn\b/.test(inner);
                 if (inner.includes('.await')) {
-                    out += `let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {${tryBody}})).await;\n`;
+                    out += `let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {${tryBody} #[allow(unreachable_code)] { Value::Null }})).await;\n`;
                 } else {
-                    out += `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {${tryBody}}));\n`;
+                    out += `let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {${tryBody} #[allow(unreachable_code)] { Value::Null }}));\n`;
                 }
-                out += `${catchHead}${catchPart}}`;
+                if (hasReturn) {
+                    // The try block had `return X` — capture and re-return X
+                    // from the enclosing fn on the success path. Failure
+                    // (the panic case) runs the catch body. Use `match`
+                    // so both arms see one move of `_try_result`.
+                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let ${errName}: Value = crate::test_helpers::panic_to_value(_try_err); ${catchPart} } }`;
+                } else {
+                    const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = crate::test_helpers::panic_to_value(_try_err);`;
+                    out += `${catchHead}${catchPart}}`;
+                }
             }
             i = consumeEnd;
         }
@@ -3502,6 +3521,8 @@ class RustTranspilerBuilder {
             parse_position:             ['position', 'market'],
             parse_funding_rate:         ['rate', 'market'],
             parse_deposit:              ['tx', 'currency'],
+            parse_deposit_address:      ['depositAddress', 'currency'],
+            parse_last_price:           ['entry', 'market'],
             parse_withdrawal:           ['tx', 'currency'],
             parse_ledger_entry:         ['entry', 'currency'],
             parse_transfer:             ['transfer', 'currency'],
@@ -3955,6 +3976,16 @@ impl ${coreName} {
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
         self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
         self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
+        // \`features\` carries the describe() block that drives
+        // unified-method tests (e.g. \`features.spot.fetchCurrencies.private\`
+        // tells testFetchCurrencies to skip the length check). It's set
+        // after \`Exchange::new\` because \`features_generator\` (in
+        // \`after_construct\`) bails when \`features == Null\` — so we
+        // assign and re-run the generator here.
+        self.exchange.features = crate::get_value(&described, &crate::Value::Str("features".to_string()));
+        if !matches!(self.exchange.features, crate::Value::Null) {
+            self.exchange.features_generator();
+        }
         // Markets and currencies may have been populated already by
         // the constructor config (test runners pass them in via
         // Exchange::new(Some(config-with-markets)) — same as CCXT TS).
