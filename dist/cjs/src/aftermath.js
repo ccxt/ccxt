@@ -8,6 +8,7 @@ var crypto = require('./base/functions/crypto.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var errors = require('./base/errors.js');
 
+// ----------------------------------------------------------------------------
 class aftermath extends aftermath$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {

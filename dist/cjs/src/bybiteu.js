@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var bybit = require('./bybit.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bybiteu extends bybit["default"] {
     describe() {
@@ -55,6 +55,7 @@ class bybiteu extends bybit["default"] {
                 'margin': true,
                 'swap': false,
                 'future': false,
+                'option': undefined,
             },
         });
     }
