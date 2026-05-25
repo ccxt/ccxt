@@ -784,3 +784,6 @@ CCXT is not a service nor a server. CCXT is a software. **CCXT is a free open so
 ## Contact Us
 
 For business inquiries: info@ccxt.trade
+
+<!-- F65 -->
+<!-- Fix by JosefVacha for 50/50 -->
