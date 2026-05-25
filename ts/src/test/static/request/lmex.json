@@ -1,0 +1,121 @@
+{
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api.lmex.io/spot/api/v3.2/market_summary",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetch server time (spot)",
+                "method": "fetchTime",
+                "url": "https://api.lmex.io/spot/api/v3.2/time",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for a swap market",
+                "method": "fetchTicker",
+                "url": "https://api.lmex.io/futures/api/v2.3/market_summary?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch ticker for a spot market",
+                "method": "fetchTicker",
+                "url": "https://api.lmex.io/spot/api/v3.2/market_summary?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch all tickers (first HTTP call is spot market_summary)",
+                "method": "fetchTickers",
+                "url": "https://api.lmex.io/spot/api/v3.2/market_summary",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for a swap market",
+                "method": "fetchOrderBook",
+                "url": "https://api.lmex.io/futures/api/v2.3/orderbook/L2?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch order book for a spot market",
+                "method": "fetchOrderBook",
+                "url": "https://api.lmex.io/spot/api/v3.2/orderbook/L2?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV for a spot market with 1m timeframe",
+                "method": "fetchOHLCV",
+                "url": "https://api.lmex.io/spot/api/v3.2/ohlcv?symbol=BTC-USDT&resolution=1",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ]
+            },
+            {
+                "description": "fetch OHLCV for a swap market with 1h timeframe",
+                "method": "fetchOHLCV",
+                "url": "https://api.lmex.io/futures/api/v2.3/ohlcv?symbol=BTC-PERP&resolution=60",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for a spot market",
+                "method": "fetchTrades",
+                "url": "https://api.lmex.io/spot/api/v3.2/trades?symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetch trades for a swap market",
+                "method": "fetchTrades",
+                "url": "https://api.lmex.io/futures/api/v2.3/trades?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate for a swap market",
+                "method": "fetchFundingRate",
+                "url": "https://api.lmex.io/futures/api/v2.3/market_summary?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch all funding rates (first HTTP call is futures market_summary)",
+                "method": "fetchFundingRates",
+                "url": "https://api.lmex.io/futures/api/v2.3/market_summary",
+                "input": []
+            }
+        ]
+    },
+    "options": {}
+}
