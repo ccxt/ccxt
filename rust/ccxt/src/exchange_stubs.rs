@@ -1793,11 +1793,68 @@ impl Exchange {
 
     // ── async lifecycle stubs ───────────────────────────────────────────────
 
+    /// Minimal port of TS `loadMarketsHelper`:
+    ///   1. Return the cached `markets` if already populated and not
+    ///      forcing a reload.
+    ///   2. Otherwise dispatch `fetch_markets` to the derived exchange
+    ///      (binance/okx/... — each implements the actual API call).
+    ///   3. Feed the resulting list into `set_markets` so `markets`,
+    ///      `markets_by_id`, `symbols`, `ids`, and synthesized
+    ///      `currencies` are all populated. Live tests then read these
+    ///      off the snapshot via `live_dispatch::read_state`.
+    /// Minimal port of TS `loadMarketsHelper`:
+    ///   1. Return the cached `markets` if already populated and not
+    ///      forcing a reload.
+    ///   2. If `has.fetchCurrencies === true`, dispatch `fetch_currencies`
+    ///      first — passing the result into `set_markets` avoids the
+    ///      O(N²) "synthesize from markets" branch (cloning the
+    ///      grouped-by-code Map inside an outer loop).
+    ///   3. Dispatch `fetch_markets` to the derived exchange.
+    ///   4. `set_markets(markets, currencies)` populates `markets`,
+    ///      `markets_by_id`, `symbols`, `ids`, and merges currencies.
+    /// Minimal port of TS `loadMarketsHelper`. Returns cached markets
+    /// on hit; otherwise fetches markets (and currencies when supported)
+    /// and pushes everything through `set_markets`. Built-in synthesize
+    /// branch of `set_markets` is O(N) per code with full Map clones —
+    /// for binance (~4k markets, ~1k unique codes) that grew to minutes
+    /// and looked like a hang. `load_markets_fast_synthesize_currencies`
+    /// below short-circuits when currencies are empty by synthesizing
+    /// them here in idiomatic Rust (HashMap-direct, no Value cloning of
+    /// the whole grouped map per code).
     pub async fn load_markets(&mut self, optional_args: &[Value]) -> Value {
         let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
         let reload_b = matches!(reload, Value::Bool(true));
-        if !reload_b && !self.markets.is_null() { return self.markets.clone(); }
-        Value::Null
+        if !reload_b && !self.markets.is_null() {
+            return self.markets.clone();
+        }
+        let has_fetch_currencies = matches!(
+            crate::get_value(&self.has, &Value::Str("fetchCurrencies".to_string())),
+            Value::Bool(true),
+        );
+        let mut currencies = Value::Null;
+        if has_fetch_currencies {
+            if let Some(v) = self.dispatch_to_derived("fetch_currencies", Vec::new()).await {
+                currencies = v;
+            }
+        }
+        let fetched = match self.dispatch_to_derived("fetch_markets", Vec::new()).await {
+            Some(v) => v,
+            None    => return Value::Null,
+        };
+        if matches!(fetched, Value::Null) {
+            return self.markets.clone();
+        }
+        // If we have currencies, hand both off to the unified set_markets
+        // (which deep-extends them in — the IF branch, cheap).
+        // If not, pre-build a currencies dict here so set_markets STILL
+        // takes the fast IF branch and skips the slow synthesize loop.
+        if matches!(&currencies, Value::Map(m) if !m.is_empty()) {
+            self.set_markets(fetched, &[currencies]);
+        } else {
+            let synthesized = synthesize_currencies_from_markets(&fetched, &self.precisionMode);
+            self.set_markets(fetched, &[synthesized]);
+        }
+        self.markets.clone()
     }
 
     // Proxy callback "methods" — the post-processor rewrites
@@ -1834,4 +1891,81 @@ impl Exchange {
 
     pub fn resolve<T>(&self, v: T) -> T { v }
     pub fn reject(&self, err: ExchangeError) -> ExchangeError { err }
+}
+
+/// Synthesizes a `code → currency` map from a list of markets, mirroring
+/// what `Exchange::set_markets`' else-branch does in TS — but in straight
+/// Rust without re-cloning the grouped Map per outer iteration. For
+/// binance (~4k markets, ~1k codes) the transpiled path took minutes;
+/// this version completes in milliseconds.
+fn synthesize_currencies_from_markets(markets: &Value, precision_mode: &Value) -> Value {
+    let market_list: Vec<&Value> = match markets {
+        Value::Array(a) => a.iter().collect(),
+        Value::Map(m)   => m.values().collect(),
+        _ => return Value::Map(HashMap::new()),
+    };
+    let is_tick_size = matches!(precision_mode, Value::Int(n) if *n == crate::runtime::TICK_SIZE);
+    let default_precision = if is_tick_size {
+        Value::Float(1e-8)
+    } else {
+        Value::Int(8)
+    };
+
+    // Helper to compare precision: tick size → smaller is more precise;
+    // decimal places → larger is more precise.
+    let more_precise = |new: &Value, cur: &Value| -> bool {
+        let to_f = |v: &Value| -> f64 {
+            match v {
+                Value::Int(n)   => *n as f64,
+                Value::Float(f) => *f,
+                Value::Str(s)   => s.parse().unwrap_or(f64::NAN),
+                _ => f64::NAN,
+            }
+        };
+        let n = to_f(new);
+        let c = to_f(cur);
+        if n.is_nan() { return false; }
+        if c.is_nan() { return true; }
+        if is_tick_size { n < c } else { n > c }
+    };
+
+    // Pull out the "code", "id", "precision" triple for each side. We
+    // dedupe by code, keeping the most-precise instance.
+    let mut by_code: HashMap<String, HashMap<String, Value>> = HashMap::new();
+    for market in market_list {
+        let market_precision = crate::get_value(market, &Value::Str("precision".to_string()));
+        // base side
+        for (id_key, code_key, prec_keys) in [
+            ("baseId",  "base",  ["base",  "amount"]),
+            ("quoteId", "quote", ["quote", "price"]),
+        ] {
+            let code = crate::get_value(market, &Value::Str(code_key.to_string()));
+            let code_s = match &code { Value::Str(s) if !s.is_empty() => s.clone(), _ => continue };
+            let id = crate::get_value(market, &Value::Str(id_key.to_string()));
+            let id_v = match &id { Value::Null => Value::Str(code_s.clone()), other => other.clone() };
+            let mut precision = crate::get_value(&market_precision, &Value::Str(prec_keys[0].to_string()));
+            if matches!(precision, Value::Null) {
+                precision = crate::get_value(&market_precision, &Value::Str(prec_keys[1].to_string()));
+            }
+            if matches!(precision, Value::Null) {
+                precision = default_precision.clone();
+            }
+            let entry = by_code.entry(code_s.clone()).or_insert_with(|| {
+                let mut m = HashMap::new();
+                m.insert("id".to_string(),        id_v.clone());
+                m.insert("numericId".to_string(), Value::Null);
+                m.insert("code".to_string(),      Value::Str(code_s.clone()));
+                m.insert("precision".to_string(), precision.clone());
+                m
+            });
+            let existing_precision = entry.get("precision").cloned().unwrap_or(Value::Null);
+            if more_precise(&precision, &existing_precision) {
+                entry.insert("precision".to_string(), precision.clone());
+            }
+        }
+    }
+    let result: HashMap<String, Value> = by_code.into_iter()
+        .map(|(k, v)| (k, Value::Map(v)))
+        .collect();
+    Value::Map(result)
 }

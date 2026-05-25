@@ -80,7 +80,18 @@ pub mod shared {
         match m { Value::Str(s) => s.clone(), _ => format!("{m:?}") }
     }
 
-    pub fn assert_deep_equal<E: AsValue>(_exchange: E, skipped: Value, method: Value, actual: Value, expected: Value) {
+    // Helpers all take `(exchange, &[args])` because the transpiler
+    // wraps TS call sites (which use default args) into a slice. This
+    // mirrors Go's `Args ...any` variadic helpers. Each helper pulls
+    // what it needs out of the slice; missing trailing args become
+    // `Value::Null` via `arg(args, i)`.
+    fn arg(a: &[Value], i: usize) -> Value { a.get(i).cloned().unwrap_or(Value::Null) }
+
+    pub fn assert_deep_equal<E: AsValue>(_exchange: E, args: &[Value]) {
+        let skipped  = arg(args, 0);
+        let method   = arg(args, 1);
+        let actual   = arg(args, 2);
+        let expected = arg(args, 3);
         let skips = collect_skips(&skipped);
         if !deep_eq(&actual, &expected, &skips) {
             let m = method_str(&method);
@@ -88,14 +99,20 @@ pub mod shared {
         }
     }
 
-    pub fn assert_equal<E: AsValue>(_exchange: E, _skipped: Value, method: Value, _entry: Value, key_or_val: Value, compare_to: Value, _allow_null: Value) {
+    pub fn assert_equal<E: AsValue>(_exchange: E, args: &[Value]) {
+        let method     = arg(args, 1);
+        let key_or_val = arg(args, 3);
+        let compare_to = arg(args, 4);
         if !shallow_eq(&key_or_val, &compare_to) {
             let m = method_str(&method);
             panic!("{m}: assertEqual failed: {key_or_val:?} != {compare_to:?}");
         }
     }
 
-    pub fn assert_non_equal<E: AsValue>(_exchange: E, _skipped: Value, method: Value, _entry: Value, key_or_val: Value, compare_to: Value, _allow_null: Value) {
+    pub fn assert_non_equal<E: AsValue>(_exchange: E, args: &[Value]) {
+        let method     = arg(args, 1);
+        let key_or_val = arg(args, 3);
+        let compare_to = arg(args, 4);
         if shallow_eq(&key_or_val, &compare_to) {
             let m = method_str(&method);
             panic!("{m}: assertNonEqual failed: {key_or_val:?} == {compare_to:?}");
@@ -104,23 +121,31 @@ pub mod shared {
 
     // Stubs — keep the test infrastructure quiet while we add real
     // semantics one helper at a time.
-    pub fn assert_greater<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _c: Value, _allow_null: Value) {}
-    pub fn assert_greater_or_equal<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _c: Value, _allow_null: Value) {}
-    pub fn assert_less<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _c: Value, _allow_null: Value) {}
-    pub fn assert_less_or_equal<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _c: Value, _allow_null: Value) {}
-    pub fn assert_in_array<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _expected: Value, _allow_null: Value) {}
-    pub fn assert_integer<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _allow_null: Value) {}
-    pub fn assert_symbol<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _expected: Value, _allow_null: Value) {}
-    pub fn assert_timestamp<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _now: Value, _k: Value, _allow_null: Value) {}
-    pub fn assert_timestamp_and_datetime<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _now: Value, _k: Value, _allow_null: Value) {}
-    pub fn assert_currency_code<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _actual: Value, _expected: Value, _allow_null: Value) {}
-    pub fn assert_structure<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _format: Value, _empty: Value, _deep: Value) {}
-    pub fn assert_non_emtpy_array<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _hint: Value) {}
-    pub fn assert_round_minute_timestamp<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value) {}
-    pub fn assert_fee_structure<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _k: Value, _allow_null: Value) {}
-    pub fn assert_valid_currency_id_and_code<E: AsValue>(_e: E, _s: Value, _m: Value, _entry: Value, _cid: Value, _ccode: Value, _allow_null: Value) {}
-    pub fn assert_timestamp_order<E: AsValue>(_e: E, _m: Value, _code_or_sym: Value, _items: Value, _ascending: Value) {}
-    pub fn assert_order_state<E: AsValue>(_e: E, _s: Value, _m: Value, _order: Value, _status: Value, _strict: Value) {}
+    pub fn assert_greater<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_greater_or_equal<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_less<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_less_or_equal<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_in_array<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_integer<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_symbol<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_timestamp<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_timestamp_and_datetime<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_currency_code<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_structure<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_non_emtpy_array<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_non_empty_array<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_round_minute_timestamp<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_fee_structure<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_valid_currency_id_and_code<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_timestamp_order<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_order_state<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn assert_type<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn check_precision_accuracy<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn fetch_best_bid_ask<E: AsValue>(_e: E, _args: &[Value]) -> Value { Value::Null }
+    pub async fn fetch_order<E: AsValue>(_e: E, _args: &[Value]) -> Value { Value::Null }
+    pub fn set_proxy_options<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn remove_proxy_options<E: AsValue>(_e: E, _args: &[Value]) {}
+    pub fn get_active_markets<E: AsValue>(_e: E) -> Value { Value::List(vec![]) }
 
     /// `exchange_prop(entry, key)` — reads `entry[key]`. The TS test
     /// uses this for both plain dicts AND for the exchange struct

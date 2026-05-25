@@ -272,11 +272,59 @@ impl From<serde_json::Value> for Value {
 
 // ── Helper free-functions (generated code calls these) ────────────────────────
 
+/// Optional live-snapshot accessor. Installed by `ccxt_tests::live_dispatch`
+/// so reads of the heavy fields (`markets`, `markets_by_id`, `symbols`, …)
+/// on the test-runner's snapshot don't deep-clone the entire ~4k-entry
+/// markets Map on every helper invocation. When `get_value` sees a Map
+/// carrying `__live_id`, it consults this callback to resolve the key
+/// directly from the cached real `<Id>Core`. Production / non-test code
+/// leaves the callback unset and falls through to the normal map lookup.
+type LiveLookupFn = fn(id: &str, key: &str) -> Option<Value>;
+// Plain atomic-load-style global — `tokio::main` spawns worker threads
+// that wouldn't see a `thread_local!` value set in main, so the lookup
+// has to be shared across all threads. Stored as a usize because
+// `AtomicPtr<fn>` is awkward to express. `fn` pointers are always
+// non-null when set; 0 means "not installed".
+static LIVE_LOOKUP_PTR: std::sync::atomic::AtomicUsize =
+    std::sync::atomic::AtomicUsize::new(0);
+
+pub fn set_live_lookup(f: LiveLookupFn) {
+    LIVE_LOOKUP_PTR.store(f as usize, std::sync::atomic::Ordering::Release);
+}
+
+fn live_lookup_get() -> Option<LiveLookupFn> {
+    let n = LIVE_LOOKUP_PTR.load(std::sync::atomic::Ordering::Acquire);
+    if n == 0 { None } else {
+        // SAFETY: only ever stored as `fn(&str, &str) -> Option<Value>`
+        // via `set_live_lookup`; the pointer-to-fn round-trip is sound.
+        Some(unsafe { std::mem::transmute::<usize, LiveLookupFn>(n) })
+    }
+}
+
 /// Access a value in a map by string key, or array by integer key encoded as
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
 pub fn get_value(obj: &Value, key: &Value) -> Value {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => m.get(k).cloned().unwrap_or(Value::Null),
+        (Value::Map(m), Value::Str(k)) => {
+            // Snapshot value wins WHEN PRESENT AND NON-NULL. Tests that
+            // mutate `exchange.options` (e.g. kucoin broker-id test) need
+            // the snapshot view to take precedence; but `to_value`
+            // pre-populates heavy fields like `markets` with `Null`
+            // before `load_markets` runs, so we still need to fall back
+            // to the live-lookup if the snapshot value is null.
+            let snapshot_val = m.get(k);
+            if let Some(v) = snapshot_val {
+                if !matches!(v, Value::Null) {
+                    return v.clone();
+                }
+            }
+            if let Some(id_val) = m.get("__live_id") {
+                if let (Value::Str(id), Some(cb)) = (id_val, live_lookup_get()) {
+                    if let Some(v) = cb(id, k) { return v; }
+                }
+            }
+            Value::Null
+        }
         (Value::Array(a), Value::Int(i)) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
         (Value::Array(a), Value::Str(k)) => {
             if let Ok(i) = k.parse::<usize>() {

@@ -41,6 +41,11 @@ use tests::TestMainClass;
 
 #[tokio::main]
 async fn main() -> ExitCode {
+    // Install the heavy-field live-lookup callback in the ccxt crate so
+    // `exchange.markets` / `.markets_by_id` reads on the test snapshot
+    // resolve straight off the cached Core instead of deep-cloning the
+    // entire ~4k-entry markets Map on every helper invocation.
+    live_dispatch::init_live_lookup();
     let run_base_tests = is_true(&getCliArgValue(Value::Str("--baseTests".to_string())));
     let ws_tests       = is_true(&getCliArgValue(Value::Str("--ws".to_string())));
     let verbose        = is_true(&getCliArgValue(Value::Str("--verbose".to_string())))

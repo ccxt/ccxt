@@ -230,7 +230,12 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     // Falls back to a bare config map for ids with no registered Core.
     let snap = crate::registry::exchange_snapshot(&id, cfg.clone());
     if let Value::Map(mut m) = snap {
-        m.insert("id".to_string(), exchange_id);
+        m.insert("id".to_string(), exchange_id.clone());
+        // `__live_id` flags this snapshot for `ccxt::value::get_value`'s
+        // live-lookup fast path — heavy reads (`exchange.markets` etc.)
+        // skip the deep-cloned snapshot copy and route to the cached
+        // Core via `live_dispatch::live_lookup`.
+        m.insert("__live_id".to_string(), exchange_id);
         return Value::Map(m);
     }
     let mut m = match cfg {
@@ -333,7 +338,23 @@ pub fn getTestFilesSync(_properties: Value, _ws: Value) -> Value {
 
 use ccxt::exchange::Exchange;
 
-fn base_exchange() -> Exchange { Exchange::new(None) }
+// One throwaway `Exchange` per thread for the ExchangeOps stub forwarders.
+// `Exchange::new(None)` allocates ~10 large `Value::Map` defaults
+// (`has`, `urls`, `features`, …); constructing one per call made
+// `testMarket` (which calls `exchange.parse_number(...)` five times per
+// market) build ~22k Exchange structs for binance, taking minutes.
+// `with_base` reuses a single instance per thread for ~100x speedup.
+thread_local! {
+    static BASE_EXCHANGE: std::cell::RefCell<Exchange> =
+        std::cell::RefCell::new(Exchange::new(None));
+}
+
+fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut Exchange) -> R {
+    BASE_EXCHANGE.with(|cell| f(&mut cell.borrow_mut()))
+}
+
+#[allow(dead_code)]
+fn with_base_clone() -> Exchange { Exchange::new(None) }
 
 pub trait ExchangeOps {
     fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value;
@@ -379,22 +400,22 @@ pub trait ExchangeOps {
 }
 
 impl ExchangeOps for Value {
-    fn safe_value(&self, obj: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_value(obj, key, o) }
-    fn safe_string(&self, obj: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_string(obj, key, o) }
-    fn safe_bool(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_bool(d, key, o) }
-    fn safe_dict(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_dict(d, key, o) }
-    fn safe_list(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_list(d, key, o) }
-    fn is_empty_string(&self, value: Value) -> Value { base_exchange().is_empty_string(value) }
-    fn json(&self, v: Value) -> Value { base_exchange().json(v) }
-    fn in_array(&self, needle: Value, haystack: Value) -> Value { base_exchange().in_array(needle, haystack) }
-    fn deep_extend(&self, a: Value, o: &[Value]) -> Value { base_exchange().deep_extend(a, o) }
-    fn deepExtend(&self, a: Value, o: &[Value]) -> Value { base_exchange().deep_extend(a, o) }
-    fn index_by(&self, arr: Value, key: Value) -> Value { base_exchange().index_by(arr, key) }
-    fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { base_exchange().filter_by(arr, key, value, o) }
-    fn number_to_string(&self, n: Value) -> Value { base_exchange().number_to_string(n) }
-    fn parse_to_int(&self, n: Value) -> Value { base_exchange().parse_to_int(n) }
-    fn parse_to_numeric(&self, n: Value) -> Value { base_exchange().parse_to_numeric(n) }
-    fn sum(&self, optional_args: &[Value]) -> Value { base_exchange().sum(optional_args) }
+    fn safe_value(&self, obj: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_value(obj, key, o)) }
+    fn safe_string(&self, obj: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string(obj, key, o)) }
+    fn safe_bool(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_bool(d, key, o)) }
+    fn safe_dict(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_dict(d, key, o)) }
+    fn safe_list(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_list(d, key, o)) }
+    fn is_empty_string(&self, value: Value) -> Value { with_base(|e| e.is_empty_string(value)) }
+    fn json(&self, v: Value) -> Value { with_base(|e| e.json(v)) }
+    fn in_array(&self, needle: Value, haystack: Value) -> Value { with_base(|e| e.in_array(needle, haystack)) }
+    fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
+    fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
+    fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
+    fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
+    fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
+    fn parse_to_int(&self, n: Value) -> Value { with_base(|e| e.parse_to_int(n)) }
+    fn parse_to_numeric(&self, n: Value) -> Value { with_base(|e| e.parse_to_numeric(n)) }
+    fn sum(&self, optional_args: &[Value]) -> Value { with_base(|e| e.sum(optional_args)) }
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }
     /// `market(symbol)` — look the unified symbol up in this exchange
     /// value's `markets` map (offline exchanges carry markets inline).
@@ -407,20 +428,20 @@ impl ExchangeOps for Value {
     /// (mirrors `Exchange.extendExchangeOptions`).
     fn extend_exchange_options(&mut self, options: Value) -> Value {
         let current = ccxt::get_value(self, &Value::Str("options".to_string()));
-        let merged = base_exchange().deep_extend(current, &[options]);
+        let merged = with_base(|e| e.deep_extend(current, &[options]));
         ccxt::set_value(self, &Value::Str("options".to_string()), merged.clone());
         merged
     }
     fn check_required_credentials(&self, _optional_args: &[Value]) -> Value { Value::Bool(true) }
-    fn parse_number(&self, n: Value, o: &[Value]) -> Value { base_exchange().parse_number(n, o) }
-    fn safe_number(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_number(d, key, o) }
-    fn safe_integer(&self, d: Value, key: Value, o: &[Value]) -> Value { base_exchange().safe_integer(d, key, o) }
-    fn safe_string_n(&self, d: Value, keys: Value, o: &[Value]) -> Value { base_exchange().safe_string_n(d, keys, o) }
-    fn omit_zero(&self, s: Value)                -> Value { base_exchange().omit_zero(s) }
-    fn array_concat(&self, a: Value, b: Value)   -> Value { base_exchange().array_concat(a, b) }
-    fn parse_timeframe(&self, tf: Value)         -> Value { base_exchange().parse_timeframe(tf) }
-    fn iso8601(&self, ts: Value)                 -> Value { base_exchange().iso8601(ts) }
-    fn milliseconds(&self)                        -> Value { base_exchange().milliseconds() }
+    fn parse_number(&self, n: Value, o: &[Value]) -> Value { with_base(|e| e.parse_number(n, o)) }
+    fn safe_number(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_number(d, key, o)) }
+    fn safe_integer(&self, d: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.safe_integer(d, key, o)) }
+    fn safe_string_n(&self, d: Value, keys: Value, o: &[Value]) -> Value { with_base(|e| e.safe_string_n(d, keys, o)) }
+    fn omit_zero(&self, s: Value)                -> Value { with_base(|e| e.omit_zero(s)) }
+    fn array_concat(&self, a: Value, b: Value)   -> Value { with_base(|e| e.array_concat(a, b)) }
+    fn parse_timeframe(&self, tf: Value)         -> Value { with_base(|e| e.parse_timeframe(tf)) }
+    fn iso8601(&self, ts: Value)                 -> Value { with_base(|e| e.iso8601(ts)) }
+    fn milliseconds(&self)                        -> Value { with_base(|e| e.milliseconds()) }
     /// Set a field on the exchange Value-map by key. The
     /// transpiled tests use this to inject precision/markets/etc.
     /// Three-arg form matches TS `setProperty(exchange, key, value)`.
@@ -429,11 +450,11 @@ impl ExchangeOps for Value {
     }
     /// camelCase alias — some test files slip through the snake-case rewrite.
     fn safeString(&self, d: Value, key: Value, o: &[Value]) -> Value {
-        base_exchange().safe_string(d, key, o)
+        with_base(|e| e.safe_string(d, key, o))
     }
     fn exception_message(&self, e: Value) -> Value { exceptionMessage(e) }
     fn decimal_to_precision(&self, n: Value, rounding: Value, precision: Value, o: &[Value]) -> Value {
-        base_exchange().decimal_to_precision(n, rounding, precision, o)
+        with_base(|e| e.decimal_to_precision(n, rounding, precision, o))
     }
     async fn sleep(&self, _ms: Value) -> Value { Value::Null }
 }

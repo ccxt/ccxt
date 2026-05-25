@@ -79,6 +79,12 @@ type WriteMockFn = fn(*mut (), Value);
 /// through this trampoline.
 type DropCoreFn = fn(*mut ());
 
+/// Resolves a snapshot heavy-field (`markets`, `markets_by_id`, …) by
+/// reading it straight off the Core. Used by `LIVE_LOOKUP` so the test
+/// runner's snapshot can stay tiny — only `__live_id` + a few light
+/// scalars — and avoid deep-cloning ~4k markets per helper invocation.
+type ReadFieldFn = fn(*mut (), &str) -> Option<Value>;
+
 /// The leaked raw pointer to a boxed `<Exchange>Core`. `*mut ()` isn't
 /// `Send` by default; the unsafe impls assert that the Box lives forever
 /// on the heap (we leak it) and is touched serially from the test runner.
@@ -95,6 +101,7 @@ struct CoreEntry {
     write_options: WriteOptionsFn,
     write_mock:    WriteMockFn,
     drop_core:     DropCoreFn,
+    read_field:    ReadFieldFn,
 }
 
 static CORES: OnceLock<Mutex<HashMap<String, CoreEntry>>> = OnceLock::new();
@@ -209,7 +216,50 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 m.insert("last_request_url".to_string(),     core.last_request_url.clone());
                 m.insert("last_request_body".to_string(),    core.last_request_body.clone());
                 m.insert("last_request_headers".to_string(), core.last_request_headers.clone());
+                // Heavy fields (`markets`, `markets_by_id`, `symbols`,
+                // `currencies`, etc.) are NOT eagerly copied — that
+                // would deep-clone ~4k market entries on every dispatch
+                // and again on every helper call (e.g. binance's
+                // testMarket loops 4k times × 20 `exchange.clone()`).
+                // Instead, the snapshot carries `__live_id` and the
+                // `ccxt::value::LIVE_LOOKUP` thread-local resolves
+                // those reads against the Core directly. Lightweight
+                // fields (`has`, `options`, `codes`, `ids`) still mirror
+                // here so helpers that scan them work synchronously.
+                m.insert("has".to_string(),                  core.has.clone());
+                m.insert("options".to_string(),              core.options.clone());
+                // `symbols`, `codes`, `ids` resolve through LIVE_LOOKUP
+                // — even the string lists are heavy (~4k strings for
+                // binance) and get re-cloned per helper invocation.
                 Value::Map(m)
+            }
+            // Live-lookup accessor for the `LIVE_LOOKUP` callback —
+            // resolves heavy fields straight off the Core without
+            // cloning them into the snapshot.
+            fn read_field(ptr: *mut (), key: &str) -> Option<Value> {
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                Some(match key {
+                    "markets"          => core.markets.clone(),
+                    "markets_by_id"    => core.markets_by_id.clone(),
+                    "currencies"       => core.currencies.clone(),
+                    "currencies_by_id" => core.currencies_by_id.clone(),
+                    // Lightweight ones still served here so a `__live_id`
+                    // snapshot stays fully introspectable through the
+                    // same code path.
+                    "symbols"          => core.symbols.clone(),
+                    "codes"            => core.codes.clone(),
+                    "ids"              => core.ids.clone(),
+                    "has"              => core.has.clone(),
+                    "options"          => core.options.clone(),
+                    "last_request_url"     => core.last_request_url.clone(),
+                    "last_request_body"    => core.last_request_body.clone(),
+                    "last_request_headers" => core.last_request_headers.clone(),
+                    "id"               => core.id.clone(),
+                    "precisionMode"    => core.precisionMode.clone(),
+                    "fees"             => core.fees.clone(),
+                    "urls"             => core.urls.clone(),
+                    _ => return None,
+                })
             }
             fn write_options(ptr: *mut (), new_opts: Value) {
                 // Snapshot wins. The test harness's static-fixture loop
@@ -241,11 +291,29 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 write_options: write_options as WriteOptionsFn,
                 write_mock:    write_mock    as WriteMockFn,
                 drop_core:     drop_core     as DropCoreFn,
+                read_field:    read_field    as ReadFieldFn,
             });
         }
     }; }
     for_each_core!(arm);
     None
+}
+
+/// Resolves `<id>.<key>` against the cached Core (`live_lookup_thunk`
+/// is installed by `init_live_lookup` and read from `ccxt::value::get_value`).
+fn live_lookup(id: &str, key: &str) -> Option<Value> {
+    let entry = {
+        let m = cores().lock().ok()?;
+        m.get(id).copied()
+    };
+    let entry = entry?;
+    (entry.read_field)(entry.ptr.0, key)
+}
+
+/// Wire the heavy-field resolver into the ccxt crate. Call once from
+/// `main` before any live dispatch.
+pub fn init_live_lookup() {
+    ccxt::value::set_live_lookup(live_lookup);
 }
 
 /// camelCase → snake_case, matching the transpiler's `toSnakeCase`.

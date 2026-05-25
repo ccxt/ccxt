@@ -489,6 +489,18 @@ pub fn index_of(haystack: &Value, needle: &Value) -> Value {
     get_index_of(haystack, needle)
 }
 
+/// `contains(haystack, needle)` — substring check for `Value::Str`,
+/// element check for `Value::Array`. Used by the transpiled tests
+/// for `string.includes(...)` / `array.includes(...)` (the regex
+/// transpiler rewrites both into this free function).
+pub fn contains(haystack: &Value, needle: &Value) -> bool {
+    match (haystack, needle) {
+        (Value::Str(h), Value::Str(n))   => h.contains(n.as_str()),
+        (Value::Array(a), n)             => a.iter().any(|el| is_equal(el, n)),
+        _ => false,
+    }
+}
+
 // ── Numeric / precision constants (mirrors decimal_to_precision.ts) ─────────
 
 pub const TRUNCATE:  i64 = 0;
