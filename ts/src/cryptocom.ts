@@ -563,7 +563,8 @@ export default class cryptocom extends Exchange {
         try {
             response = await this.v1PrivatePostPrivateGetCurrencyNetworks (params);
         } catch (e) {
-            if ((e instanceof ExchangeError) && !(e instanceof InvalidProxySettings)) {
+            const erString = this.exceptionMessage (e);
+            if (erString.includes ('"msg":"SYS_ERROR"')) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
                 return {};
