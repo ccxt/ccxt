@@ -2960,9 +2960,14 @@ export default class binance extends Exchange {
             const responseMarginables = results[1];
             this.options['_fetchCurrencies_marginablesById'] = this.indexBy (responseMarginables, 'assetName');
         }
-        const result = this.parseCurrencies (responseCurrencies);
-        delete this.options['_fetchCurrencies_marginablesById'];
-        return result;
+        try {
+            const result = this.parseCurrencies (responseCurrencies);
+            delete this.options['_fetchCurrencies_marginablesById'];
+            return result;
+        } catch (e) {
+            delete this.options['_fetchCurrencies_marginablesById'];
+            throw e;
+        }
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
