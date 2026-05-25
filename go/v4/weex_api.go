@@ -7,306 +7,306 @@
 
 package ccxt
 
-func (this *WeexCore) PublicGetApiV3Time(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3Time", args...)
+func (this *WeexCore) PublicGetApiV3Time (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3Time", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3Coins(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3Coins", args...)
+func (this *WeexCore) PublicGetApiV3Coins (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3Coins", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3ExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3ExchangeInfo", args...)
+func (this *WeexCore) PublicGetApiV3ExchangeInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3ExchangeInfo", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3Ping(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3Ping", args...)
+func (this *WeexCore) PublicGetApiV3Ping (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3Ping", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3ApiTradingSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3ApiTradingSymbols", args...)
+func (this *WeexCore) PublicGetApiV3ApiTradingSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3ApiTradingSymbols", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3MarketTickerPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3MarketTickerPrice", args...)
+func (this *WeexCore) PublicGetApiV3MarketTickerPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3MarketTickerPrice", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3MarketTicker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3MarketTicker24hr", args...)
+func (this *WeexCore) PublicGetApiV3MarketTicker24hr (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3MarketTicker24hr", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3MarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3MarketTrades", args...)
+func (this *WeexCore) PublicGetApiV3MarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3MarketTrades", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3MarketKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3MarketKlines", args...)
+func (this *WeexCore) PublicGetApiV3MarketKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3MarketKlines", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3MarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3MarketDepth", args...)
+func (this *WeexCore) PublicGetApiV3MarketDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3MarketDepth", args...)
 }
 
-func (this *WeexCore) PublicGetApiV3MarketTickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetApiV3MarketTickerBookTicker", args...)
+func (this *WeexCore) PublicGetApiV3MarketTickerBookTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetApiV3MarketTickerBookTicker", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3Account(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3Account", args...)
+func (this *WeexCore) PrivateGetApiV3Account (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3Account", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3AccountTransferRecords(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3AccountTransferRecords", args...)
+func (this *WeexCore) PrivateGetApiV3AccountTransferRecords (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3AccountTransferRecords", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3Order", args...)
+func (this *WeexCore) PrivateGetApiV3Order (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3Order", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3OpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3OpenOrders", args...)
+func (this *WeexCore) PrivateGetApiV3OpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3OpenOrders", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3AllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3AllOrders", args...)
+func (this *WeexCore) PrivateGetApiV3AllOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3AllOrders", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3MyTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3MyTrades", args...)
+func (this *WeexCore) PrivateGetApiV3MyTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3MyTrades", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetAffiliateUIDs(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetAffiliateUIDs", args...)
+func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetAffiliateUIDs (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetAffiliateUIDs", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset", args...)
+func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetAffiliateCommission(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetAffiliateCommission", args...)
+func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetAffiliateCommission (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetAffiliateCommission", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetInternalWithdrawalStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus", args...)
+func (this *WeexCore) PrivateGetApiV3RebateAffiliateGetInternalWithdrawalStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3RebateAffiliateGetInternalWithdrawalStatus", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3RebateAffiliateQuerySubChannelTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3RebateAffiliateQuerySubChannelTransactions", args...)
+func (this *WeexCore) PrivateGetApiV3RebateAffiliateQuerySubChannelTransactions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3RebateAffiliateQuerySubChannelTransactions", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3AgencyVerifyReferrals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3AgencyVerifyReferrals", args...)
+func (this *WeexCore) PrivateGetApiV3AgencyVerifyReferrals (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3AgencyVerifyReferrals", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3AgencyGetAssert(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3AgencyGetAssert", args...)
+func (this *WeexCore) PrivateGetApiV3AgencyGetAssert (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3AgencyGetAssert", args...)
 }
 
-func (this *WeexCore) PrivateGetApiV3AgencyGetDealData(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetApiV3AgencyGetDealData", args...)
+func (this *WeexCore) PrivateGetApiV3AgencyGetDealData (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetApiV3AgencyGetDealData", args...)
 }
 
-func (this *WeexCore) PrivatePostApiV3AccountBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV3AccountBills", args...)
+func (this *WeexCore) PrivatePostApiV3AccountBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostApiV3AccountBills", args...)
 }
 
-func (this *WeexCore) PrivatePostApiV3AccountFundingBills(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV3AccountFundingBills", args...)
+func (this *WeexCore) PrivatePostApiV3AccountFundingBills (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostApiV3AccountFundingBills", args...)
 }
 
-func (this *WeexCore) PrivatePostApiV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV3Order", args...)
+func (this *WeexCore) PrivatePostApiV3Order (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostApiV3Order", args...)
 }
 
-func (this *WeexCore) PrivatePostApiV3OrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV3OrderBatch", args...)
+func (this *WeexCore) PrivatePostApiV3OrderBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostApiV3OrderBatch", args...)
 }
 
-func (this *WeexCore) PrivatePostApiV3RebateAffiliateInternalWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostApiV3RebateAffiliateInternalWithdrawal", args...)
+func (this *WeexCore) PrivatePostApiV3RebateAffiliateInternalWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostApiV3RebateAffiliateInternalWithdrawal", args...)
 }
 
-func (this *WeexCore) PrivateDeleteApiV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV3Order", args...)
+func (this *WeexCore) PrivateDeleteApiV3Order (args ...any) <-chan any {
+   return this.callEndpointAsync("privateDeleteApiV3Order", args...)
 }
 
-func (this *WeexCore) PrivateDeleteApiV3OpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV3OpenOrders", args...)
+func (this *WeexCore) PrivateDeleteApiV3OpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateDeleteApiV3OpenOrders", args...)
 }
 
-func (this *WeexCore) PrivateDeleteApiV3OrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteApiV3OrderBatch", args...)
+func (this *WeexCore) PrivateDeleteApiV3OrderBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("privateDeleteApiV3OrderBatch", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketTime(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketTime", args...)
+func (this *WeexCore) ContractGetCapiV3MarketTime (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketTime", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketExchangeInfo", args...)
+func (this *WeexCore) ContractGetCapiV3MarketExchangeInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketExchangeInfo", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketDepth", args...)
+func (this *WeexCore) ContractGetCapiV3MarketDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketDepth", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketTicker24hr(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketTicker24hr", args...)
+func (this *WeexCore) ContractGetCapiV3MarketTicker24hr (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketTicker24hr", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketTickerBookTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketTickerBookTicker", args...)
+func (this *WeexCore) ContractGetCapiV3MarketTickerBookTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketTickerBookTicker", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketTrades", args...)
+func (this *WeexCore) ContractGetCapiV3MarketTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketTrades", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketKlines", args...)
+func (this *WeexCore) ContractGetCapiV3MarketKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketKlines", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketIndexPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketIndexPriceKlines", args...)
+func (this *WeexCore) ContractGetCapiV3MarketIndexPriceKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketIndexPriceKlines", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketMarkPriceKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketMarkPriceKlines", args...)
+func (this *WeexCore) ContractGetCapiV3MarketMarkPriceKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketMarkPriceKlines", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketHistoryKlines(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketHistoryKlines", args...)
+func (this *WeexCore) ContractGetCapiV3MarketHistoryKlines (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketHistoryKlines", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketSymbolPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketSymbolPrice", args...)
+func (this *WeexCore) ContractGetCapiV3MarketSymbolPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketSymbolPrice", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketOpenInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketOpenInterest", args...)
+func (this *WeexCore) ContractGetCapiV3MarketOpenInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketOpenInterest", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketPremiumIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketPremiumIndex", args...)
+func (this *WeexCore) ContractGetCapiV3MarketPremiumIndex (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketPremiumIndex", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketFundingRate", args...)
+func (this *WeexCore) ContractGetCapiV3MarketFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketFundingRate", args...)
 }
 
-func (this *WeexCore) ContractGetCapiV3MarketApiTradingSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("contractGetCapiV3MarketApiTradingSymbols", args...)
+func (this *WeexCore) ContractGetCapiV3MarketApiTradingSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("contractGetCapiV3MarketApiTradingSymbols", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AccountBalance", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AccountBalance", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AccountCommissionRate(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AccountCommissionRate", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AccountCommissionRate (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AccountCommissionRate", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AccountAccountConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AccountAccountConfig", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AccountAccountConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AccountAccountConfig", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AccountSymbolConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AccountSymbolConfig", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AccountSymbolConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AccountSymbolConfig", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AccountPositionAllPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AccountPositionAllPosition", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AccountPositionAllPosition (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AccountPositionAllPosition", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AccountPositionSinglePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AccountPositionSinglePosition", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AccountPositionSinglePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AccountPositionSinglePosition", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3Order", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3Order (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3Order", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3OpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3OpenOrders", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3OpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3OpenOrders", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3OrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3OrderHistory", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3OrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3OrderHistory", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3UserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3UserTrades", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3UserTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3UserTrades", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3OpenAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3OpenAlgoOrders", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3OpenAlgoOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3OpenAlgoOrders", args...)
 }
 
-func (this *WeexCore) ContractPrivateGetCapiV3AllAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateGetCapiV3AllAlgoOrders", args...)
+func (this *WeexCore) ContractPrivateGetCapiV3AllAlgoOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateGetCapiV3AllAlgoOrders", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3AccountIncome(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3AccountIncome", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3AccountIncome (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3AccountIncome", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3AccountMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3AccountMarginType", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3AccountMarginType (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3AccountMarginType", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3AccountLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3AccountLeverage", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3AccountLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3AccountLeverage", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3AccountPositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3AccountPositionMargin", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3AccountPositionMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3AccountPositionMargin", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3AccountModifyAutoAppendMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3AccountModifyAutoAppendMargin", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3AccountModifyAutoAppendMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3AccountModifyAutoAppendMargin", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3Order", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3Order (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3Order", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3BatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3BatchOrders", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3BatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3BatchOrders", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3ClosePositions(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3ClosePositions", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3ClosePositions (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3ClosePositions", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3AlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3AlgoOrder", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3AlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3AlgoOrder", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3PlaceTpSlOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3PlaceTpSlOrder", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3PlaceTpSlOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3PlaceTpSlOrder", args...)
 }
 
-func (this *WeexCore) ContractPrivatePostCapiV3ModifyTpSlOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivatePostCapiV3ModifyTpSlOrder", args...)
+func (this *WeexCore) ContractPrivatePostCapiV3ModifyTpSlOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivatePostCapiV3ModifyTpSlOrder", args...)
 }
 
-func (this *WeexCore) ContractPrivateDeleteCapiV3Order(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteCapiV3Order", args...)
+func (this *WeexCore) ContractPrivateDeleteCapiV3Order (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateDeleteCapiV3Order", args...)
 }
 
-func (this *WeexCore) ContractPrivateDeleteCapiV3BatchOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteCapiV3BatchOrders", args...)
+func (this *WeexCore) ContractPrivateDeleteCapiV3BatchOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateDeleteCapiV3BatchOrders", args...)
 }
 
-func (this *WeexCore) ContractPrivateDeleteCapiV3AllOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteCapiV3AllOpenOrders", args...)
+func (this *WeexCore) ContractPrivateDeleteCapiV3AllOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateDeleteCapiV3AllOpenOrders", args...)
 }
 
-func (this *WeexCore) ContractPrivateDeleteCapiV3AlgoOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteCapiV3AlgoOrder", args...)
+func (this *WeexCore) ContractPrivateDeleteCapiV3AlgoOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateDeleteCapiV3AlgoOrder", args...)
 }
 
-func (this *WeexCore) ContractPrivateDeleteCapiV3AlgoOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("contractPrivateDeleteCapiV3AlgoOpenOrders", args...)
+func (this *WeexCore) ContractPrivateDeleteCapiV3AlgoOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("contractPrivateDeleteCapiV3AlgoOpenOrders", args...)
 }

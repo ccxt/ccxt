@@ -7,206 +7,206 @@
 
 package ccxt
 
-func (this *ExmoCore) WebGetCtrlFeesAndLimits(args ...any) <-chan any {
-	return this.callEndpointAsync("webGetCtrlFeesAndLimits", args...)
+func (this *ExmoCore) WebGetCtrlFeesAndLimits (args ...any) <-chan any {
+   return this.callEndpointAsync("webGetCtrlFeesAndLimits", args...)
 }
 
-func (this *ExmoCore) WebGetEnDocsFees(args ...any) <-chan any {
-	return this.callEndpointAsync("webGetEnDocsFees", args...)
+func (this *ExmoCore) WebGetEnDocsFees (args ...any) <-chan any {
+   return this.callEndpointAsync("webGetEnDocsFees", args...)
 }
 
-func (this *ExmoCore) PublicGetCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrency", args...)
+func (this *ExmoCore) PublicGetCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *ExmoCore) PublicGetCurrencyListExtended(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCurrencyListExtended", args...)
+func (this *ExmoCore) PublicGetCurrencyListExtended (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCurrencyListExtended", args...)
 }
 
-func (this *ExmoCore) PublicGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetOrderBook", args...)
+func (this *ExmoCore) PublicGetOrderBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *ExmoCore) PublicGetPairSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPairSettings", args...)
+func (this *ExmoCore) PublicGetPairSettings (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPairSettings", args...)
 }
 
-func (this *ExmoCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *ExmoCore) PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *ExmoCore) PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTrades", args...)
+func (this *ExmoCore) PublicGetTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *ExmoCore) PublicGetCandlesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetCandlesHistory", args...)
+func (this *ExmoCore) PublicGetCandlesHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetCandlesHistory", args...)
 }
 
-func (this *ExmoCore) PublicGetRequiredAmount(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetRequiredAmount", args...)
+func (this *ExmoCore) PublicGetRequiredAmount (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetRequiredAmount", args...)
 }
 
-func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
+func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUserInfo", args...)
+func (this *ExmoCore) PrivatePostUserInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUserInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderCreate", args...)
+func (this *ExmoCore) PrivatePostOrderCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderCancel", args...)
+func (this *ExmoCore) PrivatePostOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostStopMarketOrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostStopMarketOrderCreate", args...)
+func (this *ExmoCore) PrivatePostStopMarketOrderCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostStopMarketOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostStopMarketOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostStopMarketOrderCancel", args...)
+func (this *ExmoCore) PrivatePostStopMarketOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostStopMarketOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUserOpenOrders", args...)
+func (this *ExmoCore) PrivatePostUserOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUserOpenOrders", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUserTrades", args...)
+func (this *ExmoCore) PrivatePostUserTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUserTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserCancelledOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostUserCancelledOrders", args...)
+func (this *ExmoCore) PrivatePostUserCancelledOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostUserCancelledOrders", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderTrades", args...)
+func (this *ExmoCore) PrivatePostOrderTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrderTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDepositAddress", args...)
+func (this *ExmoCore) PrivatePostDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDepositAddress", args...)
 }
 
-func (this *ExmoCore) PrivatePostWithdrawCrypt(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawCrypt", args...)
+func (this *ExmoCore) PrivatePostWithdrawCrypt (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostWithdrawCrypt", args...)
 }
 
-func (this *ExmoCore) PrivatePostWithdrawGetTxid(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWithdrawGetTxid", args...)
+func (this *ExmoCore) PrivatePostWithdrawGetTxid (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostWithdrawGetTxid", args...)
 }
 
-func (this *ExmoCore) PrivatePostExcodeCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostExcodeCreate", args...)
+func (this *ExmoCore) PrivatePostExcodeCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostExcodeCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostExcodeLoad(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostExcodeLoad", args...)
+func (this *ExmoCore) PrivatePostExcodeLoad (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostExcodeLoad", args...)
 }
 
-func (this *ExmoCore) PrivatePostCodeCheck(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostCodeCheck", args...)
+func (this *ExmoCore) PrivatePostCodeCheck (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostCodeCheck", args...)
 }
 
-func (this *ExmoCore) PrivatePostWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletHistory", args...)
+func (this *ExmoCore) PrivatePostWalletHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostWalletHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostWalletOperations(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostWalletOperations", args...)
+func (this *ExmoCore) PrivatePostWalletOperations (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostWalletOperations", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderCreate", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderUpdate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderUpdate", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderUpdate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderUpdate", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderCancel", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionClose(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserPositionClose", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionClose (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserPositionClose", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserPositionMarginAdd", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserPositionMarginAdd", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemove", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserPositionMarginRemove", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginCurrencyList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginCurrencyList", args...)
+func (this *ExmoCore) PrivatePostMarginCurrencyList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginCurrencyList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginPairList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginPairList", args...)
+func (this *ExmoCore) PrivatePostMarginPairList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginPairList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginSettings(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginSettings", args...)
+func (this *ExmoCore) PrivatePostMarginSettings (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginSettings", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginFundingList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginFundingList", args...)
+func (this *ExmoCore) PrivatePostMarginFundingList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginFundingList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserInfo", args...)
+func (this *ExmoCore) PrivatePostMarginUserInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderList", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderHistory", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderTrades", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserOrderMaxQuantity", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserOrderMaxQuantity", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserPositionList", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserPositionList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemoveInfo", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserPositionMarginRemoveInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserPositionMarginAddInfo", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserPositionMarginAddInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserWalletList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserWalletList", args...)
+func (this *ExmoCore) PrivatePostMarginUserWalletList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserWalletList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserWalletHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserWalletHistory", args...)
+func (this *ExmoCore) PrivatePostMarginUserWalletHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserWalletHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserTradeList(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginUserTradeList", args...)
+func (this *ExmoCore) PrivatePostMarginUserTradeList (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginUserTradeList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginTrades", args...)
+func (this *ExmoCore) PrivatePostMarginTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginLiquidationFeed(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostMarginLiquidationFeed", args...)
+func (this *ExmoCore) PrivatePostMarginLiquidationFeed (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostMarginLiquidationFeed", args...)
 }

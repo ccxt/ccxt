@@ -2043,7 +2043,7 @@ public partial class paradex : Exchange
         {
             ((IDictionary<string,object>)request)["client_order_ids"] = clientOrderIds;
         }
-        object response = await ((Task<object>)callDynamically(this, "privateDeleteOrdersBatch", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateDeleteOrdersBatch(this.extend(request, parameters));
         //
         // {
         //     "results": [

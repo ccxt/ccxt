@@ -54,6 +54,7 @@ export default class bybiteu extends bybit {
                 'margin': true,
                 'swap': false,
                 'future': false,
+                'option': undefined,
             },
         });
     }

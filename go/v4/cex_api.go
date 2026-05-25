@@ -7,114 +7,114 @@
 
 package ccxt
 
-func (this *CexCore) PublicPostGetServerTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetServerTime", args...)
+func (this *CexCore) PublicPostGetServerTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetServerTime", args...)
 }
 
-func (this *CexCore) PublicPostGetPairsInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetPairsInfo", args...)
+func (this *CexCore) PublicPostGetPairsInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetPairsInfo", args...)
 }
 
-func (this *CexCore) PublicPostGetCurrenciesInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetCurrenciesInfo", args...)
+func (this *CexCore) PublicPostGetCurrenciesInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetCurrenciesInfo", args...)
 }
 
-func (this *CexCore) PublicPostGetProcessingInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetProcessingInfo", args...)
+func (this *CexCore) PublicPostGetProcessingInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetProcessingInfo", args...)
 }
 
-func (this *CexCore) PublicPostGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetTicker", args...)
+func (this *CexCore) PublicPostGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetTicker", args...)
 }
 
-func (this *CexCore) PublicPostGetTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
+func (this *CexCore) PublicPostGetTradeHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetTradeHistory", args...)
 }
 
-func (this *CexCore) PublicPostGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetOrderBook", args...)
+func (this *CexCore) PublicPostGetOrderBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetOrderBook", args...)
 }
 
-func (this *CexCore) PublicPostGetCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicPostGetCandles", args...)
+func (this *CexCore) PublicPostGetCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicPostGetCandles", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyCurrentFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyCurrentFee", args...)
+func (this *CexCore) PrivatePostGetMyCurrentFee (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyCurrentFee", args...)
 }
 
-func (this *CexCore) PrivatePostGetFeeStrategy(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetFeeStrategy", args...)
+func (this *CexCore) PrivatePostGetFeeStrategy (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetFeeStrategy", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyVolume(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyVolume", args...)
+func (this *CexCore) PrivatePostGetMyVolume (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyVolume", args...)
 }
 
-func (this *CexCore) PrivatePostDoCreateAccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoCreateAccount", args...)
+func (this *CexCore) PrivatePostDoCreateAccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoCreateAccount", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyAccountStatusV3(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyAccountStatusV3", args...)
+func (this *CexCore) PrivatePostGetMyAccountStatusV3 (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyAccountStatusV3", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyWalletBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyWalletBalance", args...)
+func (this *CexCore) PrivatePostGetMyWalletBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyWalletBalance", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyOrders", args...)
+func (this *CexCore) PrivatePostGetMyOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyOrders", args...)
 }
 
-func (this *CexCore) PrivatePostDoMyNewOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoMyNewOrder", args...)
+func (this *CexCore) PrivatePostDoMyNewOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoMyNewOrder", args...)
 }
 
-func (this *CexCore) PrivatePostDoCancelMyOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoCancelMyOrder", args...)
+func (this *CexCore) PrivatePostDoCancelMyOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoCancelMyOrder", args...)
 }
 
-func (this *CexCore) PrivatePostDoCancelAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoCancelAllOrders", args...)
+func (this *CexCore) PrivatePostDoCancelAllOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoCancelAllOrders", args...)
 }
 
-func (this *CexCore) PrivatePostGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetOrderBook", args...)
+func (this *CexCore) PrivatePostGetOrderBook (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetOrderBook", args...)
 }
 
-func (this *CexCore) PrivatePostGetCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetCandles", args...)
+func (this *CexCore) PrivatePostGetCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetCandles", args...)
 }
 
-func (this *CexCore) PrivatePostGetTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
+func (this *CexCore) PrivatePostGetTradeHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetTradeHistory", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyTransactionHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyTransactionHistory", args...)
+func (this *CexCore) PrivatePostGetMyTransactionHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyTransactionHistory", args...)
 }
 
-func (this *CexCore) PrivatePostGetMyFundingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetMyFundingHistory", args...)
+func (this *CexCore) PrivatePostGetMyFundingHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetMyFundingHistory", args...)
 }
 
-func (this *CexCore) PrivatePostDoMyInternalTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoMyInternalTransfer", args...)
+func (this *CexCore) PrivatePostDoMyInternalTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoMyInternalTransfer", args...)
 }
 
-func (this *CexCore) PrivatePostGetProcessingInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetProcessingInfo", args...)
+func (this *CexCore) PrivatePostGetProcessingInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetProcessingInfo", args...)
 }
 
-func (this *CexCore) PrivatePostGetDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostGetDepositAddress", args...)
+func (this *CexCore) PrivatePostGetDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostGetDepositAddress", args...)
 }
 
-func (this *CexCore) PrivatePostDoDepositFundsFromWallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoDepositFundsFromWallet", args...)
+func (this *CexCore) PrivatePostDoDepositFundsFromWallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoDepositFundsFromWallet", args...)
 }
 
-func (this *CexCore) PrivatePostDoWithdrawalFundsToWallet(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostDoWithdrawalFundsToWallet", args...)
+func (this *CexCore) PrivatePostDoWithdrawalFundsToWallet (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostDoWithdrawalFundsToWallet", args...)
 }

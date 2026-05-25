@@ -50,6 +50,7 @@ public partial class bybiteu : bybit
                 { "margin", true },
                 { "swap", false },
                 { "future", false },
+                { "option", null },
             } },
         });
     }
