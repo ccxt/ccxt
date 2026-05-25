@@ -1905,7 +1905,11 @@ export default class hyperliquid extends Exchange {
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            enableUnifiedMargin = response === '"unifiedAccount"';
+            if (response !== undefined) {
+                response = response.replace ('"', '');
+                response = response.replace ('"', '');
+                enableUnifiedMargin = response === 'unifiedAccount';
+            }
             // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
         }
