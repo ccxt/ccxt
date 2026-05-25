@@ -2956,22 +2956,34 @@ export default class binance extends Exchange {
         }
         const results = await Promise.all (promises);
         const responseCurrencies = results[0];
+        let marginablesById = undefined;
         if (fetchMargins) {
             const responseMarginables = results[1];
-            this.options['_fetchCurrencies_marginablesById'] = this.indexBy (responseMarginables, 'assetName');
+            marginablesById = this.indexBy (responseMarginables, 'assetName');
         }
-        try {
-            const result = this.parseCurrencies (responseCurrencies);
-            delete this.options['_fetchCurrencies_marginablesById'];
-            return result;
-        } catch (e) {
-            delete this.options['_fetchCurrencies_marginablesById'];
-            throw e;
+        const result = this.parseCurrencies (responseCurrencies);
+        const values = Object.values (result);
+        for (let i = 0; i < values.length; i++) {
+            const currency = values[i];
+            const code = this.safeString (currency, 'code');
+            const id = this.safeString (currency, 'id');
+            const marginEntry = this.safeDict (marginablesById, id, {});
+            //
+            //     {
+            //         assetName: "BTC",
+            //         assetFullName: "Bitcoin",
+            //         isBorrowable: true,
+            //         isMortgageable: true,
+            //         userMinBorrow: "0",
+            //         userMinRepay: "0",
+            //     }
+            //
+            result[code]['margin'] = this.safeBool (marginEntry, 'isBorrowable');
         }
+        return result;
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
-        const marginablesById = this.safeDict (this.options, '_fetchCurrencies_marginablesById');
         if (rawCurrency !== undefined) {
             //
             //    {
@@ -3139,17 +3151,6 @@ export default class binance extends Exchange {
                 type = 'crypto';
             }
             const trading = this.safeBool (entry, 'trading');
-            const marginEntry = this.safeDict (marginablesById, id, {});
-            //
-            //     {
-            //         assetName: "BTC",
-            //         assetFullName: "Bitcoin",
-            //         isBorrowable: true,
-            //         isMortgageable: true,
-            //         userMinBorrow: "0",
-            //         userMinRepay: "0",
-            //     }
-            //
             return this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
@@ -3164,7 +3165,6 @@ export default class binance extends Exchange {
                 'fee': undefined,
                 'fees': fees,
                 'limits': undefined,
-                'margin': this.safeBool (marginEntry, 'isBorrowable'),
             });
         }
         return undefined;
