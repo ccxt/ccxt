@@ -5,7 +5,7 @@ import io.github.ccxt.exchanges.pro.Binance;
 
 import java.util.HashMap;
 
-public class CreatePerpsOrder {
+public class FetchSpotAndPerpsBalance {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
@@ -15,11 +15,14 @@ public class CreatePerpsOrder {
         exchange.secret = "your secret";
 
         try {
+            // since defaultType is spot by default fetchBalance returns spot balance at binance
+            var spotBalance = exchange.fetchBalance();
+
+
             var params = new HashMap<String, Object>();
-            var symbol = "BTC/USDT:USDT"; // linear swap using ccxt terminology
-            var order = exchange.createOrder(symbol, "market", "buy", 500.0, null, params);
-            System.out.println("here:::" + order.id);
-        } catch (InsufficientFunds e) {
+            params.put("type", "swap");
+            var swapBalance = exchange.fetchBalance(params); // by providing type:swap in params we can easily fetch the swap balance
+        } catch (Exception e) {
         }
     }
 }

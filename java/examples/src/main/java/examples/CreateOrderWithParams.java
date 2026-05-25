@@ -5,7 +5,8 @@ import io.github.ccxt.exchanges.pro.Binance;
 
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
-public class CreateOrderAsyncWithExceptionHandling {
+
+public class CreateOrderWithParams {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
@@ -14,21 +15,13 @@ public class CreateOrderAsyncWithExceptionHandling {
         exchange.apiKey = "your api key";
         exchange.secret = "your secret";
 
-        exchange.enableDemoTrading(true); // enabling demo trading
-
         try {
             var params = new HashMap<String, Object>();
             params.put("clientOrderId", "myMarketOrder");
-            var order = exchange.createOrderAsync("ETH/USDT", "market", "buy", 500.0, null, params).get();
+            params.put("postOnly", true); // add your custom params here
+            var order = exchange.createOrder("ETH/USDT", "market", "buy", 500.0, null, params);
             System.out.println("here:::" + order.id);
-        } catch (ExecutionException | InterruptedException e) {
-            Throwable cause = e.getCause();
-
-            if (cause instanceof InsufficientFunds) {
-                System.out.println("Order failed: InsufficientFunds");
-            } else {
-                System.out.println("Async exception: " + cause);
-            }
+        } catch (InsufficientFunds e) {
         }
     }
 }

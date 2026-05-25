@@ -4,9 +4,8 @@ import io.github.ccxt.errors.InsufficientFunds;
 import io.github.ccxt.exchanges.pro.Binance;
 
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 
-public class CreateOrderWithParams {
+public class CreatePerpsOrder {
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
@@ -17,9 +16,8 @@ public class CreateOrderWithParams {
 
         try {
             var params = new HashMap<String, Object>();
-            params.put("clientOrderId", "myMarketOrder");
-            params.put("postOnly", true); // add your custom params here
-            var order = exchange.createOrder("ETH/USDT", "market", "buy", 500.0, null, params);
+            var symbol = "BTC/USDT:USDT"; // linear swap using ccxt terminology
+            var order = exchange.createOrder(symbol, "market", "buy", 500.0, null, params);
             System.out.println("here:::" + order.id);
         } catch (InsufficientFunds e) {
         }
