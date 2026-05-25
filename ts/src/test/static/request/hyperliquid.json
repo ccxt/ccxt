@@ -2,7 +2,8 @@
     "exchange": "hyperliquid",
     "options": {
         "approvedBuilderFee": true,
-        "refSet": true
+        "refSet": true,
+        "enableUnifiedMargin": false
     },
     "skipKeys": [
         "startTime",
