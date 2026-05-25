@@ -2966,9 +2966,8 @@ export default class binance extends Exchange {
 
     parseCurrenciesCustom (responseCurrencies, marginablesById): Currencies {
         const result = {};
-        const array = this.toArray (responseCurrencies);
-        for (let i = 0; i < array.length; i++) {
-            const parsed = this.parseCurrency (array[i]);
+        for (let i = 0; i < responseCurrencies.length; i++) {
+            const parsed = this.parseCurrency (responseCurrencies[i]);
             const code = parsed['code'];
             const marginEntry = this.safeDict (marginablesById, parsed['id']);
             parsed['margin'] = this.safeBool (marginEntry, 'isBorrowable');
