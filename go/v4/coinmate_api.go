@@ -7,246 +7,246 @@
 
 package ccxt
 
-func (this *CoinmateCore) PublicGetOrderBook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetOrderBook", args...)
+func (this *CoinmateCore) PublicGetOrderBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *CoinmateCore) PublicGetTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *CoinmateCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *CoinmateCore) PublicGetTickerAll (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTickerAll", args...)
+func (this *CoinmateCore) PublicGetTickerAll(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerAll", args...)
 }
 
-func (this *CoinmateCore) PublicGetProducts (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetProducts", args...)
+func (this *CoinmateCore) PublicGetProducts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *CoinmateCore) PublicGetTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTransactions", args...)
+func (this *CoinmateCore) PublicGetTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTransactions", args...)
 }
 
-func (this *CoinmateCore) PublicGetTradingPairs (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetTradingPairs", args...)
+func (this *CoinmateCore) PublicGetTradingPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradingPairs", args...)
 }
 
-func (this *CoinmateCore) PublicGetSystemTime (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetSystemTime", args...)
+func (this *CoinmateCore) PublicGetSystemTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemTime", args...)
 }
 
-func (this *CoinmateCore) PrivatePostCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCurrencies", args...)
+func (this *CoinmateCore) PrivatePostCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCurrencies", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBalances", args...)
+func (this *CoinmateCore) PrivatePostBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBalances", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBitcoinCashWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBitcoinCashWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostBitcoinCashWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBitcoinCashWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBitcoinCashDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBitcoinCashDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostBitcoinCashDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBitcoinCashDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBitcoinDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBitcoinDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostBitcoinDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBitcoinDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBitcoinWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBitcoinWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostBitcoinWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBitcoinWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBitcoinWithdrawalFees (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBitcoinWithdrawalFees", args...)
+func (this *CoinmateCore) PrivatePostBitcoinWithdrawalFees(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBitcoinWithdrawalFees", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBuyInstant (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBuyInstant", args...)
+func (this *CoinmateCore) PrivatePostBuyInstant(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBuyInstant", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBuyLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBuyLimit", args...)
+func (this *CoinmateCore) PrivatePostBuyLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBuyLimit", args...)
 }
 
-func (this *CoinmateCore) PrivatePostCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *CoinmateCore) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *CoinmateCore) PrivatePostCancelOrderWithInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelOrderWithInfo", args...)
+func (this *CoinmateCore) PrivatePostCancelOrderWithInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrderWithInfo", args...)
 }
 
-func (this *CoinmateCore) PrivatePostCreateVoucher (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCreateVoucher", args...)
+func (this *CoinmateCore) PrivatePostCreateVoucher(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCreateVoucher", args...)
 }
 
-func (this *CoinmateCore) PrivatePostDashDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostDashDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostDashDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDashDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostDashWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostDashWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostDashWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDashWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostEthereumWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostEthereumWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostEthereumWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEthereumWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostEthereumDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostEthereumDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostEthereumDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostEthereumDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostLitecoinWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostLitecoinWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostLitecoinWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLitecoinWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostLitecoinDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostLitecoinDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostLitecoinDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLitecoinDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOpenOrders", args...)
+func (this *CoinmateCore) PrivatePostOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenOrders", args...)
 }
 
-func (this *CoinmateCore) PrivatePostOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrder", args...)
+func (this *CoinmateCore) PrivatePostOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *CoinmateCore) PrivatePostOrderHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderHistory", args...)
+func (this *CoinmateCore) PrivatePostOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderHistory", args...)
 }
 
-func (this *CoinmateCore) PrivatePostOrderById (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrderById", args...)
+func (this *CoinmateCore) PrivatePostOrderById(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderById", args...)
 }
 
-func (this *CoinmateCore) PrivatePostPusherAuth (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostPusherAuth", args...)
+func (this *CoinmateCore) PrivatePostPusherAuth(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPusherAuth", args...)
 }
 
-func (this *CoinmateCore) PrivatePostRedeemVoucher (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRedeemVoucher", args...)
+func (this *CoinmateCore) PrivatePostRedeemVoucher(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRedeemVoucher", args...)
 }
 
-func (this *CoinmateCore) PrivatePostReplaceByBuyLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostReplaceByBuyLimit", args...)
+func (this *CoinmateCore) PrivatePostReplaceByBuyLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReplaceByBuyLimit", args...)
 }
 
-func (this *CoinmateCore) PrivatePostReplaceByBuyInstant (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostReplaceByBuyInstant", args...)
+func (this *CoinmateCore) PrivatePostReplaceByBuyInstant(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReplaceByBuyInstant", args...)
 }
 
-func (this *CoinmateCore) PrivatePostReplaceBySellLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostReplaceBySellLimit", args...)
+func (this *CoinmateCore) PrivatePostReplaceBySellLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReplaceBySellLimit", args...)
 }
 
-func (this *CoinmateCore) PrivatePostReplaceBySellInstant (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostReplaceBySellInstant", args...)
+func (this *CoinmateCore) PrivatePostReplaceBySellInstant(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReplaceBySellInstant", args...)
 }
 
-func (this *CoinmateCore) PrivatePostRippleDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRippleDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostRippleDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRippleDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostRippleWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRippleWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostRippleWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRippleWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostSellInstant (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSellInstant", args...)
+func (this *CoinmateCore) PrivatePostSellInstant(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSellInstant", args...)
 }
 
-func (this *CoinmateCore) PrivatePostSellLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSellLimit", args...)
+func (this *CoinmateCore) PrivatePostSellLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSellLimit", args...)
 }
 
-func (this *CoinmateCore) PrivatePostTransactionHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTransactionHistory", args...)
+func (this *CoinmateCore) PrivatePostTransactionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransactionHistory", args...)
 }
 
-func (this *CoinmateCore) PrivatePostTraderFees (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTraderFees", args...)
+func (this *CoinmateCore) PrivatePostTraderFees(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTraderFees", args...)
 }
 
-func (this *CoinmateCore) PrivatePostTradeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTradeHistory", args...)
+func (this *CoinmateCore) PrivatePostTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
-func (this *CoinmateCore) PrivatePostTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTransfer", args...)
+func (this *CoinmateCore) PrivatePostTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *CoinmateCore) PrivatePostTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostTransferHistory", args...)
+func (this *CoinmateCore) PrivatePostTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransferHistory", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedBitcoinDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedBitcoinDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedBitcoinDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedBitcoinDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedBitcoinCashDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedBitcoinCashDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedBitcoinCashDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedBitcoinCashDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedDashDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedDashDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedDashDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedDashDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedEthereumDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedEthereumDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedEthereumDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedEthereumDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedLitecoinDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedLitecoinDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedLitecoinDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedLitecoinDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedRippleDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedRippleDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedRippleDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedRippleDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostCancelAllOpenOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostCancelAllOpenOrders", args...)
+func (this *CoinmateCore) PrivatePostCancelAllOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAllOpenOrders", args...)
 }
 
-func (this *CoinmateCore) PrivatePostWithdrawVirtualCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWithdrawVirtualCurrency", args...)
+func (this *CoinmateCore) PrivatePostWithdrawVirtualCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawVirtualCurrency", args...)
 }
 
-func (this *CoinmateCore) PrivatePostVirtualCurrencyDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostVirtualCurrencyDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostVirtualCurrencyDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostVirtualCurrencyDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedVirtualCurrencyDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedVirtualCurrencyDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedVirtualCurrencyDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedVirtualCurrencyDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostAdaWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAdaWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostAdaWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAdaWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostAdaDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostAdaDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostAdaDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAdaDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedAdaDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedAdaDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedAdaDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedAdaDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostSolWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSolWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostSolWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSolWithdrawal", args...)
 }
 
-func (this *CoinmateCore) PrivatePostSolDepositAddresses (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSolDepositAddresses", args...)
+func (this *CoinmateCore) PrivatePostSolDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSolDepositAddresses", args...)
 }
 
-func (this *CoinmateCore) PrivatePostUnconfirmedSolDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostUnconfirmedSolDeposits", args...)
+func (this *CoinmateCore) PrivatePostUnconfirmedSolDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedSolDeposits", args...)
 }
 
-func (this *CoinmateCore) PrivatePostBankWireWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostBankWireWithdrawal", args...)
+func (this *CoinmateCore) PrivatePostBankWireWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBankWireWithdrawal", args...)
 }

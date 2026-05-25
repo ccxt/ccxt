@@ -7,1006 +7,1006 @@
 
 package ccxt
 
-func (this *CoinexCore) V1PublicGetAmmMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetAmmMarket", args...)
+func (this *CoinexCore) V1PublicGetAmmMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetAmmMarket", args...)
 }
 
-func (this *CoinexCore) V1PublicGetCommonCurrencyRate (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetCommonCurrencyRate", args...)
+func (this *CoinexCore) V1PublicGetCommonCurrencyRate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetCommonCurrencyRate", args...)
 }
 
-func (this *CoinexCore) V1PublicGetCommonAssetConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetCommonAssetConfig", args...)
+func (this *CoinexCore) V1PublicGetCommonAssetConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetCommonAssetConfig", args...)
 }
 
-func (this *CoinexCore) V1PublicGetCommonMaintainInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetCommonMaintainInfo", args...)
+func (this *CoinexCore) V1PublicGetCommonMaintainInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetCommonMaintainInfo", args...)
 }
 
-func (this *CoinexCore) V1PublicGetCommonTempMaintainInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetCommonTempMaintainInfo", args...)
+func (this *CoinexCore) V1PublicGetCommonTempMaintainInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetCommonTempMaintainInfo", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarginMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarginMarket", args...)
+func (this *CoinexCore) V1PublicGetMarginMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarginMarket", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketInfo", args...)
+func (this *CoinexCore) V1PublicGetMarketInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketInfo", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketList (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketList", args...)
+func (this *CoinexCore) V1PublicGetMarketList(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketList", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketTicker", args...)
+func (this *CoinexCore) V1PublicGetMarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketTicker", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketTickerAll (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketTickerAll", args...)
+func (this *CoinexCore) V1PublicGetMarketTickerAll(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketTickerAll", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketDepth", args...)
+func (this *CoinexCore) V1PublicGetMarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketDepth", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketDeals", args...)
+func (this *CoinexCore) V1PublicGetMarketDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketDeals", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketKline (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketKline", args...)
+func (this *CoinexCore) V1PublicGetMarketKline(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketKline", args...)
 }
 
-func (this *CoinexCore) V1PublicGetMarketDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PublicGetMarketDetail", args...)
+func (this *CoinexCore) V1PublicGetMarketDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetMarketDetail", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetAccountAmmBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetAccountAmmBalance", args...)
+func (this *CoinexCore) V1PrivateGetAccountAmmBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetAccountAmmBalance", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetAccountInvestmentBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetAccountInvestmentBalance", args...)
+func (this *CoinexCore) V1PrivateGetAccountInvestmentBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetAccountInvestmentBalance", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetAccountBalanceHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetAccountBalanceHistory", args...)
+func (this *CoinexCore) V1PrivateGetAccountBalanceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetAccountBalanceHistory", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetAccountMarketFee (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetAccountMarketFee", args...)
+func (this *CoinexCore) V1PrivateGetAccountMarketFee(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetAccountMarketFee", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceCoinDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetBalanceCoinDeposit", args...)
+func (this *CoinexCore) V1PrivateGetBalanceCoinDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetBalanceCoinDeposit", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceCoinWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetBalanceCoinWithdraw", args...)
+func (this *CoinexCore) V1PrivateGetBalanceCoinWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetBalanceCoinWithdraw", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetBalanceInfo", args...)
+func (this *CoinexCore) V1PrivateGetBalanceInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetBalanceInfo", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetBalanceDepositAddressCoinType (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetBalanceDepositAddressCoinType", args...)
+func (this *CoinexCore) V1PrivateGetBalanceDepositAddressCoinType(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetBalanceDepositAddressCoinType", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetContractTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetContractTransferHistory", args...)
+func (this *CoinexCore) V1PrivateGetContractTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetContractTransferHistory", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetCreditInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetCreditInfo", args...)
+func (this *CoinexCore) V1PrivateGetCreditInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetCreditInfo", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetCreditBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetCreditBalance", args...)
+func (this *CoinexCore) V1PrivateGetCreditBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetCreditBalance", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetInvestmentTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetInvestmentTransferHistory", args...)
+func (this *CoinexCore) V1PrivateGetInvestmentTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetInvestmentTransferHistory", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetMarginAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetMarginAccount", args...)
+func (this *CoinexCore) V1PrivateGetMarginAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetMarginAccount", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetMarginConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetMarginConfig", args...)
+func (this *CoinexCore) V1PrivateGetMarginConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetMarginConfig", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetMarginLoanHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetMarginLoanHistory", args...)
+func (this *CoinexCore) V1PrivateGetMarginLoanHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetMarginLoanHistory", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetMarginTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetMarginTransferHistory", args...)
+func (this *CoinexCore) V1PrivateGetMarginTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetMarginTransferHistory", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderDeals", args...)
+func (this *CoinexCore) V1PrivateGetOrderDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderDeals", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderFinished (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderFinished", args...)
+func (this *CoinexCore) V1PrivateGetOrderFinished(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderFinished", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderPending", args...)
+func (this *CoinexCore) V1PrivateGetOrderPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderPending", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderStatus", args...)
+func (this *CoinexCore) V1PrivateGetOrderStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderStatus", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStatusBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderStatusBatch", args...)
+func (this *CoinexCore) V1PrivateGetOrderStatusBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderStatusBatch", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderUserDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderUserDeals", args...)
+func (this *CoinexCore) V1PrivateGetOrderUserDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderUserDeals", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStopFinished (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderStopFinished", args...)
+func (this *CoinexCore) V1PrivateGetOrderStopFinished(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderStopFinished", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderStopPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderStopPending", args...)
+func (this *CoinexCore) V1PrivateGetOrderStopPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderStopPending", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderUserTradeFee (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderUserTradeFee", args...)
+func (this *CoinexCore) V1PrivateGetOrderUserTradeFee(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderUserTradeFee", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetOrderMarketTradeInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetOrderMarketTradeInfo", args...)
+func (this *CoinexCore) V1PrivateGetOrderMarketTradeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetOrderMarketTradeInfo", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetSubAccountBalance", args...)
+func (this *CoinexCore) V1PrivateGetSubAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetSubAccountBalance", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetSubAccountTransferHistory", args...)
+func (this *CoinexCore) V1PrivateGetSubAccountTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetSubAccountTransferHistory", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountAuthApi (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetSubAccountAuthApi", args...)
+func (this *CoinexCore) V1PrivateGetSubAccountAuthApi(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetSubAccountAuthApi", args...)
 }
 
-func (this *CoinexCore) V1PrivateGetSubAccountAuthApiUserAuthId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateGetSubAccountAuthApiUserAuthId", args...)
+func (this *CoinexCore) V1PrivateGetSubAccountAuthApiUserAuthId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetSubAccountAuthApiUserAuthId", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostBalanceCoinWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostBalanceCoinWithdraw", args...)
+func (this *CoinexCore) V1PrivatePostBalanceCoinWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostBalanceCoinWithdraw", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostContractBalanceTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostContractBalanceTransfer", args...)
+func (this *CoinexCore) V1PrivatePostContractBalanceTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostContractBalanceTransfer", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostMarginFlat (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostMarginFlat", args...)
+func (this *CoinexCore) V1PrivatePostMarginFlat(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostMarginFlat", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostMarginLoan (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostMarginLoan", args...)
+func (this *CoinexCore) V1PrivatePostMarginLoan(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostMarginLoan", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostMarginTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostMarginTransfer", args...)
+func (this *CoinexCore) V1PrivatePostMarginTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostMarginTransfer", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderLimitBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderLimitBatch", args...)
+func (this *CoinexCore) V1PrivatePostOrderLimitBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderLimitBatch", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderIoc (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderIoc", args...)
+func (this *CoinexCore) V1PrivatePostOrderIoc(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderIoc", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderLimit", args...)
+func (this *CoinexCore) V1PrivatePostOrderLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderLimit", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderMarket", args...)
+func (this *CoinexCore) V1PrivatePostOrderMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderMarket", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderModify (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderModify", args...)
+func (this *CoinexCore) V1PrivatePostOrderModify(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderModify", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderStopLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderStopLimit", args...)
+func (this *CoinexCore) V1PrivatePostOrderStopLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderStopLimit", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderStopMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderStopMarket", args...)
+func (this *CoinexCore) V1PrivatePostOrderStopMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderStopMarket", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostOrderStopModify (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostOrderStopModify", args...)
+func (this *CoinexCore) V1PrivatePostOrderStopModify(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostOrderStopModify", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostSubAccountTransfer", args...)
+func (this *CoinexCore) V1PrivatePostSubAccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostSubAccountTransfer", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountRegister (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostSubAccountRegister", args...)
+func (this *CoinexCore) V1PrivatePostSubAccountRegister(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostSubAccountRegister", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountUnfrozen (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostSubAccountUnfrozen", args...)
+func (this *CoinexCore) V1PrivatePostSubAccountUnfrozen(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostSubAccountUnfrozen", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountFrozen (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostSubAccountFrozen", args...)
+func (this *CoinexCore) V1PrivatePostSubAccountFrozen(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostSubAccountFrozen", args...)
 }
 
-func (this *CoinexCore) V1PrivatePostSubAccountAuthApi (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePostSubAccountAuthApi", args...)
+func (this *CoinexCore) V1PrivatePostSubAccountAuthApi(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostSubAccountAuthApi", args...)
 }
 
-func (this *CoinexCore) V1PrivatePutBalanceDepositAddressCoinType (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePutBalanceDepositAddressCoinType", args...)
+func (this *CoinexCore) V1PrivatePutBalanceDepositAddressCoinType(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePutBalanceDepositAddressCoinType", args...)
 }
 
-func (this *CoinexCore) V1PrivatePutSubAccountUnfrozen (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePutSubAccountUnfrozen", args...)
+func (this *CoinexCore) V1PrivatePutSubAccountUnfrozen(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePutSubAccountUnfrozen", args...)
 }
 
-func (this *CoinexCore) V1PrivatePutSubAccountFrozen (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePutSubAccountFrozen", args...)
+func (this *CoinexCore) V1PrivatePutSubAccountFrozen(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePutSubAccountFrozen", args...)
 }
 
-func (this *CoinexCore) V1PrivatePutSubAccountAuthApiUserAuthId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePutSubAccountAuthApiUserAuthId", args...)
+func (this *CoinexCore) V1PrivatePutSubAccountAuthApiUserAuthId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePutSubAccountAuthApiUserAuthId", args...)
 }
 
-func (this *CoinexCore) V1PrivatePutV1AccountSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivatePutV1AccountSettings", args...)
+func (this *CoinexCore) V1PrivatePutV1AccountSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePutV1AccountSettings", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteBalanceCoinWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteBalanceCoinWithdraw", args...)
+func (this *CoinexCore) V1PrivateDeleteBalanceCoinWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteBalanceCoinWithdraw", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderPendingBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteOrderPendingBatch", args...)
+func (this *CoinexCore) V1PrivateDeleteOrderPendingBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteOrderPendingBatch", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteOrderPending", args...)
+func (this *CoinexCore) V1PrivateDeleteOrderPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteOrderPending", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderStopPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteOrderStopPending", args...)
+func (this *CoinexCore) V1PrivateDeleteOrderStopPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteOrderStopPending", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderStopPendingId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingId", args...)
+func (this *CoinexCore) V1PrivateDeleteOrderStopPendingId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingId", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderPendingByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteOrderPendingByClientId", args...)
+func (this *CoinexCore) V1PrivateDeleteOrderPendingByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteOrderPendingByClientId", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteOrderStopPendingByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingByClientId", args...)
+func (this *CoinexCore) V1PrivateDeleteOrderStopPendingByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteOrderStopPendingByClientId", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteSubAccountAuthApiUserAuthId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteSubAccountAuthApiUserAuthId", args...)
+func (this *CoinexCore) V1PrivateDeleteSubAccountAuthApiUserAuthId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteSubAccountAuthApiUserAuthId", args...)
 }
 
-func (this *CoinexCore) V1PrivateDeleteSubAccountAuthorizeId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PrivateDeleteSubAccountAuthorizeId", args...)
+func (this *CoinexCore) V1PrivateDeleteSubAccountAuthorizeId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateDeleteSubAccountAuthorizeId", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetPing (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetPing", args...)
+func (this *CoinexCore) V1PerpetualPublicGetPing(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetPing", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetTime (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetTime", args...)
+func (this *CoinexCore) V1PerpetualPublicGetTime(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetTime", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketList (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketList", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketList(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketList", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketLimitConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketLimitConfig", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketLimitConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketLimitConfig", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketTicker", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketTicker", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketTickerAll (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketTickerAll", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketTickerAll(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketTickerAll", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketDepth", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketDepth", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketDeals", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketDeals", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketFundingHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketFundingHistory", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketFundingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketFundingHistory", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPublicGetMarketKline (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPublicGetMarketKline", args...)
+func (this *CoinexCore) V1PerpetualPublicGetMarketKline(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPublicGetMarketKline", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetMarketUserDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetMarketUserDeals", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetMarketUserDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetMarketUserDeals", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetAssetQuery (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetAssetQuery", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetAssetQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetAssetQuery", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetOrderPending", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetOrderPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetOrderPending", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderFinished (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetOrderFinished", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetOrderFinished(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetOrderFinished", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStopFinished (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopFinished", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetOrderStopFinished(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopFinished", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStopPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopPending", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetOrderStopPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopPending", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetOrderStatus", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetOrderStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStatus", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetOrderStopStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopStatus", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetOrderStopStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetOrderStopStatus", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionFinished (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetPositionFinished", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetPositionFinished(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetPositionFinished", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionPending (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetPositionPending", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetPositionPending(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetPositionPending", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionFunding (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetPositionFunding", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetPositionFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetPositionFunding", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionAdlHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetPositionAdlHistory", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetPositionAdlHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetPositionAdlHistory", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetMarketPreference (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetMarketPreference", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetMarketPreference(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetMarketPreference", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionMarginHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetPositionMarginHistory", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetPositionMarginHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetPositionMarginHistory", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivateGetPositionSettleHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivateGetPositionSettleHistory", args...)
+func (this *CoinexCore) V1PerpetualPrivateGetPositionSettleHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivateGetPositionSettleHistory", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostMarketAdjustLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostMarketAdjustLeverage", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostMarketAdjustLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostMarketAdjustLeverage", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostMarketPositionExpect (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostMarketPositionExpect", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostMarketPositionExpect(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostMarketPositionExpect", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutLimit", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderPutLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutLimit", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutMarket", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderPutMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutMarket", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutStopLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutStopLimit", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderPutStopLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutStopLimit", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderPutStopMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutStopMarket", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderPutStopMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderPutStopMarket", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderModify (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderModify", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderModify(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderModify", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderModifyStop (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderModifyStop", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderModifyStop(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderModifyStop", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancel", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancel", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelAll", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelAll", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelBatch", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelBatch", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStop (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStop", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStop(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStop", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStopAll (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStopAll", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStopAll(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStopAll", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCloseLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCloseLimit", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCloseLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCloseLimit", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCloseMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCloseMarket", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCloseMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCloseMarket", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionAdjustMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostPositionAdjustMargin", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostPositionAdjustMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostPositionAdjustMargin", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionStopLoss (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostPositionStopLoss", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostPositionStopLoss(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostPositionStopLoss", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionTakeProfit (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostPositionTakeProfit", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostPositionTakeProfit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostPositionTakeProfit", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostPositionMarketClose (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostPositionMarketClose", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostPositionMarketClose(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostPositionMarketClose", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelByClientId", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelByClientId", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStopByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStopByClientId", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostOrderCancelStopByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostOrderCancelStopByClientId", args...)
 }
 
-func (this *CoinexCore) V1PerpetualPrivatePostMarketPreference (args ...any) <-chan any {
-   return this.callEndpointAsync("v1PerpetualPrivatePostMarketPreference", args...)
+func (this *CoinexCore) V1PerpetualPrivatePostMarketPreference(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PerpetualPrivatePostMarketPreference", args...)
 }
 
-func (this *CoinexCore) V2PublicGetMaintainInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetMaintainInfo", args...)
+func (this *CoinexCore) V2PublicGetMaintainInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetMaintainInfo", args...)
 }
 
-func (this *CoinexCore) V2PublicGetPing (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetPing", args...)
+func (this *CoinexCore) V2PublicGetPing(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetPing", args...)
 }
 
-func (this *CoinexCore) V2PublicGetTime (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetTime", args...)
+func (this *CoinexCore) V2PublicGetTime(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetTime", args...)
 }
 
-func (this *CoinexCore) V2PublicGetSpotMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSpotMarket", args...)
+func (this *CoinexCore) V2PublicGetSpotMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSpotMarket", args...)
 }
 
-func (this *CoinexCore) V2PublicGetSpotTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSpotTicker", args...)
+func (this *CoinexCore) V2PublicGetSpotTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSpotTicker", args...)
 }
 
-func (this *CoinexCore) V2PublicGetSpotDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSpotDepth", args...)
+func (this *CoinexCore) V2PublicGetSpotDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSpotDepth", args...)
 }
 
-func (this *CoinexCore) V2PublicGetSpotDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSpotDeals", args...)
+func (this *CoinexCore) V2PublicGetSpotDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSpotDeals", args...)
 }
 
-func (this *CoinexCore) V2PublicGetSpotKline (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSpotKline", args...)
+func (this *CoinexCore) V2PublicGetSpotKline(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSpotKline", args...)
 }
 
-func (this *CoinexCore) V2PublicGetSpotIndex (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSpotIndex", args...)
+func (this *CoinexCore) V2PublicGetSpotIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSpotIndex", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesMarket (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesMarket", args...)
+func (this *CoinexCore) V2PublicGetFuturesMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesMarket", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesTicker", args...)
+func (this *CoinexCore) V2PublicGetFuturesTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesTicker", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesDepth (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesDepth", args...)
+func (this *CoinexCore) V2PublicGetFuturesDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesDepth", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesDeals", args...)
+func (this *CoinexCore) V2PublicGetFuturesDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesDeals", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesKline (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesKline", args...)
+func (this *CoinexCore) V2PublicGetFuturesKline(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesKline", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesIndex (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesIndex", args...)
+func (this *CoinexCore) V2PublicGetFuturesIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesIndex", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesFundingRate (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesFundingRate", args...)
+func (this *CoinexCore) V2PublicGetFuturesFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesFundingRate", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesFundingRateHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesFundingRateHistory", args...)
+func (this *CoinexCore) V2PublicGetFuturesFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesFundingRateHistory", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesPremiumIndexHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesPremiumIndexHistory", args...)
+func (this *CoinexCore) V2PublicGetFuturesPremiumIndexHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesPremiumIndexHistory", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesPositionLevel (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesPositionLevel", args...)
+func (this *CoinexCore) V2PublicGetFuturesPositionLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesPositionLevel", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesLiquidationHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesLiquidationHistory", args...)
+func (this *CoinexCore) V2PublicGetFuturesLiquidationHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesLiquidationHistory", args...)
 }
 
-func (this *CoinexCore) V2PublicGetFuturesBasisHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetFuturesBasisHistory", args...)
+func (this *CoinexCore) V2PublicGetFuturesBasisHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetFuturesBasisHistory", args...)
 }
 
-func (this *CoinexCore) V2PublicGetAssetsDepositWithdrawConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetAssetsDepositWithdrawConfig", args...)
+func (this *CoinexCore) V2PublicGetAssetsDepositWithdrawConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetAssetsDepositWithdrawConfig", args...)
 }
 
-func (this *CoinexCore) V2PublicGetAssetsAllDepositWithdrawConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetAssetsAllDepositWithdrawConfig", args...)
+func (this *CoinexCore) V2PublicGetAssetsAllDepositWithdrawConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetAssetsAllDepositWithdrawConfig", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubs (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubs", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubs(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubs", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsApiDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubsApiDetail", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubsApiDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsApiDetail", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubsInfo", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsInfo", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsApi (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubsApi", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubsApi(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsApi", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubsTransferHistory", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubsTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsTransferHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubsBalance", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsBalance", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountSubsSpotBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountSubsSpotBalance", args...)
+func (this *CoinexCore) V2PrivateGetAccountSubsSpotBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountSubsSpotBalance", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountTradeFeeRate (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountTradeFeeRate", args...)
+func (this *CoinexCore) V2PrivateGetAccountTradeFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountTradeFeeRate", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountFuturesMarketSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountFuturesMarketSettings", args...)
+func (this *CoinexCore) V2PrivateGetAccountFuturesMarketSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountFuturesMarketSettings", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAccountInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAccountInfo", args...)
+func (this *CoinexCore) V2PrivateGetAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAccountInfo", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsSpotBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsSpotBalance", args...)
+func (this *CoinexCore) V2PrivateGetAssetsSpotBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsSpotBalance", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsFuturesBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsFuturesBalance", args...)
+func (this *CoinexCore) V2PrivateGetAssetsFuturesBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsFuturesBalance", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsMarginBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsMarginBalance", args...)
+func (this *CoinexCore) V2PrivateGetAssetsMarginBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsMarginBalance", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsFinancialBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsFinancialBalance", args...)
+func (this *CoinexCore) V2PrivateGetAssetsFinancialBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsFinancialBalance", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidity (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidity", args...)
+func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidity(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidity", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsCreditInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsCreditInfo", args...)
+func (this *CoinexCore) V2PrivateGetAssetsCreditInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsCreditInfo", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsSpotTranscationHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsSpotTranscationHistory", args...)
+func (this *CoinexCore) V2PrivateGetAssetsSpotTranscationHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsSpotTranscationHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsMarginBorrowHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsMarginBorrowHistory", args...)
+func (this *CoinexCore) V2PrivateGetAssetsMarginBorrowHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsMarginBorrowHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsMarginInterestLimit (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsMarginInterestLimit", args...)
+func (this *CoinexCore) V2PrivateGetAssetsMarginInterestLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsMarginInterestLimit", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsDepositAddress", args...)
+func (this *CoinexCore) V2PrivateGetAssetsDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsDepositAddress", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsDepositHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsDepositHistory", args...)
+func (this *CoinexCore) V2PrivateGetAssetsDepositHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsDepositHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsWithdraw", args...)
+func (this *CoinexCore) V2PrivateGetAssetsWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsWithdraw", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsTransferHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsTransferHistory", args...)
+func (this *CoinexCore) V2PrivateGetAssetsTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsTransferHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidityPool (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidityPool", args...)
+func (this *CoinexCore) V2PrivateGetAssetsAmmLiquidityPool(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsAmmLiquidityPool", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetAssetsAmmIncomeHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetAssetsAmmIncomeHistory", args...)
+func (this *CoinexCore) V2PrivateGetAssetsAmmIncomeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetAssetsAmmIncomeHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotOrderStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotOrderStatus", args...)
+func (this *CoinexCore) V2PrivateGetSpotOrderStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotOrderStatus", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotBatchOrderStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotBatchOrderStatus", args...)
+func (this *CoinexCore) V2PrivateGetSpotBatchOrderStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotBatchOrderStatus", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotPendingOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotPendingOrder", args...)
+func (this *CoinexCore) V2PrivateGetSpotPendingOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotPendingOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotFinishedOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotFinishedOrder", args...)
+func (this *CoinexCore) V2PrivateGetSpotFinishedOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotFinishedOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotPendingStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotPendingStopOrder", args...)
+func (this *CoinexCore) V2PrivateGetSpotPendingStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotPendingStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotFinishedStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotFinishedStopOrder", args...)
+func (this *CoinexCore) V2PrivateGetSpotFinishedStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotFinishedStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotUserDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotUserDeals", args...)
+func (this *CoinexCore) V2PrivateGetSpotUserDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotUserDeals", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetSpotOrderDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetSpotOrderDeals", args...)
+func (this *CoinexCore) V2PrivateGetSpotOrderDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSpotOrderDeals", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesOrderStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesOrderStatus", args...)
+func (this *CoinexCore) V2PrivateGetFuturesOrderStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesOrderStatus", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesBatchOrderStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesBatchOrderStatus", args...)
+func (this *CoinexCore) V2PrivateGetFuturesBatchOrderStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesBatchOrderStatus", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPendingOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPendingOrder", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPendingOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPendingOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesFinishedOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesFinishedOrder", args...)
+func (this *CoinexCore) V2PrivateGetFuturesFinishedOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesFinishedOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPendingStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPendingStopOrder", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPendingStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPendingStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesFinishedStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesFinishedStopOrder", args...)
+func (this *CoinexCore) V2PrivateGetFuturesFinishedStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesFinishedStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesUserDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesUserDeals", args...)
+func (this *CoinexCore) V2PrivateGetFuturesUserDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesUserDeals", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesOrderDeals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesOrderDeals", args...)
+func (this *CoinexCore) V2PrivateGetFuturesOrderDeals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesOrderDeals", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPendingPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPendingPosition", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPendingPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPendingPosition", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesFinishedPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesFinishedPosition", args...)
+func (this *CoinexCore) V2PrivateGetFuturesFinishedPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesFinishedPosition", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionMarginHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPositionMarginHistory", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPositionMarginHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPositionMarginHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionFundingHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPositionFundingHistory", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPositionFundingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPositionFundingHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionAdlHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPositionAdlHistory", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPositionAdlHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPositionAdlHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetFuturesPositionSettleHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetFuturesPositionSettleHistory", args...)
+func (this *CoinexCore) V2PrivateGetFuturesPositionSettleHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetFuturesPositionSettleHistory", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetReferReferee (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetReferReferee", args...)
+func (this *CoinexCore) V2PrivateGetReferReferee(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetReferReferee", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetReferRefereeRebateRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetReferRefereeRebateRecord", args...)
+func (this *CoinexCore) V2PrivateGetReferRefereeRebateRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetReferRefereeRebateRecord", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetReferRefereeRebateDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetReferRefereeRebateDetail", args...)
+func (this *CoinexCore) V2PrivateGetReferRefereeRebateDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetReferRefereeRebateDetail", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetReferAgentReferee (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetReferAgentReferee", args...)
+func (this *CoinexCore) V2PrivateGetReferAgentReferee(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetReferAgentReferee", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetReferAgentRebateRecord (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetReferAgentRebateRecord", args...)
+func (this *CoinexCore) V2PrivateGetReferAgentRebateRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetReferAgentRebateRecord", args...)
 }
 
-func (this *CoinexCore) V2PrivateGetReferAgentRebateDetail (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivateGetReferAgentRebateDetail", args...)
+func (this *CoinexCore) V2PrivateGetReferAgentRebateDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetReferAgentRebateDetail", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubs (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubs", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubs(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubs", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsFrozen (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubsFrozen", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubsFrozen(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubsFrozen", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsUnfrozen (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubsUnfrozen", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubsUnfrozen(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubsUnfrozen", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsApi (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubsApi", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubsApi(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubsApi", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsEditApi (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubsEditApi", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubsEditApi(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubsEditApi", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsDeleteApi (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubsDeleteApi", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubsDeleteApi(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubsDeleteApi", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSubsTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSubsTransfer", args...)
+func (this *CoinexCore) V2PrivatePostAccountSubsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSubsTransfer", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountSettings", args...)
+func (this *CoinexCore) V2PrivatePostAccountSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountSettings", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAccountFuturesMarketSettings (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAccountFuturesMarketSettings", args...)
+func (this *CoinexCore) V2PrivatePostAccountFuturesMarketSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAccountFuturesMarketSettings", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsMarginBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsMarginBorrow", args...)
+func (this *CoinexCore) V2PrivatePostAssetsMarginBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsMarginBorrow", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsMarginRepay (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsMarginRepay", args...)
+func (this *CoinexCore) V2PrivatePostAssetsMarginRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsMarginRepay", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsRenewalDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsRenewalDepositAddress", args...)
+func (this *CoinexCore) V2PrivatePostAssetsRenewalDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsRenewalDepositAddress", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsWithdraw", args...)
+func (this *CoinexCore) V2PrivatePostAssetsWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsWithdraw", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsCancelWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsCancelWithdraw", args...)
+func (this *CoinexCore) V2PrivatePostAssetsCancelWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsCancelWithdraw", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsTransfer", args...)
+func (this *CoinexCore) V2PrivatePostAssetsTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsTransfer", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsAmmAddLiquidity (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsAmmAddLiquidity", args...)
+func (this *CoinexCore) V2PrivatePostAssetsAmmAddLiquidity(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsAmmAddLiquidity", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostAssetsAmmRemoveLiquidity (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostAssetsAmmRemoveLiquidity", args...)
+func (this *CoinexCore) V2PrivatePostAssetsAmmRemoveLiquidity(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostAssetsAmmRemoveLiquidity", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotBatchOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotBatchOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotBatchOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotBatchOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotBatchStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotBatchStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotBatchStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotBatchStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotModifyOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotModifyOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotModifyStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotModifyStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotModifyStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotModifyStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotBatchModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotBatchModifyOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotBatchModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotBatchModifyOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelAllOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelAllOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelAllOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelAllOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelBatchOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelBatchOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelBatchOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelBatchOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelBatchStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelBatchStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelBatchStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelBatchStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelOrderByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelOrderByClientId", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelOrderByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelOrderByClientId", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostSpotCancelStopOrderByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrderByClientId", args...)
+func (this *CoinexCore) V2PrivatePostSpotCancelStopOrderByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostSpotCancelStopOrderByClientId", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesBatchOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesBatchOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesBatchOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesBatchOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesBatchStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesBatchStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesBatchStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesBatchStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelPositionStopLoss (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionStopLoss", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelPositionStopLoss(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionStopLoss", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelPositionTakeProfit (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionTakeProfit", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelPositionTakeProfit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelPositionTakeProfit", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesModifyOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesModifyOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesModifyStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesModifyStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesModifyStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesModifyStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesBatchModifyOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesBatchModifyOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesBatchModifyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesBatchModifyOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelAllOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelAllOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelAllOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelAllOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelBatchOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelBatchOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelBatchOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelBatchOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelBatchStopOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelBatchStopOrder", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelBatchStopOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelBatchStopOrder", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelOrderByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelOrderByClientId", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelOrderByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelOrderByClientId", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesCancelStopOrderByClientId (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesCancelStopOrderByClientId", args...)
+func (this *CoinexCore) V2PrivatePostFuturesCancelStopOrderByClientId(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesCancelStopOrderByClientId", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesClosePosition (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesClosePosition", args...)
+func (this *CoinexCore) V2PrivatePostFuturesClosePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesClosePosition", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesAdjustPositionMargin (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesAdjustPositionMargin", args...)
+func (this *CoinexCore) V2PrivatePostFuturesAdjustPositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesAdjustPositionMargin", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesAdjustPositionLeverage (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesAdjustPositionLeverage", args...)
+func (this *CoinexCore) V2PrivatePostFuturesAdjustPositionLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesAdjustPositionLeverage", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesSetPositionStopLoss (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesSetPositionStopLoss", args...)
+func (this *CoinexCore) V2PrivatePostFuturesSetPositionStopLoss(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesSetPositionStopLoss", args...)
 }
 
-func (this *CoinexCore) V2PrivatePostFuturesSetPositionTakeProfit (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostFuturesSetPositionTakeProfit", args...)
+func (this *CoinexCore) V2PrivatePostFuturesSetPositionTakeProfit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesSetPositionTakeProfit", args...)
 }
