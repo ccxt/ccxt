@@ -15,17 +15,6 @@
     ],
     "outputType": "json",
     "methods": {
-        "isUnifiedEnabled": [
-            {
-                "description": "is unified account enabled",
-                "method": "isUnifiedEnabled",
-                "url": "https://api.hyperliquid.xyz/info",
-                "input": [
-                    "test"
-                ],
-                "output": "{\"type\":\"userAbstraction\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\"}"
-            }
-        ],
         "createSubAccount": [
             {
                 "description": "create subAccount using expiresAfter",

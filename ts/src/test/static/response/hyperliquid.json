@@ -10,20 +10,6 @@
         }
     },
     "methods": {
-        "isUnifiedEnabled": [
-            {
-                "description": "is unified account enabled",
-                "method": "isUnifiedEnabled",
-                "input": [
-                    "test"
-                ],
-                "httpResponse": null,
-                "parsedResponse": [
-                    true,
-                    {}
-                ]
-            }
-        ],
         "fetchOrders": [
             {
                 "description": "ensure orders are dedup when hl returns 2 orders with same id",
