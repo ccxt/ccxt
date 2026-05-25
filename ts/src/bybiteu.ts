@@ -48,6 +48,13 @@ export default class bybiteu extends bybit {
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
                 'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
+            'has': {
+                'CORS': true,
+                'spot': true,
+                'margin': true,
+                'swap': false,
+                'future': false,
+            },
         });
     }
 }
