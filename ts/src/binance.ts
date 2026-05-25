@@ -2961,24 +2961,18 @@ export default class binance extends Exchange {
             const responseMarginables = results[1];
             marginablesById = this.indexBy (responseMarginables, 'assetName');
         }
-        const result = this.parseCurrencies (responseCurrencies);
-        const values = Object.values (result);
-        for (let i = 0; i < values.length; i++) {
-            const currency = values[i];
-            const code = this.safeString (currency, 'code');
-            const id = this.safeString (currency, 'id');
-            const marginEntry = this.safeDict (marginablesById, id, {});
-            //
-            //     {
-            //         assetName: "BTC",
-            //         assetFullName: "Bitcoin",
-            //         isBorrowable: true,
-            //         isMortgageable: true,
-            //         userMinBorrow: "0",
-            //         userMinRepay: "0",
-            //     }
-            //
-            result[code]['margin'] = this.safeBool (marginEntry, 'isBorrowable');
+        return this.parseCurrenciesCustom (responseCurrencies, marginablesById);
+    }
+
+    parseCurrenciesCustom (responseCurrencies, marginablesById): Currencies {
+        const result = {};
+        const array = this.toArray (responseCurrencies);
+        for (let i = 0; i < array.length; i++) {
+            const parsed = this.parseCurrency (array[i]);
+            const code = parsed['code'];
+            const marginEntry = this.safeDict (marginablesById, parsed['id']);
+            parsed['margin'] = this.safeBool (marginEntry, 'isBorrowable');
+            result[code] = parsed;
         }
         return result;
     }
