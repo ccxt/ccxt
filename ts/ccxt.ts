@@ -83,6 +83,7 @@ import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
+import bybiteu from  './src/bybiteu.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -186,6 +187,7 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
 import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
+import bybiteuPro from  './src/pro/bybiteu.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -278,6 +280,7 @@ const exchanges = {
     'btcturk':                btcturk,
     'bullish':                bullish,
     'bybit':                  bybit,
+    'bybiteu':                bybiteu,
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -381,6 +384,7 @@ const pro = {
     'blofin':                 blofinPro,
     'bullish':                bullishPro,
     'bybit':                  bybitPro,
+    'bybiteu':                bybiteuPro,
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -616,6 +620,7 @@ export {
     btcturk,
     bullish,
     bybit,
+    bybiteu,
     bydfi,
     cex,
     coinbase,
