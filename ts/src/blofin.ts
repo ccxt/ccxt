@@ -1541,11 +1541,29 @@ export default class blofin extends Exchange {
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
             request['slTriggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-            request['slOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
+            if (type === 'market') {
+                request['slOrderPrice'] = '-1';
+            } else {
+                const slLimitPrice = this.safeString (params, 'stopLossLimitPrice');
+                if (slLimitPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
+                }
+                request['slOrderPrice'] = this.priceToPrecision (symbol, slLimitPrice);
+                params = this.omit (params, 'stopLossLimitPrice');
+            }
         }
         if (takeProfitPrice !== undefined) {
             request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-            request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
+            if (type === 'market') {
+                request['tpOrderPrice'] = '-1';
+            } else {
+                const tpLimitPrice = this.safeString (params, 'takeProfitLimitPrice');
+                if (tpLimitPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
+                }
+                request['tpOrderPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+                params = this.omit (params, 'takeProfitLimitPrice');
+            }
         }
         request['marginMode'] = marginMode;
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]);
