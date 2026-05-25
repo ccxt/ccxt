@@ -2984,7 +2984,6 @@ export default class binance extends Exchange {
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
-        if (rawCurrency !== undefined) {
             //
             //    {
             //        "coin": "LINK",
@@ -3166,8 +3165,6 @@ export default class binance extends Exchange {
                 'fees': fees,
                 'limits': undefined,
             });
-        }
-        return undefined;
     }
 
     /**
