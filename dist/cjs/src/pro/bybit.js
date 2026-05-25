@@ -11,7 +11,11 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 //  ---------------------------------------------------------------------------
 class bybit extends bybit$1["default"] {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'createOrderWs': true,
@@ -164,7 +168,7 @@ class bybit extends bybit$1["default"] {
                 'ping': this.ping,
                 'keepAlive': 18000,
             },
-        });
+        };
     }
     requestId() {
         this.lockId();

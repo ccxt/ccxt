@@ -2182,9 +2182,14 @@ export default class okx extends Exchange {
         //          ts: '1728467346900'
         //     },
         //
+        const instType = this.safeString (ticker, 'instType');
+        let marketType = undefined;
+        if (instType !== undefined) {
+            marketType = (instType === 'SPOT') ? 'spot' : 'swap';
+        }
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
-        market = this.safeMarket (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-', marketType);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');

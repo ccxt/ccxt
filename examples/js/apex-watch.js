@@ -6,7 +6,7 @@ async function loop(exchange, symbol) {
     while (true) { // eslint-disable-line no-constant-condition
         try {
             const ticker = await exchange.watchTicker(symbol);
-            console.log(new Date() + ' ' + exchange.id + ' ' + symbol);
+            console.log(new Date(), exchange.id, symbol);
             console.log(ticker);
             await exchange.sleep(1000);
         }
@@ -40,7 +40,7 @@ async function main() {
         }
     }
     else {
-        console.log(exchange.id + ' does not support watchTicker yet');
+        console.log(exchange.id, 'does not support watchTicker yet');
     }
 }
 main();
