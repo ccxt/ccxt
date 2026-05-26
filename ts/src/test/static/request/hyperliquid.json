@@ -3,7 +3,8 @@
     "options": {
         "approvedBuilderFee": true,
         "refSet": true,
-        "enableUnifiedMargin": false
+        "enableUnifiedMargin": false,
+        "enablePortfolioMargin": false
     },
     "skipKeys": [
         "startTime",
@@ -810,6 +811,19 @@
                 "input": [
                     {
                         "enableUnifiedMargin": true,
+                        "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                    }
+                ],
+                "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
+            },
+            {
+                "description": "fetch portfolio margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    {
+                        "enableUnifiedMargin": false,
+                        "enablePortfolioMargin": true,
                         "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
                     }
                 ],
