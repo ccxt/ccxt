@@ -2501,8 +2501,10 @@ class mexc(Exchange, ImplicitAPI):
         # Trigger
         #     {"success":true,"code":0,"data":259208506303929856}
         #
-        data = self.safe_string(response, 'data')
-        return self.safe_order({'id': data}, market)
+        # {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
+        #
+        data = self.safe_dict(response, 'data')
+        return self.safe_order({'id': self.safe_string(data, 'orderId'), 'timestamp': self.safe_integer(data, 'ts')}, market)
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
