@@ -145,16 +145,16 @@
                     "success": true,
                     "code": "0",
                     "data": {
-                        "orderId": "814218471679314944",
-                        "ts": "1779795211107"
+                        "orderId": "814219049679571968",
+                        "ts": "1779795348913"
                     }
                 },
                 "parsedResponse": {
-                    "id": "814218471679314944",
+                    "id": "814219049679571968",
+                    "timestamp": 1779795348913,
                     "fees": [],
                     "clientOrderId": null,
-                    "timestamp": null,
-                    "datetime": null,
+                    "datetime": "2026-05-26T11:35:48.913Z",
                     "symbol": null,
                     "type": null,
                     "side": null,
