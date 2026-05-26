@@ -1530,7 +1530,7 @@ export default class binance extends binanceRest {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [ timezone, params ] = this.handleParamString (params, 'timezone', undefined);
+        [ timezone, params ] = this.handleParamString (params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
@@ -1596,7 +1596,7 @@ export default class binance extends binanceRest {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [ timezone, params ] = this.handleParamString (params, 'timezone', undefined);
+        [ timezone, params ] = this.handleParamString (params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes = [];
         const subMessageHashes = [];
