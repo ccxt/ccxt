@@ -390,12 +390,10 @@ export default class aster extends asterRest {
     parseWsTicker (message, marketType) {
         const event = this.safeString (message, 'e');
         const marketId = this.safeString (message, 's');
-        const part = event.split ('@');
-        const channel = this.safeString (part, 1);
         const timestamp = this.safeInteger (message, 'E');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const last = this.safeString (message, 'c');
-        if (channel === 'markPriceUpdate') {
+        if (event === 'markPriceUpdate') {
             return this.safeTicker ({
                 'symbol': market['symbol'],
                 'timestamp': timestamp,
@@ -1926,11 +1924,11 @@ export default class aster extends asterRest {
         const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {
-            'ticker': this.handleTicker,
+            '24hrTicker': this.handleTicker,
             'aggTrade': this.handleTrade,
             'depthUpdate': this.handleOrderBook,
             'kline': this.handleOHLCV,
-            'markPrice': this.handleTicker,
+            'markPriceUpdate': this.handleTicker,
             'bookTicker': this.handleBidAsk,
             'outboundAccountPosition': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleBalanceAndPosition,
