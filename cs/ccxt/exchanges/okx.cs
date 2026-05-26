@@ -2154,9 +2154,15 @@ public partial class okx : Exchange
         //          ts: '1728467346900'
         //     },
         //
+        object instType = this.safeString(ticker, "instType");
+        object marketType = null;
+        if (isTrue(!isEqual(instType, null)))
+        {
+            marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "swap";
+        }
         object timestamp = this.safeInteger(ticker, "ts");
         object marketId = this.safeString(ticker, "instId");
-        market = this.safeMarket(marketId, market, "-");
+        market = this.safeMarket(marketId, market, "-", marketType);
         object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "last");
         object open = this.safeString(ticker, "open24h");

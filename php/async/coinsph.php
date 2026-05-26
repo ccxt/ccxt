@@ -624,57 +624,56 @@ class coinsph extends Exchange {
             //        }
             //    ]
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $id = $this->safe_string($entry, 'coin');
-                $code = $this->safe_currency_code($id);
-                $isFiat = $this->safe_bool($entry, 'isLegalMoney');
-                $networkList = $this->safe_list($entry, 'networkList', array());
-                $networks = array();
-                for ($j = 0; $j < count($networkList); $j++) {
-                    $networkItem = $networkList[$j];
-                    $network = $this->safe_string($networkItem, 'network');
-                    $networkCode = $this->network_id_to_code($network);
-                    $networks[$networkCode] = array(
-                        'info' => $networkItem,
-                        'id' => $network,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
-                        'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
-                        'fee' => $this->safe_number($networkItem, 'withdrawFee'),
-                        'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkItem, 'withdrawMin'),
-                                'max' => $this->safe_number($networkItem, 'withdrawMax'),
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'name' => $this->safe_string($entry, 'name'),
-                    'code' => $code,
-                    'type' => $isFiat ? 'fiat' : 'crypto',
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'transferPrecision'))),
-                    'info' => $entry,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($entry, 'depositAllEnable'),
-                    'withdraw' => $this->safe_bool($entry, 'withdrawAllEnable'),
-                    'networks' => $networks,
-                    'fee' => null,
-                    'fees' => null,
-                    'limits' => array(),
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($id);
+        $isFiat = $this->safe_bool($rawCurrency, 'isLegalMoney');
+        $networkList = $this->safe_list($rawCurrency, 'networkList', array());
+        $networks = array();
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkItem = $networkList[$j];
+            $network = $this->safe_string($networkItem, 'network');
+            $networkCode = $this->network_id_to_code($network);
+            $networks[$networkCode] = array(
+                'info' => $networkItem,
+                'id' => $network,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_bool($networkItem, 'depositEnable'),
+                'withdraw' => $this->safe_bool($networkItem, 'withdrawEnable'),
+                'fee' => $this->safe_number($networkItem, 'withdrawFee'),
+                'precision' => $this->safe_number($networkItem, 'withdrawIntegerMultiple'),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkItem, 'withdrawMin'),
+                        'max' => $this->safe_number($networkItem, 'withdrawMax'),
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'code' => $code,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'transferPrecision'))),
+            'info' => $rawCurrency,
+            'active' => null,
+            'deposit' => $this->safe_bool($rawCurrency, 'depositAllEnable'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'withdrawAllEnable'),
+            'networks' => $networks,
+            'fee' => null,
+            'fees' => null,
+            'limits' => array(),
+        ));
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {

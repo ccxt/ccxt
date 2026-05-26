@@ -565,11 +565,11 @@ class bitvavo extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_currencies_custom($response);
+            return $this->parse_currencies($response);
         }) ();
     }
 
-    public function parse_currencies_custom($currencies) {
+    public function parse_currency(array $rawCurrency): array {
         //
         //     array(
         //         {
@@ -604,70 +604,65 @@ class bitvavo extends Exchange {
         //     )
         //
         $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $isFiat = $this->in_array($code, $fiatCurrencies);
-            $networks = array();
-            $networksArray = $this->safe_list($currency, 'networks', array());
-            $deposit = $this->safe_string($currency, 'depositStatus') === 'OK';
-            $withdrawal = $this->safe_string($currency, 'withdrawalStatus') === 'OK';
-            $active = $deposit && $withdrawal;
-            $withdrawFee = $this->safe_number($currency, 'withdrawalFee');
-            $precision = $this->safe_string($currency, 'decimals', '8');
-            $minWithdraw = $this->safe_number($currency, 'withdrawalMinAmount');
-            // btw, absolutely all of them have 1 network atm
-            for ($j = 0; $j < count($networksArray); $j++) {
-                $networkId = $networksArray[$j];
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdrawal,
-                    'fee' => $withdrawFee,
-                    'precision' => $this->parse_number($this->parse_precision($precision)),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'id' => $id,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'name'),
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $isFiat = $this->in_array($code, $fiatCurrencies);
+        $networks = array();
+        $networksArray = $this->safe_list($rawCurrency, 'networks', array());
+        $deposit = $this->safe_string($rawCurrency, 'depositStatus') === 'OK';
+        $withdrawal = $this->safe_string($rawCurrency, 'withdrawalStatus') === 'OK';
+        $active = $deposit && $withdrawal;
+        $withdrawFee = $this->safe_number($rawCurrency, 'withdrawalFee');
+        $precision = $this->safe_string($rawCurrency, 'decimals', '8');
+        $minWithdraw = $this->safe_number($rawCurrency, 'withdrawalMinAmount');
+        // btw, absolutely all of them have 1 network atm
+        for ($j = 0; $j < count($networksArray); $j++) {
+            $networkId = $networksArray[$j];
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'info' => $rawCurrency,
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => $active,
                 'deposit' => $deposit,
                 'withdraw' => $withdrawal,
-                'networks' => $networks,
                 'fee' => $withdrawFee,
-                'precision' => null,
-                'type' => $isFiat ? 'fiat' : 'crypto',
+                'precision' => $this->parse_number($this->parse_precision($precision)),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $minWithdraw,
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdrawal,
+            'networks' => $networks,
+            'fee' => $withdrawFee,
+            'precision' => null,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $minWithdraw,
+                    'max' => null,
+                ),
+            ),
+        ));
     }
 
     public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {

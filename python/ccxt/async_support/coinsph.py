@@ -633,54 +633,53 @@ class coinsph(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            id = self.safe_string(entry, 'coin')
-            code = self.safe_currency_code(id)
-            isFiat = self.safe_bool(entry, 'isLegalMoney')
-            networkList = self.safe_list(entry, 'networkList', [])
-            networks: dict = {}
-            for j in range(0, len(networkList)):
-                networkItem = networkList[j]
-                network = self.safe_string(networkItem, 'network')
-                networkCode = self.network_id_to_code(network)
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
-                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
-                    'fee': self.safe_number(networkItem, 'withdrawFee'),
-                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkItem, 'withdrawMin'),
-                            'max': self.safe_number(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(entry, 'name'),
-                'code': code,
-                'type': 'fiat' if isFiat else 'crypto',
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'transferPrecision'))),
-                'info': entry,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        code = self.safe_currency_code(id)
+        isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
+        networkList = self.safe_list(rawCurrency, 'networkList', [])
+        networks: dict = {}
+        for j in range(0, len(networkList)):
+            networkItem = networkList[j]
+            network = self.safe_string(networkItem, 'network')
+            networkCode = self.network_id_to_code(network)
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': None,
-                'deposit': self.safe_bool(entry, 'depositAllEnable'),
-                'withdraw': self.safe_bool(entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': None,
-                'fees': None,
-                'limits': {},
-            })
-        return result
+                'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                'fee': self.safe_number(networkItem, 'withdrawFee'),
+                'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkItem, 'withdrawMin'),
+                        'max': self.safe_number(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'code': code,
+            'type': 'fiat' if isFiat else 'crypto',
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': None,
+            'deposit': self.safe_bool(rawCurrency, 'depositAllEnable'),
+            'withdraw': self.safe_bool(rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': None,
+            'fees': None,
+            'limits': {},
+        })
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
