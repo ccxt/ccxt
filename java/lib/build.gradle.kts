@@ -90,7 +90,8 @@ tasks.withType<Javadoc>().configureEach {
 
 mavenPublishing {
     coordinates(project.group.toString(), "ccxt", project.version.toString())
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    // publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
     // Sign only when a key is configured. Lets `publishToMavenLocal` run
     // without GPG; Central publish must pass `-PsigningInMemoryKey=...`.
     if (project.hasProperty("signingInMemoryKey")) {
