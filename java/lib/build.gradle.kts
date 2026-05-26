@@ -82,7 +82,11 @@ tasks.withType<Javadoc>().configureEach {
 mavenPublishing {
     coordinates(project.group.toString(), "ccxt", project.version.toString())
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
+    // Sign only when a key is configured. Lets `publishToMavenLocal` run
+    // without GPG; Central publish must pass `-PsigningInMemoryKey=...`.
+    if (project.hasProperty("signingInMemoryKey")) {
+        signAllPublications()
+    }
     pom {
         name.set("CCXT")
         description.set("A cryptocurrency trading library with support for 100+ exchanges")
@@ -109,3 +113,5 @@ mavenPublishing {
         }
     }
 }
+
+

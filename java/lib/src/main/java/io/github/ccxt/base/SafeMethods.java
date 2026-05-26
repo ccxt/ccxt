@@ -29,7 +29,7 @@ public final class SafeMethods {
     // ----------------------------
 
     /**
-     * Attempts to coerce any Map-like object into Map<String,Object> by stringifying keys.
+     * Attempts to coerce any Map-like object into by stringifying keys.
      * Throws IllegalStateException if the input is not a Map.
      */
     public static Map<String, Object> ConvertToDictionaryOfStringObject(Object potentialDictionary) {
