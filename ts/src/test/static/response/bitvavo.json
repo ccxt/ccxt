@@ -341,6 +341,41 @@
                 }
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    30000
+                ],
+                "httpResponse": {
+                    "codGroupId": 1,
+                    "timeOfExpirySeconds": 17202139111
+                },
+                "parsedResponse": {
+                    "codGroupId": 1,
+                    "timeOfExpirySeconds": 17202139111
+                }
+            },
+            {
+                "description": "remove cancel all orders after group",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    0,
+                    {
+                        "codGroupId": 2
+                    }
+                ],
+                "httpResponse": {
+                    "codGroupId": 2,
+                    "timeOfExpirySeconds": 0
+                },
+                "parsedResponse": {
+                    "codGroupId": 2,
+                    "timeOfExpirySeconds": 0
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV BTC/EUR 1m limit 5",

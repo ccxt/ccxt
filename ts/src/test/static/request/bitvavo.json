@@ -229,6 +229,29 @@
                 "input": []
             }
         ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "Cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.bitvavo.com/v2/cancelOrdersAfter",
+                "input": [
+                    30000
+                ],
+                "output": "{\"codGroupId\":1,\"expiryAfterSeconds\":30}"
+            },
+            {
+                "description": "Cancel all orders after with group id",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.bitvavo.com/v2/cancelOrdersAfter",
+                "input": [
+                    0,
+                    {
+                        "codGroupId": 2
+                    }
+                ],
+                "output": "{\"codGroupId\":2,\"expiryAfterSeconds\":0}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetch my trades",

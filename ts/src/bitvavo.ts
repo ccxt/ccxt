@@ -36,7 +36,7 @@ export default class bitvavo extends Exchange {
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
-                'cancelAllOrdersAfter': false,
+                'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -80,11 +80,11 @@ export default class bitvavo extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLedger': false,
+                'fetchLedgerEntry': false,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
-                'fetchLedger': false,
-                'fetchLedgerEntry': false,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
@@ -123,9 +123,9 @@ export default class bitvavo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
-                'fetchTransactions': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -1481,6 +1481,40 @@ export default class bitvavo extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
+     * @returns {object} the api result
+     */
+    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+        if (timeout > 300000) {
+            throw new BadRequest (this.id + ' cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds');
+        }
+        if ((timeout > 0) && (timeout < 10000)) {
+            throw new BadRequest (this.id + ' cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds');
+        }
+        await this.loadMarkets ();
+        let codGroupId = undefined;
+        [ codGroupId, params ] = this.handleOptionAndParams (params, 'cancelAllOrdersAfter', 'codGroupId', 1);
+        const request: Dict = {
+            'codGroupId': codGroupId,
+            'expiryAfterSeconds': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
+        };
+        const response = await this.privatePostCancelOrdersAfter (this.extend (request, params));
+        //
+        //     {
+        //         "codGroupId": 1,
+        //         "timeOfExpirySeconds": 17202139111
+        //     }
+        //
+        return response;
     }
 
     /**
