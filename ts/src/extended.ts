@@ -191,6 +191,7 @@ export default class extended extends Exchange {
                     },
                     'private': {
                         'get': [
+                            'user/accounts',
                             'user/account/info',
                             'user/balance',
                             'user/spot/balances',
@@ -1520,13 +1521,38 @@ export default class extended extends Exchange {
      * @method
      * @name extended#fetchAccounts
      * @description fetch the current authenticated sub-account, extended private endpoints only return records for the authenticated sub-account
-     * @see https://api.docs.extended.exchange/#get-account-details
+     * @see https://api.docs.extended.exchange/#get-sub-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        const account = await this.fetchAccount (params);
-        return [ account ];
+        const response = await this.v1PrivateGetUserAccounts (params);
+        //
+        // {
+        //     "status": "OK",
+        //     "data": [{
+        //         "accountId": 123,
+        //         "description": "Main",
+        //         "accountIndex": 0,
+        //         "status": "ACTIVE",
+        //         "l2Key": "0x123",
+        //         "l2Vault": "321",
+        //         "bridgeStarknetAddress": "0xabc",
+        //         "accountIndexForKeyGeneration": 0
+        //       }, {
+        //         "accountId": 999,
+        //         "description": "Vault Balance",
+        //         "accountIndex": 1001,
+        //         "status": "ACTIVE",
+        //         "l2Key": "0x123",
+        //         "l2Vault": "999",
+        //         "bridgeStarknetAddress": "0xabc",
+        //         "accountIndexForKeyGeneration": 0
+        //       }
+        //     ]}
+        //
+        const data = this.safeList (response, 'data', {});
+        return this.parseAccounts (data);
     }
 
     parseAccount (account: Dict): Account {
