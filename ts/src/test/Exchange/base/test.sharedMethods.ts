@@ -77,7 +77,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
-        assert (typeof entry === 'object', 'entry is not an object' + logText);
+        assert (exchange.isDictionary (entry), 'entry is not a dict' + logText);
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -613,6 +613,24 @@ function assertRoundMinuteTimestamp (exchange: Exchange, skippedProperties: obje
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
 
+function createOrderBookCopy (orderbook) {
+    const newOrderBook = {};
+    newOrderBook['symbol'] = orderbook['symbol'];
+    newOrderBook['bids'] = [];
+    for (let i = 0; i < orderbook['bids'].length; i++) {
+        newOrderBook['bids'].push (orderbook['bids'][i]);
+    }
+    newOrderBook['asks'] = [];
+    for (let i = 0; i < orderbook['asks'].length; i++) {
+        newOrderBook['asks'].push (orderbook['asks'][i]);
+    }
+    newOrderBook['timestamp'] = orderbook['timestamp'];
+    newOrderBook['datetime'] = orderbook['datetime'];
+    newOrderBook['nonce'] = orderbook['nonce'];
+    return newOrderBook;
+}
+
+
 function deepEqual (exchange: Exchange, a: any, b: any) {
     return exchange.jsonStringifyWithNull (a) === exchange.jsonStringifyWithNull (b);
 }
@@ -631,7 +649,6 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
     const keyUpper = exchange.capitalize (key.toString ());
     return exchange.getProperty (exchange, keyUpper, defaultValue);
 }
-
 
 export default {
     exchangeProp,
@@ -663,6 +680,7 @@ export default {
     assertType,
     removeProxyOptions,
     setProxyOptions,
+    createOrderBookCopy,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     concat,

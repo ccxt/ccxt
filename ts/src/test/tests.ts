@@ -263,10 +263,6 @@ class testMainClass {
         if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'cs') {
             exchange.options['checksum'] = false;
         }
-        // todo: temporary skip for php
-        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
-            return true;
-        }
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');

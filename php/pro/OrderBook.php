@@ -32,6 +32,10 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this->getArrayCopy();
     }
 
+    public function toArray(): array {
+        return $this->getArrayCopy();
+    }
+
     public function limit() {
         $this['asks']->limit();
         $this['bids']->limit();
