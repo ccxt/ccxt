@@ -160,7 +160,7 @@ func (this *Poloniex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @method
  * @name poloniex#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+ * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */

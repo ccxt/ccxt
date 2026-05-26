@@ -227,9 +227,8 @@ export default class woo extends wooRest {
     ping(client: Client): {
         event: string;
     };
-    handlePing(client: Client, message: any): {
-        event: string;
-    };
+    pong(client: Client, message: any): Promise<void>;
+    handlePing(client: Client, message: any): void;
     handlePong(client: Client, message: any): any;
     handleSubscribe(client: Client, message: any): any;
     handleAuth(client: Client, message: any): void;

@@ -570,16 +570,24 @@ export default class Exchange {
     getDefaultOptions(): {
         defaultNetworkCodeReplacements: {
             ETH: {
-                ERC20: string;
-            };
-            TRX: {
-                TRC20: string;
+                primary: string;
+                secondary: string;
+                default: string;
             };
             CRO: {
-                CRC20: string;
+                primary: string;
+                secondary: string;
+                default: string;
             };
-            BRC20: {
-                BRC20: string;
+            TRX: {
+                primary: string;
+                secondary: string;
+                default: string;
+            };
+            BTC: {
+                primary: string;
+                secondary: string;
+                default: string;
             };
         };
     };
@@ -675,6 +683,7 @@ export default class Exchange {
             };
         };
     };
+    prioritizedNetworkAliases(networkCode?: Str, currencyCode?: Str, allowDefault?: boolean): any[];
     networkCodeToId(networkCode: string, currencyCode?: Str): string;
     networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     handleNetworkCodeAndParams(params: any): any[];

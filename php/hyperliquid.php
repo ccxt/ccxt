@@ -1888,12 +1888,19 @@ class hyperliquid extends Exchange {
             try {
                 $response = $this->publicPostInfo ($this->extend($request, $params));
             } catch (Exception $e) {
+                if ($e instanceof InvalidProxySettings) {
+                    throw $e; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+                }
                 $response = null; // ignore this error and assume unified margin is not enabled
             }
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            $enableUnifiedMargin = $response === '"unifiedAccount"';
+            if ($response !== null) {
+                $response = str_replace('"', '', $response);
+                $response = str_replace('"', '', $response);
+                $enableUnifiedMargin = $response === 'unifiedAccount';
+            }
             // don't cache this result if this is a different addresss
             $this->options['enableUnifiedMargin'] = $enableUnifiedMargin; // cache this for future calls
         }

@@ -2157,9 +2157,13 @@ class okx(Exchange, ImplicitAPI):
         #          ts: '1728467346900'
         #     },
         #
+        instType = self.safe_string(ticker, 'instType')
+        marketType = None
+        if instType is not None:
+            marketType = 'spot' if (instType == 'SPOT') else 'swap'
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
-        market = self.safe_market(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-', marketType)
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')

@@ -1697,14 +1697,14 @@ class kucoin extends kucoin$1["default"] {
     getCacheIndex(orderbook, cache) {
         const firstDelta = this.safeValue(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger2(firstDelta, 'sequenceStart', 'sequence');
+        const firstDeltaStart = this.safeIntegerN(firstDelta, ['sequenceStart', 'sequence', 'O']);
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger2(delta, 'sequenceStart', 'sequence');
-            const deltaEnd = this.safeInteger2(delta, 'sequenceEnd', 'timestamp'); // todo check
+            const deltaStart = this.safeIntegerN(delta, ['sequenceStart', 'sequence', 'O']);
+            const deltaEnd = this.safeIntegerN(delta, ['sequenceEnd', 'sequence', 'C']); // todo check
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }

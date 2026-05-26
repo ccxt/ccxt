@@ -12,7 +12,11 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends bybitRest {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'createOrderWs': true,
@@ -165,7 +169,7 @@ export default class bybit extends bybitRest {
                 'ping': this.ping,
                 'keepAlive': 18000,
             },
-        });
+        };
     }
     requestId() {
         this.lockId();

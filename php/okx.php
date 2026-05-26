@@ -2175,9 +2175,14 @@ class okx extends Exchange {
         //          ts => '1728467346900'
         //     ),
         //
+        $instType = $this->safe_string($ticker, 'instType');
+        $marketType = null;
+        if ($instType !== null) {
+            $marketType = ($instType === 'SPOT') ? 'spot' : 'swap';
+        }
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
-        $market = $this->safe_market($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-', $marketType);
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');

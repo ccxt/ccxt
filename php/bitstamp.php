@@ -828,27 +828,33 @@ class bitstamp extends Exchange {
         //         ),
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $description = $this->safe_string($market, 'description');
-            list($baseDescription, $quoteDescription) = explode(' / ', $description);
-            $minimumOrder = $this->safe_string($market, 'minimum_order_value');
-            $parts = explode(' ', $minimumOrder);
-            $cost = $parts[0];
-            if (!(is_array($result) && array_key_exists($base, $result))) {
-                $baseDecimals = $this->safe_integer($market, 'base_decimals');
-                $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
-            }
-            if (!(is_array($result) && array_key_exists($quote, $result))) {
-                $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-                $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
-            }
+        $this->options['_temp_currencies_result'] = array();
+        $result = $this->parse_currencies($response);
+        $finalResult = $this->deep_extend($result, $this->options['_temp_currencies_result']);
+        unset($this->options['_temp_currencies_result']);
+        return $finalResult;
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $market = $rawCurrency;
+        $existing = $this->safe_dict($this->options, '_temp_currencies_result', array());
+        list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $description = $this->safe_string($market, 'description');
+        list($baseDescription, $quoteDescription) = explode(' / ', $description);
+        $minimumOrder = $this->safe_string($market, 'minimum_order_value');
+        $parts = explode(' ', $minimumOrder);
+        $cost = $parts[0];
+        if (!(is_array($existing) && array_key_exists($base, $existing))) {
+            $baseDecimals = $this->safe_integer($market, 'base_decimals');
+            $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
         }
-        return $result;
+        if (!(is_array($existing) && array_key_exists($quote, $existing))) {
+            $counterDecimals = $this->safe_integer($market, 'counter_decimals');
+            $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
+        }
+        return $this->options['_temp_currencies_result'][$quote];
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {

@@ -533,6 +533,7 @@ cancel multiple orders
 * [onetrading](/exchanges/onetrading.md#cancelorders)
 * [oxfun](/exchanges/oxfun.md#cancelorders)
 * [pacifica](/exchanges/pacifica.md#cancelorders)
+* [paradex](/exchanges/paradex.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
@@ -1247,6 +1248,7 @@ create a list of trade orders
 * [okx](/exchanges/okx.md#createorders)
 * [oxfun](/exchanges/oxfun.md#createorders)
 * [pacifica](/exchanges/pacifica.md#createorders)
+* [paradex](/exchanges/paradex.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---
@@ -1631,6 +1633,7 @@ edit a trade order
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
+* [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
@@ -3058,6 +3061,7 @@ fetch all deposits made to an account
 * [novadax](/exchanges/novadax.md#fetchdeposits)
 * [okx](/exchanges/okx.md#fetchdeposits)
 * [oxfun](/exchanges/oxfun.md#fetchdeposits)
+* [paradex](/exchanges/paradex.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdeposits)
@@ -3179,6 +3183,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [okx](/exchanges/okx.md#fetchfundinghistory)
 * [oxfun](/exchanges/oxfun.md#fetchfundinghistory)
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
+* [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
@@ -3756,7 +3761,6 @@ retrieves the public liquidations of a trading pair
 * [deribit](/exchanges/deribit.md#fetchliquidations)
 * [gate](/exchanges/gate.md#fetchliquidations)
 * [htx](/exchanges/htx.md#fetchliquidations)
-* [paradex](/exchanges/paradex.md#fetchliquidations)
 
 ---
 
@@ -4144,6 +4148,7 @@ retrieves the users liquidated positions
 * [bybit](/exchanges/bybit.md#fetchmyliquidations)
 * [deribit](/exchanges/deribit.md#fetchmyliquidations)
 * [gate](/exchanges/gate.md#fetchmyliquidations)
+* [paradex](/exchanges/paradex.md#fetchmyliquidations)
 
 ---
 
@@ -6367,6 +6372,7 @@ fetch the trading fees for a market
 * [mexc](/exchanges/mexc.md#fetchtradingfee)
 * [okx](/exchanges/okx.md#fetchtradingfee)
 * [pacifica](/exchanges/pacifica.md#fetchtradingfee)
+* [paradex](/exchanges/paradex.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [weex](/exchanges/weex.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
@@ -6423,6 +6429,7 @@ fetch the trading fees for multiple markets
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
+* [paradex](/exchanges/paradex.md#fetchtradingfees)
 * [poloniex](/exchanges/poloniex.md#fetchtradingfees)
 * [toobit](/exchanges/toobit.md#fetchtradingfees)
 * [upbit](/exchanges/upbit.md#fetchtradingfees)
@@ -8414,6 +8421,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bitget](/exchanges/bitget.md#watchohlcv)
 * [bitmart](/exchanges/bitmart.md#watchohlcv)
 * [bitmex](/exchanges/bitmex.md#watchohlcv)
+* [bitrue](/exchanges/bitrue.md#watchohlcv)
 * [bittrade](/exchanges/bittrade.md#watchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#watchohlcv)
 * [blockchaincom](/exchanges/blockchaincom.md#watchohlcv)
@@ -8789,6 +8797,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bitmart](/exchanges/bitmart.md#watchticker)
 * [bitmex](/exchanges/bitmex.md#watchticker)
 * [bitopro](/exchanges/bitopro.md#watchticker)
+* [bitrue](/exchanges/bitrue.md#watchticker)
 * [bittrade](/exchanges/bittrade.md#watchticker)
 * [bitvavo](/exchanges/bitvavo.md#watchticker)
 * [blockchaincom](/exchanges/blockchaincom.md#watchticker)
@@ -8915,6 +8924,7 @@ watches information on multiple trades made in a market
 * [bitmart](/exchanges/bitmart.md#watchtrades)
 * [bitmex](/exchanges/bitmex.md#watchtrades)
 * [bitopro](/exchanges/bitopro.md#watchtrades)
+* [bitrue](/exchanges/bitrue.md#watchtrades)
 * [bitstamp](/exchanges/bitstamp.md#watchtrades)
 * [bittrade](/exchanges/bittrade.md#watchtrades)
 * [bitvavo](/exchanges/bitvavo.md#watchtrades)

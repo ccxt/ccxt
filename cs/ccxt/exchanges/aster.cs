@@ -651,13 +651,8 @@ public partial class aster : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promises = new List<object> {this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)};
-        object results = await promiseAll(promises);
-        object sapiResult = this.safeDict(results, 0, new Dictionary<string, object>() {});
+        object sapiResult = await this.sapiPublicGetV3ExchangeInfo(parameters);
         object sapiRows = this.safeList(sapiResult, "assets", new List<object>() {});
-        object fapiResult = this.safeDict(results, 1, new Dictionary<string, object>() {});
-        object fapiRows = this.safeList(fapiResult, "assets", new List<object>() {});
-        object rows = this.arrayConcat(sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -667,41 +662,41 @@ public partial class aster : Exchange
         //         }
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
-        {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "asset");
-            object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "name", code },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(sapiRows);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "name", code },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "margin", this.safeBool(rawCurrency, "marginAvailable") },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", null },
-                { "type", "crypto" },
-            });
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", null },
+            { "type", "crypto" },
+        });
     }
 
     /**

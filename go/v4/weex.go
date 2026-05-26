@@ -4004,7 +4004,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(errorMessage, nil)) {
 		this.HandleOrderOrPositionError(errorCode, errorMessage, position)
 	}
-	var marketId any = this.SafeString(position, "symbol")
+	var marketId any = this.SafeString2(position, "symbol", "coinId") // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var timestamp any = this.SafeInteger(position, "createdTime")
 	var marginType any = this.SafeString2(position, "marginType", "marginMode")
@@ -4019,20 +4019,23 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	} else if IsTrue(IsEqual(separatedMode, "SEPARATED")) {
 		hedged = true
 	}
+	var notional any = this.SafeString(position, "openValue")
+	var size any = this.SafeString(position, "size")
+	var entryPrice any = Precise.StringDiv(notional, size)
 	return this.SafePosition(map[string]any{
 		"symbol":                      GetValue(market, "symbol"),
 		"id":                          this.SafeString2(position, "id", "positionId"),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"contracts":                   this.SafeNumber(position, "size"),
+		"contracts":                   this.ParseNumber(size),
 		"contractSize":                nil,
 		"side":                        this.SafeStringLower(position, "side"),
-		"notional":                    this.SafeNumber(position, "openValue"),
+		"notional":                    this.ParseNumber(notional),
 		"leverage":                    this.SafeNumber(position, "leverage"),
 		"unrealizedPnl":               this.SafeNumber(position, "unrealizePnl"),
 		"realizedPnl":                 nil,
 		"collateral":                  nil,
-		"entryPrice":                  nil,
+		"entryPrice":                  this.ParseNumber(entryPrice),
 		"markPrice":                   nil,
 		"liquidationPrice":            this.SafeNumber(position, "liquidatePrice"),
 		"marginMode":                  marginMode,
@@ -4047,7 +4050,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
 		"percentage":                  nil,
-		"info":                        nil,
+		"info":                        position,
 	})
 }
 
@@ -4067,8 +4070,8 @@ func (this *WeexCore) CloseAllPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes33778 := (<-this.LoadMarkets())
-		PanicOnError(retRes33778)
+		retRes33808 := (<-this.LoadMarkets())
+		PanicOnError(retRes33808)
 
 		response := (<-this.ContractPrivatePostCapiV3ClosePositions(params))
 		PanicOnError(response)
@@ -4110,8 +4113,8 @@ func (this *WeexCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes34038 := (<-this.LoadMarkets())
-		PanicOnError(retRes34038)
+		retRes34068 := (<-this.LoadMarkets())
+		PanicOnError(retRes34068)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4145,8 +4148,8 @@ func (this *WeexCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes34238 := (<-this.LoadMarkets())
-		PanicOnError(retRes34238)
+		retRes34268 := (<-this.LoadMarkets())
+		PanicOnError(retRes34268)
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported for spot markets")))
@@ -4210,8 +4213,8 @@ func (this *WeexCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes34738 := (<-this.LoadMarkets())
-		PanicOnError(retRes34738)
+		retRes34768 := (<-this.LoadMarkets())
+		PanicOnError(retRes34768)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4259,8 +4262,8 @@ func (this *WeexCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes35058 := (<-this.LoadMarkets())
-		PanicOnError(retRes35058)
+		retRes35088 := (<-this.LoadMarkets())
+		PanicOnError(retRes35088)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
@@ -4314,17 +4317,17 @@ func (this *WeexCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes35438 := (<-this.LoadMarkets())
-		PanicOnError(retRes35438)
+		retRes35468 := (<-this.LoadMarkets())
+		PanicOnError(retRes35468)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":     GetValue(market, "id"),
 			"marginType": this.EncodeMarginMode(marginMode),
 		}
 
-		retRes354915 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-		PanicOnError(retRes354915)
-		ch <- retRes354915
+		retRes355215 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+		PanicOnError(retRes355215)
+		ch <- retRes355215
 		return nil
 
 	}()
@@ -4359,8 +4362,8 @@ func (this *WeexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35748 := (<-this.LoadMarkets())
-		PanicOnError(retRes35748)
+		retRes35778 := (<-this.LoadMarkets())
+		PanicOnError(retRes35778)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4396,8 +4399,8 @@ func (this *WeexCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes35948 := (<-this.LoadMarkets())
-		PanicOnError(retRes35948)
+		retRes35978 := (<-this.LoadMarkets())
+		PanicOnError(retRes35978)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params))
@@ -4463,8 +4466,8 @@ func (this *WeexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes36438 := (<-this.LoadMarkets())
-		PanicOnError(retRes36438)
+		retRes36468 := (<-this.LoadMarkets())
+		PanicOnError(retRes36468)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4488,9 +4491,9 @@ func (this *WeexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			}
 		}
 
-		retRes366415 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
-		PanicOnError(retRes366415)
-		ch <- retRes366415
+		retRes366715 := (<-this.ContractPrivatePostCapiV3AccountLeverage(this.Extend(request, params)))
+		PanicOnError(retRes366715)
+		ch <- retRes366715
 		return nil
 
 	}()
@@ -4516,8 +4519,8 @@ func (this *WeexCore) FetchPositionMode(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes36778 := (<-this.LoadMarkets())
-		PanicOnError(retRes36778)
+		retRes36808 := (<-this.LoadMarkets())
+		PanicOnError(retRes36808)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4562,8 +4565,8 @@ func (this *WeexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 			panic(ArgumentsRequired(Add(this.Id, " setPositionMode() requires a symbol argument")))
 		}
 
-		retRes37068 := (<-this.LoadMarkets())
-		PanicOnError(retRes37068)
+		retRes37098 := (<-this.LoadMarkets())
+		PanicOnError(retRes37098)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setPositionMode", params)
@@ -4579,9 +4582,9 @@ func (this *WeexCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
 			"separatedType": separatedType,
 		}
 
-		retRes371915 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
-		PanicOnError(retRes371915)
-		ch <- retRes371915
+		retRes372215 := (<-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params)))
+		PanicOnError(retRes372215)
+		ch <- retRes372215
 		return nil
 
 	}()
@@ -4595,8 +4598,8 @@ func (this *WeexCore) ModifyMarginHelper(symbol any, amount any, typeVar any, op
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes37238 := (<-this.LoadMarkets())
-		PanicOnError(retRes37238)
+		retRes37268 := (<-this.LoadMarkets())
+		PanicOnError(retRes37268)
 		var isolatedPositionId any = this.SafeStringN(params, []any{"positionId", "id", "isolatedPositionId"})
 		if IsTrue(IsEqual(isolatedPositionId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " modifyMarginHelper() requires a positionId parameter")))
@@ -4668,9 +4671,9 @@ func (this *WeexCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes378015 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes378015)
-		ch <- retRes378015
+		retRes378315 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes378315)
+		ch <- retRes378315
 		return nil
 
 	}()
@@ -4696,9 +4699,9 @@ func (this *WeexCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes379515 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes379515)
-		ch <- retRes379515
+		retRes379815 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes379815)
+		ch <- retRes379815
 		return nil
 
 	}()

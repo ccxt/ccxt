@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.53'
+__version__ = '4.5.55'
 
 # -----------------------------------------------------------------------------
 
@@ -3789,10 +3789,10 @@ class Exchange(object):
     def get_default_options(self):
         return {
             'defaultNetworkCodeReplacements': {
-                'ETH': {'ERC20': 'ETH'},
-                'TRX': {'TRC20': 'TRX'},
-                'CRO': {'CRC20': 'CRONOS'},
-                'BRC20': {'BRC20': 'BTC'},
+                'ETH': {'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary'},
+                'CRO': {'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary'},
+                'TRX': {'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary'},
+                'BTC': {'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary'},
             },
         }
 
@@ -5002,6 +5002,48 @@ class Exchange(object):
             },
         }
 
+    def prioritized_network_aliases(self, networkCode: Str = None, currencyCode: Str = None, allowDefault=False):
+        """
+        returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
+   ---------------------------------
+   | input          | output       |
+   --------------------------------|
+   | ETH & USDC     | ERC20, ETH   |
+   | ERC20 & USDC   | ERC20, ETH   |
+   | ETH & ETH      | ETH, ERC20   |
+   | ERC20 & ETH    | ETH, ERC20   |
+   | ERC20          | ERC20, ETH   |
+   | ETH            | ERC20, ETH   |
+   ---------------------------------
+        :param str networkCode: unified network-code
+        :param str currencyCode: unified currency-code
+        :param boolean allowDefault: when currencyCode is None, order by replacement's "default" instead of by user input
+        :returns str[]: [preferredChain, alternativeChain]
+        """
+        if networkCode is None:
+            return None
+        replacements = self.safe_dict(self.options, 'defaultNetworkCodeReplacements', {})
+        keys = list(replacements.keys())
+        for i in range(0, len(keys)):
+            baseCoin = keys[i]
+            entry = replacements[baseCoin]
+            primary = entry['primary']
+            secondary = entry['secondary']
+            if networkCode != primary and networkCode != secondary:
+                continue
+            # pick which form goes first in the returned pair
+            preferPrimary = False
+            if currencyCode == baseCoin:
+                preferPrimary = True  # mainnet currency uses primary chain
+            elif currencyCode is not None:
+                preferPrimary = False  # any other(token) currency uses secondary chain
+            elif allowDefault:
+                preferPrimary = (entry['default'] == 'primary')
+            else:
+                preferPrimary = (networkCode == primary)  # keep user input first
+            return [primary, secondary] if (preferPrimary) else [secondary, primary]
+        return [networkCode, networkCode]
+
     def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
         """
  @ignore
@@ -5012,43 +5054,23 @@ class Exchange(object):
         """
         if networkCode is None:
             return None
-        networkIdsByCodes = self.safe_value(self.options, 'networks', {})
-        networkId = self.safe_string(networkIdsByCodes, networkCode)
-        # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if networkId is None:
-            if currencyCode is None:
-                currencies = list(self.currencies.values())
-                for i in range(0, len(currencies)):
-                    currency = currencies[i]
-                    networks = self.safe_dict(currency, 'networks')
-                    network = self.safe_dict(networks, networkCode)
-                    networkId = self.safe_string(network, 'id')
-                    if networkId is not None:
-                        break
-            else:
-                # if currencyCode was provided, then we try to find if that currencyCode has a replacement(i.e. ERC20 for ETH) or is in the currency
-                defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
-                if currencyCode in defaultNetworkCodeReplacements:
-                    # if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    replacementObject = defaultNetworkCodeReplacements[currencyCode]  # i.e. {'ERC20': 'ETH'}
-                    keys = list(replacementObject.keys())
-                    for i in range(0, len(keys)):
-                        key = keys[i]
-                        value = replacementObject[key]
-                        # if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if value == networkCode:
-                            networkId = self.safe_string(networkIdsByCodes, key)
-                            break
-                else:
-                    # serach for network inside currency
-                    currency = self.safe_dict(self.currencies, currencyCode)
-                    networks = self.safe_dict(currency, 'networks')
-                    network = self.safe_dict(networks, networkCode)
-                    networkId = self.safe_string(network, 'id')
-            # if it wasn't found, we just set the provided value to network-id
-            if networkId is None:
-                networkId = networkCode
-        return networkId
+        networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
+        # try the preferred form first, fall back to its alternative(e.g. when only 'ETH' or only 'ERC20' is defined)
+        preferredChain, alternativeChain = self.prioritized_network_aliases(networkCode, currencyCode, False)
+        networkId = self.safe_string_2(networkIdsByCodes, preferredChain, alternativeChain)
+        if networkId is not None:
+            return networkId
+        # fall back to scanning loaded currencies
+        currenciesToCheck = []
+        if currencyCode is None:
+            currenciesToCheck = list(self.currencies.keys())
+        else:
+            currenciesToCheck = [self.safe_dict(self.currencies, currencyCode)]
+        for i in range(0, len(currenciesToCheck)):
+            networks = self.safe_dict(currenciesToCheck[i], 'networks', {})
+            if networkCode in networks:
+                return self.safe_string(networks[networkCode], 'id')
+        return networkCode
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
         """
@@ -5062,13 +5084,14 @@ class Exchange(object):
             return None
         networkCodesByIds = self.safe_dict(self.options, 'networksById', {})
         networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
-        # replace mainnet network-codes(i.e. ERC20->ETH)
-        if currencyCode is not None:
-            defaultNetworkCodeReplacements = self.safe_dict(self.options, 'defaultNetworkCodeReplacements', {})
-            if currencyCode in defaultNetworkCodeReplacements:
-                replacementObject = self.safe_dict(defaultNetworkCodeReplacements, currencyCode, {})
-                networkCode = self.safe_string(replacementObject, networkCode, networkCode)
-        return networkCode
+        preferredChain, alternativeChain = self.prioritized_network_aliases(networkCode, currencyCode, True)
+        # when the exchange explicitly defines both forms in options.networks(e.g. BTC + BRC20),
+        # it disambiguates them — trust the direct id→code inversion instead of guessing
+        if currencyCode is None:
+            networkIdsByCodes = self.safe_dict(self.options, 'networks', {})
+            if (preferredChain in networkIdsByCodes) and (alternativeChain in networkIdsByCodes):
+                return networkCode
+        return preferredChain
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -5194,7 +5217,7 @@ class Exchange(object):
         #
         percentage = self.safe_value(position, 'percentage')
         if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
-            # was done in all implementations( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            # was done in all implementations( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
             position['percentage'] = self.parse_number(percentageString)
         # if contractSize is None get from market

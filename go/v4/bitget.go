@@ -2521,89 +2521,88 @@ func (this *BitgetCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//            },
 		//            ...
 		//
-		var result any = map[string]any{}
 		var data any = this.SafeValue(response, "data", []any{})
-		var fiatCurrencies any = this.SafeList(this.Options, "fiatCurrencies", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var id any = this.SafeString(entry, "coin") // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-			var code any = this.SafeCurrencyCode(id)
-			var chains any = this.SafeValue(entry, "chains", []any{})
-			var networks any = map[string]any{}
-			var withdraw any = nil
-			var deposit any = nil
-			var chainsLength any = GetArrayLength(chains)
-			if IsTrue(IsEqual(chainsLength, 0)) {
-				withdraw = false
-				deposit = false
-			}
-			for j := 0; IsLessThan(j, chainsLength); j++ {
-				var chain any = GetValue(chains, j)
-				var networkId any = this.SafeString(chain, "chain")
-				var network any = this.NetworkIdToCode(networkId, code)
-				network = ToUpper(network)
-				var withdrawable any = (IsEqual(this.SafeString(chain, "withdrawable"), "true"))
-				var rechargeable any = (IsEqual(this.SafeString(chain, "rechargeable"), "true"))
-				withdraw = Ternary(IsTrue((IsEqual(withdraw, nil))), withdrawable, (IsTrue(withdraw) || IsTrue(withdrawable)))
-				deposit = Ternary(IsTrue((IsEqual(deposit, nil))), rechargeable, (IsTrue(deposit) || IsTrue(rechargeable)))
-				AddElementToObject(networks, network, map[string]any{
-					"info":    chain,
-					"id":      networkId,
-					"network": network,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(chain, "minWithdrawAmount"),
-							"max": nil,
-						},
-						"deposit": map[string]any{
-							"min": this.SafeNumber(chain, "minDepositAmount"),
-							"max": nil,
-						},
-					},
-					"active":    nil,
-					"withdraw":  withdrawable,
-					"deposit":   rechargeable,
-					"fee":       this.SafeNumber(chain, "withdrawFee"),
-					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "withdrawMinScale"))),
-				})
-			}
-			var active any = IsTrue(withdraw) && IsTrue(deposit)
-			var isFiat any = this.InArray(code, fiatCurrencies)
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"info":      entry,
-				"id":        id,
-				"code":      code,
-				"networks":  networks,
-				"type":      Ternary(IsTrue(isFiat), "fiat", "crypto"),
-				"name":      nil,
-				"active":    active,
-				"deposit":   deposit,
-				"withdraw":  withdraw,
-				"fee":       nil,
-				"precision": nil,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"created": nil,
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(data)
 		return nil
 
 	}()
 	return ch
+}
+func (this *BitgetCore) ParseCurrency(rawCurrency any) any {
+	var fiatCurrencies any = this.SafeList(this.Options, "fiatCurrencies", []any{})
+	var entry any = rawCurrency
+	var id any = this.SafeString(entry, "coin") // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+	var code any = this.SafeCurrencyCode(id)
+	var chains any = this.SafeList(entry, "chains", []any{})
+	var networks any = map[string]any{}
+	var withdraw any = nil
+	var deposit any = nil
+	var chainsLength any = GetArrayLength(chains)
+	if IsTrue(IsEqual(chainsLength, 0)) {
+		withdraw = false
+		deposit = false
+	}
+	for j := 0; IsLessThan(j, chainsLength); j++ {
+		var chain any = GetValue(chains, j)
+		var networkId any = this.SafeString(chain, "chain")
+		var network any = this.NetworkIdToCode(networkId, code)
+		network = ToUpper(network)
+		var withdrawable any = (IsEqual(this.SafeString(chain, "withdrawable"), "true"))
+		var rechargeable any = (IsEqual(this.SafeString(chain, "rechargeable"), "true"))
+		withdraw = Ternary(IsTrue((IsEqual(withdraw, nil))), withdrawable, (IsTrue(withdraw) || IsTrue(withdrawable)))
+		deposit = Ternary(IsTrue((IsEqual(deposit, nil))), rechargeable, (IsTrue(deposit) || IsTrue(rechargeable)))
+		AddElementToObject(networks, network, map[string]any{
+			"info":    chain,
+			"id":      networkId,
+			"network": network,
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(chain, "minWithdrawAmount"),
+					"max": nil,
+				},
+				"deposit": map[string]any{
+					"min": this.SafeNumber(chain, "minDepositAmount"),
+					"max": nil,
+				},
+			},
+			"active":    nil,
+			"withdraw":  withdrawable,
+			"deposit":   rechargeable,
+			"fee":       this.SafeNumber(chain, "withdrawFee"),
+			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "withdrawMinScale"))),
+		})
+	}
+	var active any = IsTrue(withdraw) && IsTrue(deposit)
+	var isFiat any = this.InArray(code, fiatCurrencies)
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":      entry,
+		"id":        id,
+		"code":      code,
+		"networks":  networks,
+		"type":      Ternary(IsTrue(isFiat), "fiat", "crypto"),
+		"name":      nil,
+		"active":    active,
+		"deposit":   deposit,
+		"withdraw":  withdraw,
+		"fee":       nil,
+		"precision": nil,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"created": nil,
+	})
 }
 
 /**

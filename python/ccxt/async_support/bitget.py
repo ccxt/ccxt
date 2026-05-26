@@ -2495,81 +2495,81 @@ class bitget(Exchange, ImplicitAPI):
         #            },
         #            ...
         #
-        result: dict = {}
         data = self.safe_value(response, 'data', [])
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
-        for i in range(0, len(data)):
-            entry = data[i]
-            id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
-            code = self.safe_currency_code(id)
-            chains = self.safe_value(entry, 'chains', [])
-            networks: dict = {}
-            withdraw = None
-            deposit = None
-            chainsLength = len(chains)
-            if chainsLength == 0:
-                withdraw = False
-                deposit = False
-            for j in range(0, chainsLength):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                network = self.network_id_to_code(networkId, code)
-                network = network.upper()
-                withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
-                rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
-                withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
-                deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'minWithdrawAmount'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(chain, 'minDepositAmount'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'withdraw': withdrawable,
-                    'deposit': rechargeable,
-                    'fee': self.safe_number(chain, 'withdrawFee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
-                }
-            active = withdraw and deposit
-            isFiat = self.in_array(code, fiatCurrencies)
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'type': 'fiat' if isFiat else 'crypto',
-                'name': None,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': None,
-                'precision': None,
+        entry = rawCurrency
+        id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(entry, 'chains', [])
+        networks: dict = {}
+        withdraw = None
+        deposit = None
+        chainsLength = len(chains)
+        if chainsLength == 0:
+            withdraw = False
+            deposit = False
+        for j in range(0, chainsLength):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'chain')
+            network = self.network_id_to_code(networkId, code)
+            network = network.upper()
+            withdrawable = (self.safe_string(chain, 'withdrawable') == 'true')
+            rechargeable = (self.safe_string(chain, 'rechargeable') == 'true')
+            withdraw = withdrawable if (withdraw is None) else (withdraw or withdrawable)
+            deposit = rechargeable if (deposit is None) else (deposit or rechargeable)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'minWithdrawAmount'),
                         'max': None,
                     },
                     'deposit': {
-                        'min': None,
+                        'min': self.safe_number(chain, 'minDepositAmount'),
                         'max': None,
                     },
                 },
-                'created': None,
-            })
-        return result
+                'active': None,
+                'withdraw': withdrawable,
+                'deposit': rechargeable,
+                'fee': self.safe_number(chain, 'withdrawFee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawMinScale'))),
+            }
+        active = withdraw and deposit
+        isFiat = self.in_array(code, fiatCurrencies)
+        return self.safe_currency_structure({
+            'info': entry,
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'type': 'fiat' if isFiat else 'crypto',
+            'name': None,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+        })
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """

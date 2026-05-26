@@ -1474,49 +1474,22 @@ public partial class okx : ccxt.okx
         this.handleDeltas(storedBids, bids);
         object marketId = this.safeString(message, "instId");
         object symbol = this.safeSymbol(marketId, market);
-        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         object seqId = this.safeInteger(message, "seqId");
-        if (isTrue(checksum))
+        object prevSeqId = this.safeInteger(message, "prevSeqId");
+        object nonce = getValue(orderbook, "nonce");
+        object error = null;
+        if (isTrue(isTrue(isTrue(!isEqual(prevSeqId, null)) && isTrue(!isEqual(prevSeqId, -1))) && isTrue(!isEqual(nonce, prevSeqId))))
         {
-            object prevSeqId = this.safeInteger(message, "prevSeqId");
-            object nonce = getValue(orderbook, "nonce");
-            object asksLength = getArrayLength(storedAsks);
-            object bidsLength = getArrayLength(storedBids);
-            object payloadArray = new List<object>() {};
-            for (object i = 0; isLessThan(i, 25); postFixIncrement(ref i))
+            error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
+        }
+        if (isTrue(!isEqual(error, null)))
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            if (isTrue(!isEqual(symbol, null)))
             {
-                if (isTrue(isLessThan(i, bidsLength)))
-                {
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedBids, i), 0)));
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedBids, i), 1)));
-                }
-                if (isTrue(isLessThan(i, asksLength)))
-                {
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedAsks, i), 0)));
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedAsks, i), 1)));
-                }
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
-            object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
-            object responseChecksum = this.safeInteger(message, "checksum");
-            object localChecksum = this.crc32(payload, true);
-            object error = null;
-            if (isTrue(isTrue(!isEqual(prevSeqId, -1)) && isTrue(!isEqual(nonce, prevSeqId))))
-            {
-                error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
-            }
-            if (isTrue(!isEqual(responseChecksum, localChecksum)))
-            {
-                error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-            }
-            if (isTrue(!isEqual(error, null)))
-            {
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
-                if (isTrue(!isEqual(symbol, null)))
-                {
-                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-                }
-                ((WebSocketClient)client).reject(error, messageHash);
-            }
+            ((WebSocketClient)client).reject(error, messageHash);
         }
         object timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)orderbook)["nonce"] = seqId;

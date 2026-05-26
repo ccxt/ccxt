@@ -705,6 +705,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #     }
         #
         entry = self.safe_list(message, 'data', [])
+        entryLength = len(entry)
+        if entryLength == 0:
+            return
         first = self.safe_dict(entry, 0, {})
         coin = self.safe_string(first, 'coin')
         marketId = self.coinToMarketId(coin)

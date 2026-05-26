@@ -1597,10 +1597,22 @@ func  (this *ModetradeCore) Ping(client any) any  {
         "event": "ping",
     }
 }
-func  (this *ModetradeCore) HandlePing(client any, message any) any  {
-    return map[string]any {
-        "event": "pong",
-    }
+func  (this *ModetradeCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                
+            retRes13468 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                "event": "pong",
+            }))
+            ccxt.PanicOnError(retRes13468)
+                return nil
+            }()
+            return ch
+        }
+func  (this *ModetradeCore) HandlePing(client any, message any)  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *ModetradeCore) HandlePong(client any, message any) any  {
     //

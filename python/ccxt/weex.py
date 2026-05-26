@@ -3135,7 +3135,7 @@ class weex(Exchange, ImplicitAPI):
         errorCode = self.safe_string(position, 'errorCode')
         if errorMessage is not None:
             self.handle_order_or_position_error(errorCode, errorMessage, position)
-        marketId = self.safe_string(position, 'symbol')
+        marketId = self.safe_string_2(position, 'symbol', 'coinId')  # coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = self.safe_market(marketId, market, None, 'contract')
         timestamp = self.safe_integer(position, 'createdTime')
         marginType = self.safe_string_2(position, 'marginType', 'marginMode')
@@ -3148,20 +3148,23 @@ class weex(Exchange, ImplicitAPI):
             hedged = False
         elif separatedMode == 'SEPARATED':
             hedged = True
+        notional = self.safe_string(position, 'openValue')
+        size = self.safe_string(position, 'size')
+        entryPrice = Precise.string_div(notional, size)
         return self.safe_position({
             'symbol': market['symbol'],
             'id': self.safe_string_2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'contracts': self.safe_number(position, 'size'),
+            'contracts': self.parse_number(size),
             'contractSize': None,
             'side': self.safe_string_lower(position, 'side'),
-            'notional': self.safe_number(position, 'openValue'),
+            'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.safe_number(position, 'unrealizePnl'),
             'realizedPnl': None,
             'collateral': None,
-            'entryPrice': None,
+            'entryPrice': self.parse_number(entryPrice),
             'markPrice': None,
             'liquidationPrice': self.safe_number(position, 'liquidatePrice'),
             'marginMode': marginMode,
@@ -3176,7 +3179,7 @@ class weex(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
             'percentage': None,
-            'info': None,
+            'info': position,
         })
 
     def close_all_positions(self, params={}) -> List[Position]:

@@ -212,13 +212,13 @@
         ],
         "closeAllPositions": [
             {
-                "description": "close all positions",
+                "description": "default",
                 "method": "closeAllPositions",
                 "input": [],
                 "httpResponse": [
                     {
-                        "positionId": "737191855967437160",
-                        "successOrderId": "737215340433375592",
+                        "positionId": "749422759074857895",
+                        "successOrderId": "749423055683453863",
                         "errorMessage": "",
                         "success": true
                     }
@@ -226,7 +226,7 @@
                 "parsedResponse": [
                     {
                         "symbol": null,
-                        "id": "737191855967437160",
+                        "id": "749422759074857895",
                         "timestamp": null,
                         "datetime": null,
                         "contracts": null,
@@ -252,79 +252,118 @@
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "percentage": null,
-                        "info": null
+                        "info": {
+                            "positionId": "749422759074857895",
+                            "successOrderId": "749423055683453863",
+                            "errorMessage": "",
+                            "success": true
+                        }
                     }
                 ]
             }
         ],
         "fetchPositions": [
             {
-                "description": "fetch positions",
+                "description": "default",
                 "method": "fetchPositions",
-                "input": [],
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
                 "httpResponse": [
                     {
-                        "id": "737191855967437160",
+                        "id": "749422759074857895",
                         "asset": "USDT",
-                        "symbol": "DOGEUSDT",
+                        "symbol": "ETHUSDT",
                         "side": "LONG",
                         "marginType": "CROSSED",
                         "separatedMode": "COMBINED",
                         "separatedOpenOrderId": "0",
                         "leverage": "20.00",
-                        "size": "300",
-                        "openValue": "27.96900",
-                        "openFee": "0.02237520",
+                        "size": "0.036",
+                        "openValue": "82.06416",
+                        "openFee": "0.06565132",
                         "fundingFee": "0",
-                        "marginSize": "100",
+                        "marginSize": "4.107",
                         "isolatedMargin": "0",
                         "isAutoAppendIsolatedMargin": false,
-                        "cumOpenSize": "300",
-                        "cumOpenValue": "27.96900",
-                        "cumOpenFee": "0.02237520",
+                        "cumOpenSize": "0.036",
+                        "cumOpenValue": "82.06416",
+                        "cumOpenFee": "0.06565132",
                         "cumCloseSize": "0",
                         "cumCloseValue": "0",
                         "cumCloseFee": "0",
                         "cumFundingFee": "0",
                         "cumLiquidateFee": "0",
-                        "createdMatchSequenceId": "5762536243",
-                        "updatedMatchSequenceId": "5762741613",
-                        "createdTime": "1775760234825",
-                        "updatedTime": "1775763170789",
-                        "unrealizePnl": "0.14100",
-                        "liquidatePrice": "0"
+                        "createdMatchSequenceId": "14770315288",
+                        "updatedMatchSequenceId": "14770315288",
+                        "createdTime": "1778676309365",
+                        "updatedTime": "1778676309365",
+                        "unrealizePnl": "0.06012",
+                        "liquidatePrice": "2019.83"
                     }
                 ],
                 "parsedResponse": [
                     {
-                        "symbol": "DOGE/USDT:USDT",
-                        "id": "737191855967437160",
-                        "timestamp": 1775760234825,
-                        "datetime": "2026-04-09T18:43:54.825Z",
-                        "contracts": 300,
-                        "contractSize": 100,
+                        "symbol": "ETH/USDT:USDT",
+                        "id": "749422759074857895",
+                        "timestamp": 1778676309365,
+                        "datetime": "2026-05-13T12:45:09.365Z",
+                        "contracts": 0.036,
+                        "contractSize": 0.001,
                         "side": "long",
-                        "notional": 27.969,
+                        "notional": 82.06416,
                         "leverage": 20,
-                        "unrealizedPnl": 0.141,
+                        "unrealizedPnl": 0.06012,
                         "realizedPnl": null,
                         "collateral": null,
-                        "entryPrice": null,
+                        "entryPrice": 2279.56,
                         "markPrice": null,
-                        "liquidationPrice": 0,
+                        "liquidationPrice": 2019.83,
                         "marginMode": "cross",
                         "hedged": false,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
-                        "initialMargin": 100,
+                        "initialMargin": 4.107,
                         "initialMarginPercentage": null,
                         "marginRatio": null,
-                        "lastUpdateTimestamp": 1775763170789,
+                        "lastUpdateTimestamp": 1778676309365,
                         "lastPrice": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "percentage": null,
-                        "info": null
+                        "info": {
+                            "id": "749422759074857895",
+                            "asset": "USDT",
+                            "symbol": "ETHUSDT",
+                            "side": "LONG",
+                            "marginType": "CROSSED",
+                            "separatedMode": "COMBINED",
+                            "separatedOpenOrderId": "0",
+                            "leverage": "20.00",
+                            "size": "0.036",
+                            "openValue": "82.06416",
+                            "openFee": "0.06565132",
+                            "fundingFee": "0",
+                            "marginSize": "4.107",
+                            "isolatedMargin": "0",
+                            "isAutoAppendIsolatedMargin": false,
+                            "cumOpenSize": "0.036",
+                            "cumOpenValue": "82.06416",
+                            "cumOpenFee": "0.06565132",
+                            "cumCloseSize": "0",
+                            "cumCloseValue": "0",
+                            "cumCloseFee": "0",
+                            "cumFundingFee": "0",
+                            "cumLiquidateFee": "0",
+                            "createdMatchSequenceId": "14770315288",
+                            "updatedMatchSequenceId": "14770315288",
+                            "createdTime": "1778676309365",
+                            "updatedTime": "1778676309365",
+                            "unrealizePnl": "0.06012",
+                            "liquidatePrice": "2019.83"
+                        }
                     }
                 ]
             }

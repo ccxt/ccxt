@@ -3583,7 +3583,7 @@ public partial class weex : Exchange
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        object marketId = this.safeString(position, "symbol");
+        object marketId = this.safeString2(position, "symbol", "coinId"); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
         object timestamp = this.safeInteger(position, "createdTime");
         object marginType = this.safeString2(position, "marginType", "marginMode");
@@ -3601,20 +3601,23 @@ public partial class weex : Exchange
         {
             hedged = true;
         }
+        object notional = this.safeString(position, "openValue");
+        object size = this.safeString(position, "size");
+        object entryPrice = Precise.stringDiv(notional, size);
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "id", this.safeString2(position, "id", "positionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "contracts", this.safeNumber(position, "size") },
+            { "contracts", this.parseNumber(size) },
             { "contractSize", null },
             { "side", this.safeStringLower(position, "side") },
-            { "notional", this.safeNumber(position, "openValue") },
+            { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
             { "unrealizedPnl", this.safeNumber(position, "unrealizePnl") },
             { "realizedPnl", null },
             { "collateral", null },
-            { "entryPrice", null },
+            { "entryPrice", this.parseNumber(entryPrice) },
             { "markPrice", null },
             { "liquidationPrice", this.safeNumber(position, "liquidatePrice") },
             { "marginMode", marginMode },
@@ -3629,7 +3632,7 @@ public partial class weex : Exchange
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
             { "percentage", null },
-            { "info", null },
+            { "info", position },
         });
     }
 

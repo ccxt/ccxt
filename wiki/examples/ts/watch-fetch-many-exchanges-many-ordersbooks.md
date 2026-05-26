@@ -30,7 +30,7 @@ async function watchExchange (exchangeId, symbols) {
 
 async function main () {
     const streams = {
-        'ftx': [
+        'okx': [
             'BTC/USDT',
             'ETH/BTC',
         ],

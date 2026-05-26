@@ -1864,7 +1864,7 @@ class weex extends \ccxt\async\weex {
         $data = $this->safe_list($message, 'd', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $this->safe_dict($data, $i, array());
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_ws_position($rawPosition);
             $cache->append ($position);
             $newPositions[] = $position;
         }
@@ -1880,6 +1880,11 @@ class weex extends \ccxt\async\weex {
             }
         }
         $client->resolve ($newPositions, 'positions');
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        // same api
+        return $this->parse_position($position, $market);
     }
 
     public function get_market_from_client_and_message(Client $client, $message) {
