@@ -43,7 +43,7 @@
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildJava": "cd java/ && ./gradlew build && cd ../",
-    "publishJava": "cd java/ && ./gradlew :lib:publishToMavenCentral && cd ../",
+    "publishJava": "cd java && ./gradlew :lib:publishToMavenCentral --no-configuration-cache",
     "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro",
     "build-go-cli": "go build -C go/cli",
     "formatGO": "go fmt -C go v4 tests",
