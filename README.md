@@ -347,7 +347,7 @@ Add the CCXT library as a local dependency in your `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation(project(":lib"))
+    implementation("io.github.ccxt:ccxt:4.5.52")
 }
 ```
 
