@@ -8,6 +8,7 @@ junit-jupiter = "5.11.1"
 jackson = "2.18.2"
 web3j = "4.12.2"
 netty = "4.1.116.Final"
+msgpack = "0.9.8"
 
 [libraries]
 commons-math3 = { module = "org.apache.commons:commons-math3", version.ref = "commons-math3" }
@@ -17,3 +18,4 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 web3j-crypto = { module = "org.web3j:crypto", version.ref = "web3j" }
 netty-codec-http = { module = "io.netty:netty-codec-http", version.ref = "netty" }
 netty-handler-proxy = { module = "io.netty:netty-handler-proxy", version.ref = "netty" }
+msgpack-core = { module = "org.msgpack:msgpack-core", version.ref = "msgpack" }
