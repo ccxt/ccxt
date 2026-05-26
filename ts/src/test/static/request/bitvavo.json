@@ -49,6 +49,16 @@
                 "input": []
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://api.bitvavo.com/v2/account/fees?market=BTC-EUR",
+                "input": [
+                    "BTC/EUR"
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Market buy order",

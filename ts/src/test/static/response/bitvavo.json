@@ -104,6 +104,34 @@
                 }
             }
         ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "httpResponse": {
+                    "tier": "0",
+                    "volume": "10000.00",
+                    "taker": "0.0025",
+                    "maker": "0.0015"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tier": "0",
+                        "volume": "10000.00",
+                        "taker": "0.0025",
+                        "maker": "0.0015"
+                    },
+                    "symbol": "BTC/EUR",
+                    "maker": 0.0015,
+                    "taker": 0.0025,
+                    "percentage": true,
+                    "tierBased": true
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order limit buy",

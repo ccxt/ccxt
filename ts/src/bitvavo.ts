@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -121,7 +121,7 @@ export default class bitvavo extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
@@ -993,6 +993,44 @@ export default class bitvavo extends Exchange {
             };
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTradingFee
+     * @see https://docs.bitvavo.com/docs/rest-api/get-market-fees/
+     * @description fetch the trading fees for a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+     */
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+        };
+        const response = await this.privateGetAccountFees (this.extend (request, params));
+        //
+        //     {
+        //         "tier": "0",
+        //         "volume": "10000.00",
+        //         "taker": "0.0025",
+        //         "maker": "0.0015"
+        //     }
+        //
+        return this.parseTradingFee (response, market);
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (undefined, market),
+            'maker': this.safeNumber (fee, 'maker'),
+            'taker': this.safeNumber (fee, 'taker'),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     /**
