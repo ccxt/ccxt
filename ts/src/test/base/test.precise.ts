@@ -125,9 +125,9 @@ function testPrecise () {
     assert (Precise.stringOr ('10', '5') === '15');  // 1010 | 0101 = 1111 = 15
     assert (Precise.stringOr ('0', '0') === '0');
     assert (Precise.stringOr ('7', '0') === '7');
-    assert (Precise.stringOr (undefined, '3') === null);
-    assert (Precise.stringOr ('5', undefined) === null);
-    assert (Precise.stringOr (undefined, undefined) === null);
+    assert (Precise.stringOr (undefined, '3') === undefined);
+    assert (Precise.stringOr ('5', undefined) === undefined);
+    assert (Precise.stringOr (undefined, undefined) === undefined);
 }
 
 export default testPrecise;
