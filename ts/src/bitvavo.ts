@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ export default class bitvavo extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
@@ -1910,6 +1910,117 @@ export default class bitvavo extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchLedger
+     * @see https://docs.bitvavo.com/docs/rest-api/get-transaction-history/
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {int} [params.page] the page number for the transaction history
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['fromDate'] = since;
+        }
+        if (limit !== undefined) {
+            request['maxItems'] = Math.min (limit, 100);
+        }
+        [ request, params ] = this.handleUntilOption ('toDate', request, params);
+        const response = await this.privateGetAccountHistory (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //             {
+        //                 "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+        //                 "executedAt": "2021-01-01T00:00:00.000Z",
+        //                 "type": "sell",
+        //                 "priceCurrency": "EUR",
+        //                 "priceAmount": "1000.00",
+        //                 "sentCurrency": "EUR",
+        //                 "sentAmount": "0.1",
+        //                 "receivedCurrency": "BTC",
+        //                 "receivedAmount": "0.0001",
+        //                 "feesCurrency": "EUR",
+        //                 "feesAmount": "0.01",
+        //                 "address": "string"
+        //             }
+        //         ],
+        //         "currentPage": 1,
+        //         "totalPages": 1,
+        //         "maxItems": 100
+        //     }
+        //
+        const items = this.safeList (response, 'items', []);
+        return this.parseLedger (items, currency, since, limit);
+    }
+
+    parseLedgerEntryType (type: Str) {
+        const types: Dict = {
+            'buy': 'trade',
+            'sell': 'trade',
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'withdrawal_cancelled': 'transaction',
+            'internal_transfer': 'transaction',
+            'external_transferred_funds': 'transaction',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        const rawType = this.safeString (item, 'type');
+        const type = this.parseLedgerEntryType (rawType);
+        let currencyId = this.safeString (item, 'receivedCurrency');
+        let amount = this.safeString (item, 'receivedAmount');
+        let direction = 'in';
+        if (amount === undefined) {
+            currencyId = this.safeString (item, 'sentCurrency');
+            amount = this.safeString (item, 'sentAmount');
+            direction = 'out';
+        }
+        const code = this.safeCurrencyCode (currencyId);
+        currency = this.safeCurrency (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (item, 'executedAt'));
+        let fee = undefined;
+        const feeCost = this.safeString (item, 'feesAmount');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (item, 'feesCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'transactionId'),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': this.safeString (item, 'transactionId'),
+            'referenceAccount': this.safeString (item, 'address'),
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': 'ok',
+            'fee': fee,
+        }, currency) as LedgerEntry;
     }
 
     withdrawRequest (code: Str, amount, address, tag = undefined, params = {}) {

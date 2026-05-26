@@ -376,6 +376,73 @@
                 }
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    0,
+                    3
+                ],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                            "executedAt": "2021-01-01T00:00:00.000Z",
+                            "type": "sell",
+                            "priceCurrency": "EUR",
+                            "priceAmount": "1000.00",
+                            "sentCurrency": "BTC",
+                            "sentAmount": "0.1",
+                            "receivedCurrency": "EUR",
+                            "receivedAmount": "1000.00",
+                            "feesCurrency": "EUR",
+                            "feesAmount": "0.01",
+                            "address": "string"
+                        }
+                    ],
+                    "currentPage": 1,
+                    "totalPages": 1,
+                    "maxItems": 100
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                            "executedAt": "2021-01-01T00:00:00.000Z",
+                            "type": "sell",
+                            "priceCurrency": "EUR",
+                            "priceAmount": "1000.00",
+                            "sentCurrency": "BTC",
+                            "sentAmount": "0.1",
+                            "receivedCurrency": "EUR",
+                            "receivedAmount": "1000.00",
+                            "feesCurrency": "EUR",
+                            "feesAmount": "0.01",
+                            "address": "string"
+                        },
+                        "id": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                        "referenceAccount": "string",
+                        "type": "trade",
+                        "currency": "EUR",
+                        "amount": 1000,
+                        "timestamp": 1609459200000,
+                        "datetime": "2021-01-01T00:00:00.000Z",
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "cost": 0.01,
+                            "currency": "EUR"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetchOHLCV BTC/EUR 1m limit 5",

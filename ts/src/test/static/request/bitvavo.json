@@ -272,6 +272,21 @@
                 ]
             }
         ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitvavo.com/v2/account/history?fromDate=0&maxItems=2&toDate=1000",
+                "input": [
+                    null,
+                    0,
+                    2,
+                    {
+                        "until": 1000
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch open orders",
