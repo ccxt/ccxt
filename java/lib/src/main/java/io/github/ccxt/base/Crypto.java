@@ -159,20 +159,33 @@ public final class Crypto {
         String algorithm = (hash == null) ? null : toString(hash);
         String digest = (digest2 == null) ? "hex" : toString(digest2);
 
+        // If the caller already passed raw bytes, hash those directly.
+        // Otherwise treat the value as a string and hash its UTF-8 encoding.
+        byte[] input = (request2 instanceof byte[]) ? (byte[]) request2 : toUtf8(request2);
+
         byte[] signature;
         switch (algorithm) {
-            case "sha256": signature = shaDigest("SHA-256", toString(request2)); break;
-            case "sha512": signature = shaDigest("SHA-512", toString(request2)); break;
-            case "sha384": signature = shaDigest("SHA-384", toString(request2)); break;
-            case "sha1":   signature = shaDigest("SHA-1",   toString(request2)); break;
-            case "md5":    signature = md5Digest(toString(request2)); break;
+            case "sha256": signature = digestBytes("SHA-256", input); break;
+            case "sha512": signature = digestBytes("SHA-512", input); break;
+            case "sha384": signature = digestBytes("SHA-384", input); break;
+            case "sha1":   signature = digestBytes("SHA-1",   input); break;
+            case "md5":    signature = digestBytes("MD5",     input); break;
             case "keccak":
-            case "sha3":   signature = keccakDigest(toUtf8(request2)); break;
+            case "sha3":   signature = keccakDigest(input); break;
             default:       throw new IllegalArgumentException("Unsupported hash algo: " + algorithm);
         }
 
         if ("binary".equals(digest)) return signature;
         return "hex".equals(digest) ? binaryToHex(signature) : BinaryToBase64(signature);
+    }
+
+    private static byte[] digestBytes(String algo, byte[] data) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(algo);
+            return md.digest(data);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static byte[] shaDigest(String algo, String data) {
