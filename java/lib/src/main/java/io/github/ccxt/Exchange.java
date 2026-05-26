@@ -2420,16 +2420,145 @@ public class Exchange {
         return sb.toString();
     }
 
+    @SuppressWarnings("unchecked")
     public Object ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
-        // throw new RuntimeException("Not implemented");
-        return ""; // to do later
+        try {
+            Map<String, Object> domain = (Map<String, Object>) domain2;
+            Map<String, Object> messageTypes = (Map<String, Object>) messageTypes2;
+            Map<String, Object> messageData = (Map<String, Object>) messageData2;
+
+            // EIP712Domain field set inferred from the domain fields actually present.
+            // Order is the canonical one (name, version, chainId, verifyingContract, salt).
+            LinkedHashMap<String, String> canonicalDomainFields = new LinkedHashMap<>();
+            canonicalDomainFields.put("name", "string");
+            canonicalDomainFields.put("version", "string");
+            canonicalDomainFields.put("chainId", "uint256");
+            canonicalDomainFields.put("verifyingContract", "address");
+            canonicalDomainFields.put("salt", "bytes32");
+            List<Map<String, String>> eip712Domain = new ArrayList<>();
+            for (Map.Entry<String, String> e : canonicalDomainFields.entrySet()) {
+                if (domain.containsKey(e.getKey())) {
+                    LinkedHashMap<String, String> field = new LinkedHashMap<>();
+                    field.put("name", e.getKey());
+                    field.put("type", e.getValue());
+                    eip712Domain.add(field);
+                }
+            }
+
+            LinkedHashMap<String, Object> typesMap = new LinkedHashMap<>();
+            typesMap.put("EIP712Domain", eip712Domain);
+            typesMap.putAll(messageTypes);
+
+            String primaryType = messageTypes.keySet().iterator().next();
+
+            LinkedHashMap<String, Object> typedData = new LinkedHashMap<>();
+            typedData.put("types", typesMap);
+            typedData.put("primaryType", primaryType);
+            typedData.put("domain", convertBytesForJson(domain));
+            typedData.put("message", convertBytesForJson(messageData));
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String json = mapper.writeValueAsString(typedData);
+
+            org.web3j.crypto.StructuredDataEncoder encoder = new org.web3j.crypto.StructuredDataEncoder(json);
+            byte[] domainSep = encoder.hashDomain();
+            HashMap<String, Object> messageMap = new HashMap<>((Map<String, Object>) convertBytesForJson(messageData));
+            byte[] msgHash = encoder.hashMessage(primaryType, messageMap);
+
+            // EIP-712 pre-digest bytes: 0x1901 || domainSeparator || hashStruct(message)
+            byte[] result = new byte[2 + domainSep.length + msgHash.length];
+            result[0] = (byte) 0x19;
+            result[1] = (byte) 0x01;
+            System.arraycopy(domainSep, 0, result, 2, domainSep.length);
+            System.arraycopy(msgHash, 0, result, 2 + domainSep.length, msgHash.length);
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException("ethEncodeStructuredData failed: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object convertBytesForJson(Object value) {
+        if (value instanceof byte[]) {
+            byte[] bytes = (byte[]) value;
+            StringBuilder sb = new StringBuilder(2 + bytes.length * 2);
+            sb.append("0x");
+            for (byte b : bytes) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            return sb.toString();
+        }
+        if (value instanceof Map) {
+            LinkedHashMap<String, Object> copy = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                copy.put(entry.getKey(), convertBytesForJson(entry.getValue()));
+            }
+            return copy;
+        }
+        if (value instanceof List) {
+            List<Object> copy = new ArrayList<>();
+            for (Object item : (List<Object>) value) {
+                copy.add(convertBytesForJson(item));
+            }
+            return copy;
+        }
+        return value;
     }
 
     public Object packb(Object data) {
-        // throw new RuntimeException("Not implemented");
-//        return ""; // to do later
-        byte[] res = {};
-        return res;
+        try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+             org.msgpack.core.MessagePacker packer = org.msgpack.core.MessagePack.newDefaultPacker(out)) {
+            packValue(packer, data);
+            packer.flush();
+            return out.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("packb failed", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void packValue(org.msgpack.core.MessagePacker packer, Object value) throws java.io.IOException {
+        if (value == null) {
+            packer.packNil();
+        } else if (value instanceof Boolean) {
+            packer.packBoolean((Boolean) value);
+        } else if (value instanceof Byte) {
+            packer.packByte((Byte) value);
+        } else if (value instanceof Short) {
+            packer.packShort((Short) value);
+        } else if (value instanceof Integer) {
+            packer.packInt((Integer) value);
+        } else if (value instanceof Long) {
+            packer.packLong((Long) value);
+        } else if (value instanceof java.math.BigInteger) {
+            packer.packBigInteger((java.math.BigInteger) value);
+        } else if (value instanceof Float) {
+            packer.packFloat((Float) value);
+        } else if (value instanceof Double) {
+            packer.packDouble((Double) value);
+        } else if (value instanceof String) {
+            packer.packString((String) value);
+        } else if (value instanceof byte[]) {
+            byte[] bytes = (byte[]) value;
+            packer.packBinaryHeader(bytes.length);
+            packer.writePayload(bytes);
+        } else if (value instanceof Map) {
+            Map<Object, Object> map = (Map<Object, Object>) value;
+            packer.packMapHeader(map.size());
+            for (Map.Entry<Object, Object> entry : map.entrySet()) {
+                packValue(packer, entry.getKey());
+                packValue(packer, entry.getValue());
+            }
+        } else if (value instanceof List) {
+            List<Object> list = (List<Object>) value;
+            packer.packArrayHeader(list.size());
+            for (Object item : list) {
+                packValue(packer, item);
+            }
+        } else {
+            // Best-effort fallback for unknown types
+            packer.packString(value.toString());
+        }
     }
 
     public int binaryLength(Object binary) {

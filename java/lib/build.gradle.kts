@@ -39,6 +39,9 @@ dependencies {
     // Netty for WebSocket support (high-performance async I/O)
     implementation(libs.netty.codec.http)
     implementation(libs.netty.handler.proxy)
+
+    // msgpack for Hyperliquid (and other) signing flows
+    implementation(libs.msgpack.core)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
