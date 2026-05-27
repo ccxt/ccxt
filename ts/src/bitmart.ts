@@ -1208,7 +1208,23 @@ export default class bitmart extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetAccountV1Currencies (params);
+        const promiseSpotCurrencies = this.publicGetSpotV1Currencies (params);
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "42c0dfc9-ed0e-4021-ba30-619462dd070e",
+        //         "data": {
+        //             "currencies": [
+        //               {
+        //                 "id": "BTC",
+        //                 "name": "Bitcoin",
+        //                 "withdraw_enabled": true,
+        //                 "deposit_enabled": true
+        //               },
+        //               ...
+        //
+        const promiseAccountCurrencies = this.publicGetAccountV1Currencies (params);
         //
         //     {
         //         "message": "OK",
@@ -1218,12 +1234,12 @@ export default class bitmart extends Exchange {
         //             "currencies": [
         //                 {
         //                     "currency": "BTC",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true,
         //                     "name": "Bitcoin",
         //                     "recharge_minsize": '0.00000001',
         //                     "contract_address": null,
         //                     "network": "BTC",
-        //                     "withdraw_enabled": true,
-        //                     "deposit_enabled": true,
         //                     "withdraw_minsize": "0.0003",
         //                     "withdraw_minfee": "9.61",
         //                     "withdraw_fee_estimate": "9.61",
@@ -1233,110 +1249,93 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
-        const currencies = this.safeList (data, 'currencies', []);
-        this.options['_temp_fetchCurrencies_result'] = {}; // a temporary object to store intermediate results from parsing currencies, will be used in `getCurrencyIdFromCodeAndNetwork`
-        const result = this.parseCurrencies (currencies);
-        // only after rebuilt, we should apply `safeCurrencyStructure`
-        const keys = Object.keys (result);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = result[key];
-            result[key] = this.safeCurrencyStructure (currency);
+        const [ spotResponse, accountResponse ] = await Promise.all ([ promiseSpotCurrencies, promiseAccountCurrencies ]);
+        const spotData = this.safeDict (spotResponse, 'data', {});
+        const spotCurrencies = this.safeList (spotData, 'currencies', []);
+        const accountData = this.safeDict (accountResponse, 'data', {});
+        const accountCurrencies = this.safeList (accountData, 'currencies', []);
+        const tempCurrencies = [];
+        for (let i = 0; i < spotCurrencies.length; i++) {
+            const spotEntry = spotCurrencies[i];
+            const id = this.safeString (spotEntry, 'id');
+            const newItem = {
+                '_spotEntry': spotEntry,
+                '_networkEntries': [],
+            };
+            for (let j = 0; j < accountCurrencies.length; j++) {
+                const entry = accountCurrencies[j];
+                const networkCurrencyId = this.safeString (entry, 'currency');
+                // if it's equal or starts with the currency-id (followed by separator either dash or space)
+                if (networkCurrencyId === id || networkCurrencyId.startsWith (id + '-') || networkCurrencyId.startsWith (id + ' ')) {
+                    newItem['_networkEntries'].push (entry);
+                }
+            }
+            tempCurrencies.push (newItem);
         }
-        delete this.options['_temp_fetchCurrencies_result']; // clean up the temporary object
-        return result;
+        return this.parseCurrencies (tempCurrencies);
     }
 
-    parseCurrency (currency: Dict): Currency {
-        const existingResult = this.options['_temp_fetchCurrencies_result'];
-        const fullId = this.safeString (currency, 'currency');
-        let currencyId = fullId;
-        let networkId = this.safeString (currency, 'network');
-        const isNtf = (fullId.indexOf ('NFT') >= 0);
-        if (!isNtf) {
-            const parts = fullId.split ('-');
-            currencyId = this.safeString (parts, 0);
-            const second = this.safeString (parts, 1);
-            if (second !== undefined) {
-                networkId = second.toUpperCase ();
-            }
-        }
-        const currencyCode = this.safeCurrencyCode (currencyId);
-        let entry = this.safeDict (existingResult, currencyCode);
-        if (entry === undefined) {
-            entry = {
-                'info': currency,
-                'id': currencyId,
-                'code': currencyCode,
-                'precision': undefined,
-                'name': this.safeString (currency, 'name'),
-                'deposit': undefined,
-                'withdraw': undefined,
+    parseCurrency (currencyObj: Dict): Currency {
+        const spotEntry = this.safeDict (currencyObj, '_spotEntry');
+        const spotCurrencyId = this.safeString (spotEntry, 'id');
+        const code = this.safeCurrencyCode (spotCurrencyId);
+        const rawNetworks = this.safeList (currencyObj, '_networkEntries', []);
+        const networks = {};
+        for (let i = 0; i < rawNetworks.length; i++) {
+            const rawNetwork = rawNetworks[i];
+            const networkId = this.safeString (rawNetwork, 'network');
+            const networkAndCurrencyId = this.safeString (rawNetwork, 'currency');
+            const networkCode = this.networkIdToCode (networkId, code);
+            networks[networkCode] = {
+                'info': rawNetwork,
+                'id': networkId,
+                'idWithCurrency': networkAndCurrencyId,
+                'network': networkCode,
+                'fee': this.safeNumber (rawNetwork, 'withdraw_fee'),
                 'active': undefined,
-                'networks': {},
-                'type': isNtf ? 'other' : 'crypto',
+                'deposit': this.safeBool (rawNetwork, 'deposit_enabled'),
+                'withdraw': this.safeBool (rawNetwork, 'withdraw_enabled'),
+                'precision': undefined,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (rawNetwork, 'withdraw_minsize'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (rawNetwork, 'recharge_minsize'),
+                        'max': undefined,
+                    },
+                },
             };
         }
-        const networkCode = this.networkIdToCode (networkId);
-        const withdraw = this.safeBool (currency, 'withdraw_enabled');
-        const deposit = this.safeBool (currency, 'deposit_enabled');
-        entry['networks'][networkCode] = {
-            'info': currency,
-            'id': networkId,
-            'code': networkCode,
-            'withdraw': withdraw,
-            'deposit': deposit,
-            'active': withdraw && deposit,
-            'fee': this.safeNumber (currency, 'withdraw_fee'),
-            'limits': {
-                'withdraw': {
-                    'min': this.safeNumber (currency, 'withdraw_minsize'),
-                    'max': undefined,
-                },
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-        };
-        this.options['_temp_fetchCurrencies_result'][currencyCode] = entry;
-        // @ts-ignore
-        return entry;
+        return this.safeCurrencyStructure ({
+            'info': currencyObj,
+            'id': spotCurrencyId,
+            'code': code,
+            'precision': undefined,
+            'name': this.safeString (currencyObj, 'name'),
+            'deposit': this.safeBool (currencyObj, 'deposit_enabled'),
+            'withdraw': this.safeBool (currencyObj, 'withdraw_enabled'),
+            'active': undefined,
+            'networks': networks,
+            'type': undefined,
+        });
     }
 
     getCurrencyIdFromCodeAndNetwork (currencyCode: Str, networkCode: Str): Str {
+        const currency = this.currency (currencyCode);
+        const networks = this.safeDict (currency, 'networks', {});
+        // if network is undefined, return "default" (only if it's set) network
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
         }
-        const currency = this.currency (currencyCode);
-        let id = currency['id'];
-        let idFromNetwork: Str = undefined;
-        const networks = this.safeDict (currency, 'networks', {});
-        let networkInfo: Dict = {};
-        if (networkCode === undefined) {
-            // network code is not provided and there is no default network code
-            let network = this.safeDict (networks, currencyCode); // trying to find network that has the same code as currency
-            if (network === undefined) {
-                // use the first network in the networks list if there is no network code with the same code as currency
-                const keys = Object.keys (networks);
-                const length = keys.length;
-                if (length > 0) {
-                    network = this.safeValue (networks, keys[0]);
-                }
-            }
-            networkInfo = this.safeDict (network, 'info', {});
-            idFromNetwork = this.safeString (networkInfo, 'currency'); // use currency name from network
-        } else {
-            const providedOrDefaultNetwork = this.safeDict (networks, networkCode);
-            if (providedOrDefaultNetwork !== undefined) {
-                networkInfo = this.safeDict (providedOrDefaultNetwork, 'info', {});
-                idFromNetwork = this.safeString (networkInfo, 'currency'); // use currency name from network
-            } else {
-                id += '-' + this.networkCodeToId (networkCode, currencyCode); // use concatenated currency id and network code if network is not found
-            }
+        const networkEntry = this.safeDict (networks, networkCode);
+        // if still undefined, then throw an error, because we shouldn't "guess" it
+        if (networkEntry === undefined) {
+            const keys = Object.keys (networks);
+            throw new ArgumentsRequired (this.id + ' method requires a "network" parameter for the currency ' + currencyCode + ', one of: ' + this.json (keys));
         }
-        return (idFromNetwork !== undefined) ? idFromNetwork : id;
+        return this.safeString (networkEntry, 'idWithCurrency', currency['id']);
     }
 
     /**
@@ -3881,14 +3880,6 @@ export default class bitmart extends Exchange {
         //
         let currencyId = this.safeString (depositAddress, 'currency');
         let network = this.safeString2 (depositAddress, 'chain', 'network');
-        if (currencyId.indexOf ('NFT') < 0) {
-            const parts = currencyId.split ('-');
-            currencyId = this.safeString (parts, 0);
-            const secondPart = this.safeString (parts, 1);
-            if (secondPart !== undefined) {
-                network = secondPart;
-            }
-        }
         const address = this.safeString (depositAddress, 'address');
         currency = this.safeCurrency (currencyId, currency);
         this.checkAddress (address);
@@ -4169,13 +4160,6 @@ export default class bitmart extends Exchange {
         const timestamp = this.safeInteger (transaction, 'apply_time');
         let currencyId = this.safeString (transaction, 'currency');
         let networkId: Str = undefined;
-        if (currencyId !== undefined) {
-            if (currencyId.indexOf ('NFT') < 0) {
-                const parts = currencyId.split ('-');
-                currencyId = this.safeString (parts, 0);
-                networkId = this.safeString (parts, 1);
-            }
-        }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
