@@ -24,7 +24,17 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-feature
 tokio = { version = "1", features = ["full"] }
 # JSON serialisation / deserialisation
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+# `preserve_order` makes `serde_json::Map` an `IndexMap`-backed type so
+# `Value::to_json` keeps Value::Map's insertion order through to the
+# `serde_json::to_string` boundary (without this, exchange URL/JSON
+# payloads come out alphabetised and break static request fixtures
+# that assert specific key orders).
+# `float_roundtrip` swaps in the lexical-core float parser so JSON
+# numbers like `7.5562000000000005` round-trip to the same f64 they
+# came from — without it, serde_json's default float parser silently
+# loses one ULP and static response fixtures fail on parser-precise
+# values (bingx, arkham vwap, …).
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 # HMAC / SHA / MD5 / crypto primitives
 hmac = "0.12"
 sha2 = "0.10"
@@ -62,6 +72,11 @@ futures = "0.3"
 thiserror = "1"
 # Thread-safe reference counted pointers (used for derived_describe callback)
 parking_lot = "0.12"
+# Insertion-order-preserving map. Used as Value::Map's backing store so
+# that JSON / URL-encoded payloads serialize keys in the order exchanges
+# expect (bingx/digifinex/mexc createOrders fixtures assert specific
+# orderings).
+indexmap = { version = "2", features = ["serde"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }

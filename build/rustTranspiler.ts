@@ -289,6 +289,50 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    // Walks Rust source from a `{` to its matching `}` while skipping
+    // line and block comments and string literals — an unbalanced `{`
+    // inside a JSON example in a docstring would otherwise trick the
+    // depth count and bleed into the next function (the specific bug
+    // that made kraken `parseOrder` get marked async).
+    //
+    // `openIdx` must point at the opening `{`. Returns the index of the
+    // matching `}` (so `content.slice(openIdx, j)` gives the body
+    // including the leading `{` but excluding the closing `}`).
+    findMatchingBrace(content: string, openIdx: number): number {
+        let depth = 1;
+        let j = openIdx + 1;
+        let inStr = false;
+        let escape = false;
+        while (j < content.length && depth > 0) {
+            const c = content[j];
+            const c2 = content[j + 1];
+            if (escape) { escape = false; j++; continue; }
+            if (inStr) {
+                if (c === '\\') { escape = true; j++; continue; }
+                if (c === '"')  { inStr = false; j++; continue; }
+                j++;
+                continue;
+            }
+            // Outside any string: skip comments first.
+            if (c === '/' && c2 === '/') {
+                const nl = content.indexOf('\n', j + 2);
+                j = nl < 0 ? content.length : nl + 1;
+                continue;
+            }
+            if (c === '/' && c2 === '*') {
+                const end = content.indexOf('*/', j + 2);
+                j = end < 0 ? content.length : end + 2;
+                continue;
+            }
+            if (c === '"') { inStr = true; j++; continue; }
+            if (c === '{') depth++;
+            else if (c === '}') depth--;
+            if (depth === 0) break;
+            j++;
+        }
+        return j;
+    }
+
     /**
      * Rust forbids a direct cycle of `async fn`s (the future would be
      * infinitely sized) — `error[E0733]: recursion in an async fn
@@ -304,16 +348,7 @@ class RustTranspilerBuilder {
         while ((fm = fnRe.exec(content)) !== null) {
             const braceIdx = content.indexOf('{', fm.index + fm[0].length);
             if (braceIdx < 0) continue;
-            let depth = 1, j = braceIdx + 1, inStr = false, esc = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (esc) { esc = false; j++; continue; }
-                if (c === '\\' && inStr) { esc = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
-                if (depth === 0) break;
-                j++;
-            }
+            const j = this.findMatchingBrace(content, braceIdx);
             fns.push({ name: fm[1], bodyStart: braceIdx + 1, bodyEnd: j });
         }
         if (fns.length === 0) return content;
@@ -1701,23 +1736,11 @@ class RustTranspilerBuilder {
             const absStart = i + m.index;
             const braceIdx = content.indexOf('{', absStart);
             if (braceIdx < 0) { out += content.slice(i); break; }
-            // Brace-balance to find end of body.
-            let depth = 1;
-            let j = braceIdx + 1;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '{') depth++;
-                    else if (c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
+            // Brace-balance to find end of body. Skip `//` line comments
+            // and `/* */` block comments — kraken's parseOrder docstring
+            // has an unbalanced `{` in its JSON example that would
+            // otherwise leak the body 2,000 lines past its actual end.
+            const j = this.findMatchingBrace(content, braceIdx);
             const body = content.slice(braceIdx, j);
             const needsAsync = body.includes('.await');
             // Emit content before `pub fn`, then possibly insert `async `.
