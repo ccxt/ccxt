@@ -332,6 +332,10 @@ export default class extended extends extendedRest {
         const data = this.safeDict (message, 'data', {});
         const rawTrades = this.safeList (data, 'trades', []);
         const symbols: Dict = {};
+        const first = this.safeDict (rawTrades, 0);
+        if (first === undefined) {
+            return;
+        }
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (rawTrades[i]);
             const symbol = this.safeString (trade, 'symbol');
@@ -344,13 +348,11 @@ export default class extended extends extendedRest {
             client.resolve (stored, messageHash);
         }
         client.resolve (stored, 'myTrades');
-        if (rawTrades.length === 0) {
-            const subscriptions = Object.keys (client.subscriptions);
-            for (let i = 0; i < subscriptions.length; i++) {
-                const messageHash = subscriptions[i];
-                if (messageHash.indexOf ('myTrades:') === 0) {
-                    client.resolve (stored, messageHash);
-                }
+        const subscriptions = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptions.length; i++) {
+            const messageHash = subscriptions[i];
+            if (messageHash.indexOf ('myTrades:') === 0) {
+                client.resolve (stored, messageHash);
             }
         }
     }
@@ -414,6 +416,10 @@ export default class extended extends extendedRest {
         const data = this.safeDict (message, 'data', {});
         const rawPositions = this.safeList (data, 'positions', []);
         const newPositions = [];
+        const first = this.safeDict (rawPositions, 0);
+        if (first === undefined) {
+            return;
+        }
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const marketId = this.safeString (rawPosition, 'market');
@@ -475,8 +481,12 @@ export default class extended extends extendedRest {
         }
         const orders = this.orders;
         const data = this.safeDict (message, 'data', {});
-        const rawOrders = this.safeList (data, 'orders', []);
+        const rawOrders = this.safeList (data, 'orders');
         const symbols: Dict = {};
+        const first = this.safeDict (rawOrders, 0);
+        if (first === undefined) {
+            return;
+        }
         for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder (rawOrders[i]);
             const symbol = this.safeString (order, 'symbol');
@@ -489,13 +499,11 @@ export default class extended extends extendedRest {
             client.resolve (orders, messageHash);
         }
         client.resolve (orders, 'orders');
-        if (rawOrders.length === 0) {
-            const subscriptions = Object.keys (client.subscriptions);
-            for (let i = 0; i < subscriptions.length; i++) {
-                const messageHash = subscriptions[i];
-                if (messageHash.indexOf ('orders:') === 0) {
-                    client.resolve (orders, messageHash);
-                }
+        const subscriptions = Object.keys (client.subscriptions);
+        for (let i = 0; i < subscriptions.length; i++) {
+            const messageHash = subscriptions[i];
+            if (messageHash.indexOf ('orders:') === 0) {
+                client.resolve (orders, messageHash);
             }
         }
     }
@@ -740,10 +748,10 @@ export default class extended extends extendedRest {
         //     }
         //
         const data = this.safeList (message, 'data', []);
-        if (data.length === 0) {
+        const first = this.safeDict (data, 0);
+        if (first === undefined) {
             return;
         }
-        const first = this.safeDict (data, 0, {});
         const marketId = this.safeString (first, 'm');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -900,28 +908,6 @@ export default class extended extends extendedRest {
         }
         const type = this.safeString (message, 'type');
         const data = this.safeValue (message, 'data');
-        if (!Array.isArray (data) && (data !== undefined) && (data !== null) && (typeof data === 'object')) {
-            let handled = false;
-            if ((type === 'ORDER') || ('orders' in data)) {
-                this.handleOrders (client, message);
-                handled = true;
-            }
-            if ((type === 'TRADE') || ('trades' in data)) {
-                this.handleMyTrades (client, message);
-                handled = true;
-            }
-            if ((type === 'POSITION') || ('positions' in data)) {
-                this.handlePositions (client, message);
-                handled = true;
-            }
-            if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
-                this.handleBalance (client, message);
-                handled = true;
-            }
-            if (handled) {
-                return;
-            }
-        }
         if (Array.isArray (data)) {
             const first = this.safeDict (data, 0, {});
             const side = this.safeString (first, 'S');
@@ -931,6 +917,18 @@ export default class extended extends extendedRest {
                 this.handleOHLCV (client, message);
             }
         } else if (data !== undefined) {
+            if ((type === 'ORDER') || ('orders' in data)) {
+                this.handleOrders (client, message);
+            }
+            if ((type === 'TRADE') || ('trades' in data)) {
+                this.handleMyTrades (client, message);
+            }
+            if ((type === 'POSITION') || ('positions' in data)) {
+                this.handlePositions (client, message);
+            }
+            if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
+                this.handleBalance (client, message);
+            }
             if (type === 'MP') {
                 this.handleMarkPrice (client, message);
             } else if (type === 'IP') {
