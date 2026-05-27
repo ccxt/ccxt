@@ -7,446 +7,446 @@
 
 package ccxt
 
-func (this *FmfwioCore) PublicGetPublicCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCurrency", args...)
+func (this *FmfwioCore) PublicGetPublicCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCurrency", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicCurrencyCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
+func (this *FmfwioCore) PublicGetPublicCurrencyCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicSymbolSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicSymbolSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTicker", args...)
+func (this *FmfwioCore) PublicGetPublicTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTicker", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTickerSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicTickerSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceRate (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceRate", args...)
+func (this *FmfwioCore) PublicGetPublicPriceRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceRate", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
+func (this *FmfwioCore) PublicGetPublicPriceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceTicker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
+func (this *FmfwioCore) PublicGetPublicPriceTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceTickerSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicPriceTickerSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTrades", args...)
+func (this *FmfwioCore) PublicGetPublicTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTrades", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTradesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicTradesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicOrderbook", args...)
+func (this *FmfwioCore) PublicGetPublicOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicOrderbook", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicOrderbookSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicOrderbookSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCandles", args...)
+func (this *FmfwioCore) PublicGetPublicCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCandles", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicCandlesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicCandlesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicConvertedCandles (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
+func (this *FmfwioCore) PublicGetPublicConvertedCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicConvertedCandlesSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicConvertedCandlesSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesInfo (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesInfoSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesInfoSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesHistoryFunding (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesHistoryFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesHistoryFundingSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesHistoryFundingSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPriceSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPriceSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPrice (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPriceSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPriceSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndex (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterestSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotBalance", args...)
+func (this *FmfwioCore) PrivateGetSpotBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotBalance", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotBalanceCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
+func (this *FmfwioCore) PrivateGetSpotBalanceCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotOrder", args...)
+func (this *FmfwioCore) PrivateGetSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateGetSpotOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotFee", args...)
+func (this *FmfwioCore) PrivateGetSpotFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotFee", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotFeeSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
+func (this *FmfwioCore) PrivateGetSpotFeeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
+func (this *FmfwioCore) PrivateGetSpotHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotHistoryTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
+func (this *FmfwioCore) PrivateGetSpotHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccount", args...)
+func (this *FmfwioCore) PrivateGetMarginAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivateGetMarginAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginAccountCrossCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
+func (this *FmfwioCore) PrivateGetMarginAccountCrossCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginOrder", args...)
+func (this *FmfwioCore) PrivateGetMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateGetMarginOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginConfig", args...)
+func (this *FmfwioCore) PrivateGetMarginConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginConfig", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryClearing (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryClearing(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesBalance", args...)
+func (this *FmfwioCore) PrivateGetFuturesBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesBalance", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesBalanceCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
+func (this *FmfwioCore) PrivateGetFuturesBalanceCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesAccount", args...)
+func (this *FmfwioCore) PrivateGetFuturesAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesAccount", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivateGetFuturesAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesOrder", args...)
+func (this *FmfwioCore) PrivateGetFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateGetFuturesOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesConfig (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesConfig", args...)
+func (this *FmfwioCore) PrivateGetFuturesConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesConfig", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesFee (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesFee", args...)
+func (this *FmfwioCore) PrivateGetFuturesFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesFee", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesFeeSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
+func (this *FmfwioCore) PrivateGetFuturesFeeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryTrade (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryClearing (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryClearing(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletBalance (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletBalance", args...)
+func (this *FmfwioCore) PrivateGetWalletBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletBalance", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletBalanceCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
+func (this *FmfwioCore) PrivateGetWalletBalanceCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddressCheckMine (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddressCheckMine(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletTransactions", args...)
+func (this *FmfwioCore) PrivateGetWalletTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletTransactionsTxId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
+func (this *FmfwioCore) PrivateGetWalletTransactionsTxId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoFeeEstimate (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoFeeEstimate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletAirdrops (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletAirdrops", args...)
+func (this *FmfwioCore) PrivateGetWalletAirdrops(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletAirdrops", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletAmountLocks (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
+func (this *FmfwioCore) PrivateGetWalletAmountLocks(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccount (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccount", args...)
+func (this *FmfwioCore) PrivateGetSubAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccount", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccountAcl (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountAcl", args...)
+func (this *FmfwioCore) PrivateGetSubAccountAcl(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountAcl", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccountBalanceSubAccID (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
+func (this *FmfwioCore) PrivateGetSubAccountBalanceSubAccID(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
+func (this *FmfwioCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotOrder", args...)
+func (this *FmfwioCore) PrivatePostSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotOrder", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSpotOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSpotOrderList", args...)
+func (this *FmfwioCore) PrivatePostSpotOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotOrderList", args...)
 }
 
-func (this *FmfwioCore) PrivatePostMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginOrder", args...)
+func (this *FmfwioCore) PrivatePostMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *FmfwioCore) PrivatePostMarginOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMarginOrderList", args...)
+func (this *FmfwioCore) PrivatePostMarginOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginOrderList", args...)
 }
 
-func (this *FmfwioCore) PrivatePostFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFuturesOrder", args...)
+func (this *FmfwioCore) PrivatePostFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesOrder", args...)
 }
 
-func (this *FmfwioCore) PrivatePostFuturesOrderList (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostFuturesOrderList", args...)
+func (this *FmfwioCore) PrivatePostFuturesOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFuturesOrderList", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletConvert (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletConvert", args...)
+func (this *FmfwioCore) PrivatePostWalletConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletConvert", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletTransfer", args...)
+func (this *FmfwioCore) PrivatePostWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletInternalWithdraw (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
+func (this *FmfwioCore) PrivatePostWalletInternalWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoCheckOffchainAvailable (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoCheckOffchainAvailable(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoFeesEstimate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoFeesEstimate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletAirdropsIdClaim (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
+func (this *FmfwioCore) PrivatePostWalletAirdropsIdClaim(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountFreeze (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
+func (this *FmfwioCore) PrivatePostSubAccountFreeze(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountActivate (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountActivate", args...)
+func (this *FmfwioCore) PrivatePostSubAccountActivate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountActivate", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountTransfer (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
+func (this *FmfwioCore) PrivatePostSubAccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountAcl (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostSubAccountAcl", args...)
+func (this *FmfwioCore) PrivatePostSubAccountAcl(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountAcl", args...)
 }
 
-func (this *FmfwioCore) PrivatePatchSpotOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivatePatchSpotOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivatePatchMarginOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivatePatchMarginOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivatePatchFuturesOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivatePatchFuturesOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteSpotOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSpotOrder", args...)
+func (this *FmfwioCore) PrivateDeleteSpotOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSpotOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteSpotOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateDeleteSpotOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginPosition", args...)
+func (this *FmfwioCore) PrivateDeleteMarginPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginPosition", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginPositionIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivateDeleteMarginPositionIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginOrder", args...)
+func (this *FmfwioCore) PrivateDeleteMarginOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateDeleteMarginOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesPosition (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesPositionMarginModeSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesPositionMarginModeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesOrderClientOrderId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesOrderClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteWalletCryptoWithdrawId (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
+func (this *FmfwioCore) PrivateDeleteWalletCryptoWithdrawId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
 }
 
-func (this *FmfwioCore) PrivatePutMarginAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivatePutMarginAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivatePutFuturesAccountIsolatedSymbol (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivatePutFuturesAccountIsolatedSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivatePutWalletCryptoWithdrawId (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
+func (this *FmfwioCore) PrivatePutWalletCryptoWithdrawId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
 }

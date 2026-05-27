@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var jsbn = require('../jsbn/jsbn.js');
 var yahoo = require('./yahoo.js');
 
-// @ts-nocheck
+// ----------------------------------------------------------------------------
 /**
  * @fileOverview
  * @name asn1-1.0.js

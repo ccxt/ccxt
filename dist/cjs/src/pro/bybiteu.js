@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var bybit = require('./bybit.js');
 var bybiteu$1 = require('../bybiteu.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class bybiteu extends bybit["default"] {
     describe() {
