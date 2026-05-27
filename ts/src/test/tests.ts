@@ -162,7 +162,7 @@ class testMainClass {
     async importFiles (exchange: Exchange) {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
-        properties.push ('afterConstructor');
+        properties.push ('afterConstruct');
         if (isSync ()) {
             this.testFiles = getTestFilesSync (properties, this.wsTests);
         } else {

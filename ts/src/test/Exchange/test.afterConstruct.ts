@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 
-function testAfterConstructor (exchange, skippedProperties, method, entry) {
+function testAfterConstruct (exchange, skippedProperties, method, entry) {
     testOptionsNetwoks (exchange, skippedProperties, method, entry);
 }
 
