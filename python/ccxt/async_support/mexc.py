@@ -335,6 +335,7 @@ class mexc(Exchange, ImplicitAPI):
                             'position/funding_records': 2,
                             'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
+                            'order/list/open_orders': 2,
                             'order/list/history_orders': 2,
                             'order/list/order_deals/v3': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -2996,8 +2997,11 @@ class mexc(Exchange, ImplicitAPI):
             #
             return self.parse_orders(response, market, since, limit)
         else:
-            # TO_DO: another possible way is through: open_orders/{symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
-            return await self.fetch_orders_by_state(2, symbol, since, limit, params)
+            if limit is None:
+                request['page_size'] = 100  # max
+            swapResponse = await self.contractPrivateGetOrderListOpenOrders(self.extend(request, params))
+            data = self.safe_list(swapResponse, 'data', [])
+            return self.parse_orders(data, market, since, limit, params)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
