@@ -45,6 +45,18 @@
         ],
         "createOrder": [
             {
+                "description": "place swap order",
+                "method": "createOrder",
+                "url": "https://api.mexc.com/api/v1/private/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"vol\":1,\"type\":6,\"openType\":2,\"side\":1}"
+            },
+            {
                 "description": "tif FOK",
                 "method": "createOrder",
                 "url": "https://api.mexc.com/api/v3/order?symbol=ADAUSDT&side=BUY&type=FILL_OR_KILL&quantity=0.5&price=2&timestamp=1745858461503&recvWindow=5000&signature=cf86e5583b05a786abb7458c20a10b8119d52fdc9b2f8c01bc878f7d6828e703",

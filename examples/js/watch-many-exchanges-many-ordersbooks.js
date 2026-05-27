@@ -23,7 +23,7 @@ async function main() {
             'BTC/USDT',
             'ETH/BTC',
         ],
-        'ftx': [
+        'okx': [
             'BTC/USDT',
             'ETH/BTC',
         ],

@@ -2449,9 +2449,12 @@ public partial class mexc : Exchange
         // Trigger
         //     {"success":true,"code":0,"data":259208506303929856}
         //
-        object data = this.safeString(response, "data");
+        // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
+        //
+        object data = this.safeDict(response, "data");
         return this.safeOrder(new Dictionary<string, object>() {
-            { "id", data },
+            { "id", this.safeString(data, "orderId") },
+            { "timestamp", this.safeInteger(data, "ts") },
         }, market);
     }
 

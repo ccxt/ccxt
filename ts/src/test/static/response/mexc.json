@@ -133,6 +133,52 @@
         ],
         "createOrder": [
             {
+                "description": "place swap order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "code": "0",
+                    "data": {
+                        "orderId": "814219049679571968",
+                        "ts": "1779795348913"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "814219049679571968",
+                    "timestamp": 1779795348913,
+                    "fees": [],
+                    "clientOrderId": null,
+                    "datetime": "2026-05-26T11:35:48.913Z",
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            },
+            {
                 "description": "spot market buy order",
                 "method": "createOrder",
                 "input": [

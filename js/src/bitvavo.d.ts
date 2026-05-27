@@ -33,7 +33,7 @@ export default class bitvavo extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrenciesCustom(currencies: any): Dict;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bitvavo#fetchTicker

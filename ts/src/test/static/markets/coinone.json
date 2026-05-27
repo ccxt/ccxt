@@ -1,6 +1,6 @@
 {
     "BTC/KRW": {
-        "id": "1747504954219001",
+        "id": "1779442920000001",
         "lowercaseId": null,
         "symbol": "BTC/KRW",
         "base": "BTC",
@@ -59,26 +59,26 @@
         "info": {
             "quote_currency": "krw",
             "target_currency": "btc",
-            "timestamp": "1747504954219",
-            "high": "146890000.0",
-            "low": "145750000.0",
-            "first": "146740000.0",
-            "last": "146600000.0",
-            "quote_volume": "7995231370.0749",
-            "target_volume": "54.60297959",
+            "timestamp": "1779442920000",
+            "high": "115720000.0",
+            "low": "114210000.0",
+            "first": "115430000.0",
+            "last": "115230000.0",
+            "quote_volume": "3449380572.7516",
+            "target_volume": "29.96109131",
             "best_asks": [
                 {
-                    "price": "146620000.0",
-                    "qty": "0.082"
+                    "price": "115230000.0",
+                    "qty": "0.00000001"
                 }
             ],
             "best_bids": [
                 {
-                    "price": "146550000.0",
-                    "qty": "0.0696"
+                    "price": "115220000.0",
+                    "qty": "0.0451"
                 }
             ],
-            "id": "1747504954219001"
+            "id": "1779442920000001"
         },
         "tierBased": false,
         "percentage": true

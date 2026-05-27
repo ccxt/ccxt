@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidProxySettings
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -1805,11 +1806,16 @@ class hyperliquid(Exchange, ImplicitAPI):
             try:
                 response = await self.publicPostInfo(self.extend(request, params))
             except Exception as e:
+                if isinstance(e, InvalidProxySettings):
+                    raise e  # reraise self error since it means the user has a problem with their proxy settings that needs to be fixed
                 response = None  # ignore self error and assume unified margin is not enabled
             #
             # "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             #
-            enableUnifiedMargin = response == '"unifiedAccount"'
+            if response is not None:
+                response = response.replace('"', '')
+                response = response.replace('"', '')
+                enableUnifiedMargin = response == 'unifiedAccount'
             # don't cache self result if self is a different addresss
             self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache self for future calls
         return [enableUnifiedMargin, params]

@@ -40,10 +40,15 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var logText any = LogTemplate(exchange, method, entry)
 	// check market
 	var market any = nil
+	var isUnrecognizedSymbol any = false
 	var isFetchTickerCalled any = IsEqual(method, "fetchTicker")
 	var symbolForMarket any = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
-	if IsTrue(IsTrue(!IsEqual(symbolForMarket, nil)) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
-		market = exchange.Market(symbolForMarket)
+	if IsTrue(!IsEqual(symbolForMarket, nil)) {
+		if IsTrue(InOp(exchange.GetMarkets(), symbolForMarket)) {
+			market = exchange.Market(symbolForMarket)
+		} else {
+			isUnrecognizedSymbol = true
+		}
 	}
 	// temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
 	if !IsTrue((InOp(skippedProperties, "checkInactiveMarkets"))) {
@@ -158,7 +163,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	var percentage any = exchange.SafeString(entry, "percentage")
 	var change any = exchange.SafeString(entry, "change")
-	if !IsTrue((InOp(skippedProperties, "maxIncrease"))) {
+	if IsTrue(!IsTrue((InOp(skippedProperties, "maxIncrease"))) && !IsTrue(isUnrecognizedSymbol)) {
 		//
 		// percentage
 		//

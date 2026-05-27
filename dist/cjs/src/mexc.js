@@ -2596,8 +2596,10 @@ class mexc extends mexc$1["default"] {
         // Trigger
         //     {"success":true,"code":0,"data":259208506303929856}
         //
-        const data = this.safeString(response, 'data');
-        return this.safeOrder({ 'id': data }, market);
+        // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
+        //
+        const data = this.safeDict(response, 'data');
+        return this.safeOrder({ 'id': this.safeString(data, 'orderId'), 'timestamp': this.safeInteger(data, 'ts') }, market);
     }
     /**
      * @method

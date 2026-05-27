@@ -157,6 +157,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		bybitItf := NewBybitCore()
 		bybitItf.Init(exchangeArgs)
 		return bybitItf, true
+	case "bybiteu":
+		bybiteuItf := NewBybiteuCore()
+		bybiteuItf.Init(exchangeArgs)
+		return bybiteuItf, true
 	case "bydfi":
 		bydfiItf := NewBydfiCore()
 		bydfiItf.Init(exchangeArgs)

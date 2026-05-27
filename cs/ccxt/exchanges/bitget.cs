@@ -2511,87 +2511,87 @@ public partial class bitget : Exchange
         //            },
         //            ...
         //
-        object result = new Dictionary<string, object>() {};
         object data = this.safeValue(response, "data", new List<object>() {});
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
         object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        object entry = rawCurrency;
+        object id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
+        object code = this.safeCurrencyCode(id);
+        object chains = this.safeList(entry, "chains", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        object withdraw = null;
+        object deposit = null;
+        object chainsLength = getArrayLength(chains);
+        if (isTrue(isEqual(chainsLength, 0)))
         {
-            object entry = getValue(data, i);
-            object id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-            object code = this.safeCurrencyCode(id);
-            object chains = this.safeValue(entry, "chains", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            object withdraw = null;
-            object deposit = null;
-            object chainsLength = getArrayLength(chains);
-            if (isTrue(isEqual(chainsLength, 0)))
-            {
-                withdraw = false;
-                deposit = false;
-            }
-            for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "chain");
-                object network = this.networkIdToCode(networkId, code);
-                network = ((string)network).ToUpper();
-                object withdrawable = (isEqual(this.safeString(chain, "withdrawable"), "true"));
-                object rechargeable = (isEqual(this.safeString(chain, "rechargeable"), "true"));
-                withdraw = ((bool) isTrue((isEqual(withdraw, null)))) ? withdrawable : (isTrue(withdraw) || isTrue(withdrawable));
-                deposit = ((bool) isTrue((isEqual(deposit, null)))) ? rechargeable : (isTrue(deposit) || isTrue(rechargeable));
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", network },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "minWithdrawAmount") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(chain, "minDepositAmount") },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "withdraw", withdrawable },
-                    { "deposit", rechargeable },
-                    { "fee", this.safeNumber(chain, "withdrawFee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))) },
-                };
-            }
-            object active = isTrue(withdraw) && isTrue(deposit);
-            object isFiat = this.inArray(code, fiatCurrencies);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", id },
-                { "code", code },
-                { "networks", networks },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "name", null },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", null },
-                { "precision", null },
+            withdraw = false;
+            deposit = false;
+        }
+        for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
+        {
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "chain");
+            object network = this.networkIdToCode(networkId, code);
+            network = ((string)network).ToUpper();
+            object withdrawable = (isEqual(this.safeString(chain, "withdrawable"), "true"));
+            object rechargeable = (isEqual(this.safeString(chain, "rechargeable"), "true"));
+            withdraw = ((bool) isTrue((isEqual(withdraw, null)))) ? withdrawable : (isTrue(withdraw) || isTrue(withdrawable));
+            deposit = ((bool) isTrue((isEqual(deposit, null)))) ? rechargeable : (isTrue(deposit) || isTrue(rechargeable));
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", network },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "minWithdrawAmount") },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(chain, "minDepositAmount") },
                         { "max", null },
                     } },
                 } },
-                { "created", null },
-            });
+                { "active", null },
+                { "withdraw", withdrawable },
+                { "deposit", rechargeable },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawMinScale"))) },
+            };
         }
-        return result;
+        object active = isTrue(withdraw) && isTrue(deposit);
+        object isFiat = this.inArray(code, fiatCurrencies);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", entry },
+            { "id", id },
+            { "code", code },
+            { "networks", networks },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "name", null },
+            { "active", active },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "created", null },
+        });
     }
 
     /**
