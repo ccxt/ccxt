@@ -1551,7 +1551,7 @@ export default class extended extends Exchange {
         //       }
         //     ]}
         //
-        const data = this.safeList (response, 'data', {});
+        const data = this.safeList (response, 'data', []);
         return this.parseAccounts (data);
     }
 
