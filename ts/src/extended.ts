@@ -22,7 +22,7 @@ export default class extended extends Exchange {
             'version': 'v2',
             'rateLimit': 600, // Default Tier 1,000 requests/minute ≈ 1.67 request per second
             'precisionMode': TICK_SIZE,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
