@@ -309,6 +309,7 @@ public partial class mexc : Exchange
                             { "position/funding_records", 2 },
                             { "position/position_mode", 2 },
                             { "order/list/open_orders/{symbol}", 2 },
+                            { "order/list/open_orders", 2 },
                             { "order/list/history_orders", 2 },
                             { "order/list/order_deals/v3", 2 },
                             { "order/external/{symbol}/{external_oid}", 2 },
@@ -3002,8 +3003,13 @@ public partial class mexc : Exchange
             return this.parseOrders(response, market, since, limit);
         } else
         {
-            // TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params (however, theoretically, open-orders endpoint might be sligthly fast)
-            return await this.fetchOrdersByState(2, symbol, since, limit, parameters);
+            if (isTrue(isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["page_size"] = 100; // max
+            }
+            object swapResponse = await ((Task<object>)callDynamically(this, "contractPrivateGetOrderListOpenOrders", new object[] { this.extend(request, parameters) }));
+            object data = this.safeList(swapResponse, "data", new List<object>() {});
+            return this.parseOrders(data, market, since, limit, parameters);
         }
     }
 
