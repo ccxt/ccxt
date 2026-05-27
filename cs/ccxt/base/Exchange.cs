@@ -899,6 +899,16 @@ public partial class Exchange
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
 
+    public object starknetGetSelectorFromName(object name)
+    {
+        return StarknetOps.CalculateFunctionSelector(name.ToString());
+    }
+
+    public object starknetComputePoseidonHashOnElements(data)
+    {
+        throw new NotSupported (this.id + ' starknetComputePoseidonHashOnElements() not supported');
+    }
+
     public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
     {
         var domain = domain2 as IDictionary<string, object>;

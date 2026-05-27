@@ -1327,6 +1327,14 @@ func (this *Exchange) StarknetSign(a any, b any) any {
 	return nil // to do
 }
 
+func (this *Exchange) StarknetGetSelectorFromName(a any) any {
+	return nil // to do
+}
+
+func (this *Exchange) StarknetComputePoseidonHashOnElements(a any) any {
+	return nil // to do
+}
+
 func (this *Exchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
 	ch := make(chan any)
 
