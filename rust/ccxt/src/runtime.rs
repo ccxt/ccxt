@@ -11,7 +11,7 @@
 #![allow(clippy::float_cmp, clippy::needless_return, dead_code)]
 
 use crate::Value;
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 
 // ── numeric / arithmetic ─────────────────────────────────────────────────────
 
@@ -70,7 +70,38 @@ fn stringify_simple(v: &Value) -> String {
         Value::Float(f) => f.to_string(),
         Value::Bool(b)  => b.to_string(),
         Value::Null     => "null".to_string(),
+        // Precise sentinel — { integer, decimals, __precise: true }.
+        // Reconstruct the decimal representation so `to_string_val` in
+        // transpiled code returns the expected number string (phemex
+        // `toEn` shifts decimals by `valueScale`, then reduce/stringify).
+        Value::Map(m) if m.contains_key("__precise") => precise_to_string(m),
         _ => format!("{v}"),
+    }
+}
+
+fn precise_to_string(m: &indexmap::IndexMap<String, Value>) -> String {
+    let decimals: i64 = match m.get("decimals") { Some(Value::Int(n)) => *n, _ => 0 };
+    let integer: String = match m.get("integer") {
+        Some(Value::Str(s)) => s.clone(),
+        _ => return "0".to_string(),
+    };
+    let (sign, mut digits) = if let Some(rest) = integer.strip_prefix('-') {
+        ("-".to_string(), rest.to_string())
+    } else { ("".to_string(), integer) };
+    if decimals <= 0 {
+        // Pad zeros onto the integer side.
+        for _ in 0..(-decimals) { digits.push('0'); }
+        return format!("{sign}{digits}");
+    }
+    let d = decimals as usize;
+    if digits.len() <= d {
+        // Need leading zeros: "1" with decimals=4 → "0.0001"
+        let zeros = "0".repeat(d - digits.len());
+        format!("{sign}0.{zeros}{digits}")
+    } else {
+        let split = digits.len() - d;
+        let (int_part, frac_part) = digits.split_at(split);
+        format!("{sign}{int_part}.{frac_part}")
     }
 }
 
@@ -181,6 +212,20 @@ pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float
 pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
 pub fn is_integer(v: &Value)  -> bool { matches!(v, Value::Int(_)) }
 pub fn is_function(_v: &Value)-> bool { false }
+
+/// Convert a `catch_unwind` panic payload into the `Value::Str` shape
+/// that transpiled `catch (e)` blocks expect. The transpiled code uses
+/// this from the catch arm emitted by `rewriteTryCatchAsync` — kept in
+/// the ccxt crate (rather than the test crate) so exchange files that
+/// catch downstream panics (e.g. pacifica `try { approveBuilderCode }
+/// catch { disable_builder_fee }`) can use it without a test-crate dep.
+pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
+    let msg = payload.downcast_ref::<String>().cloned()
+        .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
+        .unwrap_or_else(|| "panic".to_string());
+    Value::Str(msg)
+}
+
 /// Mirrors TS `e instanceof <ClassName>`: panic payloads in the
 /// transpiled tests are `Value::Str(format!("[{kind}] {message}"))`
 /// (see `ExchangeError`'s `Display` impl), so the class name is whatever
@@ -639,7 +684,7 @@ pub fn rsa(message: Value, key: Value, _hash: Value) -> Value {
 /// `preHash` names a hash algorithm to apply first.
 pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> Value {
     use k256::ecdsa::SigningKey;
-    let empty = || Value::Map(std::collections::HashMap::new());
+    let empty = || Value::Map(indexmap::IndexMap::new());
     let msg_s = match &message { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
     let sk_s  = match &secret  { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
     let sk_bytes = match hex::decode(&sk_s) { Ok(b) => b, Err(_) => return empty() };
@@ -655,7 +700,7 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
         Err(_) => return empty(),
     };
     let bytes = sig.to_bytes(); // 64 bytes: r || s, low-S normalized
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32])));
     m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64])));
     m.insert("v".to_string(), Value::Int(recid.to_byte() as i64));

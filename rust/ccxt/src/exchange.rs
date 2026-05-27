@@ -21,7 +21,7 @@
 
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 use hmac::{Hmac, Mac};
 use sha2::{Sha256, Sha512, Digest as Sha2Digest};
@@ -110,6 +110,11 @@ pub trait DerivedExchange: Send + Sync {
     fn parse_income(&self, _info: Value, _market: Value) -> Value { Value::Null }
     fn parse_greeks(&self, _greeks: Value, _market: Value) -> Value { Value::Null }
     fn parse_margin_mode(&self, _margin_mode: Value, _market: Value) -> Value { Value::Null }
+    fn parse_conversion(&self, _conversion: Value, _from_currency: Value, _to_currency: Value) -> Value { Value::Null }
+    fn parse_borrow_rate(&self, _info: Value, _currency: Value) -> Value { Value::Null }
+    fn parse_leverage(&self, _leverage: Value, _market: Value) -> Value { Value::Null }
+    fn parse_market_leverage_tiers(&self, _info: Value, _market: Value) -> Value { Value::Null }
+    fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Value) -> Value { Value::Null }
     fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
     // ── signers / error handlers ─────────────────────────────────────────
     fn sign(&self, _path: Value, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
@@ -427,7 +432,7 @@ impl Exchange {
             // describe() doesn't override it — so `checkRequiredCredentials`
             // still works even though `super.describe()` is stubbed.
             requiredCredentials: {
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m.insert("apiKey".to_string(),        Value::Bool(true));
                 m.insert("secret".to_string(),        Value::Bool(true));
                 m.insert("uid".to_string(),           Value::Bool(false));
@@ -479,7 +484,7 @@ impl Exchange {
             currencies:        Value::Map(HashMap::new()),
             currencies_by_id:  Value::Null,
             commonCurrencies:  {
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m.insert("XBT".to_string(),   Value::Str("BTC".to_string()));
                 m.insert("BCHSV".to_string(), Value::Str("BSV".to_string()));
                 Value::Map(m)
@@ -560,7 +565,7 @@ impl Exchange {
             userAgent:   Value::Null,
             user_agent:  Value::Null,
             userAgents:  {
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                 m.insert("chrome".to_string(), Value::Str("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36".to_string()));
                 m.insert("chrome39".to_string(), Value::Str("Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36".to_string()));
                 m.insert("chrome100".to_string(), Value::Str("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36".to_string()));
@@ -1189,20 +1194,19 @@ impl Exchange {
         path: &str,
         out: &mut HashMap<String, (String, Vec<String>, String)>,
     ) {
-        // CCXT's TS defineImplicitMethods converts the path to camelCase by
-        // splitting on `/` and capitalizing each segment. Then the Rust
-        // transpiler snake_cases the method name. We replicate both steps:
-        //   `ticker/24hr`     → camel `Ticker24hr` → snake `ticker24hr`
-        //   `exchangeInfo`    → camel `ExchangeInfo` → snake `exchange_info`
-        //   `lending/auto-invest` → camel `LendingAutoInvest` → snake `lending_auto_invest`
+        // CCXT's TS `defineRestApiEndpoint` builds the method name by
+        // splitting the path on EVERY non-alphanumeric character:
+        //   `path.split(/[^a-zA-Z0-9]/)` → capitalize each part → join.
+        // So `:`, `{`, `}`, `/`, `.`, `-` are all separators. Examples:
+        //   `ticker/24hr`                      → `Ticker24hr` → `ticker24hr`
+        //   `lending/auto-invest`              → `LendingAutoInvest` → `lending_auto_invest`
+        //   `candles/trade:{tf}:{sym}/hist`    → `CandlesTradeTfSymHist`
+        //                                      → `candles_trade_tf_sym_hist`
         let camel: String = path
-            .split('/')
+            .split(|c: char| !c.is_ascii_alphanumeric())
             .filter(|s| !s.is_empty())
             .map(|seg| {
-                let cleaned: String = seg.replace('{', "").replace('}', "")
-                    .replace('-', "_").replace('.', "_");
-                // capitalize first letter of the segment
-                let mut chars = cleaned.chars();
+                let mut chars = seg.chars();
                 match chars.next() {
                     None => String::new(),
                     Some(c) => c.to_ascii_uppercase().to_string() + chars.as_str(),
@@ -1213,8 +1217,38 @@ impl Exchange {
         // and between [A-Z]+ and [A-Z][a-z]. Mirrors the transpiler's
         // toSnakeCase exactly.
         let snake = Self::to_snake_case(&camel);
-        let name = format!("{scope_snake}_{verb}_{snake}");
-        out.insert(name, (path.to_string(), scope_segments.to_vec(), verb.to_uppercase()));
+        let snake_name = format!("{scope_snake}_{verb}_{snake}");
+        // CamelCase variant: `<scope_camel><Verb><PathCamel>` — TS often
+        // constructs method names dynamically as camelCase (e.g. bit2c's
+        // `"privatePostOrderAddOrder"`). `self.call_method(name, ...)`
+        // looks up by exact string, so register both keys.
+        let scope_camel: String = scope_segments.iter()
+            .enumerate()
+            .map(|(i, s)| {
+                if i == 0 {
+                    s.to_string()
+                } else {
+                    let mut chars = s.chars();
+                    match chars.next() {
+                        None => String::new(),
+                        Some(c) => c.to_ascii_uppercase().to_string() + chars.as_str(),
+                    }
+                }
+            })
+            .collect();
+        let verb_camel = {
+            let mut chars = verb.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(c) => c.to_ascii_uppercase().to_string() + chars.as_str().to_lowercase().as_str(),
+            }
+        };
+        let camel_name = format!("{scope_camel}{verb_camel}{camel}");
+        let entry = (path.to_string(), scope_segments.to_vec(), verb.to_uppercase());
+        out.insert(snake_name, entry.clone());
+        if !out.contains_key(&camel_name) {
+            out.insert(camel_name, entry);
+        }
     }
 
     fn to_snake_case(s: &str) -> String {

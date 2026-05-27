@@ -15,7 +15,7 @@
 
 #![allow(non_snake_case, dead_code, unused_variables)]
 
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 use crate::{Value, ExchangeError, Result};
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
@@ -416,6 +416,21 @@ fn key_str(key: &Value) -> String { stringify_param(key) }
 
 impl Exchange {
     // ── safe_* aliases (above-marker in TS) ─────────────────────────────────
+
+    /// Coerce a caught panic payload into the `[ClassName] message`
+    /// shape TS uses (see `Exchange.exceptionMessage`). Truncates to
+    /// 100k chars to match. Rust panics carry just a string in `Value`,
+    /// so we trust it as the formatted message and trim it. Used by
+    /// exchanges that re-throw with a contextual prefix in their
+    /// catch arms (grvt.transfer is the canonical case).
+    pub fn exception_message(&self, exc: Value, _optional_args: &[Value]) -> Value {
+        let s = match exc {
+            Value::Str(s) => s,
+            other => crate::runtime::stringify_param(&other),
+        };
+        let n = s.chars().count().min(100_000);
+        Value::Str(s.chars().take(n).collect())
+    }
 
     pub fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value {
         // Match TS `prop` semantics: an empty string is treated as
@@ -1174,7 +1189,7 @@ impl Exchange {
     /// the Rust analogue of indexing a JS object by property name.
     /// Used by `prop()` and by the base-test `exchangeProp` shim.
     pub fn to_value(&self) -> Value {
-        let mut m = std::collections::HashMap::new();
+        let mut m = indexmap::IndexMap::new();
         let mut put = |k: &str, v: &Value| { m.insert(k.to_string(), v.clone()); };
         put("id", &self.id);                       put("name", &self.name);
         put("countries", &self.countries);         put("version", &self.version);
@@ -1844,16 +1859,22 @@ impl Exchange {
         if matches!(fetched, Value::Null) {
             return self.markets.clone();
         }
-        // If we have currencies, hand both off to the unified set_markets
-        // (which deep-extends them in — the IF branch, cheap).
-        // If not, pre-build a currencies dict here so set_markets STILL
-        // takes the fast IF branch and skips the slow synthesize loop.
-        if matches!(&currencies, Value::Map(m) if !m.is_empty()) {
-            self.set_markets(fetched, &[currencies]);
+        // Pick the best currencies source:
+        // 1. Network-fetched (from `fetch_currencies` above).
+        // 2. Pre-loaded on the exchange (static-fixture path injects
+        //    `currencies` via `apply_config` — those carry the real
+        //    `id` mappings like bitmex BTC → "XBt").
+        // 3. Synthesized from markets (fallback so `set_markets` still
+        //    takes the fast IF branch and skips its O(N²) else branch).
+        let preloaded_non_empty = matches!(&self.currencies, Value::Map(m) if !m.is_empty());
+        let currencies_arg = if matches!(&currencies, Value::Map(m) if !m.is_empty()) {
+            currencies
+        } else if preloaded_non_empty {
+            self.currencies.clone()
         } else {
-            let synthesized = synthesize_currencies_from_markets(&fetched, &self.precisionMode);
-            self.set_markets(fetched, &[synthesized]);
-        }
+            synthesize_currencies_from_markets(&fetched, &self.precisionMode)
+        };
+        self.set_markets(fetched, &[currencies_arg]);
         self.markets.clone()
     }
 

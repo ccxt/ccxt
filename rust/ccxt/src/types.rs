@@ -4,7 +4,7 @@
 // Exchange code accesses fields via `Value` maps at runtime; these structs
 // are used for the typed wrapper layer (analogous to Go's typed wrappers).
 
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 use crate::Value;
 
 /// A unified market / symbol descriptor.

@@ -197,6 +197,7 @@
     "test-base-rest-php": "npm run ti-php -- --baseTests",
     "test-base-rest-cs": "npm run ti-cs  -- --baseTests",
     "test-base-rest-go": "npm run ti-go  -- --baseTests && cd ../",
+    "test-base-rest-rs": "npm run ti-rs  -- --baseTests",
     "test-base-rest-rust": "npm run ti-rust -- --baseTests",
     "test-base-ws-ts": "npm run ti-ts  -- --baseTests --ws",
     "test-base-ws-js": "npm run ti-js  -- --baseTests --ws",

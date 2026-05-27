@@ -240,9 +240,34 @@ pub fn string_div_prec(a: &str, b: &str, precision: i64) -> Option<String> {
 pub struct Precise;
 
 impl Precise {
-    /// TS-style `new Precise(x)` constructor — returns the string-form value.
+    /// TS-style `new Precise(s)` — parses `s` into an `integer` (the
+    /// digit string) + `decimals` (count of digits to the right of the
+    /// decimal point). Returns a `Value::Map` carrying those two
+    /// fields plus a `__precise` marker that `stringify_param` /
+    /// `Value::reduce` recognise — that's what makes
+    /// `precise.decimals = subtract(...)` followed by `precise.reduce()`
+    /// (as transpiled phemex's `toEn` does) work end-to-end.
     pub fn new(v: crate::Value) -> crate::Value {
-        crate::Value::Str(crate::runtime::stringify_param(&v))
+        let s = crate::runtime::stringify_param(&v);
+        let mut sign = "";
+        let mut body: &str = s.trim_start_matches('+');
+        if let Some(stripped) = body.strip_prefix('-') {
+            sign = "-";
+            body = stripped;
+        }
+        let (integer, decimals): (String, i64) = match body.find('.') {
+            None => (format!("{sign}{body}"), 0),
+            Some(dot) => {
+                let before = &body[..dot];
+                let after  = &body[dot + 1..];
+                (format!("{sign}{before}{after}"), after.len() as i64)
+            }
+        };
+        let mut m = indexmap::IndexMap::new();
+        m.insert("integer".to_string(),  crate::Value::Str(integer));
+        m.insert("decimals".to_string(), crate::Value::Int(decimals));
+        m.insert("__precise".to_string(), crate::Value::Bool(true));
+        crate::Value::Map(m)
     }
 }
 

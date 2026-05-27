@@ -2054,8 +2054,18 @@ class RustTranspilerBuilder {
                 }
             }
             // Recurse so nested try/catch in either body is handled too.
-            const tryBody   = this.rewriteTryCatchAsync(inner);
+            let tryBody     = this.rewriteTryCatchAsync(inner);
             const catchPart = this.rewriteTryCatchAsync(catchBody);
+            // Inside an `async {}` catch_unwind block, `return ident;`
+            // tries to move out of an outer-scope variable that the
+            // catch arm and code after the match also need to read.
+            // Cloning avoids the move so `response` (or whatever the
+            // var is named) stays accessible to the catch body and
+            // the post-match `return response;` tail. See setRef /
+            // setUserAbstraction in hyperliquid.ts for the canonical
+            // shape: `let response = undefined; try { response = ...;
+            // return response; } catch { ... } return response;`.
+            tryBody = tryBody.replace(/\breturn\s+([A-Za-z_][A-Za-z_0-9]*)\s*;/g, 'return $1.clone();');
             // `break` / `continue` in the try body would refer to an
             // outer loop — wrapping it in `async {}` or a closure
             // changes their target. Fall back to a plain block in that
@@ -2087,9 +2097,9 @@ class RustTranspilerBuilder {
                     // from the enclosing fn on the success path. Failure
                     // (the panic case) runs the catch body. Use `match`
                     // so both arms see one move of `_try_result`.
-                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let ${errName}: Value = crate::test_helpers::panic_to_value(_try_err); ${catchPart} } }`;
+                    out += `match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } } Err(_try_err) => { let ${errName}: Value = panic_to_value(_try_err); ${catchPart} } }`;
                 } else {
-                    const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = crate::test_helpers::panic_to_value(_try_err);`;
+                    const catchHead = `if let Err(_try_err) = _try_result { let ${errName}: Value = panic_to_value(_try_err);`;
                     out += `${catchHead}${catchPart}}`;
                 }
             }
@@ -2616,6 +2626,53 @@ class RustTranspilerBuilder {
      * methods are left alone — there `&mut self.field` wouldn't compile;
      * those need a separate receiver-promotion fix.
      */
+    /**
+     * Promote sync `std::panic::catch_unwind(AssertUnwindSafe(|| { … }))`
+     * to the async variant when the body contains `.await`. The async
+     * propagation pass appends `.await` to async-method calls *after*
+     * `rewriteTryCatchAsync` runs, so a try block whose async-ness only
+     * becomes apparent after that propagation needs to be re-classified.
+     */
+    upgradeSyncCatchUnwindWithAwait(content: string): string {
+        const open = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
+        let out = '';
+        let i = 0;
+        while (i < content.length) {
+            const idx = content.indexOf(open, i);
+            if (idx < 0) { out += content.slice(i); break; }
+            out += content.slice(i, idx);
+            const bodyStart = idx + open.length;
+            let depth = 1, j = bodyStart, inStr = false, escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr && c === '/' && content[j + 1] === '/') {
+                    const nl = content.indexOf('\n', j);
+                    j = nl < 0 ? content.length : nl + 1;
+                    continue;
+                }
+                if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) { out += content.slice(idx); break; }
+            // Closing `}` is at j. Find the rest: `}));` after the closure body.
+            const closingTail = content.slice(j, j + 4); // expect `}));`
+            const body = content.slice(bodyStart, j);
+            if (!body.includes('.await') || closingTail !== '}));') {
+                out += content.slice(idx, j + 4);
+                i = j + 4;
+                continue;
+            }
+            out += 'let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {'
+                + body + '})).await;';
+            i = j + 4;
+        }
+        return out;
+    }
+
     stripMutSelfFieldClones(content: string): string {
         const fnRe = /\bpub\s+(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(\s*&mut self\b/g;
         let out = '';
@@ -2630,6 +2687,19 @@ class RustTranspilerBuilder {
                 if (escape) { escape = false; j++; continue; }
                 if (c === '\\' && inStr) { escape = true; j++; continue; }
                 if (c === '"') { inStr = !inStr; j++; continue; }
+                // Skip `//` line comments — exchange .rs files keep TS's
+                // documentation comments verbatim, and many include a `{`
+                // in the JSON example (e.g. `// "data": {`). Counting
+                // those as opens would leave the depth unbalanced and the
+                // outer loop would `break` mid-file, skipping all
+                // subsequent functions (silently — that's how kucoin's
+                // fetch_deposit_addresses_by_network kept its broken
+                // `&mut self.options.clone()`).
+                if (!inStr && c === '/' && content[j + 1] === '/') {
+                    const nl = content.indexOf('\n', j);
+                    j = nl < 0 ? content.length : nl + 1;
+                    continue;
+                }
                 if (!inStr) { if (c === '{') depth++; else if (c === '}') depth--; }
                 if (depth === 0) break;
                 j++;
@@ -3360,6 +3430,14 @@ class RustTranspilerBuilder {
             'repay_cross_margin', 'repay_isolated_margin',
             'set_leverage', 'set_margin_mode', 'set_position_mode',
             'add_margin', 'reduce_margin',
+            // virtual hops the base calls on derived exchanges
+            'sign_in',
+            'fetch_margin_modes', 'fetch_margin_mode',
+            'fetch_deposits_withdrawals',
+            'fetch_deposit_addresses_by_network',
+            'fetch_open_interest', 'fetch_open_interests',
+            'fetch_deposit_withdraw_fee', 'fetch_deposit_withdraw_fees',
+            'fetch_market_leverage_tiers',
         ]);
     }
 
@@ -3540,6 +3618,11 @@ class RustTranspilerBuilder {
             parse_income:               ['info', 'market'],
             parse_greeks:               ['greeks', 'market'],
             parse_margin_mode:          ['margin_mode', 'market'],
+            parse_conversion:           ['conversion', 'from_currency', 'to_currency'],
+            parse_borrow_rate:          ['info', 'currency'],
+            parse_leverage:             ['leverage', 'market'],
+            parse_market_leverage_tiers: ['info', 'market'],
+            parse_deposit_withdraw_fee: ['fee', 'currency'],
             create_expired_option_market: ['symbol'],
             sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
@@ -3786,9 +3869,16 @@ ${isBase
         content = this.rewriteMethodRefsAsNull(content);
         // Wrap bool exprs flowing into Value-arg positions.
         content = this.wrapBoolValueArgs(content);
-        // Same paren-balanced walkers used for the base file.
-        content = this.stripCatchBlocks(content);
-        content = this.unwrapCatchUnwind(content);
+        // Try/catch handling: prefer `rewriteTryCatchAsync` (preserves
+        // the catch body via `catch_unwind`) over `stripCatchBlocks` so
+        // exchange code like pacifica's `try { approveBuilderCode } catch
+        // { options['builderFee'] = false }` keeps working. The
+        // `stripCatchBlocks` + `unwrapCatchUnwind` pair is the older
+        // path that drops the catch entirely (which means an offline
+        // test's first sub-call panicking with InvalidProxySettings would
+        // unwind past the parent method and leave its last_request_*
+        // unset).
+        content = this.rewriteTryCatchAsync(content);
         content = this.rewriteDynamicSelfCalls(content);
         // Data-driven implicit-API rewrite for endpoints the hardcoded
         // prefix regex missed — must run before closeImplicitApiCalls so
@@ -3832,6 +3922,18 @@ ${isBase
                 currentSet = found;
             }
         }
+
+        // Async propagation runs AFTER `rewriteTryCatchAsync`, so a try
+        // body whose async-ness was only visible *after* propagation
+        // (e.g. coinbase's first try wraps `v3PublicGetBrokerage...`
+        // calls — those aren't .await'd in TS, but the transpiler
+        // appends `.await` later because `call_method` is async) was
+        // wrapped in a sync `std::panic::catch_unwind(... || { ... })`.
+        // Once `.await` shows up inside that sync closure the file no
+        // longer compiles. Re-classify these blocks here: any sync
+        // catch_unwind closure that ended up containing `.await` gets
+        // upgraded to the async variant.
+        content = this.upgradeSyncCatchUnwindWithAwait(content);
 
         // Wrap `-> Value` methods whose last statement is `expr;` so they
         // return Value::Null at the end.
@@ -3948,10 +4050,10 @@ impl ${coreName} {
         // The transpiled method mutates a clone, so do it here against
         // the real options map.
         if let crate::Value::Map(mut opts) = self.exchange.options.clone() {
-            let mut by_id: std::collections::HashMap<String, crate::Value> =
+            let mut by_id: indexmap::IndexMap<String, crate::Value> =
                 match opts.get("networksById") {
                     Some(crate::Value::Map(m)) => m.clone(),
-                    _ => std::collections::HashMap::new(),
+                    _ => indexmap::IndexMap::new(),
                 };
             if let Some(crate::Value::Map(networks)) = opts.get("networks") {
                 for (code, id) in networks {
@@ -4036,12 +4138,19 @@ impl std::ops::DerefMut for ${coreName} {
 }
 `;
 
-        return [
+        let assembled = [
             header,
             useStatements,
             structDecl,
             content,
         ].join('\n');
+        // Value::Map's backing store is `indexmap::IndexMap` (re-exported
+        // from `ccxt::value::HashMap`) so JSON / URL-encoded payloads
+        // serialize keys in insertion order. The ast-transpiler emits
+        // `std::collections::HashMap::new()` for object literals; rewire
+        // those to IndexMap so they match Value::Map's type.
+        assembled = assembled.replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
+        return assembled;
     }
 
     // ── derived-exchange file transpilation ───────────────────────────────────
@@ -4383,7 +4492,11 @@ impl std::ops::DerefMut for ${coreName} {
             this.emitCallDynamicForBase(basePart),
             '}',
             '',
-        ].join('\n');
+        ].join('\n')
+            // Use IndexMap for Value::Map's backing store — see
+            // `createRustExchange` for the rationale (insertion-order
+            // serialization in URL/JSON payloads).
+            .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
 
         fs.writeFileSync(BASE_METHODS_FILE, file);
         log.green('Transpiled base methods to', (BASE_METHODS_FILE as any).yellow);
@@ -4817,7 +4930,9 @@ impl std::ops::DerefMut for ${coreName} {
                     'use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};',
                     '',
                     content,
-                ].join('\n');
+                ].join('\n')
+                    // Match Value::Map's IndexMap-backed inner type.
+                    .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
 
                 overwriteFileAndFolder(outFile, file);
                 log.magenta('→', (outFile as any).yellow);
@@ -5160,7 +5275,9 @@ impl std::ops::DerefMut for ${coreName} {
                         'use super::*;',
                         '',
                         content,
-                    ].join('\n');
+                    ].join('\n')
+                        // Match Value::Map's IndexMap-backed inner type.
+                        .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
                     overwriteFileAndFolder(`${outDir}/${testName}.rs`, file);
                     written.push({ name: testName, entry, isAsync, extraArgs, isMethodTest: !isValidator });
                 } catch (e: any) {
@@ -5206,7 +5323,7 @@ impl std::ops::DerefMut for ${coreName} {
             '',
             '/// Marker map of available method tests (Go `FunctionsMap`).',
             'pub fn available_tests() -> Value {',
-            '    let mut m = std::collections::HashMap::new();',
+            '    let mut m = indexmap::IndexMap::new();',
             markers,
             '    Value::Map(m)',
             '}',
@@ -5445,7 +5562,9 @@ impl std::ops::DerefMut for ${coreName} {
                 'use futures::FutureExt;',
                 '',
                 content,
-            ].join('\n');
+            ].join('\n')
+                // Match Value::Map's IndexMap-backed inner type.
+                .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
             const outFile = `${outDir}/tests.rs`;
             overwriteFileAndFolder(outFile, file);
             log.magenta('→', (outFile as any).yellow);

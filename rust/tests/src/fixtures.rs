@@ -9,7 +9,7 @@
 //     "methods":  { "<methodName>": [ { "description", "method", "url", "input", "output" }, ... ] }
 //   }
 
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 use std::path::Path;
 use serde_json::Value;
 

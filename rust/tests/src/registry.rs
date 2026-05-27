@@ -48,7 +48,7 @@ use ccxt::exchanges::{
     woofipro::WoofiproCore, xt::XtCore, yobit::YobitCore, zaif::ZaifCore,
     zebpay::ZebpayCore,
 };
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 use std::panic;
 use futures::FutureExt;
 

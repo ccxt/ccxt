@@ -50,7 +50,7 @@ use ccxt::exchanges::{
     zebpay::ZebpayCore,
 };
 use crate::registry::for_each_core;
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 use std::sync::{Mutex, OnceLock};
 
 /// Reads the cached Core's `last_request_url` / `_body` / `_headers`
@@ -85,6 +85,13 @@ type DropCoreFn = fn(*mut ());
 /// scalars — and avoid deep-cloning ~4k markets per helper invocation.
 type ReadFieldFn = fn(*mut (), &str) -> Option<Value>;
 
+/// Writes a credential / single-field value onto the Core. Static
+/// request tests for chain-signature exchanges read `walletAddress` /
+/// `privateKey` from the fixture and stash them on the snapshot; the
+/// Core was built with the offline-default placeholders and wouldn't
+/// otherwise see those.
+type WriteFieldFn = fn(*mut (), &str, Value);
+
 /// The leaked raw pointer to a boxed `<Exchange>Core`. `*mut ()` isn't
 /// `Send` by default; the unsafe impls assert that the Box lives forever
 /// on the heap (we leak it) and is touched serially from the test runner.
@@ -102,6 +109,7 @@ struct CoreEntry {
     write_mock:    WriteMockFn,
     drop_core:     DropCoreFn,
     read_field:    ReadFieldFn,
+    write_field:   WriteFieldFn,
 }
 
 static CORES: OnceLock<Mutex<HashMap<String, CoreEntry>>> = OnceLock::new();
@@ -173,6 +181,32 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
     if matches!(opts, Value::Map(_)) {
         (entry.write_options)(entry.ptr.0, opts);
+    }
+    // Propagate per-case credential overrides too. Static request tests
+    // for chain-signature exchanges (pacifica/hyperliquid/paradex) set
+    // `walletAddress` / `privateKey` on the snapshot from the fixture;
+    // the Core was built with the offline-default credentials and
+    // wouldn't otherwise see those.
+    for key in ["walletAddress", "privateKey", "apiKey", "secret", "uid",
+                "password", "token", "login", "accountId"] {
+        let v = ccxt::get_value(ex, &Value::Str(key.to_string()));
+        if matches!(v, Value::Str(ref s) if !s.is_empty()) {
+            (entry.write_field)(entry.ptr.0, key, v);
+        }
+    }
+    // Static fixtures replace `exchange.currencies` on the snapshot with
+    // the contents of `static/currencies/<id>.json` (mirroring TS's
+    // `exchange.currencies = currencies` reassignment in
+    // `initOfflineExchange`). The Core's after-construct path
+    // synthesizes currencies from markets and would otherwise compute
+    // a wrong `currency.id` (e.g. bitmex `XBT` instead of `XBt`),
+    // breaking URL builders. Push the snapshot value back here.
+    if let Value::Map(m) = &*ex {
+        if let Some(curr) = m.get("currencies") {
+            if matches!(curr, Value::Map(c) if !c.is_empty()) {
+                (entry.write_field)(entry.ptr.0, "currencies", curr.clone());
+            }
+        }
     }
     // Static *response* tests stash a canned JSON payload via
     // `setFetchResponse(exchange, response)` — push it to the Core so
@@ -284,6 +318,32 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 // registry just removed its only reference; we own it.
                 unsafe { drop(Box::from_raw(ptr as *mut $core)); }
             }
+            fn write_field(ptr: *mut (), key: &str, value: Value) {
+                let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
+                match key {
+                    "walletAddress" => core.walletAddress = value,
+                    "privateKey"    => core.privateKey    = value,
+                    "apiKey"        => core.apiKey        = value,
+                    "secret"        => core.secret        = value,
+                    "uid"           => core.uid           = value,
+                    "password"      => core.password      = value,
+                    "token"         => core.token         = value,
+                    "login"         => core.login         = value,
+                    "accountId"     => core.accountId     = value,
+                    // Heavy fields. Static fixtures load these from
+                    // `static/{markets,currencies}/<id>.json` and the
+                    // test runner reassigns them on the snapshot after
+                    // construction (mirroring TS's
+                    // `exchange.currencies = currencies` line in
+                    // `initOfflineExchange`). Without this branch, the
+                    // Core keeps the synthesized-from-markets versions
+                    // and downstream URL builders compute the wrong
+                    // `currency.id` (e.g. bitmex `XBt` vs `XBT`).
+                    "markets"       => core.markets    = value,
+                    "currencies"    => core.currencies = value,
+                    _ => {},
+                }
+            }
             return Some(CoreEntry {
                 call:          <$core>::__call_dynamic_dispatch as DynCallFn,
                 ptr:           CorePtr(raw),
@@ -292,6 +352,7 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 write_mock:    write_mock    as WriteMockFn,
                 drop_core:     drop_core     as DropCoreFn,
                 read_field:    read_field    as ReadFieldFn,
+                write_field:   write_field   as WriteFieldFn,
             });
         }
     }; }

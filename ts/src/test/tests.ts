@@ -1457,6 +1457,10 @@ class testMainClass {
                 if (isDisabledGo && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledRust = exchange.safeBool (result, 'disabledRS', false);
+                if (isDisabledRust && (this.lang === 'RUST')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
@@ -1529,6 +1533,10 @@ class testMainClass {
                 if (isDisabledGO && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledRust = exchange.safeBool (result, 'disabledRS', false);
+                if (isDisabledRust && (this.lang === 'RUST')) {
+                    continue;
+                }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
@@ -1578,6 +1586,11 @@ class testMainClass {
         const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
         if (isDisabledGO && (this.lang === 'GO')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        const isDisabledRust = exchange.safeBool (exchangeData, 'disabledRS', false);
+        if (isDisabledRust && (this.lang === 'RUST')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in rust');
             return true;
         }
         return false;

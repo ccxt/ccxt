@@ -5,7 +5,7 @@ use ccxt::value::{
     Value, get_value, set_value, safe_string, safe_number, safe_integer, safe_bool, deep_extend,
 };
 use ccxt::precise::Precise;
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 
 use crate::{assert_eq_msg, assert_true};
 

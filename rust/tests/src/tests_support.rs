@@ -35,9 +35,9 @@ pub fn equals(a: Value, b: Value) -> bool {
 // `__cacheKind` to update both — see `value.rs`. Real implementations
 // live in the not-yet-ported `rust/ccxt/src/pro/{Cache,Client,...}.rs`.
 fn new_cache(kind: &str) -> Value {
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m.insert("__cacheKind".to_string(), Value::Str(kind.to_string()));
-    m.insert("hashmap".to_string(), Value::Map(std::collections::HashMap::new()));
+    m.insert("hashmap".to_string(), Value::Map(indexmap::IndexMap::new()));
     m.insert("_data".to_string(), Value::Array(Vec::new()));
     Value::Map(m)
 }

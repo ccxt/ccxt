@@ -11,9 +11,9 @@
 #![allow(non_snake_case, dead_code, unused)]
 
 use ccxt::Value;
-use std::collections::HashMap;
+use indexmap::IndexMap as HashMap;
 
-pub const LANG: &str = "rust";
+pub const LANG: &str = "RUST";
 pub const EXT:  &str = "rs";
 
 // ── CLI args ────────────────────────────────────────────────────────────────
@@ -135,15 +135,9 @@ pub fn exceptionMessage(exc: Value) -> Value {
 pub fn getTestName(s: Value) -> Value { s }
 
 /// Converts a `catch_unwind` panic payload into a `Value` — the
-/// transpiled `try/catch` catch bodies treat the caught error as an
-/// error object (`Value`), so the `Box<dyn Any>` panic payload is
-/// rendered to its message string.
-pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
-    let msg = payload.downcast_ref::<String>().cloned()
-        .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
-        .unwrap_or_else(|| "panic".to_string());
-    Value::Str(msg)
-}
+/// Re-export of `ccxt::runtime::panic_to_value` so the test crate's
+/// `use crate::test_helpers::*;` pattern still resolves it.
+pub use ccxt::runtime::panic_to_value;
 
 /// `getRootException(e)` — TS unwraps nested `.cause` chains; the Rust
 /// catch binding is already the rendered error, so return it as-is.

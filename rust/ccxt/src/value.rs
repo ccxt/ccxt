@@ -7,7 +7,14 @@
 // At the HTTP boundary (exchange.rs) we convert between Value and
 // serde_json::Value for serialisation / deserialisation.
 
-use std::collections::HashMap;
+// Value::Map uses `IndexMap` (re-exported here as `HashMap` so the rest
+// of the codebase — including transpiler-emitted `std::collections::
+// HashMap::new()` calls swapped to `indexmap::IndexMap::new()` by a
+// post-pass — keeps building literals via the same API). Insertion
+// order matters for JSON / URL-encoded payloads: exchanges like bingx /
+// digifinex / mexc reject (and the static request fixtures assert)
+// specific key orders such as `{symbol,type,side,quantity,price}`.
+pub use indexmap::IndexMap as HashMap;
 
 /// A dynamic value type that mirrors the CCXT JavaScript Value semantics.
 #[derive(Debug, Clone, PartialEq)]
@@ -28,11 +35,41 @@ impl Default for Value {
 }
 
 impl Value {
-    /// No-op stub matching `Precise::reduce()` from TS. `Precise::new(v)`
-    /// in the Rust port currently returns a Value-shaped object; this
-    /// satisfies the `precise.reduce()` call shape until Precise is a
-    /// real struct in Rust.
-    pub fn reduce(&mut self) { /* no-op */ }
+    /// Mirrors TS `Precise.reduce()`: when this Value is a
+    /// `Precise::new(...)` Map (carries the `__precise` marker), strip
+    /// trailing zeros from `integer` and bump `decimals` down to match.
+    /// Used by phemex's `to_en` after it shifts `decimals` by the
+    /// market's `valueScale`: subtracts decimals, then reduce balances
+    /// the integer side so the final `stringify_param` renders the
+    /// scaled integer correctly (`0.1` × 10^8 → `10000000`).
+    pub fn reduce(&mut self) {
+        let m = match self { Value::Map(m) if m.contains_key("__precise") => m, _ => return };
+        let mut decimals: i64 = match m.get("decimals") {
+            Some(Value::Int(n)) => *n,
+            _ => return,
+        };
+        let mut integer: String = match m.get("integer") {
+            Some(Value::Str(s)) => s.clone(),
+            _ => return,
+        };
+        // Negative decimals → pad zeros onto the integer.
+        if decimals < 0 {
+            // careful: a leading '-' (negative number) stays at the front.
+            let (sign, digits) = if let Some(rest) = integer.strip_prefix('-') {
+                ("-", rest.to_string())
+            } else { ("", integer.clone()) };
+            let padded = format!("{digits}{:0<width$}", "", width = (-decimals) as usize);
+            integer = format!("{sign}{padded}");
+            decimals = 0;
+        }
+        // Trim trailing zeros while there are decimal places to consume.
+        while decimals > 0 && integer.ends_with('0') && integer.len() > 1 {
+            integer.pop();
+            decimals -= 1;
+        }
+        m.insert("integer".to_string(),  Value::Str(integer));
+        m.insert("decimals".to_string(), Value::Int(decimals));
+    }
 
     /// `append(item)` on an Array — pushes the item. Mirrors TS
     /// `array.push` shape (single arg, no return).
