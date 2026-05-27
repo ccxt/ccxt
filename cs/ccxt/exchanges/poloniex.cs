@@ -921,6 +921,7 @@ public partial class poloniex : Exchange
         {
             type = "future";
         }
+        object marketType = ((bool) isTrue((isEqual(type, "future")))) ? "future" : "swap";
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -930,7 +931,7 @@ public partial class poloniex : Exchange
             { "baseId", baseId },
             { "quoteId", quoteId },
             { "settleId", settleId },
-            { "type", ((bool) isTrue((isEqual(type, "future")))) ? "future" : "swap" },
+            { "type", marketType },
             { "spot", false },
             { "margin", false },
             { "swap", isEqual(type, "swap") },

@@ -125,6 +125,12 @@ public partial class hibachi
     /// </summary>
     /// <remarks>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>

@@ -3530,8 +3530,9 @@ public partial class hitbtc : Exchange
         //         "positions": null
         //     }
         //
+        object parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amount) },
+            { "amount", parsedAmount },
             { "type", type },
         });
     }
