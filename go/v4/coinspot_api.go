@@ -7,278 +7,278 @@
 
 package ccxt
 
-func (this *CoinspotCore) PublicGetLatest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetLatest", args...)
+func (this *CoinspotCore) PublicGetLatest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLatest", args...)
 }
 
-func (this *CoinspotCore) PrivatePostOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *CoinspotCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *CoinspotCore) PrivatePostOrdersHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostOrdersHistory", args...)
+func (this *CoinspotCore) PrivatePostOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersHistory", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMyCoinDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMyCoinDeposit", args...)
+func (this *CoinspotCore) PrivatePostMyCoinDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMyCoinDeposit", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMyCoinSend (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMyCoinSend", args...)
+func (this *CoinspotCore) PrivatePostMyCoinSend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMyCoinSend", args...)
 }
 
-func (this *CoinspotCore) PrivatePostQuoteBuy (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostQuoteBuy", args...)
+func (this *CoinspotCore) PrivatePostQuoteBuy(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQuoteBuy", args...)
 }
 
-func (this *CoinspotCore) PrivatePostQuoteSell (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostQuoteSell", args...)
+func (this *CoinspotCore) PrivatePostQuoteSell(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostQuoteSell", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMyBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMyBalances", args...)
+func (this *CoinspotCore) PrivatePostMyBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMyBalances", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMyOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMyOrders", args...)
+func (this *CoinspotCore) PrivatePostMyOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMyOrders", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMyBuy (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMyBuy", args...)
+func (this *CoinspotCore) PrivatePostMyBuy(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMyBuy", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMySell (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMySell", args...)
+func (this *CoinspotCore) PrivatePostMySell(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMySell", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMyBuyCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMyBuyCancel", args...)
+func (this *CoinspotCore) PrivatePostMyBuyCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMyBuyCancel", args...)
 }
 
-func (this *CoinspotCore) PrivatePostMySellCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostMySellCancel", args...)
+func (this *CoinspotCore) PrivatePostMySellCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMySellCancel", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyBalances", args...)
+func (this *CoinspotCore) PrivatePostRoMyBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyBalances", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyBalancesCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyBalancesCointype", args...)
+func (this *CoinspotCore) PrivatePostRoMyBalancesCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyBalancesCointype", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyDeposits", args...)
+func (this *CoinspotCore) PrivatePostRoMyDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyDeposits", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyWithdrawals", args...)
+func (this *CoinspotCore) PrivatePostRoMyWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyWithdrawals", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyTransactions", args...)
+func (this *CoinspotCore) PrivatePostRoMyTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyTransactions", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyTransactionsCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyTransactionsCointype", args...)
+func (this *CoinspotCore) PrivatePostRoMyTransactionsCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyTransactionsCointype", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyTransactionsOpen (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyTransactionsOpen", args...)
+func (this *CoinspotCore) PrivatePostRoMyTransactionsOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyTransactionsOpen", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyTransactionsCointypeOpen (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyTransactionsCointypeOpen", args...)
+func (this *CoinspotCore) PrivatePostRoMyTransactionsCointypeOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyTransactionsCointypeOpen", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMySendreceive (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMySendreceive", args...)
+func (this *CoinspotCore) PrivatePostRoMySendreceive(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMySendreceive", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyAffiliatepayments (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyAffiliatepayments", args...)
+func (this *CoinspotCore) PrivatePostRoMyAffiliatepayments(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyAffiliatepayments", args...)
 }
 
-func (this *CoinspotCore) PrivatePostRoMyReferralpayments (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostRoMyReferralpayments", args...)
+func (this *CoinspotCore) PrivatePostRoMyReferralpayments(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRoMyReferralpayments", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetLatest (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetLatest", args...)
+func (this *CoinspotCore) V2PublicGetLatest(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetLatest", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetLatestCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetLatestCointype", args...)
+func (this *CoinspotCore) V2PublicGetLatestCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetLatestCointype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetLatestCointypeMarkettype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetLatestCointypeMarkettype", args...)
+func (this *CoinspotCore) V2PublicGetLatestCointypeMarkettype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetLatestCointypeMarkettype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetBuypriceCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetBuypriceCointype", args...)
+func (this *CoinspotCore) V2PublicGetBuypriceCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetBuypriceCointype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetBuypriceCointypeMarkettype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetBuypriceCointypeMarkettype", args...)
+func (this *CoinspotCore) V2PublicGetBuypriceCointypeMarkettype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetBuypriceCointypeMarkettype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetSellpriceCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSellpriceCointype", args...)
+func (this *CoinspotCore) V2PublicGetSellpriceCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSellpriceCointype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetSellpriceCointypeMarkettype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetSellpriceCointypeMarkettype", args...)
+func (this *CoinspotCore) V2PublicGetSellpriceCointypeMarkettype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetSellpriceCointypeMarkettype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetOrdersOpenCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetOrdersOpenCointype", args...)
+func (this *CoinspotCore) V2PublicGetOrdersOpenCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetOrdersOpenCointype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetOrdersOpenCointypeMarkettype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetOrdersOpenCointypeMarkettype", args...)
+func (this *CoinspotCore) V2PublicGetOrdersOpenCointypeMarkettype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetOrdersOpenCointypeMarkettype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetOrdersCompletedCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetOrdersCompletedCointype", args...)
+func (this *CoinspotCore) V2PublicGetOrdersCompletedCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetOrdersCompletedCointype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetOrdersCompletedCointypeMarkettype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetOrdersCompletedCointypeMarkettype", args...)
+func (this *CoinspotCore) V2PublicGetOrdersCompletedCointypeMarkettype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetOrdersCompletedCointypeMarkettype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetOrdersSummaryCompletedCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetOrdersSummaryCompletedCointype", args...)
+func (this *CoinspotCore) V2PublicGetOrdersSummaryCompletedCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetOrdersSummaryCompletedCointype", args...)
 }
 
-func (this *CoinspotCore) V2PublicGetOrdersSummaryCompletedCointypeMarkettype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PublicGetOrdersSummaryCompletedCointypeMarkettype", args...)
+func (this *CoinspotCore) V2PublicGetOrdersSummaryCompletedCointypeMarkettype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetOrdersSummaryCompletedCointypeMarkettype", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostStatus", args...)
+func (this *CoinspotCore) V2PrivatePostStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostStatus", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyCoinDeposit (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyCoinDeposit", args...)
+func (this *CoinspotCore) V2PrivatePostMyCoinDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyCoinDeposit", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostQuoteBuyNow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostQuoteBuyNow", args...)
+func (this *CoinspotCore) V2PrivatePostQuoteBuyNow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostQuoteBuyNow", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostQuoteSellNow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostQuoteSellNow", args...)
+func (this *CoinspotCore) V2PrivatePostQuoteSellNow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostQuoteSellNow", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostQuoteSwapNow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostQuoteSwapNow", args...)
+func (this *CoinspotCore) V2PrivatePostQuoteSwapNow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostQuoteSwapNow", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyBuy (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyBuy", args...)
+func (this *CoinspotCore) V2PrivatePostMyBuy(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyBuy", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyBuyEdit (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyBuyEdit", args...)
+func (this *CoinspotCore) V2PrivatePostMyBuyEdit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyBuyEdit", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMySell (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMySell", args...)
+func (this *CoinspotCore) V2PrivatePostMySell(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySell", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMySellEdit (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMySellEdit", args...)
+func (this *CoinspotCore) V2PrivatePostMySellEdit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySellEdit", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyBuyNow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyBuyNow", args...)
+func (this *CoinspotCore) V2PrivatePostMyBuyNow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyBuyNow", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMySellNow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMySellNow", args...)
+func (this *CoinspotCore) V2PrivatePostMySellNow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySellNow", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMySwapNow (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMySwapNow", args...)
+func (this *CoinspotCore) V2PrivatePostMySwapNow(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySwapNow", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyBuyCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyBuyCancel", args...)
+func (this *CoinspotCore) V2PrivatePostMyBuyCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyBuyCancel", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyBuyCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyBuyCancelAll", args...)
+func (this *CoinspotCore) V2PrivatePostMyBuyCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyBuyCancelAll", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMySellCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMySellCancel", args...)
+func (this *CoinspotCore) V2PrivatePostMySellCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySellCancel", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMySellCancelAll (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMySellCancelAll", args...)
+func (this *CoinspotCore) V2PrivatePostMySellCancelAll(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySellCancelAll", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSenddetails (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSenddetails", args...)
+func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSenddetails(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSenddetails", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSend (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSend", args...)
+func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSend(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSend", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoStatus", args...)
+func (this *CoinspotCore) V2PrivatePostRoStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoStatus", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoOrdersMarketOpen (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoOrdersMarketOpen", args...)
+func (this *CoinspotCore) V2PrivatePostRoOrdersMarketOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoOrdersMarketOpen", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoOrdersMarketCompleted (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoOrdersMarketCompleted", args...)
+func (this *CoinspotCore) V2PrivatePostRoOrdersMarketCompleted(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoOrdersMarketCompleted", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyBalances (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyBalances", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyBalances", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyBalanceCointype (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyBalanceCointype", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyBalanceCointype(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyBalanceCointype", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyOrdersMarketOpen (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyOrdersMarketOpen", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersMarketOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersMarketOpen", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyOrdersLimitOpen (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyOrdersLimitOpen", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersLimitOpen(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersLimitOpen", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyOrdersCompleted (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyOrdersCompleted", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersCompleted(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersCompleted", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyOrdersMarketCompleted (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyOrdersMarketCompleted", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyOrdersMarketCompleted(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyOrdersMarketCompleted", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMySendreceive (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMySendreceive", args...)
+func (this *CoinspotCore) V2PrivatePostRoMySendreceive(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMySendreceive", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyDeposits", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyDeposits", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyWithdrawals", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyWithdrawals", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyAffiliatepayments (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyAffiliatepayments", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyAffiliatepayments(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyAffiliatepayments", args...)
 }
 
-func (this *CoinspotCore) V2PrivatePostRoMyReferralpayments (args ...any) <-chan any {
-   return this.callEndpointAsync("v2PrivatePostRoMyReferralpayments", args...)
+func (this *CoinspotCore) V2PrivatePostRoMyReferralpayments(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostRoMyReferralpayments", args...)
 }

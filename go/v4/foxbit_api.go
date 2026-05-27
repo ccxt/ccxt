@@ -7,90 +7,90 @@
 
 package ccxt
 
-func (this *FoxbitCore) V3PublicGetCurrencies (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetCurrencies", args...)
+func (this *FoxbitCore) V3PublicGetCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetCurrencies", args...)
 }
 
-func (this *FoxbitCore) V3PublicGetMarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetMarkets", args...)
+func (this *FoxbitCore) V3PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarkets", args...)
 }
 
-func (this *FoxbitCore) V3PublicGetMarketsTicker24hr (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetMarketsTicker24hr", args...)
+func (this *FoxbitCore) V3PublicGetMarketsTicker24hr(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarketsTicker24hr", args...)
 }
 
-func (this *FoxbitCore) V3PublicGetMarketsMarketOrderbook (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetMarketsMarketOrderbook", args...)
+func (this *FoxbitCore) V3PublicGetMarketsMarketOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarketsMarketOrderbook", args...)
 }
 
-func (this *FoxbitCore) V3PublicGetMarketsMarketCandlesticks (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetMarketsMarketCandlesticks", args...)
+func (this *FoxbitCore) V3PublicGetMarketsMarketCandlesticks(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarketsMarketCandlesticks", args...)
 }
 
-func (this *FoxbitCore) V3PublicGetMarketsMarketTradesHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetMarketsMarketTradesHistory", args...)
+func (this *FoxbitCore) V3PublicGetMarketsMarketTradesHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarketsMarketTradesHistory", args...)
 }
 
-func (this *FoxbitCore) V3PublicGetMarketsMarketTicker24hr (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PublicGetMarketsMarketTicker24hr", args...)
+func (this *FoxbitCore) V3PublicGetMarketsMarketTicker24hr(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarketsMarketTicker24hr", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetAccounts (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetAccounts", args...)
+func (this *FoxbitCore) V3PrivateGetAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetAccounts", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetAccountsSymbolTransactions (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetAccountsSymbolTransactions", args...)
+func (this *FoxbitCore) V3PrivateGetAccountsSymbolTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetAccountsSymbolTransactions", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetOrders", args...)
+func (this *FoxbitCore) V3PrivateGetOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetOrders", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetOrdersByOrderIdId (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetOrdersByOrderIdId", args...)
+func (this *FoxbitCore) V3PrivateGetOrdersByOrderIdId(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetOrdersByOrderIdId", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetTrades (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetTrades", args...)
+func (this *FoxbitCore) V3PrivateGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetTrades", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetDepositsAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetDepositsAddress", args...)
+func (this *FoxbitCore) V3PrivateGetDepositsAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetDepositsAddress", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetDeposits", args...)
+func (this *FoxbitCore) V3PrivateGetDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetDeposits", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetWithdrawals", args...)
+func (this *FoxbitCore) V3PrivateGetWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetWithdrawals", args...)
 }
 
-func (this *FoxbitCore) V3PrivateGetMeFeesTrading (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivateGetMeFeesTrading", args...)
+func (this *FoxbitCore) V3PrivateGetMeFeesTrading(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetMeFeesTrading", args...)
 }
 
-func (this *FoxbitCore) V3PrivatePostOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivatePostOrders", args...)
+func (this *FoxbitCore) V3PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostOrders", args...)
 }
 
-func (this *FoxbitCore) V3PrivatePostOrdersBatch (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivatePostOrdersBatch", args...)
+func (this *FoxbitCore) V3PrivatePostOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostOrdersBatch", args...)
 }
 
-func (this *FoxbitCore) V3PrivatePostOrdersCancelReplace (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivatePostOrdersCancelReplace", args...)
+func (this *FoxbitCore) V3PrivatePostOrdersCancelReplace(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostOrdersCancelReplace", args...)
 }
 
-func (this *FoxbitCore) V3PrivatePostWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivatePostWithdrawals", args...)
+func (this *FoxbitCore) V3PrivatePostWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostWithdrawals", args...)
 }
 
-func (this *FoxbitCore) V3PrivatePutOrdersCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("v3PrivatePutOrdersCancel", args...)
+func (this *FoxbitCore) V3PrivatePutOrdersCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePutOrdersCancel", args...)
 }
 
-func (this *FoxbitCore) StatusPublicGetStatus (args ...any) <-chan any {
-   return this.callEndpointAsync("statusPublicGetStatus", args...)
+func (this *FoxbitCore) StatusPublicGetStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("statusPublicGetStatus", args...)
 }
