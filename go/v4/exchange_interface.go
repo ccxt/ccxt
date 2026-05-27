@@ -189,6 +189,8 @@ type ICoreExchange interface {
 	SafeValue2(obj any, key any, key2 any, defaultValue ...any) any
 	GroupBy(trades any, key2 any) map[string]any
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
+	NetworkCodeToId(networkCode any, optionalArgs ...any) any
+	NetworkIdToCode(optionalArgs ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
 	SafeString2(obj any, key any, key2 any, defaultValue ...any) any
@@ -416,8 +418,6 @@ type IDerivedExchange interface {
 	FetchPositionsADLRank(optionalArgs ...any) <-chan any
 	ParseADLRank(info any, optionalArgs ...any) any
 	FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <-chan any
-	NetworkCodeToId(networkCode any, optionalArgs ...any) any
-	NetworkIdToCode(optionalArgs ...any) any
 	FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any
 	FetchOpenInterests(optionalArgs ...any) <-chan any
 }
