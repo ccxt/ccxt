@@ -2,6 +2,143 @@
     "exchange": "mexc",
     "options": {},
     "methods": {
+        "fetchOpenOrders": [
+            {
+                "description": "swap open orders",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "code": "0",
+                    "data": [
+                        {
+                            "orderId": "814539157408959488",
+                            "symbol": "LTC_USDT",
+                            "positionId": "0",
+                            "price": "50",
+                            "priceStr": "50",
+                            "vol": "1",
+                            "leverage": "2",
+                            "side": "1",
+                            "category": "1",
+                            "orderType": "1",
+                            "dealAvgPrice": "0",
+                            "dealAvgPriceStr": "0",
+                            "dealVol": "0",
+                            "orderMargin": "0.2506",
+                            "takerFee": "0",
+                            "makerFee": "0",
+                            "profit": "0",
+                            "feeCurrency": "USDT",
+                            "openType": "2",
+                            "state": "2",
+                            "externalOid": "_m_ee6fc305e6bf45b08644b3f923389911",
+                            "errorCode": "0",
+                            "usedMargin": "0",
+                            "createTime": "1779871668415",
+                            "updateTime": "1779871668538",
+                            "positionMode": "1",
+                            "version": "1",
+                            "showCancelReason": "0",
+                            "showProfitRateShare": "0",
+                            "bboTypeNum": "0",
+                            "totalFee": "0",
+                            "zeroSaveTotalFeeBinance": "0",
+                            "zeroTradeTotalFeeBinance": "0",
+                            "lowSaveTotalFee": "0",
+                            "fee": "0",
+                            "takerFeeRate": "0.0006",
+                            "makerFeeRate": "0.0004",
+                            "feeRates": {
+                                "min": "0.0004",
+                                "max": "0.0006"
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "814539157408959488",
+                        "clientOrderId": null,
+                        "timestamp": 1779871668415,
+                        "datetime": "2026-05-27T08:47:48.415Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1779871668538,
+                        "status": "open",
+                        "symbol": "LTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "side": "buy",
+                        "price": 50,
+                        "triggerPrice": null,
+                        "average": null,
+                        "amount": 1,
+                        "cost": 0,
+                        "filled": 0,
+                        "remaining": 1,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0
+                        },
+                        "trades": [],
+                        "info": {
+                            "orderId": "814539157408959488",
+                            "symbol": "LTC_USDT",
+                            "positionId": "0",
+                            "price": "50",
+                            "priceStr": "50",
+                            "vol": "1",
+                            "leverage": "2",
+                            "side": "1",
+                            "category": "1",
+                            "orderType": "1",
+                            "dealAvgPrice": "0",
+                            "dealAvgPriceStr": "0",
+                            "dealVol": "0",
+                            "orderMargin": "0.2506",
+                            "takerFee": "0",
+                            "makerFee": "0",
+                            "profit": "0",
+                            "feeCurrency": "USDT",
+                            "openType": "2",
+                            "state": "2",
+                            "externalOid": "_m_ee6fc305e6bf45b08644b3f923389911",
+                            "errorCode": "0",
+                            "usedMargin": "0",
+                            "createTime": "1779871668415",
+                            "updateTime": "1779871668538",
+                            "positionMode": "1",
+                            "version": "1",
+                            "showCancelReason": "0",
+                            "showProfitRateShare": "0",
+                            "bboTypeNum": "0",
+                            "totalFee": "0",
+                            "zeroSaveTotalFeeBinance": "0",
+                            "zeroTradeTotalFeeBinance": "0",
+                            "lowSaveTotalFee": "0",
+                            "fee": "0",
+                            "takerFeeRate": "0.0006",
+                            "makerFeeRate": "0.0004",
+                            "feeRates": {
+                                "min": "0.0004",
+                                "max": "0.0006"
+                            }
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0
+                            }
+                        ],
+                        "postOnly": null,
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetchTransfers",
