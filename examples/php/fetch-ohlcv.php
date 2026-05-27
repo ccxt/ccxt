@@ -18,10 +18,11 @@ use React\Promise;
 
 // AUTO-TRANSPILE //
 function example() {
+    // eslint-disable-next-line import/no-named-as-default-member
     return Async\async(function () {
         $myex = new \ccxt\async\okx(array());
         $from_timestamp = $myex->milliseconds() - 86400 * 1000; // last 24 hrs
-        $ohlcv = Async\await($myex->fetch_ohlcv('BTC/USDT', '1m', $from_timestamp, 3, array(
+        $ohlcv = \React\Async\await($myex->fetch_ohlcv('BTC/USDT', '1m', $from_timestamp, 3, array(
             'whatever' => 123,
         )));
         $length = count($ohlcv);
@@ -35,4 +36,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

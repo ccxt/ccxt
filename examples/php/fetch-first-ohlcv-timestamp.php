@@ -49,7 +49,7 @@ function fetch_first_bar_timestamp($exchange, $symbol, $use_minute_timeframe = f
         // eslint-disable-next-line
         while (true) {
             $current_since = max($current_since, $minimum_timestamp);
-            $daily_bars = Async\await($exchange->fetch_ohlcv($symbol, '1d', $current_since, $limit, $fetch_params));
+            $daily_bars = \React\Async\await($exchange->fetch_ohlcv($symbol, '1d', $current_since, $limit, $fetch_params));
             if (count($daily_bars) <= 0) {
                 break; // if no days returned, then probably start date was passed
             }
@@ -73,7 +73,7 @@ function fetch_first_bar_timestamp($exchange, $symbol, $use_minute_timeframe = f
                 $current_since = $found_start_time - $milliseconds_per_day + $i * $limit * 60 * 1000; // shift one-duration back for more accuracy for different kind of exchanges, like OKX, where first daily bar is offset by one day, but minute bars present
                 $all_promises[] = $exchange->fetch_ohlcv($symbol, '1m', $current_since, $limit, $fetch_params);
             }
-            $all_responses = Async\await(Promise\all($all_promises));
+            $all_responses = \React\Async\await(\React\Promise\all($all_promises));
             // find earliest bar
             for ($i = 0; $i < count($all_responses); $i++) {
                 $response = $all_responses[$i];
@@ -94,9 +94,9 @@ $run_example = false; // set to true to run example
 
 if ($run_example) {
     $my_ex = new \ccxt\async\binance();
-    Async\await($my_ex->load_markets());
+    \React\Async\await($my_ex->load_markets());
     $symbol = 'TRUMP/USDT';
-    $earliest_timestamp = Async\await(fetch_first_bar_timestamp($my_ex, $symbol, true));
+    $earliest_timestamp = \React\Async\await(fetch_first_bar_timestamp($my_ex, $symbol, true));
     var_dump('- Earliest bar timestamp:', $earliest_timestamp, ', readable: ', $my_ex->iso8601($earliest_timestamp));
     var_dump('- market.created value:', $my_ex->market($symbol)['created']);
 }

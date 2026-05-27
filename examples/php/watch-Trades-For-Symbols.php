@@ -22,11 +22,11 @@ function example() {
         $binance = new \ccxt\pro\binance(array());
         $symbols = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT'];
         while (true) {
-            $trades = Async\await($binance->watch_trades_for_symbols($symbols));
+            $trades = \React\Async\await($binance->watch_trades_for_symbols($symbols));
             var_dump($trades);
         }
     }) ();
 }
 
 
-Async\await(example());
+\React\Async\await(example());

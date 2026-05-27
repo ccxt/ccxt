@@ -3007,7 +3007,7 @@ public partial class mexc : Exchange
             {
                 ((IDictionary<string,object>)request)["page_size"] = 100; // max
             }
-            object swapResponse = await ((Task<object>)callDynamically(this, "contractPrivateGetOrderListOpenOrders", new object[] { this.extend(request, parameters) }));
+            object swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters));
             object data = this.safeList(swapResponse, "data", new List<object>() {});
             return this.parseOrders(data, market, since, limit, parameters);
         }

@@ -7,366 +7,366 @@
 
 package ccxt
 
-func (this *CoinbaseadvancedCore) V2PublicGetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetCurrencies", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetCurrencies", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetCurrenciesCrypto(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetCurrenciesCrypto", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetCurrenciesCrypto (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetCurrenciesCrypto", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetTime", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetTime (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetTime", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetExchangeRates(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetExchangeRates", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetExchangeRates (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetExchangeRates", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetUsersUserId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetUsersUserId", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetUsersUserId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetUsersUserId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetPricesSymbolBuy(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetPricesSymbolBuy", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetPricesSymbolBuy (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetPricesSymbolBuy", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetPricesSymbolSell(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetPricesSymbolSell", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetPricesSymbolSell (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetPricesSymbolSell", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PublicGetPricesSymbolSpot(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetPricesSymbolSpot", args...)
+func (this *CoinbaseadvancedCore) V2PublicGetPricesSymbolSpot (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetPricesSymbolSpot", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccounts", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccounts (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccounts", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdAddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddresses", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdAddresses (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddresses", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdAddressesAddressId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddressesAddressId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdAddressesAddressId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddressesAddressId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdAddressesAddressIdTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdAddressesAddressIdTransactions (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdAddressesAddressIdTransactions", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdTransactions", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdTransactions (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdTransactions", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdTransactionsTransactionId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdTransactionsTransactionId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdTransactionsTransactionId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdTransactionsTransactionId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdBuys(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdBuys", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdBuys (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdBuys", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdBuysBuyId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdBuysBuyId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdBuysBuyId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdBuysBuyId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdSells(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdSells", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdSells (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdSells", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdSellsSellId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdSellsSellId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdSellsSellId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdSellsSellId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdDeposits", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdDeposits (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdDeposits", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdDepositsDepositId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdDepositsDepositId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdDepositsDepositId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdDepositsDepositId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdWithdrawals", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdWithdrawals (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdWithdrawals", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountsAccountIdWithdrawalsWithdrawalId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetPaymentMethods(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetPaymentMethods", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetPaymentMethods (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetPaymentMethods", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetPaymentMethodsPaymentMethodId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetPaymentMethodsPaymentMethodId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetPaymentMethodsPaymentMethodId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetPaymentMethodsPaymentMethodId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetUser(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetUser", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetUser (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetUser", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateGetUserAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetUserAuth", args...)
+func (this *CoinbaseadvancedCore) V2PrivateGetUserAuth (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetUserAuth", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccounts", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccounts (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccounts", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdPrimary(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdPrimary", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdPrimary (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdPrimary", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdAddresses(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdAddresses", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdAddresses (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdAddresses", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactions", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdTransactions (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactions", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactionsTransactionIdComplete", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdTransactionsTransactionIdResend(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdTransactionsTransactionIdResend (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdTransactionsTransactionIdResend", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdBuys(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdBuys", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdBuys (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdBuys", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdBuysBuyIdCommit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdBuysBuyIdCommit", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdBuysBuyIdCommit (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdBuysBuyIdCommit", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdSells(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdSells", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdSells (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdSells", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdSellsSellIdCommit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdSellsSellIdCommit", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdSellsSellIdCommit (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdSellsSellIdCommit", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdDeposits", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdDeposits (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdDeposits", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdDepositsDepositIdCommit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdDepositsDepositIdCommit", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdDepositsDepositIdCommit (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdDepositsDepositIdCommit", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdWithdrawals", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdWithdrawals (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdWithdrawals", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePostAccountsAccountIdWithdrawalsWithdrawalIdCommit", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePutAccountsAccountId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePutAccountsAccountId", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePutAccountsAccountId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePutAccountsAccountId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivatePutUser(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePutUser", args...)
+func (this *CoinbaseadvancedCore) V2PrivatePutUser (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivatePutUser", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateDeleteAccountsId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateDeleteAccountsId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateDeleteAccountsId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateDeleteAccountsId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V2PrivateDeleteAccountsAccountIdTransactionsTransactionId(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateDeleteAccountsAccountIdTransactionsTransactionId", args...)
+func (this *CoinbaseadvancedCore) V2PrivateDeleteAccountsAccountIdTransactionsTransactionId (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateDeleteAccountsAccountIdTransactionsTransactionId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PublicGetBrokerageTime(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetBrokerageTime", args...)
+func (this *CoinbaseadvancedCore) V3PublicGetBrokerageTime (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetBrokerageTime", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductBook(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetBrokerageMarketProductBook", args...)
+func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductBook (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetBrokerageMarketProductBook", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetBrokerageMarketProducts", args...)
+func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProducts (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetBrokerageMarketProducts", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductsProductId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetBrokerageMarketProductsProductId", args...)
+func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductsProductId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetBrokerageMarketProductsProductId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductsProductIdCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetBrokerageMarketProductsProductIdCandles", args...)
+func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductsProductIdCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetBrokerageMarketProductsProductIdCandles", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductsProductIdTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PublicGetBrokerageMarketProductsProductIdTicker", args...)
+func (this *CoinbaseadvancedCore) V3PublicGetBrokerageMarketProductsProductIdTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PublicGetBrokerageMarketProductsProductIdTicker", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageAccounts", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageAccounts (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageAccounts", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageAccountsAccountUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageAccountsAccountUuid", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageAccountsAccountUuid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageAccountsAccountUuid", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageOrdersHistoricalBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageOrdersHistoricalBatch", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageOrdersHistoricalBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageOrdersHistoricalBatch", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageOrdersHistoricalFills(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageOrdersHistoricalFills", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageOrdersHistoricalFills (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageOrdersHistoricalFills", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageOrdersHistoricalOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageOrdersHistoricalOrderId", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageOrdersHistoricalOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageOrdersHistoricalOrderId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageProducts", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProducts (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageProducts", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductsProductId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageProductsProductId", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductsProductId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageProductsProductId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductsProductIdCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageProductsProductIdCandles", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductsProductIdCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageProductsProductIdCandles", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductsProductIdTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageProductsProductIdTicker", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductsProductIdTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageProductsProductIdTicker", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageBestBidAsk(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageBestBidAsk", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageBestBidAsk (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageBestBidAsk", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductBook(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageProductBook", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageProductBook (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageProductBook", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageTransactionSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageTransactionSummary", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageTransactionSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageTransactionSummary", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePortfolios(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokeragePortfolios", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePortfolios (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokeragePortfolios", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePortfoliosPortfolioUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokeragePortfoliosPortfolioUuid", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePortfoliosPortfolioUuid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokeragePortfoliosPortfolioUuid", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageConvertTradeTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageConvertTradeTradeId", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageConvertTradeTradeId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageConvertTradeTradeId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmBalanceSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageCfmBalanceSummary", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmBalanceSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageCfmBalanceSummary", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageCfmPositions", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageCfmPositions", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmPositionsProductId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageCfmPositionsProductId", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmPositionsProductId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageCfmPositionsProductId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmSweeps(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageCfmSweeps", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageCfmSweeps (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageCfmSweeps", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageIntxPortfolioPortfolioUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageIntxPortfolioPortfolioUuid", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageIntxPortfolioPortfolioUuid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageIntxPortfolioPortfolioUuid", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageIntxPositionsPortfolioUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageIntxPositionsPortfolioUuid", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageIntxPositionsPortfolioUuid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageIntxPositionsPortfolioUuid", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePaymentMethods(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokeragePaymentMethods", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePaymentMethods (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokeragePaymentMethods", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePaymentMethodsPaymentMethodId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokeragePaymentMethodsPaymentMethodId", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePaymentMethodsPaymentMethodId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokeragePaymentMethodsPaymentMethodId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageKeyPermissions(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateGetBrokerageKeyPermissions", args...)
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageKeyPermissions (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateGetBrokerageKeyPermissions", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageOrders", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageOrders", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersBatchCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageOrdersBatchCancel", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersBatchCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageOrdersBatchCancel", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageOrdersEdit", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersEdit (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageOrdersEdit", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersEditPreview(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageOrdersEditPreview", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersEditPreview (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageOrdersEditPreview", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersPreview(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageOrdersPreview", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersPreview (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageOrdersPreview", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokeragePortfolios(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokeragePortfolios", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokeragePortfolios (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokeragePortfolios", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokeragePortfoliosMoveFunds(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokeragePortfoliosMoveFunds", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokeragePortfoliosMoveFunds (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokeragePortfoliosMoveFunds", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageConvertQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageConvertQuote", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageConvertQuote (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageConvertQuote", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageConvertTradeTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageConvertTradeTradeId", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageConvertTradeTradeId (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageConvertTradeTradeId", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageCfmSweepsSchedule(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageCfmSweepsSchedule", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageCfmSweepsSchedule (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageCfmSweepsSchedule", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageIntxAllocate(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageIntxAllocate", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageIntxAllocate (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageIntxAllocate", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePostBrokerageOrdersClosePosition", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrdersClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePostBrokerageOrdersClosePosition", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivatePutBrokeragePortfoliosPortfolioUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivatePutBrokeragePortfoliosPortfolioUuid", args...)
+func (this *CoinbaseadvancedCore) V3PrivatePutBrokeragePortfoliosPortfolioUuid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivatePutBrokeragePortfoliosPortfolioUuid", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateDeleteBrokeragePortfoliosPortfolioUuid(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteBrokeragePortfoliosPortfolioUuid", args...)
+func (this *CoinbaseadvancedCore) V3PrivateDeleteBrokeragePortfoliosPortfolioUuid (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteBrokeragePortfoliosPortfolioUuid", args...)
 }
 
-func (this *CoinbaseadvancedCore) V3PrivateDeleteBrokerageCfmSweeps(args ...any) <-chan any {
-	return this.callEndpointAsync("v3PrivateDeleteBrokerageCfmSweeps", args...)
+func (this *CoinbaseadvancedCore) V3PrivateDeleteBrokerageCfmSweeps (args ...any) <-chan any {
+   return this.callEndpointAsync("v3PrivateDeleteBrokerageCfmSweeps", args...)
 }
