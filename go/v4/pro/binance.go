@@ -1813,7 +1813,7 @@ func  (this *BinanceCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optiona
             }
             var isSpot any =     (ccxt.IsEqual(typeVar, "spot"))
             var timezone any = nil
-            timezoneparamsVariable := this.HandleParamString(params, "timezone", nil)
+            timezoneparamsVariable := this.HandleParamString(params, "timezone")
             timezone = ccxt.GetValue(timezoneparamsVariable,0)
             params = ccxt.GetValue(timezoneparamsVariable,1)
             var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
@@ -1900,7 +1900,7 @@ func  (this *BinanceCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optio
             }
             var isSpot any =     (ccxt.IsEqual(typeVar, "spot"))
             var timezone any = nil
-            timezoneparamsVariable := this.HandleParamString(params, "timezone", nil)
+            timezoneparamsVariable := this.HandleParamString(params, "timezone")
             timezone = ccxt.GetValue(timezoneparamsVariable,0)
             params = ccxt.GetValue(timezoneparamsVariable,1)
             var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
@@ -2965,7 +2965,7 @@ func  (this *BinanceCore) SignParams(optionalArgs ...any) any  {
 /**
  * @name binance#ensureUserDataStreamWsSubscribeSignature
  * @description watches best bid & ask for symbols
- * @param marketType {string} only support on 'spot'
+ * @param {string} [marketType] only supports 'spot'
  * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
  * @returns Promise<number> The subscription ID for the user data stream
  */

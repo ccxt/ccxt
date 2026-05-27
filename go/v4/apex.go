@@ -1418,7 +1418,7 @@ func (this *ApexCore) ParseTimeInForce(timeInForce any) any {
 		"IMMEDIATE_OR_CANCEL": "IMMEDIATE_OR_CANCEL",
 		"POST_ONLY":           "POST_ONLY",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *ApexCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
@@ -1594,14 +1594,16 @@ func (this *ApexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 		}
+		var finalClientOrderId any = clientOrderId // java req
 		params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
+		var finalOrderPrice any = orderPrice // java req
 		var orderToSign any = map[string]any{
 			"accountId":    accountId,
-			"slotId":       clientOrderId,
-			"nonce":        clientOrderId,
+			"slotId":       finalClientOrderId,
+			"nonce":        finalClientOrderId,
 			"pairId":       GetValue(market, "quoteId"),
 			"size":         orderSize,
-			"price":        orderPrice,
+			"price":        finalOrderPrice,
 			"direction":    orderSide,
 			"makerFeeRate": maker,
 			"takerFeeRate": taker,
@@ -1617,11 +1619,11 @@ func (this *ApexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 			"side":        orderSide,
 			"type":        orderType,
 			"size":        orderSize,
-			"price":       orderPrice,
+			"price":       finalOrderPrice,
 			"limitFee":    limitFee,
 			"expiration":  MathFloor(Add(Divide(timeNow, 1000), Multiply(Multiply(Multiply(30, 24), 60), 60))),
 			"timeInForce": timeInForce,
-			"clientId":    clientOrderId,
+			"clientId":    finalClientOrderId,
 			"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
 		}
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -1660,8 +1662,8 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14388 := (<-this.LoadMarkets())
-		PanicOnError(retRes14388)
+		retRes14408 := (<-this.LoadMarkets())
+		PanicOnError(retRes14408)
 
 		configResponse := (<-this.PublicGetV3Symbols(params))
 		PanicOnError(configResponse)
@@ -1687,6 +1689,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		if IsTrue(IsGreaterThan(GetArrayLength(subAccounts), 0)) {
 			nonce = this.SafeString(GetValue(subAccounts, 0), "nonce", "0")
 		}
+		var finalNonce any = nonce // java req
 		var ethAddress any = this.SafeString(accountData, "ethereumAddress", "")
 		var accountId any = this.SafeString(accountData, "id", "")
 		var currency any = map[string]any{}
@@ -1702,12 +1705,15 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 			}
 		}
 		var tokenId any = this.SafeString(currency, "tokenId", "")
-		var amountNumber any = this.ParseToInt(Multiply(amount, (MathPow(10, this.SafeNumber(currency, "decimals", 0)))))
+		var decimalsNum any = this.SafeNumber(currency, "decimals", 0)
+		var mathPowResult any = (MathPow(10, decimalsNum))
+		var amountNumber any = this.ParseToInt(Multiply(amount, mathPowResult))
 		var timestampSeconds any = this.ParseToInt(Divide(this.Milliseconds(), 1000))
 		var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 		}
+		var finalClientOrderId any = clientOrderId // java req
 		params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
 		if IsTrue(IsTrue(!IsEqual(fromAccount, nil)) && IsTrue(IsEqual(ToLower(fromAccount), "contract"))) {
 			var formattedUint32 any = "4294967295"
@@ -1721,7 +1727,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 				"tokenId":              tokenId,
 				"amount":               ToString(amountNumber),
 				"fee":                  "0",
-				"nonce":                clientOrderId,
+				"nonce":                finalClientOrderId,
 				"timestampSeconds":     expireTime,
 				"isContract":           true,
 			}
@@ -1731,7 +1737,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 			var request any = map[string]any{
 				"amount":           amount,
 				"expireTime":       expireTime,
-				"clientWithdrawId": clientOrderId,
+				"clientWithdrawId": finalClientOrderId,
 				"signature":        signature,
 				"token":            code,
 				"ethAddress":       ethAddress,
@@ -1741,11 +1747,12 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 			PanicOnError(response)
 			var data any = this.SafeDict(response, "data", map[string]any{})
 			var currentTime any = this.Milliseconds()
+			var parsedAmount any = this.ParseNumber(amount)
 
 			ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 				"timestamp":   currentTime,
 				"datetime":    this.Iso8601(currentTime),
-				"amount":      this.ParseNumber(amount),
+				"amount":      parsedAmount,
 				"fromAccount": "contract",
 				"toAccount":   "spot",
 			})
@@ -1759,16 +1766,18 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 				"tokenId":              tokenId,
 				"amount":               ToString(amountNumber),
 				"fee":                  "0",
-				"nonce":                nonce,
+				"nonce":                finalNonce,
 				"timestampSeconds":     timestampSeconds,
 			}
 
 			signature := (<-this.GetZKTransferSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
 			PanicOnError(signature)
+			var amountStr any = ToString(amount)
+			var ts any = timestampSeconds // java req
 			var request any = map[string]any{
-				"amount":               ToString(amount),
-				"timestamp":            timestampSeconds,
-				"clientTransferId":     clientOrderId,
+				"amount":               amountStr,
+				"timestamp":            ts,
+				"clientTransferId":     finalClientOrderId,
 				"signature":            signature,
 				"zkAccountId":          zkAccountId,
 				"subAccountId":         subAccountId,
@@ -1779,7 +1788,7 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 				"receiverZkAccountId":  receiverZkAccountId,
 				"receiverSubAccountId": receiverSubAccountId,
 				"receiverAddress":      receiverAddress,
-				"nonce":                nonce,
+				"nonce":                finalNonce,
 			}
 
 			response := (<-this.PrivatePostV3TransferOut(this.Extend(request, params)))
@@ -1839,8 +1848,8 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15878 := (<-this.LoadMarkets())
-		PanicOnError(retRes15878)
+		retRes15968 := (<-this.LoadMarkets())
+		PanicOnError(retRes15968)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1865,7 +1874,7 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @description cancels an open order
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
  * @param {string} id order id
- * @param symbol
+ * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1924,8 +1933,8 @@ func (this *ApexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16388 := (<-this.LoadMarkets())
-		PanicOnError(retRes16388)
+		retRes16478 := (<-this.LoadMarkets())
+		PanicOnError(retRes16478)
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
 		var response any = nil
@@ -1975,8 +1984,8 @@ func (this *ApexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16668 := (<-this.LoadMarkets())
-		PanicOnError(retRes16668)
+		retRes16758 := (<-this.LoadMarkets())
+		PanicOnError(retRes16758)
 
 		response := (<-this.PrivateGetV3OpenOrders(params))
 		PanicOnError(response)
@@ -2020,8 +2029,8 @@ func (this *ApexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes16908 := (<-this.LoadMarkets())
-		PanicOnError(retRes16908)
+		retRes16998 := (<-this.LoadMarkets())
+		PanicOnError(retRes16998)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2078,8 +2087,8 @@ func (this *ApexCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17278 := (<-this.LoadMarkets())
-		PanicOnError(retRes17278)
+		retRes17368 := (<-this.LoadMarkets())
+		PanicOnError(retRes17368)
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -2130,8 +2139,8 @@ func (this *ApexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17588 := (<-this.LoadMarkets())
-		PanicOnError(retRes17588)
+		retRes17678 := (<-this.LoadMarkets())
+		PanicOnError(retRes17678)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2190,8 +2199,8 @@ func (this *ApexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17978 := (<-this.LoadMarkets())
-		PanicOnError(retRes17978)
+		retRes18068 := (<-this.LoadMarkets())
+		PanicOnError(retRes18068)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2277,8 +2286,8 @@ func (this *ApexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes18668 := (<-this.LoadMarkets())
-		PanicOnError(retRes18668)
+		retRes18758 := (<-this.LoadMarkets())
+		PanicOnError(retRes18758)
 		var market any = this.Market(symbol)
 		var leverageString any = this.NumberToString(leverage)
 		var initialMarginRate any = Precise.StringDiv("1", leverageString, 4)
@@ -2317,8 +2326,8 @@ func (this *ApexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18898 := (<-this.LoadMarkets())
-		PanicOnError(retRes18898)
+		retRes18988 := (<-this.LoadMarkets())
+		PanicOnError(retRes18988)
 
 		response := (<-this.PrivateGetV3Account(params))
 		PanicOnError(response)

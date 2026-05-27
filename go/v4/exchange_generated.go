@@ -2029,7 +2029,7 @@ func (this *Exchange) FeaturesGenerator() {
 			AddElementToObject(this.Features, marketType, nil)
 		} else {
 			if IsTrue(IsEqual(marketType, "spot")) {
-				AddElementToObject(this.Features, marketType, this.FeaturesMapper(initialFeatures, marketType, nil))
+				AddElementToObject(this.Features, marketType, this.FeaturesMapper(initialFeatures, marketType))
 			} else {
 				AddElementToObject(this.Features, marketType, map[string]any{})
 				for j := 0; IsLessThan(j, GetArrayLength(subTypes)); j++ {
@@ -4275,7 +4275,7 @@ func (this *Exchange) ParsePositions(positions any, optionalArgs ...any) any {
 	positions = this.ToArray(positions)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-		var position any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positions, i), nil), params)
+		var position any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positions, i)), params)
 		AppendToArray(&result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4294,7 +4294,7 @@ func (this *Exchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 	ranks = this.ToArray(ranks)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ranks)); i++ {
-		var rank any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranks, i), nil), params)
+		var rank any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranks, i)), params)
 		AppendToArray(&result, rank)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)

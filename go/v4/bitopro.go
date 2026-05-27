@@ -1145,7 +1145,7 @@ func (this *BitoproCore) ParseOrderStatus(status any) any {
 		"4":  "canceled",
 		"6":  "canceled",
 	}
-	return this.SafeString(statuses, status, nil)
+	return this.SafeString(statuses, status)
 }
 func (this *BitoproCore) ParseOrder(order any, optionalArgs ...any) any {
 	//

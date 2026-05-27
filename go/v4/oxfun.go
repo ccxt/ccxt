@@ -2695,9 +2695,11 @@ func (this *OxfunCore) CreateOrder(symbol any, typeVar any, side any, amount any
 
 		retRes23048 := (<-this.LoadMarkets())
 		PanicOnError(retRes23048)
+		var responseType any = this.SafeString(params, "responseType", "FULL")
+		var timestamp any = this.SafeInteger(params, "timestamp", this.Milliseconds())
 		var request any = map[string]any{
-			"responseType": this.SafeString(params, "responseType", "FULL"),
-			"timestamp":    this.SafeInteger(params, "timestamp", this.Milliseconds()),
+			"responseType": responseType,
+			"timestamp":    timestamp,
 		}
 		params = this.Omit(params, []any{"responseType", "timestamp"})
 		var recvWindow any = this.SafeInteger(params, "recvWindow")
@@ -2856,8 +2858,8 @@ func (this *OxfunCore) CreateOrders(orders any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24528 := (<-this.LoadMarkets())
-		PanicOnError(retRes24528)
+		retRes24548 := (<-this.LoadMarkets())
+		PanicOnError(retRes24548)
 		var ordersRequests any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder any = GetValue(orders, i)
@@ -2974,8 +2976,8 @@ func (this *OxfunCore) CreateMarketBuyOrderWithCost(symbol any, cost any, option
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes25488 := (<-this.LoadMarkets())
-		PanicOnError(retRes25488)
+		retRes25508 := (<-this.LoadMarkets())
+		PanicOnError(retRes25508)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
@@ -2984,9 +2986,9 @@ func (this *OxfunCore) CreateMarketBuyOrderWithCost(symbol any, cost any, option
 			"cost": cost,
 		}
 
-		retRes255615 := (<-this.CreateOrder(symbol, "market", "buy", nil, nil, this.Extend(request, params)))
-		PanicOnError(retRes255615)
-		ch <- retRes255615
+		retRes255815 := (<-this.CreateOrder(symbol, "market", "buy", nil, nil, this.Extend(request, params)))
+		PanicOnError(retRes255815)
+		ch <- retRes255815
 		return nil
 
 	}()
@@ -3014,8 +3016,8 @@ func (this *OxfunCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25718 := (<-this.LoadMarkets())
-		PanicOnError(retRes25718)
+		retRes25738 := (<-this.LoadMarkets())
+		PanicOnError(retRes25738)
 		var request any = map[string]any{
 			"orderId": id,
 		}
@@ -3081,8 +3083,8 @@ func (this *OxfunCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26178 := (<-this.LoadMarkets())
-		PanicOnError(retRes26178)
+		retRes26198 := (<-this.LoadMarkets())
+		PanicOnError(retRes26198)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3227,8 +3229,8 @@ func (this *OxfunCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes27148 := (<-this.LoadMarkets())
-		PanicOnError(retRes27148)
+		retRes27168 := (<-this.LoadMarkets())
+		PanicOnError(retRes27168)
 		var market any = this.Market(symbol)
 		var marketId any = GetValue(market, "id")
 		var request any = map[string]any{
@@ -3500,7 +3502,7 @@ func (this *OxfunCore) HandleErrors(code any, reason any, url any, method any, h
 		return nil
 	}
 	if IsTrue(!IsEqual(code, 200)) {
-		var responseCode any = this.SafeString(response, "code", nil)
+		var responseCode any = this.SafeString(response, "code")
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), responseCode, feedback)

@@ -1450,7 +1450,7 @@ func (this *FoxbitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//     "remark": "A remarkable note for the order.",
 		//     "funds_received": "290.0"
 		// }
-		ch <- this.ParseOrder(response, nil)
+		ch <- this.ParseOrder(response)
 		return nil
 
 	}()
