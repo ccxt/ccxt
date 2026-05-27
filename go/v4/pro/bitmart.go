@@ -2357,6 +2357,16 @@ func  (this *BitmartCore) HandleErrorMessage(client any, message any) any  {
     //
     var errorCode any = this.SafeString(message, "errorCode")
     var error any = this.SafeString(message, "error")
+    // Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+    // a re-subscribe attempt on a topic that's already active on this
+    // connection, but the original subscription keeps delivering data —
+    // so treat it as benign. Without this short-circuit, the generic
+    // client.reject below kills every unrelated in-flight future —
+    // e.g. a watchOHLCV waiting on its kline subscription gets rejected
+    // by an orderbook 90008 raised on the same socket.
+    if ccxt.IsTrue(ccxt.IsEqual(errorCode, "90008")) {
+        return false
+    }
     
         {
             ret__ := func(this *BitmartCore) (ret_ any) {

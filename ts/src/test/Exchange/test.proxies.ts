@@ -7,6 +7,7 @@ async function testProxies (exchange: Exchange, skippedProperties: object) {
     await testHttpProxy (exchange, skippedProperties);
     // 'httpsProxy', 'socksProxy'
     await testProxyForExceptions (exchange, skippedProperties);
+    return true;
 }
 
 
@@ -36,6 +37,7 @@ async function testHttpProxy (exchange: Exchange, skippedProperties: object) {
     assert (response === proxyServerIp, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxyServerIp + '"');
     // reset the instance property
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 
 
@@ -83,6 +85,7 @@ async function testProxyForExceptions (exchange: Exchange, skippedProperties: ob
     }
     // reset the instance property
     testSharedMethods.setProxyOptions (exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 
 export default testProxies;

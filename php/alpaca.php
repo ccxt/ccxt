@@ -1151,7 +1151,7 @@ class alpaca extends Exchange {
         $this->load_markets();
         $response = $this->traderPrivateDeleteV2Orders ($params);
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            return $this->parse_orders($response, null);
+            return $this->parse_orders($response);
         } else {
             return array(
                 $this->safe_order(array(
@@ -1920,7 +1920,7 @@ class alpaca extends Exchange {
         if ($code !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
-        $message = $this->safe_value($response, 'message', null);
+        $message = $this->safe_value($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

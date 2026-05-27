@@ -423,7 +423,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "Fetch currencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api.backpack.exchange/api/v1/assets",
                 "input": [],

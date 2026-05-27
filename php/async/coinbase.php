@@ -1531,6 +1531,7 @@ class coinbase extends Exchange {
             //        has_promo_fee => false
             //    }
             //
+            $promises = Async\await(Promise\all($spotUnresolvedPromises));
             $unresolvedContractPromises = array();
             try {
                 $unresolvedContractPromises = array(
@@ -1540,7 +1541,6 @@ class coinbase extends Exchange {
             } catch (Exception $e) {
                 $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
             }
-            $promises = Async\await(Promise\all($spotUnresolvedPromises));
             $contractPromises = null;
             try {
                 $contractPromises = Async\await(Promise\all($unresolvedContractPromises)); // some users don't have access to contracts

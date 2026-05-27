@@ -6,7 +6,7 @@ var hyperliquid$1 = require('../hyperliquid.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class hyperliquid extends hyperliquid$1["default"] {
     describe() {
@@ -718,6 +718,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         //
         const entry = this.safeList(message, 'data', []);
+        const entryLength = entry.length;
+        if (entryLength === 0) {
+            return;
+        }
         const first = this.safeDict(entry, 0, {});
         const coin = this.safeString(first, 'coin');
         const marketId = this.coinToMarketId(coin);

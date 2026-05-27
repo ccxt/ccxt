@@ -7,294 +7,294 @@
 
 package ccxt
 
-func (this *AscendexCore) V1PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetAssets", args...)
+func (this *AscendexCore) V1PublicGetAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetAssets", args...)
 }
 
-func (this *AscendexCore) V1PublicGetProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetProducts", args...)
+func (this *AscendexCore) V1PublicGetProducts (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetProducts", args...)
 }
 
-func (this *AscendexCore) V1PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTicker", args...)
+func (this *AscendexCore) V1PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetTicker", args...)
 }
 
-func (this *AscendexCore) V1PublicGetBarhistInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetBarhistInfo", args...)
+func (this *AscendexCore) V1PublicGetBarhistInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetBarhistInfo", args...)
 }
 
-func (this *AscendexCore) V1PublicGetBarhist(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetBarhist", args...)
+func (this *AscendexCore) V1PublicGetBarhist (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetBarhist", args...)
 }
 
-func (this *AscendexCore) V1PublicGetDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetDepth", args...)
+func (this *AscendexCore) V1PublicGetDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetDepth", args...)
 }
 
-func (this *AscendexCore) V1PublicGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTrades", args...)
+func (this *AscendexCore) V1PublicGetTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetTrades", args...)
 }
 
-func (this *AscendexCore) V1PublicGetCashAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetCashAssets", args...)
+func (this *AscendexCore) V1PublicGetCashAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetCashAssets", args...)
 }
 
-func (this *AscendexCore) V1PublicGetCashProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetCashProducts", args...)
+func (this *AscendexCore) V1PublicGetCashProducts (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetCashProducts", args...)
 }
 
-func (this *AscendexCore) V1PublicGetMarginAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetMarginAssets", args...)
+func (this *AscendexCore) V1PublicGetMarginAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetMarginAssets", args...)
 }
 
-func (this *AscendexCore) V1PublicGetMarginProducts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetMarginProducts", args...)
+func (this *AscendexCore) V1PublicGetMarginProducts (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetMarginProducts", args...)
 }
 
-func (this *AscendexCore) V1PublicGetFuturesCollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFuturesCollateral", args...)
+func (this *AscendexCore) V1PublicGetFuturesCollateral (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFuturesCollateral", args...)
 }
 
-func (this *AscendexCore) V1PublicGetFuturesContracts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFuturesContracts", args...)
+func (this *AscendexCore) V1PublicGetFuturesContracts (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFuturesContracts", args...)
 }
 
-func (this *AscendexCore) V1PublicGetFuturesRefPx(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFuturesRefPx", args...)
+func (this *AscendexCore) V1PublicGetFuturesRefPx (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFuturesRefPx", args...)
 }
 
-func (this *AscendexCore) V1PublicGetFuturesMarketData(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFuturesMarketData", args...)
+func (this *AscendexCore) V1PublicGetFuturesMarketData (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFuturesMarketData", args...)
 }
 
-func (this *AscendexCore) V1PublicGetFuturesFundingRates(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetFuturesFundingRates", args...)
+func (this *AscendexCore) V1PublicGetFuturesFundingRates (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetFuturesFundingRates", args...)
 }
 
-func (this *AscendexCore) V1PublicGetRiskLimitInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetRiskLimitInfo", args...)
+func (this *AscendexCore) V1PublicGetRiskLimitInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetRiskLimitInfo", args...)
 }
 
-func (this *AscendexCore) V1PublicGetExchangeInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetExchangeInfo", args...)
+func (this *AscendexCore) V1PublicGetExchangeInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetExchangeInfo", args...)
 }
 
-func (this *AscendexCore) V1PrivateGetInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetInfo", args...)
+func (this *AscendexCore) V1PrivateGetInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetInfo", args...)
 }
 
-func (this *AscendexCore) V1PrivateGetWalletTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetWalletTransactions", args...)
+func (this *AscendexCore) V1PrivateGetWalletTransactions (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetWalletTransactions", args...)
 }
 
-func (this *AscendexCore) V1PrivateGetWalletDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetWalletDepositAddress", args...)
+func (this *AscendexCore) V1PrivateGetWalletDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetWalletDepositAddress", args...)
 }
 
-func (this *AscendexCore) V1PrivateGetDataBalanceSnapshot(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetDataBalanceSnapshot", args...)
+func (this *AscendexCore) V1PrivateGetDataBalanceSnapshot (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetDataBalanceSnapshot", args...)
 }
 
-func (this *AscendexCore) V1PrivateGetDataBalanceHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateGetDataBalanceHistory", args...)
+func (this *AscendexCore) V1PrivateGetDataBalanceHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateGetDataBalanceHistory", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryGetBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryGetBalance", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryGetBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryGetBalance", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryGetOrderOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryGetOrderOpen", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryGetOrderOpen (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryGetOrderOpen", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryGetOrderStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryGetOrderStatus", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryGetOrderStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryGetOrderStatus", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryGetOrderHistCurrent(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryGetOrderHistCurrent", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryGetOrderHistCurrent (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryGetOrderHistCurrent", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryGetRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryGetRisk", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryGetRisk (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryGetRisk", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryPostOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryPostOrder", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryPostOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryPostOrder", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryPostOrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryPostOrderBatch", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryPostOrderBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryPostOrderBatch", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryDeleteOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryDeleteOrder", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryDeleteOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryDeleteOrder", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryDeleteOrderAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryDeleteOrderAll", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryDeleteOrderAll (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryDeleteOrderAll", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountCategoryDeleteOrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountCategoryDeleteOrderBatch", args...)
+func (this *AscendexCore) V1PrivateAccountCategoryDeleteOrderBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountCategoryDeleteOrderBatch", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetCashBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetCashBalance", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetCashBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetCashBalance", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetMarginBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetMarginBalance", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetMarginBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetMarginBalance", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetMarginRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetMarginRisk", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetMarginRisk (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetMarginRisk", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetFuturesCollateralBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesCollateralBalance", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetFuturesCollateralBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesCollateralBalance", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetFuturesPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesPosition", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetFuturesPosition (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesPosition", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetFuturesRisk(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesRisk", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetFuturesRisk (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesRisk", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetFuturesFundingPayments(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesFundingPayments", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetFuturesFundingPayments (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetFuturesFundingPayments", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetOrderHist(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetOrderHist", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetOrderHist (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetOrderHist", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupGetSpotFee(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupGetSpotFee", args...)
+func (this *AscendexCore) V1PrivateAccountGroupGetSpotFee (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupGetSpotFee", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupPostTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupPostTransfer", args...)
+func (this *AscendexCore) V1PrivateAccountGroupPostTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupPostTransfer", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupPostFuturesTransferDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupPostFuturesTransferDeposit", args...)
+func (this *AscendexCore) V1PrivateAccountGroupPostFuturesTransferDeposit (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupPostFuturesTransferDeposit", args...)
 }
 
-func (this *AscendexCore) V1PrivateAccountGroupPostFuturesTransferWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivateAccountGroupPostFuturesTransferWithdraw", args...)
+func (this *AscendexCore) V1PrivateAccountGroupPostFuturesTransferWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivateAccountGroupPostFuturesTransferWithdraw", args...)
 }
 
-func (this *AscendexCore) V2PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetAssets", args...)
+func (this *AscendexCore) V2PublicGetAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetAssets", args...)
 }
 
-func (this *AscendexCore) V2PublicGetFuturesContract(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetFuturesContract", args...)
+func (this *AscendexCore) V2PublicGetFuturesContract (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetFuturesContract", args...)
 }
 
-func (this *AscendexCore) V2PublicGetFuturesCollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetFuturesCollateral", args...)
+func (this *AscendexCore) V2PublicGetFuturesCollateral (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetFuturesCollateral", args...)
 }
 
-func (this *AscendexCore) V2PublicGetFuturesPricingData(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetFuturesPricingData", args...)
+func (this *AscendexCore) V2PublicGetFuturesPricingData (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetFuturesPricingData", args...)
 }
 
-func (this *AscendexCore) V2PublicGetFuturesTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetFuturesTicker", args...)
+func (this *AscendexCore) V2PublicGetFuturesTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetFuturesTicker", args...)
 }
 
-func (this *AscendexCore) V2PublicGetRiskLimitInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetRiskLimitInfo", args...)
+func (this *AscendexCore) V2PublicGetRiskLimitInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetRiskLimitInfo", args...)
 }
 
-func (this *AscendexCore) V2PrivateDataGetOrderHist(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateDataGetOrderHist", args...)
+func (this *AscendexCore) V2PrivateDataGetOrderHist (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateDataGetOrderHist", args...)
 }
 
-func (this *AscendexCore) V2PrivateGetAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateGetAccountInfo", args...)
+func (this *AscendexCore) V2PrivateGetAccountInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateGetAccountInfo", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetOrderHist(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetOrderHist", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetOrderHist (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetOrderHist", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetFuturesPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesPosition", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetFuturesPosition (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesPosition", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetFuturesFreeMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesFreeMargin", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetFuturesFreeMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesFreeMargin", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetFuturesOrderHistCurrent(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesOrderHistCurrent", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetFuturesOrderHistCurrent (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesOrderHistCurrent", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetFuturesFundingPayments(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesFundingPayments", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetFuturesFundingPayments (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesFundingPayments", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetFuturesOrderOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesOrderOpen", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetFuturesOrderOpen (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesOrderOpen", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupGetFuturesOrderStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesOrderStatus", args...)
+func (this *AscendexCore) V2PrivateAccountGroupGetFuturesOrderStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupGetFuturesOrderStatus", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesIsolatedPositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesIsolatedPositionMargin", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesIsolatedPositionMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesIsolatedPositionMargin", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesMarginType(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesMarginType", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesMarginType (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesMarginType", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesLeverage", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesLeverage", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesTransferDeposit(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesTransferDeposit", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesTransferDeposit (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesTransferDeposit", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesTransferWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesTransferWithdraw", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesTransferWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesTransferWithdraw", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesOrder", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesOrder", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesOrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesOrderBatch", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesOrderBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesOrderBatch", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostFuturesOrderOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesOrderOpen", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostFuturesOrderOpen (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostFuturesOrderOpen", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostSubuserSubuserTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostSubuserSubuserTransfer", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostSubuserSubuserTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostSubuserSubuserTransfer", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupPostSubuserSubuserTransferHist(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupPostSubuserSubuserTransferHist", args...)
+func (this *AscendexCore) V2PrivateAccountGroupPostSubuserSubuserTransferHist (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupPostSubuserSubuserTransferHist", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupDeleteFuturesOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupDeleteFuturesOrder", args...)
+func (this *AscendexCore) V2PrivateAccountGroupDeleteFuturesOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupDeleteFuturesOrder", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupDeleteFuturesOrderBatch(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupDeleteFuturesOrderBatch", args...)
+func (this *AscendexCore) V2PrivateAccountGroupDeleteFuturesOrderBatch (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupDeleteFuturesOrderBatch", args...)
 }
 
-func (this *AscendexCore) V2PrivateAccountGroupDeleteFuturesOrderAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivateAccountGroupDeleteFuturesOrderAll", args...)
+func (this *AscendexCore) V2PrivateAccountGroupDeleteFuturesOrderAll (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PrivateAccountGroupDeleteFuturesOrderAll", args...)
 }

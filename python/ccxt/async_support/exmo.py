@@ -397,8 +397,7 @@ class exmo(Exchange, ImplicitAPI):
         params = self.omit(params, 'method')
         if method == 'fetchPrivateTradingFees':
             return await self.fetch_private_trading_fees(params)
-        else:
-            return await self.fetch_public_trading_fees(params)
+        return await self.fetch_public_trading_fees(params)
 
     async def fetch_private_trading_fees(self, params={}):
         await self.load_markets()
@@ -1112,7 +1111,8 @@ class exmo(Exchange, ImplicitAPI):
         await self.load_markets()
         ids = None
         if symbols is None:
-            ids = ','.join(self.ids)
+            allIds = self.ids
+            ids = ','.join(allIds)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
@@ -2065,40 +2065,15 @@ class exmo(Exchange, ImplicitAPI):
                 'status': 'canceled',
             })
             return self.parse_orders(response, market, since, limit, params)
-        else:
-            responseSwap = await self.privatePostMarginUserOrderHistory(self.extend(request, params))
-            #
-            #    {
-            #        "items": [
-            #            {
-            #                "event_id": "692862104574106858",
-            #                "event_time": "1694116400173489405",
-            #                "event_type": "OrderCancelStarted",
-            #                "order_id": "692862104561289319",
-            #                "order_type": "stop_limit_sell",
-            #                "order_status": "cancel_started",
-            #                "trade_id": "0",
-            #                "trade_type":"",
-            #                "trade_quantity": "0",
-            #                "trade_price": "0",
-            #                "pair": "ADA_USDT",
-            #                "quantity": "12",
-            #                "price": "0.23",
-            #                "stop_price": "0.22",
-            #                "distance": "0"
-            #            }
-            #            ...
-            #        ]
-            #    }
-            #
-            items = self.safe_value(responseSwap, 'items')
-            orders = self.parse_orders(items, market, since, limit, params)
-            result = []
-            for i in range(0, len(orders)):
-                order = orders[i]
-                if order['status'] == 'canceled':
-                    result.append(order)
-            return result
+        responseSwap = await self.privatePostMarginUserOrderHistory(self.extend(request, params))
+        items = self.safe_value(responseSwap, 'items')
+        orders = self.parse_orders(items, market, since, limit, params)
+        result = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            if order['status'] == 'canceled':
+                result.append(order)
+        return result
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """

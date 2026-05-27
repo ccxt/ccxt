@@ -6,7 +6,7 @@ var xt$1 = require('../xt.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class xt extends xt$1["default"] {
     describe() {
@@ -603,7 +603,7 @@ class xt extends xt$1["default"] {
         }
     }
     async loadPositionsSnapshot(client, messageHash) {
-        const positions = await this.fetchPositions(undefined);
+        const positions = await this.fetchPositions();
         this.positions = new Cache.ArrayCacheBySymbolBySide();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {

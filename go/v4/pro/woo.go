@@ -1340,7 +1340,7 @@ func  (this *WooCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //         "orderTag": "default",
     //         "totalFee": 0,
     //         "visible": 0.01,
-    //         "timestamp": 1657515556799,
+    //         "timestamp": 1657515556798,
     //         "reduceOnly": false,
     //         "maker": false
     //     }
@@ -1569,10 +1569,10 @@ func  (this *WooCore) HandleMyTrade(client any, message any)  {
  * @name woo#watchPositions
  * @see https://docs.woox.io/#position-push
  * @description watch all open positions
- * @param {string[]|undefined} symbols list of unified market symbols
- * @param since
- * @param limit
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func  (this *WooCore) WatchPositions(optionalArgs ...any) <- chan any {
@@ -1994,10 +1994,22 @@ func  (this *WooCore) Ping(client any) any  {
         "event": "ping",
     }
 }
-func  (this *WooCore) HandlePing(client any, message any) any  {
-    return map[string]any {
-        "event": "pong",
-    }
+func  (this *WooCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                
+            retRes15858 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                "event": "pong",
+            }))
+            ccxt.PanicOnError(retRes15858)
+                return nil
+            }()
+            return ch
+        }
+func  (this *WooCore) HandlePing(client any, message any)  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *WooCore) HandlePong(client any, message any) any  {
     //

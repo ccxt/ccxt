@@ -7,490 +7,490 @@
 
 package ccxt
 
-func (this *DeribitCore) PublicGetAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetAuth", args...)
+func (this *DeribitCore) PublicGetAuth (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetAuth", args...)
 }
 
-func (this *DeribitCore) PublicGetExchangeToken(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetExchangeToken", args...)
+func (this *DeribitCore) PublicGetExchangeToken (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetExchangeToken", args...)
 }
 
-func (this *DeribitCore) PublicGetForkToken(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetForkToken", args...)
+func (this *DeribitCore) PublicGetForkToken (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetForkToken", args...)
 }
 
-func (this *DeribitCore) PublicGetSetHeartbeat(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSetHeartbeat", args...)
+func (this *DeribitCore) PublicGetSetHeartbeat (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSetHeartbeat", args...)
 }
 
-func (this *DeribitCore) PublicGetDisableHeartbeat(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDisableHeartbeat", args...)
+func (this *DeribitCore) PublicGetDisableHeartbeat (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDisableHeartbeat", args...)
 }
 
-func (this *DeribitCore) PublicGetGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetTime", args...)
+func (this *DeribitCore) PublicGetGetTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetTime", args...)
 }
 
-func (this *DeribitCore) PublicGetHello(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetHello", args...)
+func (this *DeribitCore) PublicGetHello (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetHello", args...)
 }
 
-func (this *DeribitCore) PublicGetStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetStatus", args...)
+func (this *DeribitCore) PublicGetStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetStatus", args...)
 }
 
-func (this *DeribitCore) PublicGetTest(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTest", args...)
+func (this *DeribitCore) PublicGetTest (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTest", args...)
 }
 
-func (this *DeribitCore) PublicGetSubscribe(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetSubscribe", args...)
+func (this *DeribitCore) PublicGetSubscribe (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetSubscribe", args...)
 }
 
-func (this *DeribitCore) PublicGetUnsubscribe(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribe", args...)
+func (this *DeribitCore) PublicGetUnsubscribe (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetUnsubscribe", args...)
 }
 
-func (this *DeribitCore) PublicGetUnsubscribeAll(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetUnsubscribeAll", args...)
+func (this *DeribitCore) PublicGetUnsubscribeAll (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetUnsubscribeAll", args...)
 }
 
-func (this *DeribitCore) PublicGetGetAnnouncements(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetAnnouncements", args...)
+func (this *DeribitCore) PublicGetGetAnnouncements (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetAnnouncements", args...)
 }
 
-func (this *DeribitCore) PublicGetGetBookSummaryByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetBookSummaryByCurrency", args...)
+func (this *DeribitCore) PublicGetGetBookSummaryByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetBookSummaryByCurrency", args...)
 }
 
-func (this *DeribitCore) PublicGetGetBookSummaryByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetBookSummaryByInstrument", args...)
+func (this *DeribitCore) PublicGetGetBookSummaryByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetBookSummaryByInstrument", args...)
 }
 
-func (this *DeribitCore) PublicGetGetContractSize(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetContractSize", args...)
+func (this *DeribitCore) PublicGetGetContractSize (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetContractSize", args...)
 }
 
-func (this *DeribitCore) PublicGetGetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetCurrencies", args...)
+func (this *DeribitCore) PublicGetGetCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetCurrencies", args...)
 }
 
-func (this *DeribitCore) PublicGetGetDeliveryPrices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetDeliveryPrices", args...)
+func (this *DeribitCore) PublicGetGetDeliveryPrices (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetDeliveryPrices", args...)
 }
 
-func (this *DeribitCore) PublicGetGetFundingChartData(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetFundingChartData", args...)
+func (this *DeribitCore) PublicGetGetFundingChartData (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetFundingChartData", args...)
 }
 
-func (this *DeribitCore) PublicGetGetFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetFundingRateHistory", args...)
+func (this *DeribitCore) PublicGetGetFundingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetFundingRateHistory", args...)
 }
 
-func (this *DeribitCore) PublicGetGetFundingRateValue(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetFundingRateValue", args...)
+func (this *DeribitCore) PublicGetGetFundingRateValue (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetFundingRateValue", args...)
 }
 
-func (this *DeribitCore) PublicGetGetHistoricalVolatility(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetHistoricalVolatility", args...)
+func (this *DeribitCore) PublicGetGetHistoricalVolatility (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetHistoricalVolatility", args...)
 }
 
-func (this *DeribitCore) PublicGetGetIndex(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetIndex", args...)
+func (this *DeribitCore) PublicGetGetIndex (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetIndex", args...)
 }
 
-func (this *DeribitCore) PublicGetGetIndexPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetIndexPrice", args...)
+func (this *DeribitCore) PublicGetGetIndexPrice (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetIndexPrice", args...)
 }
 
-func (this *DeribitCore) PublicGetGetIndexPriceNames(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetIndexPriceNames", args...)
+func (this *DeribitCore) PublicGetGetIndexPriceNames (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetIndexPriceNames", args...)
 }
 
-func (this *DeribitCore) PublicGetGetInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetInstrument", args...)
+func (this *DeribitCore) PublicGetGetInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetInstrument", args...)
 }
 
-func (this *DeribitCore) PublicGetGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetInstruments", args...)
+func (this *DeribitCore) PublicGetGetInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetInstruments", args...)
 }
 
-func (this *DeribitCore) PublicGetGetLastSettlementsByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastSettlementsByCurrency", args...)
+func (this *DeribitCore) PublicGetGetLastSettlementsByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetLastSettlementsByCurrency", args...)
 }
 
-func (this *DeribitCore) PublicGetGetLastSettlementsByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastSettlementsByInstrument", args...)
+func (this *DeribitCore) PublicGetGetLastSettlementsByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetLastSettlementsByInstrument", args...)
 }
 
-func (this *DeribitCore) PublicGetGetLastTradesByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastTradesByCurrency", args...)
+func (this *DeribitCore) PublicGetGetLastTradesByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetLastTradesByCurrency", args...)
 }
 
-func (this *DeribitCore) PublicGetGetLastTradesByCurrencyAndTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastTradesByCurrencyAndTime", args...)
+func (this *DeribitCore) PublicGetGetLastTradesByCurrencyAndTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetLastTradesByCurrencyAndTime", args...)
 }
 
-func (this *DeribitCore) PublicGetGetLastTradesByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastTradesByInstrument", args...)
+func (this *DeribitCore) PublicGetGetLastTradesByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetLastTradesByInstrument", args...)
 }
 
-func (this *DeribitCore) PublicGetGetLastTradesByInstrumentAndTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetLastTradesByInstrumentAndTime", args...)
+func (this *DeribitCore) PublicGetGetLastTradesByInstrumentAndTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetLastTradesByInstrumentAndTime", args...)
 }
 
-func (this *DeribitCore) PublicGetGetMarkPriceHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetMarkPriceHistory", args...)
+func (this *DeribitCore) PublicGetGetMarkPriceHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetMarkPriceHistory", args...)
 }
 
-func (this *DeribitCore) PublicGetGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetOrderBook", args...)
+func (this *DeribitCore) PublicGetGetOrderBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetOrderBook", args...)
 }
 
-func (this *DeribitCore) PublicGetGetTradeVolumes(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetTradeVolumes", args...)
+func (this *DeribitCore) PublicGetGetTradeVolumes (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetTradeVolumes", args...)
 }
 
-func (this *DeribitCore) PublicGetGetTradingviewChartData(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetTradingviewChartData", args...)
+func (this *DeribitCore) PublicGetGetTradingviewChartData (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetTradingviewChartData", args...)
 }
 
-func (this *DeribitCore) PublicGetGetVolatilityIndexData(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetGetVolatilityIndexData", args...)
+func (this *DeribitCore) PublicGetGetVolatilityIndexData (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetGetVolatilityIndexData", args...)
 }
 
-func (this *DeribitCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *DeribitCore) PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *DeribitCore) PrivateGetLogout(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetLogout", args...)
+func (this *DeribitCore) PrivateGetLogout (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetLogout", args...)
 }
 
-func (this *DeribitCore) PrivateGetEnableCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetEnableCancelOnDisconnect", args...)
+func (this *DeribitCore) PrivateGetEnableCancelOnDisconnect (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetEnableCancelOnDisconnect", args...)
 }
 
-func (this *DeribitCore) PrivateGetDisableCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDisableCancelOnDisconnect", args...)
+func (this *DeribitCore) PrivateGetDisableCancelOnDisconnect (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDisableCancelOnDisconnect", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetCancelOnDisconnect", args...)
+func (this *DeribitCore) PrivateGetGetCancelOnDisconnect (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetCancelOnDisconnect", args...)
 }
 
-func (this *DeribitCore) PrivateGetSubscribe(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubscribe", args...)
+func (this *DeribitCore) PrivateGetSubscribe (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSubscribe", args...)
 }
 
-func (this *DeribitCore) PrivateGetUnsubscribe(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUnsubscribe", args...)
+func (this *DeribitCore) PrivateGetUnsubscribe (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUnsubscribe", args...)
 }
 
-func (this *DeribitCore) PrivateGetUnsubscribeAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetUnsubscribeAll", args...)
+func (this *DeribitCore) PrivateGetUnsubscribeAll (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetUnsubscribeAll", args...)
 }
 
-func (this *DeribitCore) PrivateGetChangeApiKeyName(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetChangeApiKeyName", args...)
+func (this *DeribitCore) PrivateGetChangeApiKeyName (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetChangeApiKeyName", args...)
 }
 
-func (this *DeribitCore) PrivateGetChangeScopeInApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetChangeScopeInApiKey", args...)
+func (this *DeribitCore) PrivateGetChangeScopeInApiKey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetChangeScopeInApiKey", args...)
 }
 
-func (this *DeribitCore) PrivateGetChangeSubaccountName(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetChangeSubaccountName", args...)
+func (this *DeribitCore) PrivateGetChangeSubaccountName (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetChangeSubaccountName", args...)
 }
 
-func (this *DeribitCore) PrivateGetCreateApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCreateApiKey", args...)
+func (this *DeribitCore) PrivateGetCreateApiKey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCreateApiKey", args...)
 }
 
-func (this *DeribitCore) PrivateGetCreateSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCreateSubaccount", args...)
+func (this *DeribitCore) PrivateGetCreateSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCreateSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetDisableApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDisableApiKey", args...)
+func (this *DeribitCore) PrivateGetDisableApiKey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDisableApiKey", args...)
 }
 
-func (this *DeribitCore) PrivateGetDisableTfaForSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetDisableTfaForSubaccount", args...)
+func (this *DeribitCore) PrivateGetDisableTfaForSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetDisableTfaForSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetEnableAffiliateProgram(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetEnableAffiliateProgram", args...)
+func (this *DeribitCore) PrivateGetEnableAffiliateProgram (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetEnableAffiliateProgram", args...)
 }
 
-func (this *DeribitCore) PrivateGetEnableApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetEnableApiKey", args...)
+func (this *DeribitCore) PrivateGetEnableApiKey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetEnableApiKey", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetAccessLog(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccessLog", args...)
+func (this *DeribitCore) PrivateGetGetAccessLog (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetAccessLog", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetAccountSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountSummary", args...)
+func (this *DeribitCore) PrivateGetGetAccountSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetAccountSummary", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetAccountSummaries(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAccountSummaries", args...)
+func (this *DeribitCore) PrivateGetGetAccountSummaries (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetAccountSummaries", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetAffiliateProgramInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetAffiliateProgramInfo", args...)
+func (this *DeribitCore) PrivateGetGetAffiliateProgramInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetAffiliateProgramInfo", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetEmailLanguage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetEmailLanguage", args...)
+func (this *DeribitCore) PrivateGetGetEmailLanguage (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetEmailLanguage", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetNewAnnouncements(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetNewAnnouncements", args...)
+func (this *DeribitCore) PrivateGetGetNewAnnouncements (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetNewAnnouncements", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetPortfolioMargins(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetPortfolioMargins", args...)
+func (this *DeribitCore) PrivateGetGetPortfolioMargins (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetPortfolioMargins", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetPosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetPosition", args...)
+func (this *DeribitCore) PrivateGetGetPosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetPosition", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetPositions", args...)
+func (this *DeribitCore) PrivateGetGetPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetPositions", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetSubaccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetSubaccounts", args...)
+func (this *DeribitCore) PrivateGetGetSubaccounts (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetSubaccounts", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetSubaccountsDetails(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetSubaccountsDetails", args...)
+func (this *DeribitCore) PrivateGetGetSubaccountsDetails (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetSubaccountsDetails", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetTransactionLog(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetTransactionLog", args...)
+func (this *DeribitCore) PrivateGetGetTransactionLog (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetTransactionLog", args...)
 }
 
-func (this *DeribitCore) PrivateGetListApiKeys(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetListApiKeys", args...)
+func (this *DeribitCore) PrivateGetListApiKeys (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetListApiKeys", args...)
 }
 
-func (this *DeribitCore) PrivateGetRemoveApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRemoveApiKey", args...)
+func (this *DeribitCore) PrivateGetRemoveApiKey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRemoveApiKey", args...)
 }
 
-func (this *DeribitCore) PrivateGetRemoveSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetRemoveSubaccount", args...)
+func (this *DeribitCore) PrivateGetRemoveSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetRemoveSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetResetApiKey(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetResetApiKey", args...)
+func (this *DeribitCore) PrivateGetResetApiKey (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetResetApiKey", args...)
 }
 
-func (this *DeribitCore) PrivateGetSetAnnouncementAsRead(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSetAnnouncementAsRead", args...)
+func (this *DeribitCore) PrivateGetSetAnnouncementAsRead (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSetAnnouncementAsRead", args...)
 }
 
-func (this *DeribitCore) PrivateGetSetApiKeyAsDefault(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSetApiKeyAsDefault", args...)
+func (this *DeribitCore) PrivateGetSetApiKeyAsDefault (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSetApiKeyAsDefault", args...)
 }
 
-func (this *DeribitCore) PrivateGetSetEmailForSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSetEmailForSubaccount", args...)
+func (this *DeribitCore) PrivateGetSetEmailForSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSetEmailForSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetSetEmailLanguage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSetEmailLanguage", args...)
+func (this *DeribitCore) PrivateGetSetEmailLanguage (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSetEmailLanguage", args...)
 }
 
-func (this *DeribitCore) PrivateGetSetPasswordForSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSetPasswordForSubaccount", args...)
+func (this *DeribitCore) PrivateGetSetPasswordForSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSetPasswordForSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetToggleNotificationsFromSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetToggleNotificationsFromSubaccount", args...)
+func (this *DeribitCore) PrivateGetToggleNotificationsFromSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetToggleNotificationsFromSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetToggleSubaccountLogin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetToggleSubaccountLogin", args...)
+func (this *DeribitCore) PrivateGetToggleSubaccountLogin (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetToggleSubaccountLogin", args...)
 }
 
-func (this *DeribitCore) PrivateGetExecuteBlockTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetExecuteBlockTrade", args...)
+func (this *DeribitCore) PrivateGetExecuteBlockTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetExecuteBlockTrade", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetBlockTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetBlockTrade", args...)
+func (this *DeribitCore) PrivateGetGetBlockTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetBlockTrade", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetLastBlockTradesByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetLastBlockTradesByCurrency", args...)
+func (this *DeribitCore) PrivateGetGetLastBlockTradesByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetLastBlockTradesByCurrency", args...)
 }
 
-func (this *DeribitCore) PrivateGetInvalidateBlockTradeSignature(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetInvalidateBlockTradeSignature", args...)
+func (this *DeribitCore) PrivateGetInvalidateBlockTradeSignature (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetInvalidateBlockTradeSignature", args...)
 }
 
-func (this *DeribitCore) PrivateGetVerifyBlockTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetVerifyBlockTrade", args...)
+func (this *DeribitCore) PrivateGetVerifyBlockTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetVerifyBlockTrade", args...)
 }
 
-func (this *DeribitCore) PrivateGetBuy(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetBuy", args...)
+func (this *DeribitCore) PrivateGetBuy (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetBuy", args...)
 }
 
-func (this *DeribitCore) PrivateGetSell(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSell", args...)
+func (this *DeribitCore) PrivateGetSell (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSell", args...)
 }
 
-func (this *DeribitCore) PrivateGetEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetEdit", args...)
+func (this *DeribitCore) PrivateGetEdit (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetEdit", args...)
 }
 
-func (this *DeribitCore) PrivateGetEditByLabel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetEditByLabel", args...)
+func (this *DeribitCore) PrivateGetEditByLabel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetEditByLabel", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancel", args...)
+func (this *DeribitCore) PrivateGetCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancel", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancelAll", args...)
+func (this *DeribitCore) PrivateGetCancelAll (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancelAll", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancelAllByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancelAllByCurrency", args...)
+func (this *DeribitCore) PrivateGetCancelAllByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancelAllByCurrency", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancelAllByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancelAllByInstrument", args...)
+func (this *DeribitCore) PrivateGetCancelAllByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancelAllByInstrument", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancelByLabel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancelByLabel", args...)
+func (this *DeribitCore) PrivateGetCancelByLabel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancelByLabel", args...)
 }
 
-func (this *DeribitCore) PrivateGetClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetClosePosition", args...)
+func (this *DeribitCore) PrivateGetClosePosition (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetClosePosition", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetMargins(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetMargins", args...)
+func (this *DeribitCore) PrivateGetGetMargins (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetMargins", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetMmpConfig", args...)
+func (this *DeribitCore) PrivateGetGetMmpConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetMmpConfig", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetOpenOrdersByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOpenOrdersByCurrency", args...)
+func (this *DeribitCore) PrivateGetGetOpenOrdersByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetOpenOrdersByCurrency", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetOpenOrdersByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOpenOrdersByInstrument", args...)
+func (this *DeribitCore) PrivateGetGetOpenOrdersByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetOpenOrdersByInstrument", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetOrderHistoryByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderHistoryByCurrency", args...)
+func (this *DeribitCore) PrivateGetGetOrderHistoryByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetOrderHistoryByCurrency", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetOrderHistoryByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderHistoryByInstrument", args...)
+func (this *DeribitCore) PrivateGetGetOrderHistoryByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetOrderHistoryByInstrument", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetOrderMarginByIds(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderMarginByIds", args...)
+func (this *DeribitCore) PrivateGetGetOrderMarginByIds (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetOrderMarginByIds", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetOrderState(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetOrderState", args...)
+func (this *DeribitCore) PrivateGetGetOrderState (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetOrderState", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetStopOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetStopOrderHistory", args...)
+func (this *DeribitCore) PrivateGetGetStopOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetStopOrderHistory", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetTriggerOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetTriggerOrderHistory", args...)
+func (this *DeribitCore) PrivateGetGetTriggerOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetTriggerOrderHistory", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetUserTradesByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserTradesByCurrency", args...)
+func (this *DeribitCore) PrivateGetGetUserTradesByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetUserTradesByCurrency", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetUserTradesByCurrencyAndTime(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserTradesByCurrencyAndTime", args...)
+func (this *DeribitCore) PrivateGetGetUserTradesByCurrencyAndTime (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetUserTradesByCurrencyAndTime", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetUserTradesByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserTradesByInstrument", args...)
+func (this *DeribitCore) PrivateGetGetUserTradesByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetUserTradesByInstrument", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetUserTradesByInstrumentAndTime(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserTradesByInstrumentAndTime", args...)
+func (this *DeribitCore) PrivateGetGetUserTradesByInstrumentAndTime (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetUserTradesByInstrumentAndTime", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetUserTradesByOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetUserTradesByOrder", args...)
+func (this *DeribitCore) PrivateGetGetUserTradesByOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetUserTradesByOrder", args...)
 }
 
-func (this *DeribitCore) PrivateGetResetMmp(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetResetMmp", args...)
+func (this *DeribitCore) PrivateGetResetMmp (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetResetMmp", args...)
 }
 
-func (this *DeribitCore) PrivateGetSetMmpConfig(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSetMmpConfig", args...)
+func (this *DeribitCore) PrivateGetSetMmpConfig (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSetMmpConfig", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetSettlementHistoryByInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetSettlementHistoryByInstrument", args...)
+func (this *DeribitCore) PrivateGetGetSettlementHistoryByInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetSettlementHistoryByInstrument", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetSettlementHistoryByCurrency(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetSettlementHistoryByCurrency", args...)
+func (this *DeribitCore) PrivateGetGetSettlementHistoryByCurrency (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetSettlementHistoryByCurrency", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancelTransferById(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancelTransferById", args...)
+func (this *DeribitCore) PrivateGetCancelTransferById (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancelTransferById", args...)
 }
 
-func (this *DeribitCore) PrivateGetCancelWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCancelWithdrawal", args...)
+func (this *DeribitCore) PrivateGetCancelWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCancelWithdrawal", args...)
 }
 
-func (this *DeribitCore) PrivateGetCreateDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCreateDepositAddress", args...)
+func (this *DeribitCore) PrivateGetCreateDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetCreateDepositAddress", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetCurrentDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetCurrentDepositAddress", args...)
+func (this *DeribitCore) PrivateGetGetCurrentDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetCurrentDepositAddress", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetDeposits(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetDeposits", args...)
+func (this *DeribitCore) PrivateGetGetDeposits (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetDeposits", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetTransfers(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetTransfers", args...)
+func (this *DeribitCore) PrivateGetGetTransfers (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetTransfers", args...)
 }
 
-func (this *DeribitCore) PrivateGetGetWithdrawals(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetGetWithdrawals", args...)
+func (this *DeribitCore) PrivateGetGetWithdrawals (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetGetWithdrawals", args...)
 }
 
-func (this *DeribitCore) PrivateGetSubmitTransferToSubaccount(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubmitTransferToSubaccount", args...)
+func (this *DeribitCore) PrivateGetSubmitTransferToSubaccount (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSubmitTransferToSubaccount", args...)
 }
 
-func (this *DeribitCore) PrivateGetSubmitTransferToUser(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetSubmitTransferToUser", args...)
+func (this *DeribitCore) PrivateGetSubmitTransferToUser (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetSubmitTransferToUser", args...)
 }
 
-func (this *DeribitCore) PrivateGetWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetWithdraw", args...)
+func (this *DeribitCore) PrivateGetWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetWithdraw", args...)
 }

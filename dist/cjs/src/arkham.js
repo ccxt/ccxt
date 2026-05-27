@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class arkham
  * @augments Exchange
@@ -1294,7 +1294,7 @@ class arkham extends arkham$1["default"] {
         //
         // []  returns an empty array, even when successfully cancels orders
         //
-        return this.parseOrders(response, undefined);
+        return this.parseOrders(response);
     }
     /**
      * @method
@@ -1833,7 +1833,8 @@ class arkham extends arkham$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'addresses');
-        const parsed = this.parseDepositAddresses(data, undefined, false, { 'network': networkCode });
+        const networkCodeUnified = networkCode; // java req
+        const parsed = this.parseDepositAddresses(data, undefined, false, { 'network': networkCodeUnified });
         return this.indexBy(parsed, 'network');
     }
     parseDepositAddress(entry, currency = undefined) {
@@ -2391,11 +2392,13 @@ class arkham extends arkham$1["default"] {
             const marketId = this.safeString(info, 'market');
             market = this.safeMarket(marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber(tier, 'positionLimit');
+            const curr = market['linear'] ? market['base'] : market['quote'];
+            const notional = minNotional;
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-                'currency': market['linear'] ? market['base'] : market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(tier, 'marginRate'),
                 'maxLeverage': this.safeInteger(tier, 'leverageRate'),

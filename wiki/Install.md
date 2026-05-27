@@ -10,6 +10,7 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [ccxt.js](https://github.com/ccxt/ccxt/blob/master/js/ccxt.js) in JavaScript
 - [./python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
 - [ccxt.php](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
+- [./java/](https://github.com/ccxt/ccxt/blob/master/java/) in Java (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
 manually into your working directory with language extension appropriate for your environment.
@@ -40,14 +41,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.52/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.52/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.56/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.56/dist/ccxt.browser.min.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.52/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.56/dist/ccxt.browser.min.js"></script>
 ```
 
 The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
@@ -153,6 +154,39 @@ The library supports concurrent asynchronous mode using tools from [ReactPHP](ht
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
 ```
+
+### Java
+
+Java version of CCXT requires Java 21+ and uses Gradle as its build system.
+
+Clone and build from source:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/java
+./gradlew :lib:build
+```
+
+```Java
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " " + ticker.last);
+```
+
+Run the examples:
+
+```shell
+cd java
+./gradlew :examples:run -PmainClass=examples.FetchTicker
+./gradlew :examples:run -PmainClass=examples.WatchOrderBook
+```
+
+See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for the full list of examples.
 
 ### Docker
 

@@ -937,7 +937,7 @@ class woo(ccxt.async_support.woo):
         #         "orderTag": "default",
         #         "totalFee": 0,
         #         "visible": 0.01,
-        #         "timestamp": 1657515556799,
+        #         "timestamp": 1657515556798,
         #         "reduceOnly": False,
         #         "maker": False
         #     }
@@ -1154,10 +1154,10 @@ class woo(ccxt.async_support.woo):
         https://docs.woox.io/#position-push
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -1461,8 +1461,11 @@ class woo(ccxt.async_support.woo):
     def ping(self, client: Client):
         return {'event': 'ping'}
 
+    async def pong(self, client: Client, message):
+        await client.send({'event': 'pong'})
+
     def handle_ping(self, client: Client, message):
-        return {'event': 'pong'}
+        self.spawn(self.pong, client, message)
 
     def handle_pong(self, client: Client, message):
         #

@@ -1952,7 +1952,7 @@ class woo extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2623,7 +2623,7 @@ class woo extends Exchange {
             //                 {
             //                     "createdTime" => "1734964440.523",
             //                     "updatedTime" => "1734964614.081",
-            //                     "id" => "24122314340000585",
+            //                     "id" => "24122314340000586",
             //                     "externalId" => "241223143600621",
             //                     "applicationId" => "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
             //                     "token" => "ARB_USDCNATIVE",

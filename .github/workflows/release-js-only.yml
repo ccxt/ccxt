@@ -9,8 +9,8 @@ on:
         default: 'default-value'
 
 permissions:
+  id-token: write
   contents: write
-
 
 jobs:
   manual-job:
@@ -34,10 +34,18 @@ jobs:
         with:
           fetch-depth: 2
           fetch-tags: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
       - name: Install NPM dependencies
         run: npm ci
+      - name: Pre-transpile
+        run: npm run  pre-transpile-js
       - name: Transpile TS
         run: npm run tsBuild
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_PROD }}
+      - run: node -v && npm -v
+      - run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true

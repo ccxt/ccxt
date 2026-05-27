@@ -1427,7 +1427,7 @@ class coinex(Exchange, ImplicitAPI):
             # 'last_id': 0,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = None
         if market['swap']:
             response = await self.v2PublicGetFuturesDeals(self.extend(request, params))
@@ -4308,11 +4308,13 @@ class coinex(Exchange, ImplicitAPI):
             marketId = self.safe_string(info, 'market')
             market = self.safe_market(marketId, market, None, 'swap')
             maxNotional = self.safe_number(tier, 'amount')
+            curr = market['base'] if market['linear'] else market['quote']
+            notional = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_symbol(marketId, market, None, 'swap'),
-                'currency': market['base'] if market['linear'] else market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(tier, 'maintenance_margin_rate'),
                 'maxLeverage': self.safe_integer(tier, 'leverage'),
@@ -5487,7 +5489,7 @@ class coinex(Exchange, ImplicitAPI):
 
         https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
 
- @param codes
+        :param str[] [codes]: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """

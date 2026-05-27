@@ -11,7 +11,7 @@ var rsa = require('./base/functions/rsa.js');
 var crypto = require('./base/functions/crypto.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class binance
@@ -6591,9 +6591,10 @@ class binance extends binance$1["default"] {
         const initialUppercaseType = type.toUpperCase();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
+        const upperCaseSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase(),
+            'side': upperCaseSide,
         };
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
@@ -8091,10 +8092,9 @@ class binance extends binance$1["default"] {
             return this.parseOrders(response, market);
         }
         else {
+            const order = this.safeOrder({ 'info': response });
             return [
-                this.safeOrder({
-                    'info': response,
-                }),
+                order,
             ];
         }
     }

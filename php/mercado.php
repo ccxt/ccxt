@@ -676,6 +676,7 @@ class mercado extends Exchange {
         $filled = $this->safe_string($order, 'executed_quantity');
         $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
         $rawTrades = $this->safe_value($order, 'operations', array());
+        $symbol = $market['symbol'];
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -683,7 +684,7 @@ class mercado extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => 'limit',
             'timeInForce' => null,
             'postOnly' => null,

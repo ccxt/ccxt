@@ -34,7 +34,7 @@ function example() {
         $stop_loss_trigger_price = 0.4;
         $take_profit_limit_price = 0.7;
         $stop_loss_limit_price = 0.3;
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         // when symbol's price reaches your predefined "trigger price", stop-loss order would be activated as a "market order". but if you want it to be activated as a "limit order", then set a 'price' parameter for it
         $params = array(
             'posSide' => 'Long',
@@ -51,10 +51,10 @@ function example() {
         );
         var_dump('-----------------------------------------------------------------------');
         try {
-            $created_order = Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
+            $created_order = \React\Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
             var_dump('Created an order', $created_order);
             // Fetch all your open orders for this symbol
-            $all_open_orders = Async\await($exchange->fetch_open_orders($symbol));
+            $all_open_orders = \React\Async\await($exchange->fetch_open_orders($symbol));
             var_dump('Fetched all your orders for this symbol', $all_open_orders);
         } catch(Exception $e) {
             var_dump(((string) $e));
@@ -63,4 +63,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

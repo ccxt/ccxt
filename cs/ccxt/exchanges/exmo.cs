@@ -341,10 +341,8 @@ public partial class exmo : Exchange
         if (isTrue(isEqual(method, "fetchPrivateTradingFees")))
         {
             return await this.fetchPrivateTradingFees(parameters);
-        } else
-        {
-            return await this.fetchPublicTradingFees(parameters);
         }
+        return await this.fetchPublicTradingFees(parameters);
     }
 
     public async virtual Task<object> fetchPrivateTradingFees(object parameters = null)
@@ -1115,7 +1113,8 @@ public partial class exmo : Exchange
         object ids = null;
         if (isTrue(isEqual(symbols, null)))
         {
-            ids = String.Join(",", ((IList<object>)this.ids).ToArray());
+            object allIds = this.ids;
+            ids = String.Join(",", ((IList<object>)allIds).ToArray());
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (isTrue(isGreaterThan(getArrayLength(ids), 2048)))
             {
@@ -2170,46 +2169,20 @@ public partial class exmo : Exchange
                 { "status", "canceled" },
             });
             return this.parseOrders(response, market, since, limit, parameters);
-        } else
-        {
-            object responseSwap = await this.privatePostMarginUserOrderHistory(this.extend(request, parameters));
-            //
-            //    {
-            //        "items": [
-            //            {
-            //                "event_id": "692862104574106858",
-            //                "event_time": "1694116400173489405",
-            //                "event_type": "OrderCancelStarted",
-            //                "order_id": "692862104561289319",
-            //                "order_type": "stop_limit_sell",
-            //                "order_status": "cancel_started",
-            //                "trade_id": "0",
-            //                "trade_type":"",
-            //                "trade_quantity": "0",
-            //                "trade_price": "0",
-            //                "pair": "ADA_USDT",
-            //                "quantity": "12",
-            //                "price": "0.23",
-            //                "stop_price": "0.22",
-            //                "distance": "0"
-            //            }
-            //            ...
-            //        ]
-            //    }
-            //
-            object items = this.safeValue(responseSwap, "items");
-            object orders = this.parseOrders(items, market, since, limit, parameters);
-            object result = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
-            {
-                object order = getValue(orders, i);
-                if (isTrue(isEqual(getValue(order, "status"), "canceled")))
-                {
-                    ((IList<object>)result).Add(order);
-                }
-            }
-            return result;
         }
+        object responseSwap = await this.privatePostMarginUserOrderHistory(this.extend(request, parameters));
+        object items = this.safeValue(responseSwap, "items");
+        object orders = this.parseOrders(items, market, since, limit, parameters);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            if (isTrue(isEqual(getValue(order, "status"), "canceled")))
+            {
+                ((IList<object>)result).Add(order);
+            }
+        }
+        return result;
     }
 
     /**

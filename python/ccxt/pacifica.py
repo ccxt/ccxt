@@ -976,48 +976,47 @@ class pacifica(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit)
-        else:
-            tf = self.safe_string(self.timeframes, timeframe, timeframe)
-            request: dict = {
-                'symbol': market['id'],
-                'interval': tf,
-                'start_time': since,
-            }
-            request, params = self.handle_until_option('end_time', request, params)
-            nowMillis = self.milliseconds()
-            until = self.safe_integer(request, 'end_time')
+        tf = self.safe_string(self.timeframes, timeframe, timeframe)
+        request: dict = {
+            'symbol': market['id'],
+            'interval': tf,
+            'start_time': since,
+        }
+        request, params = self.handle_until_option('end_time', request, params)
+        nowMillis = self.milliseconds()
+        until = self.safe_integer(request, 'end_time')
+        if until is None:
+            if limit is not None:
+                until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
             if until is None:
-                if limit is not None:
-                    until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
-                if until is None:
-                    until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
-                if until > nowMillis:
-                    until = nowMillis
-                request['end_time'] = until
-            response = self.publicGetKline(self.extend(request, params))
-            #
-            # {
-            #   "success": True,
-            #   "data": [
-            #     {
-            #       "t": 1748954160000,
-            #       "T": 1748954220000,
-            #       "s": "BTC",
-            #       "i": "1m",
-            #       "o": "105376",
-            #       "c": "105376",
-            #       "h": "105376",
-            #       "l": "105376",
-            #       "v": "0.00022",
-            #       "n": 2
-            #     }
-            #   ],
-            #   "error": null,
-            #   "code": null
-            # }
-            #
-            candles = self.safe_list(response, 'data', [])
-            return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+                until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
+            if until > nowMillis:
+                until = nowMillis
+            request['end_time'] = until
+        response = self.publicGetKline(self.extend(request, params))
+        #
+        # {
+        #   "success": True,
+        #   "data": [
+        #     {
+        #       "t": 1748954160000,
+        #       "T": 1748954220000,
+        #       "s": "BTC",
+        #       "i": "1m",
+        #       "o": "105376",
+        #       "c": "105376",
+        #       "h": "105376",
+        #       "l": "105376",
+        #       "v": "0.00022",
+        #       "n": 2
+        #     }
+        #   ],
+        #   "error": null,
+        #   "code": null
+        # }
+        #
+        candles = self.safe_list(response, 'data', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

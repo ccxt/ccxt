@@ -448,7 +448,6 @@ cancels an open order
 * [yobit](/exchanges/yobit.md#cancelorder)
 * [zaif](/exchanges/zaif.md#cancelorder)
 * [zebpay](/exchanges/zebpay.md#cancelorder)
-* [zonda](/exchanges/zonda.md#cancelorder)
 
 ---
 
@@ -534,6 +533,7 @@ cancel multiple orders
 * [onetrading](/exchanges/onetrading.md#cancelorders)
 * [oxfun](/exchanges/oxfun.md#cancelorders)
 * [pacifica](/exchanges/pacifica.md#cancelorders)
+* [paradex](/exchanges/paradex.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
@@ -1166,7 +1166,6 @@ create a trade order
 * [yobit](/exchanges/yobit.md#createorder)
 * [zaif](/exchanges/zaif.md#createorder)
 * [zebpay](/exchanges/zebpay.md#createorder)
-* [zonda](/exchanges/zonda.md#createorder)
 
 ---
 
@@ -1249,6 +1248,7 @@ create a list of trade orders
 * [okx](/exchanges/okx.md#createorders)
 * [oxfun](/exchanges/oxfun.md#createorders)
 * [pacifica](/exchanges/pacifica.md#createorders)
+* [paradex](/exchanges/paradex.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---
@@ -1633,6 +1633,7 @@ edit a trade order
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
+* [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
@@ -1730,8 +1731,8 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| enabled |  | Yes |  |
-| params |  | Yes |  |
+| enabled | <code>boolean</code> | Yes | whether to enable user dex abstraction |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
 
 ##### Supported exchanges
@@ -1992,7 +1993,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [yobit](/exchanges/yobit.md#fetchbalance)
 * [zaif](/exchanges/zaif.md#fetchbalance)
 * [zebpay](/exchanges/zebpay.md#fetchbalance)
-* [zonda](/exchanges/zonda.md#fetchbalance)
 
 ---
 
@@ -2811,7 +2811,6 @@ fetch the deposit address for a currency associated with this account
 * [woo](/exchanges/woo.md#fetchdepositaddress)
 * [xt](/exchanges/xt.md#fetchdepositaddress)
 * [yobit](/exchanges/yobit.md#fetchdepositaddress)
-* [zonda](/exchanges/zonda.md#fetchdepositaddress)
 
 ---
 
@@ -2838,7 +2837,6 @@ fetch deposit addresses for multiple currencies (when available)
 * [indodax](/exchanges/indodax.md#fetchdepositaddresses)
 * [paymium](/exchanges/paymium.md#fetchdepositaddresses)
 * [upbit](/exchanges/upbit.md#fetchdepositaddresses)
-* [zonda](/exchanges/zonda.md#fetchdepositaddresses)
 
 ---
 
@@ -3063,6 +3061,7 @@ fetch all deposits made to an account
 * [novadax](/exchanges/novadax.md#fetchdeposits)
 * [okx](/exchanges/okx.md#fetchdeposits)
 * [oxfun](/exchanges/oxfun.md#fetchdeposits)
+* [paradex](/exchanges/paradex.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdeposits)
@@ -3184,6 +3183,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [okx](/exchanges/okx.md#fetchfundinghistory)
 * [oxfun](/exchanges/oxfun.md#fetchfundinghistory)
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
+* [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
@@ -3611,7 +3611,6 @@ fetch the history of changes, actions done by the user or operations that altere
 * [woo](/exchanges/woo.md#fetchledger)
 * [woofipro](/exchanges/woofipro.md#fetchledger)
 * [xt](/exchanges/xt.md#fetchledger)
-* [zonda](/exchanges/zonda.md#fetchledger)
 
 ---
 
@@ -3762,7 +3761,6 @@ retrieves the public liquidations of a trading pair
 * [deribit](/exchanges/deribit.md#fetchliquidations)
 * [gate](/exchanges/gate.md#fetchliquidations)
 * [htx](/exchanges/htx.md#fetchliquidations)
-* [paradex](/exchanges/paradex.md#fetchliquidations)
 
 ---
 
@@ -4055,7 +4053,6 @@ retrieves data on all markets for woo
 * [yobit](/exchanges/yobit.md#fetchmarkets)
 * [zaif](/exchanges/zaif.md#fetchmarkets)
 * [zebpay](/exchanges/zebpay.md#fetchmarkets)
-* [zonda](/exchanges/zonda.md#fetchmarkets)
 
 ---
 
@@ -4151,6 +4148,7 @@ retrieves the users liquidated positions
 * [bybit](/exchanges/bybit.md#fetchmyliquidations)
 * [deribit](/exchanges/deribit.md#fetchmyliquidations)
 * [gate](/exchanges/gate.md#fetchmyliquidations)
+* [paradex](/exchanges/paradex.md#fetchmyliquidations)
 
 ---
 
@@ -4309,7 +4307,6 @@ fetch all trades made by the user
 * [xt](/exchanges/xt.md#fetchmytrades)
 * [yobit](/exchanges/yobit.md#fetchmytrades)
 * [zebpay](/exchanges/zebpay.md#fetchmytrades)
-* [zonda](/exchanges/zonda.md#fetchmytrades)
 
 ---
 
@@ -4463,7 +4460,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [woofipro](/exchanges/woofipro.md#fetchohlcv)
 * [xt](/exchanges/xt.md#fetchohlcv)
 * [zebpay](/exchanges/zebpay.md#fetchohlcv)
-* [zonda](/exchanges/zonda.md#fetchohlcv)
 
 ---
 
@@ -4733,7 +4729,6 @@ fetch all unfilled currently open orders
 * [yobit](/exchanges/yobit.md#fetchopenorders)
 * [zaif](/exchanges/zaif.md#fetchopenorders)
 * [zebpay](/exchanges/zebpay.md#fetchopenorders)
-* [zonda](/exchanges/zonda.md#fetchopenorders)
 
 ---
 
@@ -5042,7 +5037,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [yobit](/exchanges/yobit.md#fetchorderbook)
 * [zaif](/exchanges/zaif.md#fetchorderbook)
 * [zebpay](/exchanges/zebpay.md#fetchorderbook)
-* [zonda](/exchanges/zonda.md#fetchorderbook)
 
 ---
 
@@ -6003,7 +5997,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [yobit](/exchanges/yobit.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
 * [zebpay](/exchanges/zebpay.md#fetchticker)
-* [zonda](/exchanges/zonda.md#fetchticker)
 
 ---
 
@@ -6311,7 +6304,6 @@ get the list of most recent trades for a particular symbol
 * [yobit](/exchanges/yobit.md#fetchtrades)
 * [zaif](/exchanges/zaif.md#fetchtrades)
 * [zebpay](/exchanges/zebpay.md#fetchtrades)
-* [zonda](/exchanges/zonda.md#fetchtrades)
 
 ---
 
@@ -6380,6 +6372,7 @@ fetch the trading fees for a market
 * [mexc](/exchanges/mexc.md#fetchtradingfee)
 * [okx](/exchanges/okx.md#fetchtradingfee)
 * [pacifica](/exchanges/pacifica.md#fetchtradingfee)
+* [paradex](/exchanges/paradex.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [weex](/exchanges/weex.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
@@ -6436,6 +6429,7 @@ fetch the trading fees for multiple markets
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
+* [paradex](/exchanges/paradex.md#fetchtradingfees)
 * [poloniex](/exchanges/poloniex.md#fetchtradingfees)
 * [toobit](/exchanges/toobit.md#fetchtradingfees)
 * [upbit](/exchanges/upbit.md#fetchtradingfees)
@@ -6968,9 +6962,9 @@ if the required credentials are available in options, it will pre-load the light
 **Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
 
 
-| Param |
-| --- |
-| params | 
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [lighter](/exchanges/lighter.md#preloadlighterlibrary)
@@ -7477,7 +7471,6 @@ transfer currency internally between wallets on the same account
 * [whitebit](/exchanges/whitebit.md#transfer)
 * [woo](/exchanges/woo.md#transfer)
 * [xt](/exchanges/xt.md#transfer)
-* [zonda](/exchanges/zonda.md#transfer)
 
 ---
 
@@ -8428,6 +8421,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bitget](/exchanges/bitget.md#watchohlcv)
 * [bitmart](/exchanges/bitmart.md#watchohlcv)
 * [bitmex](/exchanges/bitmex.md#watchohlcv)
+* [bitrue](/exchanges/bitrue.md#watchohlcv)
 * [bittrade](/exchanges/bittrade.md#watchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#watchohlcv)
 * [blockchaincom](/exchanges/blockchaincom.md#watchohlcv)
@@ -8803,6 +8797,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bitmart](/exchanges/bitmart.md#watchticker)
 * [bitmex](/exchanges/bitmex.md#watchticker)
 * [bitopro](/exchanges/bitopro.md#watchticker)
+* [bitrue](/exchanges/bitrue.md#watchticker)
 * [bittrade](/exchanges/bittrade.md#watchticker)
 * [bitvavo](/exchanges/bitvavo.md#watchticker)
 * [blockchaincom](/exchanges/blockchaincom.md#watchticker)
@@ -8929,6 +8924,7 @@ watches information on multiple trades made in a market
 * [bitmart](/exchanges/bitmart.md#watchtrades)
 * [bitmex](/exchanges/bitmex.md#watchtrades)
 * [bitopro](/exchanges/bitopro.md#watchtrades)
+* [bitrue](/exchanges/bitrue.md#watchtrades)
 * [bitstamp](/exchanges/bitstamp.md#watchtrades)
 * [bittrade](/exchanges/bittrade.md#watchtrades)
 * [bitvavo](/exchanges/bitvavo.md#watchtrades)
@@ -9109,7 +9105,6 @@ make a withdrawal
 * [xt](/exchanges/xt.md#withdraw)
 * [yobit](/exchanges/yobit.md#withdraw)
 * [zaif](/exchanges/zaif.md#withdraw)
-* [zonda](/exchanges/zonda.md#withdraw)
 
 ---
 

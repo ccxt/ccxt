@@ -821,120 +821,104 @@ public partial class bingx : Exchange
         object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
         //
         //    {
-        //      "code": 0,
-        //      "timestamp": 1702623271476,
-        //      "data": [
-        //        {
-        //          "coin": "BTC",
-        //          "name": "BTC",
-        //          "networkList": [
+        //        "code": "0",
+        //        "timestamp": "1779364918914",
+        //        "data": [
         //            {
-        //              "name": "BTC",
-        //              "network": "BTC",
-        //              "isDefault": true,
-        //              "minConfirm": 2,
-        //              "withdrawEnable": true,
-        //              "depositEnable": true,
-        //              "withdrawFee": "0.0006",
-        //              "withdrawMax": "1.17522",
-        //              "withdrawMin": "0.0005",
-        //              "depositMin": "0.0002"
+        //                "coin": "BTC",
+        //                "name": "BTC",
+        //                "networkList": [
+        //                    {
+        //                        "name": "BTC",
+        //                        "network": "BTC",
+        //                        "isDefault": true,
+        //                        "minConfirm": "2",
+        //                        "withdrawEnable": true,
+        //                        "depositEnable": true,
+        //                        "withdrawFee": "0.00004",
+        //                        "withdrawMax": "64.77131128",
+        //                        "withdrawMin": "0.000046",
+        //                        "depositMin": "0.00009",
+        //                        "withdrawPrecision": "8",
+        //                        "depositPrecision": "8",
+        //                        "contractAddress": "",
+        //                        "needTagOrMemo": "false",
+        //                        "displayName": "BTC"
+        //                    },
+        //                    {
+        //                        "name": "BTC",
+        //                        "network": "BEP20",
+        //                        "isDefault": true,
+        //                        "minConfirm": "10",
+        //                        "withdrawEnable": true,
+        //                        "depositEnable": true,
+        //                        "withdrawFee": "0.000001",
+        //                        "withdrawMax": "64.77131128",
+        //                        "withdrawMin": "0.000065",
+        //                        "depositMin": "0.000012",
+        //                        "withdrawPrecision": "8",
+        //                        "depositPrecision": "18",
+        //                        "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+        //                        "needTagOrMemo": "false",
+        //                        "displayName": "BTCBEP20"
+        //                    }
+        //                ]
         //            },
-        //            {
-        //              "name": "BTC",
-        //              "network": "BEP20",
-        //              "isDefault": false,
-        //              "minConfirm": 15,
-        //              "withdrawEnable": true,
-        //              "depositEnable": true,
-        //              "withdrawFee": "0.0000066",
-        //              "withdrawMax": "1.17522",
-        //              "withdrawMin": "0.0000066",
-        //              "depositMin": "0.0002"
-        //            }
-        //          ]
-        //        }
-        //      ]
-        //    }
+        //            ...
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "coin");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(rawCurrency, "name");
+        object networkList = this.safeList(rawCurrency, "networkList");
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
-            object entry = getValue(data, i);
-            object currencyId = this.safeString(entry, "coin");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(entry, "name");
-            object networkList = this.safeList(entry, "networkList");
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
-            {
-                object rawNetwork = getValue(networkList, j);
-                object network = this.safeString(rawNetwork, "network");
-                object networkCode = this.networkIdToCode(network);
-                object limits = new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(rawNetwork, "withdrawMin") },
-                        { "max", this.safeNumber(rawNetwork, "withdrawMax") },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(rawNetwork, "depositMin") },
-                        { "max", null },
-                    } },
-                };
-                object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", rawNetwork },
-                    { "id", network },
-                    { "network", networkCode },
-                    { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
-                    { "active", null },
-                    { "deposit", this.safeBool(rawNetwork, "depositEnable") },
-                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
-                    { "precision", precision },
-                    { "limits", limits },
-                };
-            }
-            if (!isTrue((inOp(result, code))))
-            {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "info", entry },
-                    { "code", code },
-                    { "id", currencyId },
-                    { "precision", null },
-                    { "name", name },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "networks", networks },
-                    { "fee", null },
-                    { "limits", null },
-                    { "type", "crypto" },
-                };
-            } else
-            {
-                object existing = getValue(result, code);
-                object existingNetworks = this.safeDict(existing, "networks", new Dictionary<string, object>() {});
-                object newNetworkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(newNetworkCodes)); postFixIncrement(ref j))
-                {
-                    object newNetworkCode = getValue(newNetworkCodes, j);
-                    if (!isTrue((inOp(existingNetworks, newNetworkCode))))
-                    {
-                        ((IDictionary<string,object>)existingNetworks)[(string)newNetworkCode] = getValue(networks, newNetworkCode);
-                    }
-                }
-                ((IDictionary<string,object>)getValue(result, code))["networks"] = existingNetworks;
-            }
+            object rawNetwork = getValue(networkList, j);
+            object network = this.safeString(rawNetwork, "network");
+            object networkCode = this.networkIdToCode(network);
+            object limits = new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawNetwork, "withdrawMin") },
+                    { "max", this.safeNumber(rawNetwork, "withdrawMax") },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawNetwork, "depositMin") },
+                    { "max", null },
+                } },
+            };
+            object precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", rawNetwork },
+                { "id", network },
+                { "network", networkCode },
+                { "fee", this.safeNumber(rawNetwork, "withdrawFee") },
+                { "active", null },
+                { "deposit", this.safeBool(rawNetwork, "depositEnable") },
+                { "withdraw", this.safeBool(rawNetwork, "withdrawEnable") },
+                { "precision", precision },
+                { "limits", limits },
+            };
         }
-        object codes = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
-        {
-            object code = getValue(codes, i);
-            object currency = getValue(result, code);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(currency);
-        }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "code", code },
+            { "id", currencyId },
+            { "precision", null },
+            { "name", name },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "networks", networks },
+            { "fee", null },
+            { "limits", null },
+            { "type", "crypto" },
+        });
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
@@ -1778,10 +1762,10 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(parameters));
+            response = await this.cswapV1PublicGetMarketPremiumIndex(parameters);
         } else
         {
-            response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(parameters));
+            response = await this.swapV2PublicGetQuotePremiumIndex(parameters);
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRates(data, symbols);
@@ -4971,7 +4955,7 @@ public partial class bingx : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-        object recvWindow = this.safeInteger(this.parseParams, "recvWindow", defaultRecvWindow);
+        object recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "offset", 0 },
@@ -5991,7 +5975,7 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-        object recvWindow = this.safeInteger(this.parseParams, "recvWindow", defaultRecvWindow);
+        object recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("closeAllPositions", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];

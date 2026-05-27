@@ -1731,11 +1731,11 @@ class zebpay(Exchange, ImplicitAPI):
         #        }
         #     ]
         #
-        timestamp = self.safe_integer_2(ticker, 'timestamp', 'ts', None)
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 'ts')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId)
-        close = self.safe_string(ticker, 'close', None)
-        last = self.safe_string(ticker, 'last', None)
+        close = self.safe_string(ticker, 'close')
+        last = self.safe_string(ticker, 'last')
         percentage = self.safe_string(ticker, 'percentage')
         bidVolume = self.safe_string(ticker, 'bidVolume')
         askVolume = self.safe_string(ticker, 'askVolume')

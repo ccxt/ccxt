@@ -40,7 +40,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
                 $num_inactive_currencies = $num_inactive_currencies + 1;
             }
             // ensure that major currencies are active and enabled for deposit and withdrawal
-            $code = $exchange->safe_string($currency, 'code', null);
+            $code = $exchange->safe_string($currency, 'code');
             $withdraw = $exchange->safe_bool($currency, 'withdraw');
             $deposit = $exchange->safe_bool($currency, 'deposit');
             if ($exchange->in_array($code, $required_active_currencies)) {

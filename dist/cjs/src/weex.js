@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class weex
@@ -1412,6 +1412,9 @@ class weex extends weex$1["default"] {
         const priceType = this.safeStringUpper(params, 'price');
         params = this.omit(params, ['historical', 'until', 'price']);
         let response = undefined;
+        if (limit !== undefined) {
+            limit = Math.min(limit, 1000); // hardcap threshold
+        }
         if (historical) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
@@ -1483,7 +1486,7 @@ class weex extends weex$1["default"] {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
         if (market['spot']) {
@@ -3306,7 +3309,7 @@ class weex extends weex$1["default"] {
         if (errorMessage !== undefined) {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        const marketId = this.safeString(position, 'symbol');
+        const marketId = this.safeString2(position, 'symbol', 'coinId'); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(position, 'createdTime');
         const marginType = this.safeString2(position, 'marginType', 'marginMode');
@@ -3322,20 +3325,23 @@ class weex extends weex$1["default"] {
         else if (separatedMode === 'SEPARATED') {
             hedged = true;
         }
+        const notional = this.safeString(position, 'openValue');
+        const size = this.safeString(position, 'size');
+        const entryPrice = Precise["default"].stringDiv(notional, size);
         return this.safePosition({
             'symbol': market['symbol'],
             'id': this.safeString2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'contracts': this.safeNumber(position, 'size'),
+            'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'side': this.safeStringLower(position, 'side'),
-            'notional': this.safeNumber(position, 'openValue'),
+            'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizePnl'),
             'realizedPnl': undefined,
             'collateral': undefined,
-            'entryPrice': undefined,
+            'entryPrice': this.parseNumber(entryPrice),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidatePrice'),
             'marginMode': marginMode,
@@ -3350,7 +3356,7 @@ class weex extends weex$1["default"] {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
             'percentage': undefined,
-            'info': undefined,
+            'info': position,
         });
     }
     /**

@@ -7,234 +7,234 @@
 
 package ccxt
 
-func (this *BullishCore) PublicGetV1Nonce(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1Nonce", args...)
+func (this *BullishCore) PublicGetV1Nonce (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1Nonce", args...)
 }
 
-func (this *BullishCore) PublicGetV1Time(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1Time", args...)
+func (this *BullishCore) PublicGetV1Time (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1Time", args...)
 }
 
-func (this *BullishCore) PublicGetV1Assets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1Assets", args...)
+func (this *BullishCore) PublicGetV1Assets (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1Assets", args...)
 }
 
-func (this *BullishCore) PublicGetV1AssetsSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1AssetsSymbol", args...)
+func (this *BullishCore) PublicGetV1AssetsSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1AssetsSymbol", args...)
 }
 
-func (this *BullishCore) PublicGetV1Markets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1Markets", args...)
+func (this *BullishCore) PublicGetV1Markets (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1Markets", args...)
 }
 
-func (this *BullishCore) PublicGetV1MarketsSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1MarketsSymbol", args...)
+func (this *BullishCore) PublicGetV1MarketsSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1MarketsSymbol", args...)
 }
 
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbol", args...)
+func (this *BullishCore) PublicGetV1HistoryMarketsSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1HistoryMarketsSymbol", args...)
 }
 
-func (this *BullishCore) PublicGetV1MarketsSymbolOrderbookHybrid(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1MarketsSymbolOrderbookHybrid", args...)
+func (this *BullishCore) PublicGetV1MarketsSymbolOrderbookHybrid (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1MarketsSymbolOrderbookHybrid", args...)
 }
 
-func (this *BullishCore) PublicGetV1MarketsSymbolTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1MarketsSymbolTrades", args...)
+func (this *BullishCore) PublicGetV1MarketsSymbolTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1MarketsSymbolTrades", args...)
 }
 
-func (this *BullishCore) PublicGetV1MarketsSymbolTick(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1MarketsSymbolTick", args...)
+func (this *BullishCore) PublicGetV1MarketsSymbolTick (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1MarketsSymbolTick", args...)
 }
 
-func (this *BullishCore) PublicGetV1MarketsSymbolCandle(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1MarketsSymbolCandle", args...)
+func (this *BullishCore) PublicGetV1MarketsSymbolCandle (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1MarketsSymbolCandle", args...)
 }
 
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolTrades", args...)
+func (this *BullishCore) PublicGetV1HistoryMarketsSymbolTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolTrades", args...)
 }
 
-func (this *BullishCore) PublicGetV1HistoryMarketsSymbolFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolFundingRate", args...)
+func (this *BullishCore) PublicGetV1HistoryMarketsSymbolFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolFundingRate", args...)
 }
 
-func (this *BullishCore) PublicGetV1IndexPrices(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1IndexPrices", args...)
+func (this *BullishCore) PublicGetV1IndexPrices (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1IndexPrices", args...)
 }
 
-func (this *BullishCore) PublicGetV1IndexPricesAssetSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1IndexPricesAssetSymbol", args...)
+func (this *BullishCore) PublicGetV1IndexPricesAssetSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1IndexPricesAssetSymbol", args...)
 }
 
-func (this *BullishCore) PublicGetV1ExpiryPricesSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1ExpiryPricesSymbol", args...)
+func (this *BullishCore) PublicGetV1ExpiryPricesSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1ExpiryPricesSymbol", args...)
 }
 
-func (this *BullishCore) PublicGetV1OptionLadder(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1OptionLadder", args...)
+func (this *BullishCore) PublicGetV1OptionLadder (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1OptionLadder", args...)
 }
 
-func (this *BullishCore) PublicGetV1OptionLadderSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetV1OptionLadderSymbol", args...)
+func (this *BullishCore) PublicGetV1OptionLadderSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetV1OptionLadderSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV2Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2Orders", args...)
+func (this *BullishCore) PrivateGetV2Orders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2Orders", args...)
 }
 
-func (this *BullishCore) PrivateGetV2HistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2HistoryOrders", args...)
+func (this *BullishCore) PrivateGetV2HistoryOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2HistoryOrders", args...)
 }
 
-func (this *BullishCore) PrivateGetV2OrdersOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2OrdersOrderId", args...)
+func (this *BullishCore) PrivateGetV2OrdersOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2OrdersOrderId", args...)
 }
 
-func (this *BullishCore) PrivateGetV2AmmInstructions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2AmmInstructions", args...)
+func (this *BullishCore) PrivateGetV2AmmInstructions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2AmmInstructions", args...)
 }
 
-func (this *BullishCore) PrivateGetV2AmmInstructionsInstructionId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2AmmInstructionsInstructionId", args...)
+func (this *BullishCore) PrivateGetV2AmmInstructionsInstructionId (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2AmmInstructionsInstructionId", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsTransactions", args...)
+func (this *BullishCore) PrivateGetV1WalletsTransactions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsTransactions", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsLimitsSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsLimitsSymbol", args...)
+func (this *BullishCore) PrivateGetV1WalletsLimitsSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsLimitsSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsDepositInstructionsCryptoSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsDepositInstructionsCryptoSymbol", args...)
+func (this *BullishCore) PrivateGetV1WalletsDepositInstructionsCryptoSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsDepositInstructionsCryptoSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsWithdrawalInstructionsCryptoSymbol", args...)
+func (this *BullishCore) PrivateGetV1WalletsWithdrawalInstructionsCryptoSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsWithdrawalInstructionsCryptoSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsDepositInstructionsFiatSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsDepositInstructionsFiatSymbol", args...)
+func (this *BullishCore) PrivateGetV1WalletsDepositInstructionsFiatSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsDepositInstructionsFiatSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsWithdrawalInstructionsFiatSymbol", args...)
+func (this *BullishCore) PrivateGetV1WalletsWithdrawalInstructionsFiatSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsWithdrawalInstructionsFiatSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV1WalletsSelfHostedVerificationAttempts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1WalletsSelfHostedVerificationAttempts", args...)
+func (this *BullishCore) PrivateGetV1WalletsSelfHostedVerificationAttempts (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1WalletsSelfHostedVerificationAttempts", args...)
 }
 
-func (this *BullishCore) PrivateGetV1Trades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1Trades", args...)
+func (this *BullishCore) PrivateGetV1Trades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1Trades", args...)
 }
 
-func (this *BullishCore) PrivateGetV1HistoryTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1HistoryTrades", args...)
+func (this *BullishCore) PrivateGetV1HistoryTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1HistoryTrades", args...)
 }
 
-func (this *BullishCore) PrivateGetV1TradesTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1TradesTradeId", args...)
+func (this *BullishCore) PrivateGetV1TradesTradeId (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1TradesTradeId", args...)
 }
 
-func (this *BullishCore) PrivateGetV1TradesClientOrderIdClientOrderId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1TradesClientOrderIdClientOrderId", args...)
+func (this *BullishCore) PrivateGetV1TradesClientOrderIdClientOrderId (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1TradesClientOrderIdClientOrderId", args...)
 }
 
-func (this *BullishCore) PrivateGetV1AccountsAsset(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1AccountsAsset", args...)
+func (this *BullishCore) PrivateGetV1AccountsAsset (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1AccountsAsset", args...)
 }
 
-func (this *BullishCore) PrivateGetV1AccountsAssetSymbol(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1AccountsAssetSymbol", args...)
+func (this *BullishCore) PrivateGetV1AccountsAssetSymbol (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1AccountsAssetSymbol", args...)
 }
 
-func (this *BullishCore) PrivateGetV1UsersLogout(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1UsersLogout", args...)
+func (this *BullishCore) PrivateGetV1UsersLogout (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1UsersLogout", args...)
 }
 
-func (this *BullishCore) PrivateGetV1UsersHmacLogin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1UsersHmacLogin", args...)
+func (this *BullishCore) PrivateGetV1UsersHmacLogin (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1UsersHmacLogin", args...)
 }
 
-func (this *BullishCore) PrivateGetV1AccountsTradingAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1AccountsTradingAccounts", args...)
+func (this *BullishCore) PrivateGetV1AccountsTradingAccounts (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1AccountsTradingAccounts", args...)
 }
 
-func (this *BullishCore) PrivateGetV1AccountsTradingAccountsTradingAccountId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1AccountsTradingAccountsTradingAccountId", args...)
+func (this *BullishCore) PrivateGetV1AccountsTradingAccountsTradingAccountId (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1AccountsTradingAccountsTradingAccountId", args...)
 }
 
-func (this *BullishCore) PrivateGetV1DerivativesPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1DerivativesPositions", args...)
+func (this *BullishCore) PrivateGetV1DerivativesPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1DerivativesPositions", args...)
 }
 
-func (this *BullishCore) PrivateGetV1HistoryDerivativesSettlement(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1HistoryDerivativesSettlement", args...)
+func (this *BullishCore) PrivateGetV1HistoryDerivativesSettlement (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1HistoryDerivativesSettlement", args...)
 }
 
-func (this *BullishCore) PrivateGetV1HistoryTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1HistoryTransfer", args...)
+func (this *BullishCore) PrivateGetV1HistoryTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1HistoryTransfer", args...)
 }
 
-func (this *BullishCore) PrivateGetV1HistoryBorrowInterest(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV1HistoryBorrowInterest", args...)
+func (this *BullishCore) PrivateGetV1HistoryBorrowInterest (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV1HistoryBorrowInterest", args...)
 }
 
-func (this *BullishCore) PrivateGetV2MmpConfiguration(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2MmpConfiguration", args...)
+func (this *BullishCore) PrivateGetV2MmpConfiguration (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2MmpConfiguration", args...)
 }
 
-func (this *BullishCore) PrivateGetV2OtcTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2OtcTrades", args...)
+func (this *BullishCore) PrivateGetV2OtcTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2OtcTrades", args...)
 }
 
-func (this *BullishCore) PrivateGetV2OtcTradesOtcTradeId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2OtcTradesOtcTradeId", args...)
+func (this *BullishCore) PrivateGetV2OtcTradesOtcTradeId (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2OtcTradesOtcTradeId", args...)
 }
 
-func (this *BullishCore) PrivateGetV2OtcTradesUnconfirmedTrade(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetV2OtcTradesUnconfirmedTrade", args...)
+func (this *BullishCore) PrivateGetV2OtcTradesUnconfirmedTrade (args ...any) <-chan any {
+   return this.callEndpointAsync("privateGetV2OtcTradesUnconfirmedTrade", args...)
 }
 
-func (this *BullishCore) PrivatePostV2Orders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2Orders", args...)
+func (this *BullishCore) PrivatePostV2Orders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2Orders", args...)
 }
 
-func (this *BullishCore) PrivatePostV2Command(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2Command", args...)
+func (this *BullishCore) PrivatePostV2Command (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2Command", args...)
 }
 
-func (this *BullishCore) PrivatePostV2AmmInstructions(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2AmmInstructions", args...)
+func (this *BullishCore) PrivatePostV2AmmInstructions (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2AmmInstructions", args...)
 }
 
-func (this *BullishCore) PrivatePostV1WalletsWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV1WalletsWithdrawal", args...)
+func (this *BullishCore) PrivatePostV1WalletsWithdrawal (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV1WalletsWithdrawal", args...)
 }
 
-func (this *BullishCore) PrivatePostV2UsersLogin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2UsersLogin", args...)
+func (this *BullishCore) PrivatePostV2UsersLogin (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2UsersLogin", args...)
 }
 
-func (this *BullishCore) PrivatePostV1SimulatePortfolioMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV1SimulatePortfolioMargin", args...)
+func (this *BullishCore) PrivatePostV1SimulatePortfolioMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV1SimulatePortfolioMargin", args...)
 }
 
-func (this *BullishCore) PrivatePostV1WalletsSelfHostedInitiate(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV1WalletsSelfHostedInitiate", args...)
+func (this *BullishCore) PrivatePostV1WalletsSelfHostedInitiate (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV1WalletsSelfHostedInitiate", args...)
 }
 
-func (this *BullishCore) PrivatePostV2MmpConfiguration(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2MmpConfiguration", args...)
+func (this *BullishCore) PrivatePostV2MmpConfiguration (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2MmpConfiguration", args...)
 }
 
-func (this *BullishCore) PrivatePostV2OtcTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2OtcTrades", args...)
+func (this *BullishCore) PrivatePostV2OtcTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2OtcTrades", args...)
 }
 
-func (this *BullishCore) PrivatePostV2OtcCommand(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostV2OtcCommand", args...)
+func (this *BullishCore) PrivatePostV2OtcCommand (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostV2OtcCommand", args...)
 }

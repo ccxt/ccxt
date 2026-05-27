@@ -679,16 +679,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        promises = [
-            self.sapiPublicGetV3ExchangeInfo(params),
-            self.fapiPublicGetV3ExchangeInfo(params),
-        ]
-        results = promises
-        sapiResult = self.safe_dict(results, 0, {})
+        sapiResult = self.sapiPublicGetV3ExchangeInfo(params)
         sapiRows = self.safe_list(sapiResult, 'assets', [])
-        fapiResult = self.safe_dict(results, 1, {})
-        fapiRows = self.safe_list(fapiResult, 'assets', [])
-        rows = self.array_concat(sapiRows, fapiRows)
         #
         #     [
         #         {
@@ -698,39 +690,39 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'asset')
-            code = self.safe_currency_code(currencyId)
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(sapiRows)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'asset')
+        code = self.safe_currency_code(currencyId)
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'margin': self.safe_bool(rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': None,
-                'type': 'crypto',  # atm exchange api provides only cryptos
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': None,
+            'type': 'crypto',  # atm exchange api provides only cryptos
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -846,7 +838,13 @@ class aster(Exchange, ImplicitAPI):
         #     ]
         #
         #
-        rows = self.array_concat(sapiRows, fapiRows)
+        fapiRowsFiltered = []
+        for i in range(0, len(fapiRows)):
+            market = fapiRows[i]
+            # tmp skip some markets with base = None
+            if self.safe_string(market, 'baseAsset'):
+                fapiRowsFiltered.append(market)
+        rows = self.array_concat(sapiRows, fapiRowsFiltered)
         return self.parse_markets(rows)
 
     def parse_market(self, market: dict) -> Market:
