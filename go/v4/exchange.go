@@ -327,6 +327,14 @@ func (this *Exchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
+func (this *Exchange) MarketsMutexLocker(locked bool) {
+	if locked {
+		this.MarketsMutex.Lock()
+	} else {
+		this.MarketsMutex.Unlock()
+	}
+}
+
 /*
 *
   - @method
