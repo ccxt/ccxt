@@ -191,7 +191,7 @@ type ICoreExchange interface {
 	DecimalToPrecision(value any, roundingMode any, numPrecisionDigits any, args ...any) any
 	SafeValueN(obj any, keys any, defaultValue ...any) any
 	SafeDict2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
-	IsDictionary(dictionary any) bool
+	IsDictionary(dictionary any) any
 	SafeString2(obj any, key any, key2 any, defaultValue ...any) any
 	SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any
 	SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any
