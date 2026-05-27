@@ -2052,6 +2052,7 @@ class krakenfutures extends Exchange {
             $innerStatus = $this->safe_string($order, 'status');
             $fetchOrderPriceTriggerOptions = $this->safe_dict($orderDictFromFetchOrder, 'priceTriggerOptions', array());
             $fetchOrderTriggerPrice = $this->safe_string($fetchOrderPriceTriggerOptions, 'triggerPrice');
+            $unifiedSymbol = $this->safe_symbol($this->safe_string($orderDictFromFetchOrder, 'symbol'), $market);
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
@@ -2060,7 +2061,7 @@ class krakenfutures extends Exchange {
                 'datetime' => $datetime,
                 'lastTradeTimestamp' => null,
                 'lastUpdateTimestamp' => $this->parse8601($this->safe_string($orderDictFromFetchOrder, 'lastUpdateTimestamp')),
-                'symbol' => $this->safe_symbol($this->safe_string($orderDictFromFetchOrder, 'symbol'), $market),
+                'symbol' => $unifiedSymbol,
                 'type' => null,
                 'timeInForce' => null,
                 'postOnly' => null,

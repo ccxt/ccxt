@@ -507,9 +507,11 @@ public partial class deribit : Exchange
         object optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         object timestamp = this.parse8601(datetime);
+        object id = add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType);
+        object symbolExpired = add(add(add(add(add(add(add(add(add(add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType);
         return new Dictionary<string, object>() {
-            { "id", add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType) },
-            { "symbol", add(add(add(add(add(add(add(add(add(add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
+            { "id", id },
+            { "symbol", symbolExpired },
             { "base", bs },
             { "quote", quote },
             { "settle", settle },

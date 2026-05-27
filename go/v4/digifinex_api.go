@@ -7,354 +7,354 @@
 
 package ccxt
 
-func (this *DigifinexCore) PublicSpotGetMarketSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetMarketSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetMarketSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetMarketSymbols", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetKline", args...)
+func (this *DigifinexCore) PublicSpotGetKline (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetKline", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetMarginCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetMarginCurrencies", args...)
+func (this *DigifinexCore) PublicSpotGetMarginCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetMarginCurrencies", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetMarginSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetMarginSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetMarginSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetMarginSymbols", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetMarkets", args...)
+func (this *DigifinexCore) PublicSpotGetMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetMarkets", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetOrderBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetOrderBook", args...)
+func (this *DigifinexCore) PublicSpotGetOrderBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetOrderBook", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetPing", args...)
+func (this *DigifinexCore) PublicSpotGetPing (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetPing", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetSpotSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetSpotSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetSpotSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetSpotSymbols", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTime", args...)
+func (this *DigifinexCore) PublicSpotGetTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetTime", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTrades", args...)
+func (this *DigifinexCore) PublicSpotGetTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetTrades", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetTradesSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTradesSymbols", args...)
+func (this *DigifinexCore) PublicSpotGetTradesSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetTradesSymbols", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetTicker", args...)
+func (this *DigifinexCore) PublicSpotGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetTicker", args...)
 }
 
-func (this *DigifinexCore) PublicSpotGetCurrencies(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
+func (this *DigifinexCore) PublicSpotGetCurrencies (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSpotGetCurrencies", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicApiWeight(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicApiWeight", args...)
+func (this *DigifinexCore) PublicSwapGetPublicApiWeight (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicApiWeight", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicCandles(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicCandles", args...)
+func (this *DigifinexCore) PublicSwapGetPublicCandles (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicCandles", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicCandlesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicCandlesHistory", args...)
+func (this *DigifinexCore) PublicSwapGetPublicCandlesHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicCandlesHistory", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicDepth(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicDepth", args...)
+func (this *DigifinexCore) PublicSwapGetPublicDepth (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicDepth", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicFundingRate(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicFundingRate", args...)
+func (this *DigifinexCore) PublicSwapGetPublicFundingRate (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicFundingRate", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicFundingRateHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicFundingRateHistory", args...)
+func (this *DigifinexCore) PublicSwapGetPublicFundingRateHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicFundingRateHistory", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicInstrument(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicInstrument", args...)
+func (this *DigifinexCore) PublicSwapGetPublicInstrument (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicInstrument", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicInstruments", args...)
+func (this *DigifinexCore) PublicSwapGetPublicInstruments (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicInstruments", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicTicker", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicTicker", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicTickers", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicTickers", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicTime(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicTime", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTime (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicTime", args...)
 }
 
-func (this *DigifinexCore) PublicSwapGetPublicTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicSwapGetPublicTrades", args...)
+func (this *DigifinexCore) PublicSwapGetPublicTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("publicSwapGetPublicTrades", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarketFinancelog(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarketFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketFinancelog (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarketFinancelog", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarketMytrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarketMytrades", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketMytrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarketMytrades", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarketOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarketOrder", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarketOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarketOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarketOrderDetail", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrderDetail (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarketOrderDetail", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarketOrderCurrent(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarketOrderCurrent", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrderCurrent (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarketOrderCurrent", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarketOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarketOrderHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetMarketOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarketOrderHistory", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginAssets", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginAssets", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginFinancelog(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginFinancelog (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginFinancelog", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginMytrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginMytrades", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginMytrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginMytrades", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginOrder", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginOrderCurrent(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginOrderCurrent", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginOrderCurrent (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginOrderCurrent", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginOrderHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginOrderHistory", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetMarginPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetMarginPositions", args...)
+func (this *DigifinexCore) PrivateSpotGetMarginPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetMarginPositions", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetOtcFinancelog(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetOtcFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetOtcFinancelog (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetOtcFinancelog", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetSpotAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetSpotAssets", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetSpotAssets", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetSpotFinancelog(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetSpotFinancelog", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotFinancelog (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetSpotFinancelog", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetSpotMytrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetSpotMytrades", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotMytrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetSpotMytrades", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetSpotOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetSpotOrder", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetSpotOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetSpotOrderCurrent(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetSpotOrderCurrent", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotOrderCurrent (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetSpotOrderCurrent", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetSpotOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetSpotOrderHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetSpotOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetSpotOrderHistory", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
+func (this *DigifinexCore) PrivateSpotGetDepositAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetDepositHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotGetWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
+func (this *DigifinexCore) PrivateSpotGetWithdrawHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostMarketOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostMarketOrderCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostMarketOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostMarketOrderCancel", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostMarketOrderNew(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostMarketOrderNew", args...)
+func (this *DigifinexCore) PrivateSpotPostMarketOrderNew (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostMarketOrderNew", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostMarketOrderBatchNew(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostMarketOrderBatchNew", args...)
+func (this *DigifinexCore) PrivateSpotPostMarketOrderBatchNew (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostMarketOrderBatchNew", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostMarginOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostMarginOrderCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostMarginOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostMarginOrderCancel", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostMarginOrderNew(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostMarginOrderNew", args...)
+func (this *DigifinexCore) PrivateSpotPostMarginOrderNew (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostMarginOrderNew", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostMarginPositionClose(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostMarginPositionClose", args...)
+func (this *DigifinexCore) PrivateSpotPostMarginPositionClose (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostMarginPositionClose", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostSpotOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostSpotOrderCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostSpotOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostSpotOrderCancel", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostSpotOrderNew(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostSpotOrderNew", args...)
+func (this *DigifinexCore) PrivateSpotPostSpotOrderNew (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostSpotOrderNew", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostTransfer", args...)
+func (this *DigifinexCore) PrivateSpotPostTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostTransfer", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostWithdrawNew(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostWithdrawNew", args...)
+func (this *DigifinexCore) PrivateSpotPostWithdrawNew (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostWithdrawNew", args...)
 }
 
-func (this *DigifinexCore) PrivateSpotPostWithdrawCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSpotPostWithdrawCancel", args...)
+func (this *DigifinexCore) PrivateSpotPostWithdrawCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSpotPostWithdrawCancel", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetAccountBalance", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetAccountBalance", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetAccountPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetAccountPositions", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountPositions (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetAccountPositions", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetAccountFinanceRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetAccountFinanceRecord", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountFinanceRecord (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetAccountFinanceRecord", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetAccountTradingFeeRate(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetAccountTradingFeeRate", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountTradingFeeRate (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetAccountTradingFeeRate", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetAccountTransferRecord(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetAccountTransferRecord", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountTransferRecord (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetAccountTransferRecord", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetAccountFundingFee(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetAccountFundingFee", args...)
+func (this *DigifinexCore) PrivateSwapGetAccountFundingFee (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetAccountFundingFee", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetTradeHistoryOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetTradeHistoryOrders", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeHistoryOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetTradeHistoryOrders", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetTradeHistoryTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetTradeHistoryTrades", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeHistoryTrades (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetTradeHistoryTrades", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetTradeOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetTradeOpenOrders", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeOpenOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetTradeOpenOrders", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapGetTradeOrderInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapGetTradeOrderInfo", args...)
+func (this *DigifinexCore) PrivateSwapGetTradeOrderInfo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapGetTradeOrderInfo", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostAccountTransfer", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostAccountTransfer", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostAccountLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostAccountLeverage", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostAccountLeverage", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostAccountPositionMode(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostAccountPositionMode", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountPositionMode (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostAccountPositionMode", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostAccountPositionMargin(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostAccountPositionMargin", args...)
+func (this *DigifinexCore) PrivateSwapPostAccountPositionMargin (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostAccountPositionMargin", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostTradeBatchCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostTradeBatchCancelOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeBatchCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostTradeBatchCancelOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostTradeBatchOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostTradeBatchOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeBatchOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostTradeBatchOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostTradeCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostTradeCancelOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostTradeCancelOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostTradeOrderPlace(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostTradeOrderPlace", args...)
+func (this *DigifinexCore) PrivateSwapPostTradeOrderPlace (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostTradeOrderPlace", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowSponsorOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowSponsorOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowSponsorOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowSponsorOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowCloseOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowCloseOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowCloseOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowCloseOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowCancelOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowCancelOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowCancelOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowUserCenterCurrent(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowUserCenterCurrent", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowUserCenterCurrent (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowUserCenterCurrent", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowUserCenterHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowUserCenterHistory", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowUserCenterHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowUserCenterHistory", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowExpertCurrentOpenOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowExpertCurrentOpenOrder", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowExpertCurrentOpenOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowExpertCurrentOpenOrder", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowAddAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowAddAlgo", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowAddAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowAddAlgo", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowCancelAlgo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowCancelAlgo", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowCancelAlgo (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowCancelAlgo", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowAccountAvailable(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowAccountAvailable", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowAccountAvailable (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowAccountAvailable", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowPlanTask(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowPlanTask", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowPlanTask (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowPlanTask", args...)
 }
 
-func (this *DigifinexCore) PrivateSwapPostFollowInstrumentList(args ...any) <-chan any {
-	return this.callEndpointAsync("privateSwapPostFollowInstrumentList", args...)
+func (this *DigifinexCore) PrivateSwapPostFollowInstrumentList (args ...any) <-chan any {
+   return this.callEndpointAsync("privateSwapPostFollowInstrumentList", args...)
 }

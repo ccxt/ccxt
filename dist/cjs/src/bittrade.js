@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bittrade
@@ -1996,8 +1996,9 @@ class bittrade extends bittrade$1["default"] {
             const requestSorted = this.keysort(request);
             let auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            const content = [method, this.hostname, url, auth];
             // eslint-disable-next-line quotes
-            const payload = [method, this.hostname, url, auth].join("\n");
+            const payload = content.join("\n");
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;

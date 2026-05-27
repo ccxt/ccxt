@@ -536,6 +536,7 @@ public partial class blofin : Exchange
         object maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object isActive = (isEqual(this.safeString(market, "state"), "live"));
+        object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -548,7 +549,7 @@ public partial class blofin : Exchange
             { "type", type },
             { "spot", spot },
             { "option", option },
-            { "margin", isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1"))) },
+            { "margin", isMargin },
             { "swap", swap },
             { "future", future },
             { "active", isActive },

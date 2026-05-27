@@ -7,446 +7,446 @@
 
 package ccxt
 
-func (this *WhitebitCore) WebGetV1Healthcheck(args ...any) <-chan any {
-	return this.callEndpointAsync("webGetV1Healthcheck", args...)
+func (this *WhitebitCore) WebGetV1Healthcheck (args ...any) <-chan any {
+   return this.callEndpointAsync("webGetV1Healthcheck", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetMarkets", args...)
+func (this *WhitebitCore) V1PublicGetMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetMarkets", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTickers", args...)
+func (this *WhitebitCore) V1PublicGetTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetTickers", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetTicker", args...)
+func (this *WhitebitCore) V1PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetTicker", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetSymbols(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetSymbols", args...)
+func (this *WhitebitCore) V1PublicGetSymbols (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetSymbols", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetDepthResult(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetDepthResult", args...)
+func (this *WhitebitCore) V1PublicGetDepthResult (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetDepthResult", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetHistory", args...)
+func (this *WhitebitCore) V1PublicGetHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetHistory", args...)
 }
 
-func (this *WhitebitCore) V1PublicGetKline(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetKline", args...)
+func (this *WhitebitCore) V1PublicGetKline (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PublicGetKline", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAccountBalance", args...)
+func (this *WhitebitCore) V1PrivatePostAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAccountBalance", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostOrderNew(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrderNew", args...)
+func (this *WhitebitCore) V1PrivatePostOrderNew (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostOrderNew", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrderCancel", args...)
+func (this *WhitebitCore) V1PrivatePostOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostOrderCancel", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostOrders", args...)
+func (this *WhitebitCore) V1PrivatePostOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostOrders", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAccountOrderHistory", args...)
+func (this *WhitebitCore) V1PrivatePostAccountOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAccountOrderHistory", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountExecutedHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAccountExecutedHistory", args...)
+func (this *WhitebitCore) V1PrivatePostAccountExecutedHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAccountExecutedHistory", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountExecutedHistoryAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAccountExecutedHistoryAll", args...)
+func (this *WhitebitCore) V1PrivatePostAccountExecutedHistoryAll (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAccountExecutedHistoryAll", args...)
 }
 
-func (this *WhitebitCore) V1PrivatePostAccountOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostAccountOrder", args...)
+func (this *WhitebitCore) V1PrivatePostAccountOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v1PrivatePostAccountOrder", args...)
 }
 
-func (this *WhitebitCore) V2PublicGetMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetMarkets", args...)
+func (this *WhitebitCore) V2PublicGetMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetMarkets", args...)
 }
 
-func (this *WhitebitCore) V2PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetTicker", args...)
+func (this *WhitebitCore) V2PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetTicker", args...)
 }
 
-func (this *WhitebitCore) V2PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetAssets", args...)
+func (this *WhitebitCore) V2PublicGetAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetAssets", args...)
 }
 
-func (this *WhitebitCore) V2PublicGetFee(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetFee", args...)
+func (this *WhitebitCore) V2PublicGetFee (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetFee", args...)
 }
 
-func (this *WhitebitCore) V2PublicGetDepthMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetDepthMarket", args...)
+func (this *WhitebitCore) V2PublicGetDepthMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetDepthMarket", args...)
 }
 
-func (this *WhitebitCore) V2PublicGetTradesMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PublicGetTradesMarket", args...)
+func (this *WhitebitCore) V2PublicGetTradesMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v2PublicGetTradesMarket", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetAssets(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetAssets", args...)
+func (this *WhitebitCore) V4PublicGetAssets (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetAssets", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetCollateralMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetCollateralMarkets", args...)
+func (this *WhitebitCore) V4PublicGetCollateralMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetCollateralMarkets", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetFee(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetFee", args...)
+func (this *WhitebitCore) V4PublicGetFee (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetFee", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetFundingHistoryMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetFundingHistoryMarket", args...)
+func (this *WhitebitCore) V4PublicGetFundingHistoryMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetFundingHistoryMarket", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetOrderbookDepthMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetOrderbookDepthMarket", args...)
+func (this *WhitebitCore) V4PublicGetOrderbookDepthMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetOrderbookDepthMarket", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetOrderbookMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetOrderbookMarket", args...)
+func (this *WhitebitCore) V4PublicGetOrderbookMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetOrderbookMarket", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetTicker", args...)
+func (this *WhitebitCore) V4PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetTicker", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetTradesMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetTradesMarket", args...)
+func (this *WhitebitCore) V4PublicGetTradesMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetTradesMarket", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetTime(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetTime", args...)
+func (this *WhitebitCore) V4PublicGetTime (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetTime", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetPing(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetPing", args...)
+func (this *WhitebitCore) V4PublicGetPing (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetPing", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetMarkets", args...)
+func (this *WhitebitCore) V4PublicGetMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetMarkets", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetFutures(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetFutures", args...)
+func (this *WhitebitCore) V4PublicGetFutures (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetFutures", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetPlatformStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetPlatformStatus", args...)
+func (this *WhitebitCore) V4PublicGetPlatformStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetPlatformStatus", args...)
 }
 
-func (this *WhitebitCore) V4PublicGetMiningPool(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PublicGetMiningPool", args...)
+func (this *WhitebitCore) V4PublicGetMiningPool (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PublicGetMiningPool", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountBalance", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountBalance", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountBalanceSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountBalanceSummary", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountBalanceSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountBalanceSummary", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsHistory", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountLeverage", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountLeverage (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountLeverage", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsOpen(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsOpen", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsOpen (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsOpen", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountSummary", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountSummary (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountSummary", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostCollateralAccountFundingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostCollateralAccountFundingHistory", args...)
+func (this *WhitebitCore) V4PrivatePostCollateralAccountFundingHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostCollateralAccountFundingHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountAddress", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountAddress", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountBalance", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountBalance", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCreateNewAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCreateNewAddress", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountCreateNewAddress (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountCreateNewAddress", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodes(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodes", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountCodes (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountCodes", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodesApply(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodesApply", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountCodesApply (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountCodesApply", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodesMy(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodesMy", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountCodesMy (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountCodesMy", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountCodesHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountCodesHistory", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountCodesHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountCodesHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountFiatDepositUrl(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountFiatDepositUrl", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountFiatDepositUrl (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountFiatDepositUrl", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountHistory", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountWithdraw", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountWithdraw (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountWithdraw", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountWithdrawPay(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountWithdrawPay", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountWithdrawPay (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountWithdrawPay", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountTransfer", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountTransfer", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartPlans(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartPlans", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartPlans (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountSmartPlans", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestment(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestment", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestment (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestment", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestmentClose(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestmentClose", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestmentClose (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestmentClose", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestments(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestments", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartInvestments (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountSmartInvestments", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountFee(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountFee", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountFee (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountFee", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMainAccountSmartInterestPaymentHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInterestPaymentHistory", args...)
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartInterestPaymentHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMainAccountSmartInterestPaymentHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountBalance", args...)
+func (this *WhitebitCore) V4PrivatePostTradeAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostTradeAccountBalance", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountExecutedHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountExecutedHistory", args...)
+func (this *WhitebitCore) V4PrivatePostTradeAccountExecutedHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostTradeAccountExecutedHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountOrderHistory", args...)
+func (this *WhitebitCore) V4PrivatePostTradeAccountOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostTradeAccountOrderHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostTradeAccountOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountOrder", args...)
+func (this *WhitebitCore) V4PrivatePostTradeAccountOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostTradeAccountOrder", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralLimit", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCollateralLimit (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCollateralLimit", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralMarket", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCollateralMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCollateralMarket", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralStopLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralStopLimit", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCollateralStopLimit (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCollateralStopLimit", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralTriggerMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralTriggerMarket", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCollateralTriggerMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCollateralTriggerMarket", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralBulk(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralBulk", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCollateralBulk (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCollateralBulk", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderNew(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderNew", args...)
+func (this *WhitebitCore) V4PrivatePostOrderNew (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderNew", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderMarket", args...)
+func (this *WhitebitCore) V4PrivatePostOrderMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderMarket", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderStockMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderStockMarket", args...)
+func (this *WhitebitCore) V4PrivatePostOrderStockMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderStockMarket", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderStopLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderStopLimit", args...)
+func (this *WhitebitCore) V4PrivatePostOrderStopLimit (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderStopLimit", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderStopMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderStopMarket", args...)
+func (this *WhitebitCore) V4PrivatePostOrderStopMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderStopMarket", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCancel", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCancel", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCancelAll(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCancelAll", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCancelAll (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCancelAll", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderKillSwitch(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderKillSwitch", args...)
+func (this *WhitebitCore) V4PrivatePostOrderKillSwitch (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderKillSwitch", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderKillSwitchStatus(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderKillSwitchStatus", args...)
+func (this *WhitebitCore) V4PrivatePostOrderKillSwitchStatus (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderKillSwitchStatus", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderBulk(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderBulk", args...)
+func (this *WhitebitCore) V4PrivatePostOrderBulk (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderBulk", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderModify(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderModify", args...)
+func (this *WhitebitCore) V4PrivatePostOrderModify (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderModify", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderConditionalCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderConditionalCancel", args...)
+func (this *WhitebitCore) V4PrivatePostOrderConditionalCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderConditionalCancel", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrders", args...)
+func (this *WhitebitCore) V4PrivatePostOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrders", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOcoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOcoOrders", args...)
+func (this *WhitebitCore) V4PrivatePostOcoOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOcoOrders", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderCollateralOco(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderCollateralOco", args...)
+func (this *WhitebitCore) V4PrivatePostOrderCollateralOco (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderCollateralOco", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderOcoCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderOcoCancel", args...)
+func (this *WhitebitCore) V4PrivatePostOrderOcoCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderOcoCancel", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostOrderOtoCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostOrderOtoCancel", args...)
+func (this *WhitebitCore) V4PrivatePostOrderOtoCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostOrderOtoCancel", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostProfileWebsocketToken(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostProfileWebsocketToken", args...)
+func (this *WhitebitCore) V4PrivatePostProfileWebsocketToken (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostProfileWebsocketToken", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostConvertEstimate(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostConvertEstimate", args...)
+func (this *WhitebitCore) V4PrivatePostConvertEstimate (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostConvertEstimate", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostConvertConfirm(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostConvertConfirm", args...)
+func (this *WhitebitCore) V4PrivatePostConvertConfirm (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostConvertConfirm", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostConvertHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostConvertHistory", args...)
+func (this *WhitebitCore) V4PrivatePostConvertHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostConvertHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountCreate", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountCreate", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountDelete(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountDelete", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountDelete (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountDelete", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountEdit", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountEdit (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountEdit", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountList(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountList", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountList (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountList", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountTransfer", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountTransfer (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountTransfer", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountBlock(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountBlock", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountBlock (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountBlock", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountUnblock(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountUnblock", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountUnblock (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountUnblock", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountBalances", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountBalances", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountTransferHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountTransferHistory", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountTransferHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountTransferHistory", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyCreate", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyCreate", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyEdit(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyEdit", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyEdit (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyEdit", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyDelete(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyDelete", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyDelete (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyDelete", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyList(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyList", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyList (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyList", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyReset(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyReset", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyReset (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyReset", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressList(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressList", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressList (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressList", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressCreate(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressCreate", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressCreate (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressCreate", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressDelete(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressDelete", args...)
+func (this *WhitebitCore) V4PrivatePostSubAccountApiKeyIpAddressDelete (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostSubAccountApiKeyIpAddressDelete", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMiningRewards(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMiningRewards", args...)
+func (this *WhitebitCore) V4PrivatePostMiningRewards (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMiningRewards", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostMarketFee(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostMarketFee", args...)
+func (this *WhitebitCore) V4PrivatePostMarketFee (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostMarketFee", args...)
 }
 
-func (this *WhitebitCore) V4PrivatePostConditionalOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v4PrivatePostConditionalOrders", args...)
+func (this *WhitebitCore) V4PrivatePostConditionalOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("v4PrivatePostConditionalOrders", args...)
 }

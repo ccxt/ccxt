@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class digifinex
@@ -682,6 +682,7 @@ class digifinex extends digifinex$1["default"] {
                     isAllowed = 1;
                 }
             }
+            const isActive = isAllowed ? true : false;
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -697,7 +698,7 @@ class digifinex extends digifinex$1["default"] {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : false,
+                'active': isActive,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,

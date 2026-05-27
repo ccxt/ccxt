@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class htx
@@ -3419,7 +3419,7 @@ class htx extends htx$1["default"] {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const info = this.safeValue(account, 'info');
-            const subtype = this.safeString(info, 'subtype', undefined);
+            const subtype = this.safeString(info, 'subtype');
             const typeFromAccount = this.safeString(account, 'type');
             if (type === 'margin') {
                 if (subtype === marketId) {
@@ -3852,7 +3852,8 @@ class htx extends htx$1["default"] {
         //         "ts": 1770293281344
         //     }
         //
-        let result = { 'info': response };
+        const finalResponse = response;
+        let result = { 'info': finalResponse };
         const data = this.safeValue(response, 'data');
         if (isMultiAssetMode) {
             const details = this.safeList(data, 'details', []);
@@ -7587,7 +7588,8 @@ class htx extends htx$1["default"] {
                 const sortedRequest = this.keysort(request);
                 let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                const payload = [method, this.hostname, url, auth].join("\n"); // eslint-disable-line quotes
+                const content = [method, this.hostname, url, auth];
+                const payload = content.join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
@@ -7669,7 +7671,8 @@ class htx extends htx$1["default"] {
                 }
                 let auth = this.urlencode(request, true).replace('%2c', '%2C'); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                const payload = [method, hostname, url, auth].join("\n"); // eslint-disable-line quotes
+                const content2 = [method, hostname, url, auth];
+                const payload = content2.join("\n"); // eslint-disable-line quotes
                 const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'base64');
                 auth += '&' + this.urlencode({ 'Signature': signature });
                 url += '?' + auth;
@@ -7688,8 +7691,9 @@ class htx extends htx$1["default"] {
                     };
                 }
             }
+            const finalHostname = hostname; // java req
             url = this.implodeParams(this.urls['api'][type], {
-                'hostname': hostname,
+                'hostname': finalHostname,
             }) + url;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

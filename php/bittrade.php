@@ -1973,8 +1973,9 @@ class bittrade extends Exchange {
             $requestSorted = $this->keysort($request);
             $auth = $this->urlencode($requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            $content = array( $method, $this->hostname, $url, $auth );
             // eslint-disable-next-line quotes
-            $payload = implode("\n", array($method, $this->hostname, $url, $auth));
+            $payload = implode("\n", $content);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
             $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
             $url .= '?' . $auth;

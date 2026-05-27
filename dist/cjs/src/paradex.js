@@ -10,7 +10,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class paradex
@@ -627,6 +627,7 @@ class paradex extends paradex$1["default"] {
         else {
             expiry = undefined;
         }
+        const expireDatetime = (expiry === 0) ? undefined : this.iso8601(expiry);
         return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
@@ -650,7 +651,7 @@ class paradex extends paradex$1["default"] {
             'maker': makerFee,
             'contractSize': this.parseNumber('1'),
             'expiry': expiry,
-            'expiryDatetime': (expiry === 0) ? undefined : this.iso8601(expiry),
+            'expiryDatetime': expireDatetime,
             'strike': this.parseNumber(strikePrice),
             'optionType': this.safeStringLower(market, 'option_type'),
             'precision': {
@@ -1496,7 +1497,7 @@ class paradex extends paradex$1["default"] {
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {

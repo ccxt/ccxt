@@ -1129,10 +1129,12 @@ class p2b extends Exchange {
             throw new BadRequest($this->id . ' fetchMyTrades () the time between $since and $params["until"] cannot be greater than 24 hours');
         }
         $market = $this->market($symbol);
+        $sinceSec = $this->parse_to_int($since / 1000);
+        $untilSec = $this->parse_to_int($until / 1000);
         $request = array(
             'market' => $market['id'],
-            'startTime' => $this->parse_to_int($since / 1000),
-            'endTime' => $this->parse_to_int($until / 1000),
+            'startTime' => $sinceSec,
+            'endTime' => $untilSec,
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1205,9 +1207,11 @@ class p2b extends Exchange {
         if (($until - $since) > 86400000) {
             throw new BadRequest($this->id . ' fetchClosedOrders () the time between $since and $params["until"] cannot be greater than 24 hours');
         }
+        $sinceSec = $this->parse_to_int($since / 1000);
+        $untilSec = $this->parse_to_int($until / 1000);
         $request = array(
-            'startTime' => $this->parse_to_int($since / 1000),
-            'endTime' => $this->parse_to_int($until / 1000),
+            'startTime' => $sinceSec,
+            'endTime' => $untilSec,
         );
         if ($market !== null) {
             $request['market'] = $market['id'];

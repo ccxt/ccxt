@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
@@ -983,6 +983,7 @@ class bitrue extends bitrue$1["default"] {
         if (minCost === undefined) {
             minCost = this.safeNumber(market, 'minOrderMoney');
         }
+        const isSpot = (type === 'spot');
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -994,7 +995,7 @@ class bitrue extends bitrue$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,

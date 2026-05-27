@@ -696,6 +696,8 @@ class derive extends Exchange {
             $linear = true;
             $inverse = false;
         }
+        $contractSize = ($spot) ? null : 1;
+        $isContract = ($swap || $option);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -712,10 +714,10 @@ class derive extends Exchange {
             'future' => false,
             'option' => $option,
             'active' => $this->safe_bool($market, 'is_active'),
-            'contract' => ($swap || $option),
+            'contract' => $isContract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'contractSize' => ($spot) ? null : 1,
+            'contractSize' => $contractSize,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'taker' => $this->safe_number($market, 'taker_fee_rate'),
@@ -1879,7 +1881,7 @@ class derive extends Exchange {
             'gtc' => 'GTC',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {

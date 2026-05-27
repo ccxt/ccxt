@@ -1905,7 +1905,7 @@ class woo extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order(array $order, ?array $market = null): array {

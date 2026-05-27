@@ -622,6 +622,7 @@ class paradex extends Exchange {
         } else {
             $expiry = null;
         }
+        $expireDatetime = ($expiry === 0) ? null : $this->iso8601($expiry);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -645,7 +646,7 @@ class paradex extends Exchange {
             'maker' => $makerFee,
             'contractSize' => $this->parse_number('1'),
             'expiry' => $expiry,
-            'expiryDatetime' => ($expiry === 0) ? null : $this->iso8601($expiry),
+            'expiryDatetime' => $expireDatetime,
             'strike' => $this->parse_number($strikePrice),
             'optionType' => $this->safe_string_lower($market, 'option_type'),
             'precision' => array(
@@ -1514,7 +1515,7 @@ class paradex extends Exchange {
             'GTC' => 'GTC',
             'POST_ONLY' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {

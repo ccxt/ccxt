@@ -1525,13 +1525,14 @@ class bitmex extends Exchange {
         if ($status !== null) {
             $status = $this->parse_transaction_status($status);
         }
+        $code = $currency['code'];
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'transactID'),
             'txid' => $this->safe_string($transaction, 'tx'),
             'type' => $type,
-            'currency' => $currency['code'],
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $currency['code']),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $code),
             'amount' => $this->parse_number($amount),
             'status' => $status,
             'timestamp' => $transactTime,
@@ -2081,6 +2082,7 @@ class bitmex extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $orderType = $this->capitalize($type);
+            $capitalizeOrderType = $orderType;
             $reduceOnly = $this->safe_value($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 if ((!$market['swap']) && (!$market['future'])) {
@@ -2095,7 +2097,7 @@ class bitmex extends Exchange {
                 'symbol' => $market['id'],
                 'side' => $this->capitalize($side),
                 'orderQty' => $qty, // lot size multiplied by the number of contracts
-                'ordType' => $orderType,
+                'ordType' => $capitalizeOrderType,
                 'text' => $brokerId,
             );
             $execInstructions = array();
@@ -2946,9 +2948,10 @@ class bitmex extends Exchange {
             }
             $currency = $this->currency($code);
             $params = $this->omit($params, 'network');
+            $parsedNetwork = $this->network_code_to_id($networkCode, $currency['code']);
             $request = array(
                 'currency' => $currency['id'],
-                'network' => $this->network_code_to_id($networkCode, $currency['code']),
+                'network' => $parsedNetwork,
             );
             $response = Async\await($this->privateGetUserDepositAddress ($this->extend($request, $params)));
             //

@@ -1897,16 +1897,16 @@ watch all open positions. Note: huobi has one channel for each marginMode and ty
 - https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| since |  |  |
-| limit |  |  |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-htx.watchPositions (symbols, since, limit, params[])
+htx.watchPositions ([symbols, since, limit, params])
 ```
 
 

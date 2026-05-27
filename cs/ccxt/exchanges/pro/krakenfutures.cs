@@ -301,10 +301,10 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @name krakenfutures#watchPositions
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -1683,8 +1683,21 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        event: 'alert',
         //        message: 'Failed to subscribe to authenticated feed'
         //    }
+        //    {
+        //        event: 'alert',
+        //        message: 'Already subscribed to feed, re-requesting'
+        //    }
         //
         object errMsg = this.safeString(message, "message");
+        // Benign "already subscribed" notice: the original subscription is still
+        // active and delivering data on this socket. The generic client.reject
+        // below rejects every pending future on the connection, so a stray
+        // re-subscribe warning would kill unrelated in-flight watch* calls —
+        // mirrors the bitmart 90008 fix.
+        if (isTrue(isTrue(!isEqual(errMsg, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(errMsg, "Already subscribed"), 0))))
+        {
+            return false;
+        }
         try
         {
             throw new ExchangeError ((string)add(add(this.id, " "), errMsg)) ;

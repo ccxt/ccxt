@@ -9,7 +9,7 @@ var Precise = require('../base/Precise.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class krakenfutures extends krakenfutures$1["default"] {
     describe() {
@@ -266,10 +266,10 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @name krakenfutures#watchPositions
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1542,8 +1542,20 @@ class krakenfutures extends krakenfutures$1["default"] {
         //        event: 'alert',
         //        message: 'Failed to subscribe to authenticated feed'
         //    }
+        //    {
+        //        event: 'alert',
+        //        message: 'Already subscribed to feed, re-requesting'
+        //    }
         //
         const errMsg = this.safeString(message, 'message');
+        // Benign "already subscribed" notice: the original subscription is still
+        // active and delivering data on this socket. The generic client.reject
+        // below rejects every pending future on the connection, so a stray
+        // re-subscribe warning would kill unrelated in-flight watch* calls —
+        // mirrors the bitmart 90008 fix.
+        if (errMsg !== undefined && errMsg.indexOf('Already subscribed') >= 0) {
+            return false;
+        }
         try {
             throw new errors.ExchangeError(this.id + ' ' + errMsg);
         }

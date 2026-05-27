@@ -3414,7 +3414,7 @@ public partial class htx : Exchange
         {
             object account = getValue(accounts, i);
             object info = this.safeValue(account, "info");
-            object subtype = this.safeString(info, "subtype", null);
+            object subtype = this.safeString(info, "subtype");
             object typeFromAccount = this.safeString(account, "type");
             if (isTrue(isEqual(type, "margin")))
             {
@@ -3880,8 +3880,9 @@ public partial class htx : Exchange
         //         "ts": 1770293281344
         //     }
         //
+        object finalResponse = response;
         object result = ((object)new Dictionary<string, object>() {
-            { "info", response },
+            { "info", finalResponse },
         });
         object data = this.safeValue(response, "data");
         if (isTrue(isMultiAssetMode))
@@ -7924,7 +7925,8 @@ public partial class htx : Exchange
                 object sortedRequest = this.keysort(request);
                 object auth = this.urlencode(sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                object payload = String.Join("\n", ((IList<object>)new List<object>() {method, this.hostname, url, auth}).ToArray()); // eslint-disable-line quotes
+                object content = new List<object>() {method, this.hostname, url, auth};
+                object payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
@@ -8019,7 +8021,8 @@ public partial class htx : Exchange
                 }
                 object auth = ((string)this.urlencode(request, true)).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                object payload = String.Join("\n", ((IList<object>)new List<object>() {method, hostname, url, auth}).ToArray()); // eslint-disable-line quotes
+                object content2 = new List<object>() {method, hostname, url, auth};
+                object payload = String.Join("\n", ((IList<object>)content2).ToArray()); // eslint-disable-line quotes
                 object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
                 auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
@@ -8042,8 +8045,9 @@ public partial class htx : Exchange
                     };
                 }
             }
+            object finalHostname = hostname; // java req
             url = add(this.implodeParams(getValue(getValue(this.urls, "api"), type), new Dictionary<string, object>() {
-    { "hostname", hostname },
+    { "hostname", finalHostname },
 }), url);
         }
         return new Dictionary<string, object>() {

@@ -1278,7 +1278,7 @@ class arkham(Exchange, ImplicitAPI):
         #
         # []  returns an empty array, even when successfully cancels orders
         #
-        return self.parse_orders(response, None)
+        return self.parse_orders(response)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -1789,7 +1789,8 @@ class arkham(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'addresses')
-        parsed = self.parse_deposit_addresses(data, None, False, {'network': networkCode})
+        networkCodeUnified = networkCode  # java req
+        parsed = self.parse_deposit_addresses(data, None, False, {'network': networkCodeUnified})
         return self.index_by(parsed, 'network')
 
     def parse_deposit_address(self, entry, currency: Currency = None) -> DepositAddress:
@@ -2329,11 +2330,13 @@ class arkham(Exchange, ImplicitAPI):
             marketId = self.safe_string(info, 'market')
             market = self.safe_market(marketId, market, None, 'swap')
             maxNotional = self.safe_number(tier, 'positionLimit')
+            curr = market['base'] if market['linear'] else market['quote']
+            notional = minNotional
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_symbol(marketId, market, None, 'swap'),
-                'currency': market['base'] if market['linear'] else market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(tier, 'marginRate'),
                 'maxLeverage': self.safe_integer(tier, 'leverageRate'),

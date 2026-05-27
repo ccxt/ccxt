@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitstamp
@@ -682,12 +682,13 @@ class bitstamp extends bitstamp$1["default"] {
                 }
             }
             const isSpot = (type === 'spot');
+            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settleId ? this.safeCurrencyCode(settleId) : undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -915,7 +916,7 @@ class bitstamp extends bitstamp$1["default"] {
         // }
         //
         const marketId = this.safeString(ticker, 'pair');
-        const symbol = this.safeSymbol(marketId, market, undefined);
+        const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'volume');
@@ -1337,8 +1338,9 @@ class bitstamp extends bitstamp$1["default"] {
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
     parseBalance(response) {
+        const finalResponse = response; // java req
         const result = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };

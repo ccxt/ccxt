@@ -946,13 +946,14 @@ public partial class coinbaseexchange : Exchange
         }
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "size");
+        object symbol = getValue(market, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", symbol },
             { "type", null },
             { "takerOrMaker", takerOrMaker },
             { "side", side },

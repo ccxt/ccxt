@@ -618,10 +618,10 @@ class oxfun(ccxt.async_support.oxfun):
         https://docs.ox.fun/?json#position-channel
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int|str [params.tag]: If given it will be echoed in the reply and the max size of tag is 32
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

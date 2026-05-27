@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var kucoin = require('./kucoin.js');
 var errors = require('./base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class kucoinfutures extends kucoin["default"] {
     describe() {

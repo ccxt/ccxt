@@ -1141,10 +1141,12 @@ public partial class p2b : Exchange
             throw new BadRequest ((string)add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         object market = this.market(symbol);
+        object sinceSec = this.parseToInt(divide(since, 1000));
+        object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "startTime", this.parseToInt(divide(since, 1000)) },
-            { "endTime", this.parseToInt(divide(until, 1000)) },
+            { "startTime", sinceSec },
+            { "endTime", untilSec },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1226,9 +1228,11 @@ public partial class p2b : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
+        object sinceSec = this.parseToInt(divide(since, 1000));
+        object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
-            { "startTime", this.parseToInt(divide(since, 1000)) },
-            { "endTime", this.parseToInt(divide(until, 1000)) },
+            { "startTime", sinceSec },
+            { "endTime", untilSec },
         };
         if (isTrue(!isEqual(market, null)))
         {

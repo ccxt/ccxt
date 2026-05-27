@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class okx
@@ -1823,6 +1823,9 @@ class okx extends okx$1["default"] {
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        const leverageAboveOne = Precise["default"].stringGt(maxLeverage, '1');
+        const quoteEqualSettle = (quoteId === settleId);
+        const baseEqualSettle = (baseId === settleId);
         const status = this.safeString(market, 'state');
         const instIdCode = this.safeInteger(market, 'instIdCode');
         return this.extend(fees, {
@@ -1837,14 +1840,14 @@ class okx extends okx$1["default"] {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise["default"].stringGt(maxLeverage, '1')),
+            'margin': spot && leverageAboveOne,
             'swap': swap,
             'future': future,
             'option': option,
             'active': status === 'live',
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? quoteEqualSettle : undefined,
+            'inverse': contract ? baseEqualSettle : undefined,
             'contractSize': contract ? this.safeNumber(market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),

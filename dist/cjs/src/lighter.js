@@ -10,7 +10,7 @@ var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class lighter
@@ -443,7 +443,7 @@ class lighter extends lighter$1["default"] {
      * @method
      * @name lighter#preLoadLighterLibrary
      * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true if the signer was loaded, false otherwise
      */
     async preLoadLighterLibrary(params = {}) {

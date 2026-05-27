@@ -1261,11 +1261,11 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker')
         side = None
         if isBuyer is not None:
             side = 'buy' if (isBuyer is True) else 'sell'
-        isMaker = self.safe_string_2(trade, 'isMaker', None)
+        isMaker = self.safe_string(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if (isMaker == 'true') else 'taker'
@@ -1632,7 +1632,7 @@ class coinsph(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
-        trades = self.safe_value(order, 'fills', None)
+        trades = self.safe_value(order, 'fills')
         triggerPrice = self.safe_string(order, 'stopPrice')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
@@ -2145,7 +2145,7 @@ class coinsph(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
-        responseCode = self.safe_string(response, 'code', None)
+        responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

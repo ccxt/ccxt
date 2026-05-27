@@ -1764,6 +1764,15 @@ class bitmart(ccxt.async_support.bitmart):
         #
         errorCode = self.safe_string(message, 'errorCode')
         error = self.safe_string(message, 'error')
+        # Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+        # a re-subscribe attempt on a topic that's already active on self
+        # connection, but the original subscription keeps delivering data —
+        # so treat it. Without self short-circuit, the generic
+        # client.reject below kills every unrelated in-flight future —
+        # e.g. a watchOHLCV waiting on its kline subscription gets rejected
+        # by an orderbook 90008 raised on the same socket.
+        if errorCode == '90008':
+            return False
         try:
             if errorCode is not None or error is not None:
                 feedback = self.id + ' ' + self.json(message)

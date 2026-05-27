@@ -7,74 +7,74 @@
 
 package ccxt
 
-func (this *P2bCore) PublicGetMarkets(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *P2bCore) PublicGetMarkets (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *P2bCore) PublicGetMarket(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarket", args...)
+func (this *P2bCore) PublicGetMarket (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarket", args...)
 }
 
-func (this *P2bCore) PublicGetTickers(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTickers", args...)
+func (this *P2bCore) PublicGetTickers (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *P2bCore) PublicGetTicker(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *P2bCore) PublicGetTicker (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *P2bCore) PublicGetBook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetBook", args...)
+func (this *P2bCore) PublicGetBook (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetBook", args...)
 }
 
-func (this *P2bCore) PublicGetHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetHistory", args...)
+func (this *P2bCore) PublicGetHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetHistory", args...)
 }
 
-func (this *P2bCore) PublicGetDepthResult(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetDepthResult", args...)
+func (this *P2bCore) PublicGetDepthResult (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetDepthResult", args...)
 }
 
-func (this *P2bCore) PublicGetMarketKline(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketKline", args...)
+func (this *P2bCore) PublicGetMarketKline (args ...any) <-chan any {
+   return this.callEndpointAsync("publicGetMarketKline", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBalances", args...)
+func (this *P2bCore) PrivatePostAccountBalances (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountBalances", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountBalance", args...)
+func (this *P2bCore) PrivatePostAccountBalance (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountBalance", args...)
 }
 
-func (this *P2bCore) PrivatePostOrderNew(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderNew", args...)
+func (this *P2bCore) PrivatePostOrderNew (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrderNew", args...)
 }
 
-func (this *P2bCore) PrivatePostOrderCancel(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrderCancel", args...)
+func (this *P2bCore) PrivatePostOrderCancel (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *P2bCore) PrivatePostOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOrders", args...)
+func (this *P2bCore) PrivatePostOrders (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountMarketOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
+func (this *P2bCore) PrivatePostAccountMarketOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountMarketDealHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
+func (this *P2bCore) PrivatePostAccountMarketDealHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountOrder", args...)
+func (this *P2bCore) PrivatePostAccountOrder (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountOrder", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
+func (this *P2bCore) PrivatePostAccountOrderHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
 }
 
-func (this *P2bCore) PrivatePostAccountExecutedHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
+func (this *P2bCore) PrivatePostAccountExecutedHistory (args ...any) <-chan any {
+   return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
 }

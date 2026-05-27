@@ -1323,6 +1323,12 @@ public partial class mexc
     /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency transferred
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : the earliest time in ms to fetch transfers for

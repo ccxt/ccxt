@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class mercado
@@ -685,6 +685,7 @@ class mercado extends mercado$1["default"] {
         const filled = this.safeString(order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp(order, 'updated_timestamp');
         const rawTrades = this.safeValue(order, 'operations', []);
+        const symbol = market['symbol'];
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -692,7 +693,7 @@ class mercado extends mercado$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'timeInForce': undefined,
             'postOnly': undefined,

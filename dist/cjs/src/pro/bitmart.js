@@ -8,7 +8,7 @@ var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bitmart extends bitmart$1["default"] {
     describe() {
@@ -1874,6 +1874,16 @@ class bitmart extends bitmart$1["default"] {
         //
         const errorCode = this.safeString(message, 'errorCode');
         const error = this.safeString(message, 'error');
+        // Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+        // a re-subscribe attempt on a topic that's already active on this
+        // connection, but the original subscription keeps delivering data —
+        // so treat it as benign. Without this short-circuit, the generic
+        // client.reject below kills every unrelated in-flight future —
+        // e.g. a watchOHLCV waiting on its kline subscription gets rejected
+        // by an orderbook 90008 raised on the same socket.
+        if (errorCode === '90008') {
+            return false;
+        }
         try {
             if (errorCode !== undefined || error !== undefined) {
                 const feedback = this.id + ' ' + this.json(message);

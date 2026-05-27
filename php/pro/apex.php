@@ -822,7 +822,7 @@ class apex extends \ccxt\async\apex {
         return Async\async(function () use ($client, $messageHash) {
             // one ws channel gives $positions for all types, for snapshot must load all $positions
             $fetchFunctions = array(
-                $this->fetch_positions(null),
+                $this->fetch_positions(),
             );
             $promises = Async\await(Promise\all($fetchFunctions));
             $this->positions = new ArrayCacheBySymbolBySide ();
@@ -997,6 +997,15 @@ class apex extends \ccxt\async\apex {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
+                // Benign re-subscribe notice (same shape 90008 /
+                // krakenfutures "Already subscribed") => the original subscription
+                // is still active and delivering data on this socket. Without
+                // this short-circuit the catch-clause's `$client->reject($error,
+                // $messageHash)` rejects every in-flight future on the connection
+                // because apex doesn't echo a `reqId` on these warnings.
+                if ($ret_msg !== null && mb_strpos($ret_msg, 'already subscribed') !== false) {
+                    return false;
+                }
                 if ($op === 'auth') {
                     throw new AuthenticationError('Authentication failed => ' . $ret_msg);
                 } else {

@@ -1560,7 +1560,7 @@ class binance extends \ccxt\async\binance {
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
-            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone');
             $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
             $rawHashes = array();
             $messageHashes = array();
@@ -1628,7 +1628,7 @@ class binance extends \ccxt\async\binance {
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
-            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone');
             $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
             $rawHashes = array();
             $subMessageHashes = array();
@@ -2499,7 +2499,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($marketType) {
             /**
              * watches best bid & ask for symbols
-             * @param $marketType {string} only support on 'spot'
+             * @param {string} [$marketType] only supports 'spot'
              *
              * @see array(@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-$subscription-user_data Binance User Data Stream Documentation)
              *

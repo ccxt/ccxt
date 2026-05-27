@@ -661,6 +661,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("contractPrivateGetOrderListOpenOrdersSymbol",parameters);
     }
 
+    public async Task<object> contractPrivateGetOrderListOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("contractPrivateGetOrderListOpenOrders",parameters);
+    }
+
     public async Task<object> contractPrivateGetOrderListHistoryOrders (object parameters = null)
     {
         return await this.callAsync ("contractPrivateGetOrderListHistoryOrders",parameters);

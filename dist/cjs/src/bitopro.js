@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitopro
@@ -1020,7 +1020,7 @@ class bitopro extends bitopro$1["default"] {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //

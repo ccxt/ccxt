@@ -654,12 +654,13 @@ public partial class bitstamp : Exchange
                 }
             }
             object isSpot = (isEqual(type, "spot"));
+            object settle = ((bool) isTrue(settleId)) ? this.safeCurrencyCode(settleId) : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
                 { "symbol", symbol },
                 { "base", bs },
                 { "quote", quote },
-                { "settle", ((bool) isTrue(settleId)) ? this.safeCurrencyCode(settleId) : null },
+                { "settle", settle },
                 { "baseId", baseId },
                 { "quoteId", quoteId },
                 { "settleId", settleId },
@@ -910,7 +911,7 @@ public partial class bitstamp : Exchange
         // }
         //
         object marketId = this.safeString(ticker, "pair");
-        object symbol = this.safeSymbol(marketId, market, null);
+        object symbol = this.safeSymbol(marketId, market);
         object timestamp = this.safeTimestamp(ticker, "timestamp");
         object vwap = this.safeString(ticker, "vwap");
         object baseVolume = this.safeString(ticker, "volume");
@@ -1359,8 +1360,9 @@ public partial class bitstamp : Exchange
 
     public override object parseBalance(object response)
     {
+        object finalResponse = response; // java req
         object result = new Dictionary<string, object>() {
-            { "info", response },
+            { "info", finalResponse },
             { "timestamp", null },
             { "datetime", null },
         };

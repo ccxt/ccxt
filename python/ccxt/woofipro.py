@@ -1415,7 +1415,7 @@ class woofipro(Exchange, ImplicitAPI):
             'fok': 'FOK',
             'post_only': 'PO',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order_status(self, status: Str):
         if status is not None:

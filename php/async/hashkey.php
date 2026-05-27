@@ -3123,7 +3123,7 @@ class hashkey extends Exchange {
             list($marketType, $params) = $this->handle_market_type_and_params($methodName, $market, $params, $marketType);
             $response = null;
             if ($marketType === 'spot') {
-                $response = Async\await($this->privateDeleteApiV1SpotCancelOrderByIds ($this->extend($request)));
+                $response = Async\await($this->privateDeleteApiV1SpotCancelOrderByIds ($request));
                 //
                 //     {
                 //         "code" => "0000",
@@ -3131,7 +3131,7 @@ class hashkey extends Exchange {
                 //     }
                 //
             } elseif ($marketType === 'swap') {
-                $response = $this->privateDeleteApiV1FuturesCancelOrderByIds ($this->extend($request));
+                $response = Async\await($this->privateDeleteApiV1FuturesCancelOrderByIds ($request));
             } else {
                 throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
             }
@@ -4452,8 +4452,8 @@ class hashkey extends Exchange {
             return null;
         }
         $errorInArray = false;
-        $responseCodeString = $this->safe_string($response, 'code', null);
-        $responseCodeInteger = $this->safe_integer($response, 'code', null); // some codes in $response are returned as '0000' others
+        $responseCodeString = $this->safe_string($response, 'code');
+        $responseCodeInteger = $this->safe_integer($response, 'code'); // some codes in $response are returned as '0000' others
         if ($responseCodeInteger === 0) {
             $result = $this->safe_list($response, 'result', array()); // for batch methods
             for ($i = 0; $i < count($result); $i++) {

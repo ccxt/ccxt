@@ -1061,13 +1061,14 @@ class coinbaseexchange extends Exchange {
         }
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'size');
+        $symbol = $market['symbol'];
         return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,

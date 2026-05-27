@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bingx
@@ -1704,10 +1704,10 @@ class bingx extends bingx$1["default"] {
         [subType, params] = this.handleSubTypeAndParams('fetchFundingRates', firstMarket, params, subType);
         let response = undefined;
         if (subType === 'inverse') {
-            response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(params));
+            response = await this.cswapV1PublicGetMarketPremiumIndex(params);
         }
         else {
-            response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(params));
+            response = await this.swapV2PublicGetQuotePremiumIndex(params);
         }
         const data = this.safeList(response, 'data', []);
         return this.parseFundingRates(data, symbols);
@@ -5254,7 +5254,7 @@ class bingx extends bingx$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         const request = {
             'coin': currency['id'],
             'offset': 0,
@@ -6325,7 +6325,7 @@ class bingx extends bingx$1["default"] {
     async closeAllPositions(params = {}) {
         await this.loadMarkets();
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('closeAllPositions', undefined, params);
         let subType = undefined;

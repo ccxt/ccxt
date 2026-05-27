@@ -1731,8 +1731,8 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| enabled |  | Yes |  |
-| params |  | Yes |  |
+| enabled | <code>boolean</code> | Yes | whether to enable user dex abstraction |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
 
 ##### Supported exchanges
@@ -6962,9 +6962,9 @@ if the required credentials are available in options, it will pre-load the light
 **Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
 
 
-| Param |
-| --- |
-| params | 
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [lighter](/exchanges/lighter.md#preloadlighterlibrary)

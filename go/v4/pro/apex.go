@@ -1004,7 +1004,7 @@ func  (this *ApexCore) LoadPositionsSnapshot(client any, messageHash any) <- cha
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     // as only one ws channel gives positions for all types, for snapshot must load all positions
-            var fetchFunctions any = []any{this.FetchPositions(nil)}
+            var fetchFunctions any = []any{this.FetchPositions()}
         
             promises:= (<-ccxt.PromiseAll(fetchFunctions))
             ccxt.PanicOnError(promises)
@@ -1215,6 +1215,15 @@ func  (this *ApexCore) HandleErrorMessage(client any, message any) any  {
                 var ret_msg any = this.SafeString(message, "ret_msg")
                 var request any = this.SafeValue(message, "request", map[string]any {})
                 var op any = this.SafeString(request, "op")
+                // Benign re-subscribe notice (same shape as bitmart 90008 /
+                // krakenfutures "Already subscribed"): the original subscription
+                // is still active and delivering data on this socket. Without
+                // this short-circuit the catch-clause's `client.reject(error,
+                // messageHash)` rejects every in-flight future on the connection
+                // because apex doesn't echo a `reqId` on these warnings.
+                if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(ret_msg, nil)) && ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(ret_msg, "already subscribed"), 0))) {
+                    return false
+                }
                 if ccxt.IsTrue(ccxt.IsEqual(op, "auth")) {
                     panic(ccxt.AuthenticationError(ccxt.Add("Authentication failed: ", ret_msg)))
                 } else {
@@ -1305,11 +1314,11 @@ func  (this *ApexCore) Pong(client any, message any) <- chan any {
                         }()
             		    // try block:
                         
-                    retRes104412 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                    retRes105312 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
                         "args": []any{ccxt.ToString(timeStamp)},
                         "op": "pong",
                     }))
-                    ccxt.PanicOnError(retRes104412)
+                    ccxt.PanicOnError(retRes105312)
             		    return nil
             	    }(this)
                 
