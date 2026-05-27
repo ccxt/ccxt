@@ -1646,6 +1646,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -1660,7 +1661,11 @@ public class BlofinCore extends BlofinApi
             Object isStopLossPriceDefined = !Helpers.isEqual(this.safeString(parameters, "stopLossPrice"), null);
             Object isTakeProfitPriceDefined = !Helpers.isEqual(this.safeString(parameters, "takeProfitPrice"), null);
             Object isTriggerOrder = !Helpers.isEqual(this.safeString(parameters, "triggerPrice"), null);
-            Object isCombinedSlTp = (Helpers.isTrue(isStopLossPriceDefined) && Helpers.isTrue(isTakeProfitPriceDefined));
+            Object isTpslEndpoint = false;
+            var isTpslEndpointparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
+            isTpslEndpoint = ((java.util.List<Object>) isTpslEndpointparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) isTpslEndpointparametersVariable).get(1);
+            Object isCombinedSlTp = Helpers.isTrue((Helpers.isTrue(isStopLossPriceDefined) && Helpers.isTrue(isTakeProfitPriceDefined))) || Helpers.isTrue(isTpslEndpoint);
             Object isSlOrTp = Helpers.isTrue(isStopLossPriceDefined) || Helpers.isTrue(isTakeProfitPriceDefined);
             Object response = null;
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -1732,12 +1737,36 @@ public class BlofinCore extends BlofinApi
         if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
         {
             Helpers.addElementToObject(request, "slTriggerPrice", this.priceToPrecision(symbol, stopLossPrice));
-            Helpers.addElementToObject(request, "slOrderPrice", ((Helpers.isTrue((Helpers.isEqual(type, "market"))))) ? "-1" : this.priceToPrecision(symbol, price));
+            if (Helpers.isTrue(Helpers.isEqual(type, "market")))
+            {
+                Helpers.addElementToObject(request, "slOrderPrice", "-1");
+            } else
+            {
+                Object slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
+                if (Helpers.isTrue(Helpers.isEqual(slLimitPrice, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
+                }
+                Helpers.addElementToObject(request, "slOrderPrice", this.priceToPrecision(symbol, slLimitPrice));
+                parameters = this.omit(parameters, "stopLossLimitPrice");
+            }
         }
         if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
         {
             Helpers.addElementToObject(request, "tpTriggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
-            Helpers.addElementToObject(request, "tpOrderPrice", ((Helpers.isTrue((Helpers.isEqual(type, "market"))))) ? "-1" : this.priceToPrecision(symbol, price));
+            if (Helpers.isTrue(Helpers.isEqual(type, "market")))
+            {
+                Helpers.addElementToObject(request, "tpOrderPrice", "-1");
+            } else
+            {
+                Object tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
+                if (Helpers.isTrue(Helpers.isEqual(tpLimitPrice, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
+                }
+                Helpers.addElementToObject(request, "tpOrderPrice", this.priceToPrecision(symbol, tpLimitPrice));
+                parameters = this.omit(parameters, "takeProfitLimitPrice");
+            }
         }
         Helpers.addElementToObject(request, "marginMode", marginMode);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged")));
