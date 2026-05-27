@@ -922,6 +922,7 @@ class poloniex extends poloniex$1["default"] {
         if (alias !== undefined) {
             type = 'future';
         }
+        const marketType = (type === 'future') ? 'future' : 'swap';
         return {
             'id': id,
             'symbol': symbol,
@@ -931,7 +932,7 @@ class poloniex extends poloniex$1["default"] {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': (type === 'future') ? 'future' : 'swap',
+            'type': marketType,
             'spot': false,
             'margin': false,
             'swap': type === 'swap',

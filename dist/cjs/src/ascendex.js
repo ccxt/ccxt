@@ -907,12 +907,14 @@ class ascendex extends ascendex$1["default"] {
             accountGroup = this.safeString(data, 'accountGroup');
             this.options['account-group'] = accountGroup;
         }
+        const finalResponse = response; // java req
+        const finalAccountGroup = accountGroup;
         return [
             {
-                'id': accountGroup,
+                'id': finalAccountGroup,
                 'type': undefined,
                 'code': undefined,
-                'info': response,
+                'info': finalResponse,
             },
         ];
     }
@@ -3046,8 +3048,9 @@ class ascendex extends ascendex$1["default"] {
         if (type === 'reduce') {
             amount = Precise["default"].stringAbs(amount);
         }
+        const parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), {
-            'amount': this.parseNumber(amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }

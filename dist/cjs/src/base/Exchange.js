@@ -3005,7 +3005,7 @@ class Exchange {
             }
             else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper(initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.featuresMapper(initialFeatures, marketType);
                 }
                 else {
                     this.features[marketType] = {};
@@ -4887,7 +4887,7 @@ class Exchange {
         positions = this.toArray(positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.extend(this.parsePosition(positions[i], undefined), params);
+            const position = this.extend(this.parsePosition(positions[i]), params);
             result.push(position);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
@@ -4900,7 +4900,7 @@ class Exchange {
         ranks = this.toArray(ranks);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend(this.parseADLRank(ranks[i], undefined), params);
+            const rank = this.extend(this.parseADLRank(ranks[i]), params);
             result.push(rank);
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);

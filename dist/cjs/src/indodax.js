@@ -1391,10 +1391,11 @@ class indodax extends indodax$1["default"] {
                         network = this.networkIdToCode(networkId).toUpperCase();
                     }
                 }
+                const finalNetwork = network; // java req
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'network': network,
+                    'network': finalNetwork,
                     'address': address,
                     'tag': undefined,
                 };

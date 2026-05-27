@@ -172,13 +172,13 @@ fetch the trading fee
 **Returns**: <code>object</code> - a map of market symbols to [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
-| Param | Description |
-| --- | --- |
-| params | extra parameters |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hibachi.fetchTradingFees (params, [undefined])
+hibachi.fetchTradingFees ([params])
 ```
 
 

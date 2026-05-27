@@ -551,6 +551,7 @@ class blofin extends blofin$1["default"] {
         let maxLeverage = this.safeString(market, 'maxLeverage', '100');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
+        const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -563,7 +564,7 @@ class blofin extends blofin$1["default"] {
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': spot && (Precise["default"].stringGt(maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': future,
             'active': isActive,

@@ -603,7 +603,7 @@ class xt extends xt$1["default"] {
         }
     }
     async loadPositionsSnapshot(client, messageHash) {
-        const positions = await this.fetchPositions(undefined);
+        const positions = await this.fetchPositions();
         this.positions = new Cache.ArrayCacheBySymbolBySide();
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {

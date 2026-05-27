@@ -323,6 +323,7 @@ export default class mexc extends Exchange {
                             'position/funding_records': 2,
                             'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
+                            'order/list/open_orders': 2,
                             'order/list/history_orders': 2,
                             'order/list/order_deals/v3': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -3133,8 +3134,12 @@ export default class mexc extends Exchange {
             return this.parseOrders(response, market, since, limit);
         }
         else {
-            // TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params (however, theoretically, open-orders endpoint might be sligthly fast)
-            return await this.fetchOrdersByState(2, symbol, since, limit, params);
+            if (limit === undefined) {
+                request['page_size'] = 100; // max
+            }
+            const swapResponse = await this.contractPrivateGetOrderListOpenOrders(this.extend(request, params));
+            const data = this.safeList(swapResponse, 'data', []);
+            return this.parseOrders(data, market, since, limit, params);
         }
     }
     /**
@@ -3924,7 +3929,7 @@ export default class mexc extends Exchange {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
                 const marketId = this.safeString(entry, 'symbol');
-                const symbol = this.safeSymbol(marketId, undefined);
+                const symbol = this.safeSymbol(marketId);
                 const base = this.safeValue(entry, 'baseAsset', {});
                 const quote = this.safeValue(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
@@ -4734,14 +4739,17 @@ export default class mexc extends Exchange {
         }
         while (Precise.stringLt(floor, maxVol)) {
             const cap = Precise.stringAdd(floor, riskIncrVol);
+            const minNotional = this.parseNumber(floor);
+            const mainMarginRate = this.parseNumber(maintenanceMarginRate);
+            const maxLev = this.parseNumber(Precise.stringDiv('1', initialMarginRate));
             tiers.push({
                 'tier': this.parseNumber(Precise.stringDiv(cap, riskIncrVol)),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode(quoteId),
-                'minNotional': this.parseNumber(floor),
+                'minNotional': minNotional,
                 'maxNotional': this.parseNumber(cap),
-                'maintenanceMarginRate': this.parseNumber(maintenanceMarginRate),
-                'maxLeverage': this.parseNumber(Precise.stringDiv('1', initialMarginRate)),
+                'maintenanceMarginRate': mainMarginRate,
+                'maxLeverage': maxLev,
                 'info': info,
             });
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
@@ -5367,8 +5375,8 @@ export default class mexc extends Exchange {
      * @description fetch a history of internal transfers made on an account
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
-     * @param code
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6106,8 +6114,8 @@ export default class mexc extends Exchange {
         if (market['spot']) {
             throw new BadSymbol(this.id + ' setMarginMode() supports contract markets only');
         }
-        marginMode = marginMode.toLowerCase();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeLower = marginMode.toLowerCase();
+        if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {
             throw new BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         const leverage = this.safeInteger(params, 'leverage');
@@ -6117,7 +6125,7 @@ export default class mexc extends Exchange {
         const direction = this.safeStringLower2(params, 'direction', 'positionId');
         const request = {
             'leverage': leverage,
-            'openType': (marginMode === 'isolated') ? 1 : 2,
+            'openType': (marginModeLower === 'isolated') ? 1 : 2,
         };
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
@@ -6233,7 +6241,7 @@ export default class mexc extends Exchange {
         if (success === true) {
             return undefined;
         }
-        const responseCode = this.safeString(response, 'code', undefined);
+        const responseCode = this.safeString(response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
