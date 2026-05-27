@@ -2420,6 +2420,13 @@ public class Exchange {
         return sb.toString();
     }
 
+    // EIP-712 typed-data encoder. Returns the pre-digest bytes
+    // (0x1901 || domainSeparator || hashStruct(message)) that the caller
+    // keccak256-hashes to get the signing digest. Implemented manually
+    // rather than via web3j's StructuredDataEncoder because some exchanges
+    // (e.g. Aster) use field names containing spaces, which web3j rejects
+    // as invalid Solidity identifiers — the EIP-712 spec itself doesn't
+    // require that restriction.
     @SuppressWarnings("unchecked")
     public Object ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
         try {
@@ -2427,7 +2434,7 @@ public class Exchange {
             Map<String, Object> messageTypes = (Map<String, Object>) messageTypes2;
             Map<String, Object> messageData = (Map<String, Object>) messageData2;
 
-            // EIP712Domain field set inferred from the domain fields actually present.
+            // Infer EIP712Domain field set from the domain fields actually present.
             // Order is the canonical one (name, version, chainId, verifyingContract, salt).
             LinkedHashMap<String, String> canonicalDomainFields = new LinkedHashMap<>();
             canonicalDomainFields.put("name", "string");
@@ -2435,85 +2442,328 @@ public class Exchange {
             canonicalDomainFields.put("chainId", "uint256");
             canonicalDomainFields.put("verifyingContract", "address");
             canonicalDomainFields.put("salt", "bytes32");
-            List<Map<String, String>> eip712Domain = new ArrayList<>();
+            List<Map<String, String>> eip712DomainType = new ArrayList<>();
             for (Map.Entry<String, String> e : canonicalDomainFields.entrySet()) {
                 if (domain.containsKey(e.getKey())) {
                     LinkedHashMap<String, String> field = new LinkedHashMap<>();
                     field.put("name", e.getKey());
                     field.put("type", e.getValue());
-                    eip712Domain.add(field);
+                    eip712DomainType.add(field);
                 }
             }
 
-            LinkedHashMap<String, Object> typesMap = new LinkedHashMap<>();
-            typesMap.put("EIP712Domain", eip712Domain);
-            typesMap.putAll(messageTypes);
+            LinkedHashMap<String, List<Map<String, String>>> types = new LinkedHashMap<>();
+            types.put("EIP712Domain", eip712DomainType);
+            for (Map.Entry<String, Object> e : messageTypes.entrySet()) {
+                types.put(e.getKey(), (List<Map<String, String>>) e.getValue());
+            }
 
             String primaryType = messageTypes.keySet().iterator().next();
 
-            LinkedHashMap<String, Object> typedData = new LinkedHashMap<>();
-            typedData.put("types", typesMap);
-            typedData.put("primaryType", primaryType);
-            typedData.put("domain", convertBytesForJson(domain));
-            typedData.put("message", convertBytesForJson(messageData));
+            byte[] domainSeparator = hashStruct("EIP712Domain", domain, types);
+            byte[] messageHash = hashStruct(primaryType, messageData, types);
 
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            String json = mapper.writeValueAsString(typedData);
-
-            org.web3j.crypto.StructuredDataEncoder encoder = new org.web3j.crypto.StructuredDataEncoder(json);
-            byte[] domainSep = encoder.hashDomain();
-            HashMap<String, Object> messageMap = new HashMap<>((Map<String, Object>) convertBytesForJson(messageData));
-            byte[] msgHash = encoder.hashMessage(primaryType, messageMap);
-
-            // EIP-712 pre-digest bytes: 0x1901 || domainSeparator || hashStruct(message)
-            byte[] result = new byte[2 + domainSep.length + msgHash.length];
+            byte[] result = new byte[2 + 32 + 32];
             result[0] = (byte) 0x19;
             result[1] = (byte) 0x01;
-            System.arraycopy(domainSep, 0, result, 2, domainSep.length);
-            System.arraycopy(msgHash, 0, result, 2 + domainSep.length, msgHash.length);
+            System.arraycopy(domainSeparator, 0, result, 2, 32);
+            System.arraycopy(messageHash, 0, result, 34, 32);
             return result;
         } catch (Exception e) {
             throw new RuntimeException("ethEncodeStructuredData failed: " + e.getMessage(), e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static Object convertBytesForJson(Object value) {
-        if (value instanceof byte[]) {
-            byte[] bytes = (byte[]) value;
-            StringBuilder sb = new StringBuilder(2 + bytes.length * 2);
-            sb.append("0x");
-            for (byte b : bytes) {
-                sb.append(String.format("%02x", b & 0xff));
+    private static byte[] hashStruct(String primaryType, Map<String, Object> data, Map<String, List<Map<String, String>>> types) {
+        String typeString = encodeType(primaryType, types);
+        byte[] typeHash = keccak256(typeString.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        byte[] encodedData = encodeData(primaryType, data, types);
+        byte[] buf = new byte[typeHash.length + encodedData.length];
+        System.arraycopy(typeHash, 0, buf, 0, typeHash.length);
+        System.arraycopy(encodedData, 0, buf, typeHash.length, encodedData.length);
+        return keccak256(buf);
+    }
+
+    // encodeType per EIP-712: primaryType followed by sorted dependent struct types.
+    private static String encodeType(String primaryType, Map<String, List<Map<String, String>>> types) {
+        LinkedHashSet<String> deps = new LinkedHashSet<>();
+        collectDependencies(primaryType, types, deps);
+        deps.remove(primaryType);
+        List<String> sortedDeps = new ArrayList<>(deps);
+        java.util.Collections.sort(sortedDeps);
+        sortedDeps.add(0, primaryType);
+        StringBuilder sb = new StringBuilder();
+        for (String typeName : sortedDeps) {
+            sb.append(typeName).append("(");
+            List<Map<String, String>> fields = types.get(typeName);
+            for (int i = 0; i < fields.size(); i++) {
+                if (i > 0) sb.append(",");
+                Map<String, String> field = fields.get(i);
+                sb.append(field.get("type")).append(" ").append(field.get("name"));
             }
-            return sb.toString();
+            sb.append(")");
         }
+        return sb.toString();
+    }
+
+    private static void collectDependencies(String typeName, Map<String, List<Map<String, String>>> types, LinkedHashSet<String> deps) {
+        if (!types.containsKey(typeName) || deps.contains(typeName)) return;
+        deps.add(typeName);
+        for (Map<String, String> field : types.get(typeName)) {
+            String fieldType = field.get("type");
+            // Strip array suffix
+            int idx = fieldType.indexOf('[');
+            if (idx >= 0) fieldType = fieldType.substring(0, idx);
+            if (types.containsKey(fieldType)) {
+                collectDependencies(fieldType, types, deps);
+            }
+        }
+    }
+
+    private static byte[] encodeData(String primaryType, Map<String, Object> data, Map<String, List<Map<String, String>>> types) {
+        List<byte[]> chunks = new ArrayList<>();
+        for (Map<String, String> field : types.get(primaryType)) {
+            String fieldName = field.get("name");
+            String fieldType = field.get("type");
+            chunks.add(encodeValue(fieldType, data.get(fieldName), types));
+        }
+        int total = 0;
+        for (byte[] c : chunks) total += c.length;
+        byte[] out = new byte[total];
+        int pos = 0;
+        for (byte[] c : chunks) {
+            System.arraycopy(c, 0, out, pos, c.length);
+            pos += c.length;
+        }
+        return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static byte[] encodeValue(String type, Object value, Map<String, List<Map<String, String>>> types) {
+        // Custom struct
+        if (types.containsKey(type)) {
+            return hashStruct(type, (Map<String, Object>) value, types);
+        }
+        // Array type
+        if (type.endsWith("[]")) {
+            String baseType = type.substring(0, type.length() - 2);
+            List<Object> list = (List<Object>) value;
+            List<byte[]> encoded = new ArrayList<>();
+            int total = 0;
+            for (Object item : list) {
+                byte[] e = encodeValue(baseType, item, types);
+                encoded.add(e);
+                total += e.length;
+            }
+            byte[] buf = new byte[total];
+            int pos = 0;
+            for (byte[] e : encoded) {
+                System.arraycopy(e, 0, buf, pos, e.length);
+                pos += e.length;
+            }
+            return keccak256(buf);
+        }
+        // string: keccak256 of UTF-8 bytes
+        if (type.equals("string")) {
+            String s = value == null ? "" : value.toString();
+            return keccak256(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        // dynamic bytes: keccak256 of the bytes
+        if (type.equals("bytes")) {
+            byte[] bytes = bytesFromValue(value);
+            return keccak256(bytes);
+        }
+        // bytes1..bytes32: right-padded to 32
+        if (type.startsWith("bytes")) {
+            byte[] bytes = bytesFromValue(value);
+            byte[] padded = new byte[32];
+            System.arraycopy(bytes, 0, padded, 0, Math.min(bytes.length, 32));
+            return padded;
+        }
+        // address: 20 bytes left-padded to 32
+        if (type.equals("address")) {
+            byte[] addr = bytesFromValue(value);
+            byte[] padded = new byte[32];
+            int copyLen = Math.min(addr.length, 20);
+            System.arraycopy(addr, addr.length - copyLen, padded, 32 - copyLen, copyLen);
+            return padded;
+        }
+        // bool
+        if (type.equals("bool")) {
+            byte[] padded = new byte[32];
+            if (Boolean.TRUE.equals(value)) padded[31] = 1;
+            return padded;
+        }
+        // uintNN / intNN
+        if (type.startsWith("uint") || type.startsWith("int")) {
+            java.math.BigInteger n;
+            if (value instanceof java.math.BigInteger) n = (java.math.BigInteger) value;
+            else if (value instanceof Number) n = java.math.BigInteger.valueOf(((Number) value).longValue());
+            else if (value instanceof Boolean) n = ((Boolean) value) ? java.math.BigInteger.ONE : java.math.BigInteger.ZERO;
+            else if (value instanceof String) {
+                String s = (String) value;
+                n = s.startsWith("0x") ? new java.math.BigInteger(s.substring(2), 16) : new java.math.BigInteger(s);
+            } else {
+                throw new RuntimeException("Unsupported numeric value for " + type + ": " + (value == null ? "null" : value.getClass()));
+            }
+            byte[] raw = n.toByteArray();
+            byte[] padded = new byte[32];
+            // Two's complement sign extension via signByte
+            byte signByte = (n.signum() < 0) ? (byte) 0xff : (byte) 0x00;
+            java.util.Arrays.fill(padded, signByte);
+            int copyLen = Math.min(raw.length, 32);
+            System.arraycopy(raw, raw.length - copyLen, padded, 32 - copyLen, copyLen);
+            return padded;
+        }
+        throw new RuntimeException("Unsupported EIP-712 type: " + type);
+    }
+
+    private static byte[] bytesFromValue(Object value) {
+        if (value instanceof byte[]) return (byte[]) value;
+        if (value instanceof String) {
+            String s = (String) value;
+            if (s.startsWith("0x") || s.startsWith("0X")) s = s.substring(2);
+            if (s.length() % 2 != 0) s = "0" + s;
+            byte[] out = new byte[s.length() / 2];
+            for (int i = 0; i < out.length; i++) {
+                out[i] = (byte) Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16);
+            }
+            return out;
+        }
+        throw new RuntimeException("Cannot interpret value as bytes: " + (value == null ? "null" : value.getClass()));
+    }
+
+    private static byte[] keccak256(byte[] input) {
+        org.bouncycastle.jcajce.provider.digest.Keccak.Digest256 k = new org.bouncycastle.jcajce.provider.digest.Keccak.Digest256();
+        k.update(input, 0, input.length);
+        return k.digest();
+    }
+
+    public Object packb(Object data) {
+        try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+             org.msgpack.core.MessagePacker packer = org.msgpack.core.MessagePack.newDefaultPacker(out)) {
+            // Java Maps don't preserve insertion order, but msgpack signatures
+            // (e.g. Hyperliquid) require a canonical field order. Match the Go
+            // port's strategy (go/v4/exchange_eth.go): per-exchange schemas
+            // reorder action dicts before packing. Schemas are looked up by
+            // the value of the "type" key and applied recursively (nested
+            // orders, builder, trigger spec, etc.).
+            Object normalized = applyMsgpackSchema(data, null);
+            packValue(packer, normalized);
+            packer.flush();
+            return out.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("packb failed", e);
+        }
+    }
+
+    // A msgpack schema declares the canonical field order for a Map value
+    // and, for fields whose value is itself a Map or a List of Maps, an
+    // optional nested schema. Mirrors the typed structs in
+    // go/v4/exchange_eth.go (OrderMessage, OrderHyperliquid, etc.).
+    private static final class MsgpackSchema {
+        final String[] fields;
+        final Map<String, MsgpackSchema> children = new HashMap<>();
+        MsgpackSchema(String... fields) { this.fields = fields; }
+        MsgpackSchema with(String field, MsgpackSchema child) { children.put(field, child); return this; }
+    }
+
+    private static final Map<String, MsgpackSchema> HYPERLIQUID_SCHEMAS = buildHyperliquidSchemas();
+
+    private static Map<String, MsgpackSchema> buildHyperliquidSchemas() {
+        // Nested types (no "type" discriminator — referenced from parents).
+        MsgpackSchema timeInForce = new MsgpackSchema("tif");
+        MsgpackSchema triggerSpec = new MsgpackSchema("isMarket", "triggerPx", "tpsl");
+        MsgpackSchema orderKind = new MsgpackSchema("limit", "trigger")
+            .with("limit", timeInForce)
+            .with("trigger", triggerSpec);
+        MsgpackSchema orderHyperliquid = new MsgpackSchema("a", "b", "p", "s", "r", "t", "c")
+            .with("t", orderKind);
+        MsgpackSchema builder = new MsgpackSchema("b", "f");
+        MsgpackSchema cancel = new MsgpackSchema("a", "o");
+        MsgpackSchema modify = new MsgpackSchema("oid", "order")
+            .with("order", orderHyperliquid);
+        MsgpackSchema cancelByCloidItem = new MsgpackSchema("asset", "cloid");
+        MsgpackSchema twapSpec = new MsgpackSchema("a", "b", "s", "r", "m", "t");
+
+        // Top-level action schemas (keyed by the value of the "type" field).
+        Map<String, MsgpackSchema> schemas = new HashMap<>();
+        schemas.put("order", new MsgpackSchema("type", "orders", "grouping", "builder")
+            .with("orders", orderHyperliquid)
+            .with("builder", builder));
+        schemas.put("cancel", new MsgpackSchema("type", "cancels")
+            .with("cancels", cancel));
+        schemas.put("cancelByCloid", new MsgpackSchema("type", "cancels")
+            .with("cancels", cancelByCloidItem));
+        schemas.put("batchModify", new MsgpackSchema("type", "modifies")
+            .with("modifies", modify));
+        schemas.put("withdraw3", new MsgpackSchema("hyperliquidChain", "signatureChainId", "destination", "amount", "time", "type"));
+        schemas.put("usdSend", new MsgpackSchema("hyperliquidChain", "signatureChainId", "destination", "amount", "time", "type"));
+        schemas.put("usdClassTransfer", new MsgpackSchema("hyperliquidChain", "signatureChainId", "type", "amount", "toPerp", "nonce"));
+        schemas.put("spotSend", new MsgpackSchema("hyperliquidChain", "signatureChainId", "destination", "token", "amount", "time", "type"));
+        schemas.put("subAccountTransfer", new MsgpackSchema("type", "subAccountUser", "isDeposit", "usd"));
+        schemas.put("subAccountSpotTransfer", new MsgpackSchema("type", "subAccountUser", "isDeposit", "token", "amount"));
+        schemas.put("vaultTransfer", new MsgpackSchema("type", "vaultAddress", "isDeposit", "usd"));
+        schemas.put("createSubAccount", new MsgpackSchema("type", "name"));
+        schemas.put("createVault", new MsgpackSchema("type", "name", "description", "initialUsd", "nonce"));
+        schemas.put("updateLeverage", new MsgpackSchema("type", "asset", "isCross", "leverage"));
+        schemas.put("updateIsolatedMargin", new MsgpackSchema("type", "asset", "isBuy", "Ntli"));
+        schemas.put("twapOrder", new MsgpackSchema("type", "twap").with("twap", twapSpec));
+        schemas.put("twapCancel", new MsgpackSchema("type", "a", "t"));
+        schemas.put("scheduleCancel", new MsgpackSchema("type", "time"));
+        schemas.put("setReferrer", new MsgpackSchema("type", "code"));
+        schemas.put("agentSetAbstraction", new MsgpackSchema("type", "abstraction"));
+        schemas.put("reserveRequestWeight", new MsgpackSchema("type", "weight"));
+        return schemas;
+    }
+
+    // Recursively reorders Maps according to the per-exchange schema so that
+    // msgpack output matches the byte order the exchange's signature verifier
+    // expects. Top-level entry uses schema=null and resolves via the value's
+    // "type" field; deeper levels pass an explicit schema for nested values.
+    @SuppressWarnings("unchecked")
+    private Object applyMsgpackSchema(Object value, MsgpackSchema schema) {
         if (value instanceof Map) {
-            LinkedHashMap<String, Object> copy = new LinkedHashMap<>();
-            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
-                copy.put(entry.getKey(), convertBytesForJson(entry.getValue()));
+            Map<String, Object> map = (Map<String, Object>) value;
+            // Top-level: look up the schema by the "type" field if applicable.
+            if (schema == null) {
+                schema = lookupTopLevelSchema(map);
+            }
+            if (schema != null) {
+                java.util.LinkedHashMap<String, Object> ordered = new java.util.LinkedHashMap<>();
+                for (String field : schema.fields) {
+                    if (map.containsKey(field)) {
+                        ordered.put(field, applyMsgpackSchema(map.get(field), schema.children.get(field)));
+                    }
+                }
+                return ordered;
+            }
+            // No schema: keep existing iteration order but recurse into values.
+            java.util.LinkedHashMap<String, Object> copy = new java.util.LinkedHashMap<>();
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                copy.put(entry.getKey(), applyMsgpackSchema(entry.getValue(), null));
             }
             return copy;
         }
         if (value instanceof List) {
+            List<Object> list = (List<Object>) value;
             List<Object> copy = new ArrayList<>();
-            for (Object item : (List<Object>) value) {
-                copy.add(convertBytesForJson(item));
+            for (Object item : list) {
+                // List items inherit the parent field's schema.
+                copy.add(applyMsgpackSchema(item, schema));
             }
             return copy;
         }
         return value;
     }
 
-    public Object packb(Object data) {
-        try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-             org.msgpack.core.MessagePacker packer = org.msgpack.core.MessagePack.newDefaultPacker(out)) {
-            packValue(packer, data);
-            packer.flush();
-            return out.toByteArray();
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("packb failed", e);
+    private MsgpackSchema lookupTopLevelSchema(Map<String, Object> map) {
+        if (!"hyperliquid".equals(this.id)) return null;
+        Object typeValue = map.get("type");
+        if (typeValue instanceof String) {
+            return HYPERLIQUID_SCHEMAS.get(typeValue);
         }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
