@@ -3267,7 +3267,7 @@ class htx(Exchange, ImplicitAPI):
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_value(account, 'info')
-            subtype = self.safe_string(info, 'subtype', None)
+            subtype = self.safe_string(info, 'subtype')
             typeFromAccount = self.safe_string(account, 'type')
             if type == 'margin':
                 if subtype == marketId:
@@ -3676,7 +3676,8 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1770293281344
         #     }
         #
-        result: dict = {'info': response}
+        finalResponse = response
+        result: dict = {'info': finalResponse}
         data = self.safe_value(response, 'data')
         if isMultiAssetMode:
             details = self.safe_list(data, 'details', [])
@@ -7026,7 +7027,8 @@ class htx(Exchange, ImplicitAPI):
                 sortedRequest = self.keysort(request)
                 auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
-                payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
+                content = [method, self.hostname, url, auth]
+                payload = "\n".join(content)  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
@@ -7092,7 +7094,8 @@ class htx(Exchange, ImplicitAPI):
                     request = self.extend(request, sortedQuery)
                 auth = self.urlencode(request, True).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
-                payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
+                content2 = [method, hostname, url, auth]
+                payload = "\n".join(content2)  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
@@ -7107,8 +7110,9 @@ class htx(Exchange, ImplicitAPI):
                     headers = {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     }
+            finalHostname = hostname  # java req
             url = self.implode_params(self.urls['api'][type], {
-                'hostname': hostname,
+                'hostname': finalHostname,
             }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

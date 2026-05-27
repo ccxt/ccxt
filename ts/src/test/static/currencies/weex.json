@@ -7,7 +7,7 @@
             "name": "ETH",
             "networkList": [
                 {
-                    "network": "ERC20",
+                    "network": "Ethereum (ETH)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": true,
@@ -15,9 +15,9 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ERC20",
+                    "name": "Ethereum (ETH)",
                     "withdrawFee": "0.0005",
-                    "withdrawMin": "0.002",
+                    "withdrawMin": "0.01",
                     "depositDust": "0.0000003",
                     "minConfirm": "12",
                     "withdrawTag": false,
@@ -25,7 +25,7 @@
                     "contractAddress": ""
                 },
                 {
-                    "network": "BEP20(BSC)",
+                    "network": "BNB Smart Chain (BSC)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -33,8 +33,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "BEP20(BSC)",
-                    "withdrawFee": "0.0002",
+                    "name": "BNB Smart Chain (BSC)",
+                    "withdrawFee": "0.00006",
                     "withdrawMin": "0.005",
                     "depositDust": "0.0000003",
                     "minConfirm": "30",
@@ -43,25 +43,43 @@
                     "contractAddress": ""
                 },
                 {
-                    "network": "ARBITRUM(ARB)",
+                    "network": "World Chain (WC)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
-                    "depositEnable": true,
+                    "depositEnable": false,
                     "withdrawEnable": false,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ARBITRUM(ARB)",
-                    "withdrawFee": "0.0001",
-                    "withdrawMin": "0.005",
-                    "depositDust": "0.00001",
-                    "minConfirm": "100",
+                    "name": "World Chain (WC)",
+                    "withdrawFee": "0.0005",
+                    "withdrawMin": "0.002",
+                    "depositDust": "0.0000003",
+                    "minConfirm": "80",
                     "withdrawTag": false,
-                    "contractAddressUrl": "",
+                    "contractAddressUrl": "https://etherscan.io/",
                     "contractAddress": ""
                 },
                 {
-                    "network": "OPTIMISM(OP)",
+                    "network": "MegaETH (ETH)",
+                    "coin": "ETH",
+                    "withdrawIntegerMultiple": "1E-8",
+                    "isDefault": false,
+                    "depositEnable": false,
+                    "withdrawEnable": false,
+                    "depositDesc": null,
+                    "withdrawDesc": null,
+                    "name": "MegaETH (ETH)",
+                    "withdrawFee": "0.0005",
+                    "withdrawMin": "0.01",
+                    "depositDust": "0.0000003",
+                    "minConfirm": "120",
+                    "withdrawTag": false,
+                    "contractAddressUrl": "https://mega.etherscan.io/",
+                    "contractAddress": ""
+                },
+                {
+                    "network": "Arbitrum One (ARB)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -69,8 +87,26 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "OPTIMISM(OP)",
-                    "withdrawFee": "0.00015",
+                    "name": "Arbitrum One (ARB)",
+                    "withdrawFee": "0.00004",
+                    "withdrawMin": "0.005",
+                    "depositDust": "0.001",
+                    "minConfirm": "100",
+                    "withdrawTag": false,
+                    "contractAddressUrl": "",
+                    "contractAddress": ""
+                },
+                {
+                    "network": "Optimism (OP)",
+                    "coin": "ETH",
+                    "withdrawIntegerMultiple": "1E-8",
+                    "isDefault": false,
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "depositDesc": null,
+                    "withdrawDesc": null,
+                    "name": "Optimism (OP)",
+                    "withdrawFee": "0.00004",
                     "withdrawMin": "0.005",
                     "depositDust": "0.0005",
                     "minConfirm": "200",
@@ -79,7 +115,7 @@
                     "contractAddress": ""
                 },
                 {
-                    "network": "BASE",
+                    "network": "Base (BASE)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -87,8 +123,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "BASE",
-                    "withdrawFee": "0.00003",
+                    "name": "Base (BASE)",
+                    "withdrawFee": "0.00004",
                     "withdrawMin": "0.003",
                     "depositDust": "0.0000003",
                     "minConfirm": "150",
@@ -107,12 +143,12 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00003,
+        "fee": 0.00004,
         "fees": {},
         "networks": {
-            "ERC20": {
+            "Ethereum (ETH)": {
                 "info": {
-                    "network": "ERC20",
+                    "network": "Ethereum (ETH)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": true,
@@ -120,23 +156,99 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ERC20",
+                    "name": "Ethereum (ETH)",
                     "withdrawFee": "0.0005",
-                    "withdrawMin": "0.002",
+                    "withdrawMin": "0.01",
                     "depositDust": "0.0000003",
                     "minConfirm": "12",
                     "withdrawTag": false,
                     "contractAddressUrl": "",
                     "contractAddress": ""
                 },
-                "id": "ERC20",
-                "network": "ERC20",
+                "id": "Ethereum (ETH)",
+                "network": "Ethereum (ETH)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0005,
                 "precision": 1e-8,
                 "isDefault": true,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 3e-7,
+                        "max": null
+                    }
+                }
+            },
+            "BNB Smart Chain (BSC)": {
+                "info": {
+                    "network": "BNB Smart Chain (BSC)",
+                    "coin": "ETH",
+                    "withdrawIntegerMultiple": "1E-8",
+                    "isDefault": false,
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "depositDesc": null,
+                    "withdrawDesc": null,
+                    "name": "BNB Smart Chain (BSC)",
+                    "withdrawFee": "0.00006",
+                    "withdrawMin": "0.005",
+                    "depositDust": "0.0000003",
+                    "minConfirm": "30",
+                    "withdrawTag": false,
+                    "contractAddressUrl": "",
+                    "contractAddress": ""
+                },
+                "id": "BNB Smart Chain (BSC)",
+                "network": "BNB Smart Chain (BSC)",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00006,
+                "precision": 1e-8,
+                "isDefault": false,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.005,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 3e-7,
+                        "max": null
+                    }
+                }
+            },
+            "World Chain (WC)": {
+                "info": {
+                    "network": "World Chain (WC)",
+                    "coin": "ETH",
+                    "withdrawIntegerMultiple": "1E-8",
+                    "isDefault": false,
+                    "depositEnable": false,
+                    "withdrawEnable": false,
+                    "depositDesc": null,
+                    "withdrawDesc": null,
+                    "name": "World Chain (WC)",
+                    "withdrawFee": "0.0005",
+                    "withdrawMin": "0.002",
+                    "depositDust": "0.0000003",
+                    "minConfirm": "80",
+                    "withdrawTag": false,
+                    "contractAddressUrl": "https://etherscan.io/",
+                    "contractAddress": ""
+                },
+                "id": "World Chain (WC)",
+                "network": "World Chain (WC)",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.0005,
+                "precision": 1e-8,
+                "isDefault": false,
                 "limits": {
                     "withdraw": {
                         "min": 0.002,
@@ -148,36 +260,36 @@
                     }
                 }
             },
-            "BEP20": {
+            "MegaETH (ETH)": {
                 "info": {
-                    "network": "BEP20(BSC)",
+                    "network": "MegaETH (ETH)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
-                    "depositEnable": true,
-                    "withdrawEnable": true,
+                    "depositEnable": false,
+                    "withdrawEnable": false,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "BEP20(BSC)",
-                    "withdrawFee": "0.0002",
-                    "withdrawMin": "0.005",
+                    "name": "MegaETH (ETH)",
+                    "withdrawFee": "0.0005",
+                    "withdrawMin": "0.01",
                     "depositDust": "0.0000003",
-                    "minConfirm": "30",
+                    "minConfirm": "120",
                     "withdrawTag": false,
-                    "contractAddressUrl": "",
+                    "contractAddressUrl": "https://mega.etherscan.io/",
                     "contractAddress": ""
                 },
-                "id": "BEP20(BSC)",
-                "network": "BEP20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.0002,
+                "id": "MegaETH (ETH)",
+                "network": "MegaETH (ETH)",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0.0005,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
                     "withdraw": {
-                        "min": 0.005,
+                        "min": 0.01,
                         "max": null
                     },
                     "deposit": {
@@ -186,31 +298,31 @@
                     }
                 }
             },
-            "ARB": {
+            "Arbitrum One (ARB)": {
                 "info": {
-                    "network": "ARBITRUM(ARB)",
+                    "network": "Arbitrum One (ARB)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
                     "depositEnable": true,
-                    "withdrawEnable": false,
+                    "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ARBITRUM(ARB)",
-                    "withdrawFee": "0.0001",
+                    "name": "Arbitrum One (ARB)",
+                    "withdrawFee": "0.00004",
                     "withdrawMin": "0.005",
-                    "depositDust": "0.00001",
+                    "depositDust": "0.001",
                     "minConfirm": "100",
                     "withdrawTag": false,
                     "contractAddressUrl": "",
                     "contractAddress": ""
                 },
-                "id": "ARBITRUM(ARB)",
-                "network": "ARB",
-                "active": false,
+                "id": "Arbitrum One (ARB)",
+                "network": "Arbitrum One (ARB)",
+                "active": true,
                 "deposit": true,
-                "withdraw": false,
-                "fee": 0.0001,
+                "withdraw": true,
+                "fee": 0.00004,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -219,14 +331,14 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0.00001,
+                        "min": 0.001,
                         "max": null
                     }
                 }
             },
-            "OP": {
+            "Optimism (OP)": {
                 "info": {
-                    "network": "OPTIMISM(OP)",
+                    "network": "Optimism (OP)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -234,8 +346,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "OPTIMISM(OP)",
-                    "withdrawFee": "0.00015",
+                    "name": "Optimism (OP)",
+                    "withdrawFee": "0.00004",
                     "withdrawMin": "0.005",
                     "depositDust": "0.0005",
                     "minConfirm": "200",
@@ -243,12 +355,12 @@
                     "contractAddressUrl": "",
                     "contractAddress": ""
                 },
-                "id": "OPTIMISM(OP)",
-                "network": "OP",
+                "id": "Optimism (OP)",
+                "network": "Optimism (OP)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00015,
+                "fee": 0.00004,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -262,9 +374,9 @@
                     }
                 }
             },
-            "BASE": {
+            "Base (BASE)": {
                 "info": {
-                    "network": "BASE",
+                    "network": "Base (BASE)",
                     "coin": "ETH",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -272,8 +384,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "BASE",
-                    "withdrawFee": "0.00003",
+                    "name": "Base (BASE)",
+                    "withdrawFee": "0.00004",
                     "withdrawMin": "0.003",
                     "depositDust": "0.0000003",
                     "minConfirm": "150",
@@ -281,12 +393,12 @@
                     "contractAddressUrl": "",
                     "contractAddress": ""
                 },
-                "id": "BASE",
-                "network": "BASE",
+                "id": "Base (BASE)",
+                "network": "Base (BASE)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00003,
+                "fee": 0.00004,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -324,7 +436,7 @@
             "name": "USDT",
             "networkList": [
                 {
-                    "network": "TRC20",
+                    "network": "Tron (TRC20)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": true,
@@ -332,7 +444,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "TRC20",
+                    "name": "Tron (TRC20)",
                     "withdrawFee": "1.5",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
@@ -342,7 +454,7 @@
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
                 },
                 {
-                    "network": "ERC20",
+                    "network": "Ethereum (ETH)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -350,7 +462,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ERC20",
+                    "name": "Ethereum (ETH)",
                     "withdrawFee": "1",
                     "withdrawMin": "20",
                     "depositDust": "0.1",
@@ -360,7 +472,7 @@
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
                 },
                 {
-                    "network": "PLASMA",
+                    "network": "Plasma (XPL)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -368,8 +480,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "PLASMA",
-                    "withdrawFee": "0.025",
+                    "name": "Plasma (XPL)",
+                    "withdrawFee": "0.05",
                     "withdrawMin": "5",
                     "depositDust": "0.1",
                     "minConfirm": "20",
@@ -378,7 +490,7 @@
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb"
                 },
                 {
-                    "network": "APTOS",
+                    "network": "Aptos (APT)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -386,7 +498,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "APTOS",
+                    "name": "Aptos (APT)",
                     "withdrawFee": "0.1",
                     "withdrawMin": "5",
                     "depositDust": "0.1",
@@ -396,7 +508,7 @@
                     "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
                 },
                 {
-                    "network": "BEP20(BSC)",
+                    "network": "BNB Smart Chain (BSC)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -404,9 +516,9 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "BEP20(BSC)",
-                    "withdrawFee": "0.8",
-                    "withdrawMin": "3",
+                    "name": "BNB Smart Chain (BSC)",
+                    "withdrawFee": "0.5",
+                    "withdrawMin": "5",
                     "depositDust": "0.1",
                     "minConfirm": "30",
                     "withdrawTag": false,
@@ -414,7 +526,7 @@
                     "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
                 },
                 {
-                    "network": "POLYGON(MATIC)",
+                    "network": "Polygon PoS (MATIC)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -422,8 +534,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "POLYGON(MATIC)",
-                    "withdrawFee": "1",
+                    "name": "Polygon PoS (MATIC)",
+                    "withdrawFee": "0.2",
                     "withdrawMin": "5",
                     "depositDust": "0.1",
                     "minConfirm": "450",
@@ -432,7 +544,7 @@
                     "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
                 },
                 {
-                    "network": "ARBITRUM(ARB)",
+                    "network": "Arbitrum One (ARB)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -440,7 +552,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ARBITRUM(ARB)",
+                    "name": "Arbitrum One (ARB)",
                     "withdrawFee": "0.15",
                     "withdrawMin": "4",
                     "depositDust": "0.1",
@@ -450,7 +562,7 @@
                     "contractAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
                 },
                 {
-                    "network": "SOLANA(SOL)",
+                    "network": "Solana (SOL)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -458,8 +570,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "SOLANA(SOL)",
-                    "withdrawFee": "0.4",
+                    "name": "Solana (SOL)",
+                    "withdrawFee": "0.9",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
                     "minConfirm": "100",
@@ -468,7 +580,7 @@
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
                 },
                 {
-                    "network": "OPTIMISM(OP)",
+                    "network": "Optimism (OP)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -476,8 +588,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "OPTIMISM(OP)",
-                    "withdrawFee": "0.1",
+                    "name": "Optimism (OP)",
+                    "withdrawFee": "0.15",
                     "withdrawMin": "20",
                     "depositDust": "0.1",
                     "minConfirm": "200",
@@ -486,7 +598,7 @@
                     "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58"
                 },
                 {
-                    "network": "AVALANCHE_C(AVAX_C)",
+                    "network": "Avalanche C-Chain (AVAX-C)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -494,8 +606,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "AVALANCHE_C(AVAX_C)",
-                    "withdrawFee": "0.5",
+                    "name": "Avalanche C-Chain (AVAX-C)",
+                    "withdrawFee": "0.11",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
                     "minConfirm": "35",
@@ -504,7 +616,7 @@
                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
                 },
                 {
-                    "network": "TON",
+                    "network": "The Open Network (TON)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -512,7 +624,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "TON",
+                    "name": "The Open Network (TON)",
                     "withdrawFee": "0.15",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
@@ -532,12 +644,12 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.025,
+        "fee": 0.05,
         "fees": {},
         "networks": {
-            "TRC20": {
+            "Tron (TRC20)": {
                 "info": {
-                    "network": "TRC20",
+                    "network": "Tron (TRC20)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": true,
@@ -545,7 +657,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "TRC20",
+                    "name": "Tron (TRC20)",
                     "withdrawFee": "1.5",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
@@ -554,8 +666,8 @@
                     "contractAddressUrl": "https://tronscan.org/#/token20/",
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
                 },
-                "id": "TRC20",
-                "network": "TRC20",
+                "id": "Tron (TRC20)",
+                "network": "Tron (TRC20)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -573,9 +685,9 @@
                     }
                 }
             },
-            "ERC20": {
+            "Ethereum (ETH)": {
                 "info": {
-                    "network": "ERC20",
+                    "network": "Ethereum (ETH)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -583,7 +695,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ERC20",
+                    "name": "Ethereum (ETH)",
                     "withdrawFee": "1",
                     "withdrawMin": "20",
                     "depositDust": "0.1",
@@ -592,8 +704,8 @@
                     "contractAddressUrl": "https://etherscan.io/token/",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
                 },
-                "id": "ERC20",
-                "network": "ERC20",
+                "id": "Ethereum (ETH)",
+                "network": "Ethereum (ETH)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -611,9 +723,9 @@
                     }
                 }
             },
-            "PLASMA": {
+            "Plasma (XPL)": {
                 "info": {
-                    "network": "PLASMA",
+                    "network": "Plasma (XPL)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -621,8 +733,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "PLASMA",
-                    "withdrawFee": "0.025",
+                    "name": "Plasma (XPL)",
+                    "withdrawFee": "0.05",
                     "withdrawMin": "5",
                     "depositDust": "0.1",
                     "minConfirm": "20",
@@ -630,12 +742,12 @@
                     "contractAddressUrl": "https://plasmascan.to/address/",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb"
                 },
-                "id": "PLASMA",
-                "network": "PLASMA",
+                "id": "Plasma (XPL)",
+                "network": "Plasma (XPL)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.025,
+                "fee": 0.05,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -649,9 +761,9 @@
                     }
                 }
             },
-            "APTOS": {
+            "Aptos (APT)": {
                 "info": {
-                    "network": "APTOS",
+                    "network": "Aptos (APT)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -659,7 +771,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "APTOS",
+                    "name": "Aptos (APT)",
                     "withdrawFee": "0.1",
                     "withdrawMin": "5",
                     "depositDust": "0.1",
@@ -668,8 +780,8 @@
                     "contractAddressUrl": "https://aptoscan.com/fungible-asset/",
                     "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
                 },
-                "id": "APTOS",
-                "network": "APTOS",
+                "id": "Aptos (APT)",
+                "network": "Aptos (APT)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -687,9 +799,9 @@
                     }
                 }
             },
-            "BEP20": {
+            "BNB Smart Chain (BSC)": {
                 "info": {
-                    "network": "BEP20(BSC)",
+                    "network": "BNB Smart Chain (BSC)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -697,59 +809,21 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "BEP20(BSC)",
-                    "withdrawFee": "0.8",
-                    "withdrawMin": "3",
+                    "name": "BNB Smart Chain (BSC)",
+                    "withdrawFee": "0.5",
+                    "withdrawMin": "5",
                     "depositDust": "0.1",
                     "minConfirm": "30",
                     "withdrawTag": false,
                     "contractAddressUrl": "https://bscscan.com/token/",
                     "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
                 },
-                "id": "BEP20(BSC)",
-                "network": "BEP20",
+                "id": "BNB Smart Chain (BSC)",
+                "network": "BNB Smart Chain (BSC)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.8,
-                "precision": 1e-8,
-                "isDefault": false,
-                "limits": {
-                    "withdraw": {
-                        "min": 3,
-                        "max": null
-                    },
-                    "deposit": {
-                        "min": 0.1,
-                        "max": null
-                    }
-                }
-            },
-            "MATIC": {
-                "info": {
-                    "network": "POLYGON(MATIC)",
-                    "coin": "USDT",
-                    "withdrawIntegerMultiple": "1E-8",
-                    "isDefault": false,
-                    "depositEnable": true,
-                    "withdrawEnable": true,
-                    "depositDesc": null,
-                    "withdrawDesc": null,
-                    "name": "POLYGON(MATIC)",
-                    "withdrawFee": "1",
-                    "withdrawMin": "5",
-                    "depositDust": "0.1",
-                    "minConfirm": "450",
-                    "withdrawTag": false,
-                    "contractAddressUrl": "https://polygonscan.com/token/",
-                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
-                },
-                "id": "POLYGON(MATIC)",
-                "network": "MATIC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 1,
+                "fee": 0.5,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -763,9 +837,9 @@
                     }
                 }
             },
-            "ARB": {
+            "Polygon PoS (MATIC)": {
                 "info": {
-                    "network": "ARBITRUM(ARB)",
+                    "network": "Polygon PoS (MATIC)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -773,7 +847,45 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "ARBITRUM(ARB)",
+                    "name": "Polygon PoS (MATIC)",
+                    "withdrawFee": "0.2",
+                    "withdrawMin": "5",
+                    "depositDust": "0.1",
+                    "minConfirm": "450",
+                    "withdrawTag": false,
+                    "contractAddressUrl": "https://polygonscan.com/token/",
+                    "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+                },
+                "id": "Polygon PoS (MATIC)",
+                "network": "Polygon PoS (MATIC)",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": 1e-8,
+                "isDefault": false,
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.1,
+                        "max": null
+                    }
+                }
+            },
+            "Arbitrum One (ARB)": {
+                "info": {
+                    "network": "Arbitrum One (ARB)",
+                    "coin": "USDT",
+                    "withdrawIntegerMultiple": "1E-8",
+                    "isDefault": false,
+                    "depositEnable": true,
+                    "withdrawEnable": true,
+                    "depositDesc": null,
+                    "withdrawDesc": null,
+                    "name": "Arbitrum One (ARB)",
                     "withdrawFee": "0.15",
                     "withdrawMin": "4",
                     "depositDust": "0.1",
@@ -782,8 +894,8 @@
                     "contractAddressUrl": "https://arbiscan.io/token/",
                     "contractAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
                 },
-                "id": "ARBITRUM(ARB)",
-                "network": "ARB",
+                "id": "Arbitrum One (ARB)",
+                "network": "Arbitrum One (ARB)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -801,9 +913,9 @@
                     }
                 }
             },
-            "SOL": {
+            "Solana (SOL)": {
                 "info": {
-                    "network": "SOLANA(SOL)",
+                    "network": "Solana (SOL)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -811,8 +923,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "SOLANA(SOL)",
-                    "withdrawFee": "0.4",
+                    "name": "Solana (SOL)",
+                    "withdrawFee": "0.9",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
                     "minConfirm": "100",
@@ -820,12 +932,12 @@
                     "contractAddressUrl": "https://solscan.io/token/",
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
                 },
-                "id": "SOLANA(SOL)",
-                "network": "SOL",
+                "id": "Solana (SOL)",
+                "network": "Solana (SOL)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.4,
+                "fee": 0.9,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -839,9 +951,9 @@
                     }
                 }
             },
-            "OP": {
+            "Optimism (OP)": {
                 "info": {
-                    "network": "OPTIMISM(OP)",
+                    "network": "Optimism (OP)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -849,8 +961,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "OPTIMISM(OP)",
-                    "withdrawFee": "0.1",
+                    "name": "Optimism (OP)",
+                    "withdrawFee": "0.15",
                     "withdrawMin": "20",
                     "depositDust": "0.1",
                     "minConfirm": "200",
@@ -858,12 +970,12 @@
                     "contractAddressUrl": "https://optimistic.etherscan.io/token/",
                     "contractAddress": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58"
                 },
-                "id": "OPTIMISM(OP)",
-                "network": "OP",
+                "id": "Optimism (OP)",
+                "network": "Optimism (OP)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.1,
+                "fee": 0.15,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -877,9 +989,9 @@
                     }
                 }
             },
-            "AVAXC": {
+            "Avalanche C-Chain (AVAX-C)": {
                 "info": {
-                    "network": "AVALANCHE_C(AVAX_C)",
+                    "network": "Avalanche C-Chain (AVAX-C)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -887,8 +999,8 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "AVALANCHE_C(AVAX_C)",
-                    "withdrawFee": "0.5",
+                    "name": "Avalanche C-Chain (AVAX-C)",
+                    "withdrawFee": "0.11",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
                     "minConfirm": "35",
@@ -896,12 +1008,12 @@
                     "contractAddressUrl": "https://avascan.info/blockchain/c/token/",
                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
                 },
-                "id": "AVALANCHE_C(AVAX_C)",
-                "network": "AVAXC",
+                "id": "Avalanche C-Chain (AVAX-C)",
+                "network": "Avalanche C-Chain (AVAX-C)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.5,
+                "fee": 0.11,
                 "precision": 1e-8,
                 "isDefault": false,
                 "limits": {
@@ -915,9 +1027,9 @@
                     }
                 }
             },
-            "TON": {
+            "The Open Network (TON)": {
                 "info": {
-                    "network": "TON",
+                    "network": "The Open Network (TON)",
                     "coin": "USDT",
                     "withdrawIntegerMultiple": "1E-8",
                     "isDefault": false,
@@ -925,7 +1037,7 @@
                     "withdrawEnable": true,
                     "depositDesc": null,
                     "withdrawDesc": null,
-                    "name": "TON",
+                    "name": "The Open Network (TON)",
                     "withdrawFee": "0.15",
                     "withdrawMin": "10",
                     "depositDust": "0.1",
@@ -934,8 +1046,8 @@
                     "contractAddressUrl": "https://tonviewer.com/",
                     "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
                 },
-                "id": "TON",
-                "network": "TON",
+                "id": "The Open Network (TON)",
+                "network": "The Open Network (TON)",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -960,7 +1072,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 3,
+                "min": 4,
                 "max": null
             },
             "deposit": {

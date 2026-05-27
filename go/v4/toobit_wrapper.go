@@ -955,7 +955,18 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, params any) ([]Transaction, error) {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
+
+	opts := FetchDepositsOrWithdrawalsHelperOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchDepositsOrWithdrawalsHelper(typeVar, code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)

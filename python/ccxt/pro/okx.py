@@ -14,7 +14,6 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import ChecksumError
 
 
 class okx(ccxt.async_support.okx):
@@ -1255,34 +1254,17 @@ class okx(ccxt.async_support.okx):
         self.handle_deltas(storedBids, bids)
         marketId = self.safe_string(message, 'instId')
         symbol = self.safe_symbol(marketId, market)
-        checksum = self.handle_option('watchOrderBook', 'checksum', True)
         seqId = self.safe_integer(message, 'seqId')
-        if checksum:
-            prevSeqId = self.safe_integer(message, 'prevSeqId')
-            nonce = orderbook['nonce']
-            asksLength = len(storedAsks)
-            bidsLength = len(storedBids)
-            payloadArray = []
-            for i in range(0, 25):
-                if i < bidsLength:
-                    payloadArray.append(self.number_to_string(storedBids[i][0]))
-                    payloadArray.append(self.number_to_string(storedBids[i][1]))
-                if i < asksLength:
-                    payloadArray.append(self.number_to_string(storedAsks[i][0]))
-                    payloadArray.append(self.number_to_string(storedAsks[i][1]))
-            payload = ':'.join(payloadArray)
-            responseChecksum = self.safe_integer(message, 'checksum')
-            localChecksum = self.crc32(payload, True)
-            error = None
-            if prevSeqId != -1 and nonce != prevSeqId:
-                error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
-            if responseChecksum != localChecksum:
-                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-            if error is not None:
-                del client.subscriptions[messageHash]
-                if symbol is not None:
-                    del self.orderbooks[symbol]
-                client.reject(error, messageHash)
+        prevSeqId = self.safe_integer(message, 'prevSeqId')
+        nonce = orderbook['nonce']
+        error = None
+        if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
+            error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
+        if error is not None:
+            del client.subscriptions[messageHash]
+            if symbol is not None:
+                del self.orderbooks[symbol]
+            client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['nonce'] = seqId
         orderbook['timestamp'] = timestamp
@@ -1640,10 +1622,10 @@ class okx(ccxt.async_support.okx):
         https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()

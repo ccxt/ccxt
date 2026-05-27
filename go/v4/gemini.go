@@ -879,6 +879,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 		inverse = false
 	}
 	var typeVar any = Ternary(IsTrue(swap), "swap", "spot")
+	var isSpot any = !IsTrue(swap)
 	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -889,7 +890,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 		"quoteId":        quoteId,
 		"settleId":       settleId,
 		"type":           typeVar,
-		"spot":           !IsTrue(swap),
+		"spot":           isSpot,
 		"margin":         false,
 		"swap":           swap,
 		"future":         false,
@@ -950,8 +951,8 @@ func (this *GeminiCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes8928 := (<-this.LoadMarkets())
-		PanicOnError(retRes8928)
+		retRes8938 := (<-this.LoadMarkets())
+		PanicOnError(retRes8938)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -978,8 +979,8 @@ func (this *GeminiCore) FetchTickerV1(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9068 := (<-this.LoadMarkets())
-		PanicOnError(retRes9068)
+		retRes9078 := (<-this.LoadMarkets())
+		PanicOnError(retRes9078)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1014,8 +1015,8 @@ func (this *GeminiCore) FetchTickerV2(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9288 := (<-this.LoadMarkets())
-		PanicOnError(retRes9288)
+		retRes9298 := (<-this.LoadMarkets())
+		PanicOnError(retRes9298)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1092,22 +1093,22 @@ func (this *GeminiCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any 
 		var method any = this.SafeValue(this.Options, "fetchTickerMethod", "fetchTickerV1")
 		if IsTrue(IsEqual(method, "fetchTickerV1")) {
 
-			retRes97919 := (<-this.FetchTickerV1(symbol, params))
-			PanicOnError(retRes97919)
-			ch <- retRes97919
+			retRes98019 := (<-this.FetchTickerV1(symbol, params))
+			PanicOnError(retRes98019)
+			ch <- retRes98019
 			return nil
 		}
 		if IsTrue(IsEqual(method, "fetchTickerV2")) {
 
-			retRes98219 := (<-this.FetchTickerV2(symbol, params))
-			PanicOnError(retRes98219)
-			ch <- retRes98219
+			retRes98319 := (<-this.FetchTickerV2(symbol, params))
+			PanicOnError(retRes98319)
+			ch <- retRes98319
 			return nil
 		}
 
-		retRes98415 := (<-this.FetchTickerV1AndV2(symbol, params))
-		PanicOnError(retRes98415)
-		ch <- retRes98415
+		retRes98515 := (<-this.FetchTickerV1AndV2(symbol, params))
+		PanicOnError(retRes98515)
+		ch <- retRes98515
 		return nil
 
 	}()
@@ -1228,8 +1229,8 @@ func (this *GeminiCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes10918 := (<-this.LoadMarkets())
-		PanicOnError(retRes10918)
+		retRes10928 := (<-this.LoadMarkets())
+		PanicOnError(retRes10928)
 
 		response := (<-this.PublicGetV1Pricefeed(params))
 		PanicOnError(response)
@@ -1345,8 +1346,8 @@ func (this *GeminiCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes11888 := (<-this.LoadMarkets())
-		PanicOnError(retRes11888)
+		retRes11898 := (<-this.LoadMarkets())
+		PanicOnError(retRes11898)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1412,8 +1413,8 @@ func (this *GeminiCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes12398 := (<-this.LoadMarkets())
-		PanicOnError(retRes12398)
+		retRes12408 := (<-this.LoadMarkets())
+		PanicOnError(retRes12408)
 
 		response := (<-this.PrivatePostV1Notionalvolume(params))
 		PanicOnError(response)
@@ -1487,8 +1488,8 @@ func (this *GeminiCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes12998 := (<-this.LoadMarkets())
-		PanicOnError(retRes12998)
+		retRes13008 := (<-this.LoadMarkets())
+		PanicOnError(retRes13008)
 
 		response := (<-this.PrivatePostV1Balances(params))
 		PanicOnError(response)
@@ -1686,8 +1687,8 @@ func (this *GeminiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes14808 := (<-this.LoadMarkets())
-		PanicOnError(retRes14808)
+		retRes14818 := (<-this.LoadMarkets())
+		PanicOnError(retRes14818)
 		var request any = map[string]any{
 			"order_id": id,
 		}
@@ -1750,8 +1751,8 @@ func (this *GeminiCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes15238 := (<-this.LoadMarkets())
-		PanicOnError(retRes15238)
+		retRes15248 := (<-this.LoadMarkets())
+		PanicOnError(retRes15248)
 
 		response := (<-this.PrivatePostV1Orders(params))
 		PanicOnError(response)
@@ -1815,8 +1816,8 @@ func (this *GeminiCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes15718 := (<-this.LoadMarkets())
-		PanicOnError(retRes15718)
+		retRes15728 := (<-this.LoadMarkets())
+		PanicOnError(retRes15728)
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -1924,8 +1925,8 @@ func (this *GeminiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16648 := (<-this.LoadMarkets())
-		PanicOnError(retRes16648)
+		retRes16658 := (<-this.LoadMarkets())
+		PanicOnError(retRes16658)
 		var request any = map[string]any{
 			"order_id": id,
 		}
@@ -1992,8 +1993,8 @@ func (this *GeminiCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes17118 := (<-this.LoadMarkets())
-		PanicOnError(retRes17118)
+		retRes17128 := (<-this.LoadMarkets())
+		PanicOnError(retRes17128)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2041,8 +2042,8 @@ func (this *GeminiCore) Withdraw(code any, amount any, address any, optionalArgs
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes17418 := (<-this.LoadMarkets())
-		PanicOnError(retRes17418)
+		retRes17428 := (<-this.LoadMarkets())
+		PanicOnError(retRes17428)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -2119,8 +2120,8 @@ func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes17998 := (<-this.LoadMarkets())
-		PanicOnError(retRes17998)
+		retRes18008 := (<-this.LoadMarkets())
+		PanicOnError(retRes18008)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit_transfers", limit)
@@ -2243,8 +2244,8 @@ func (this *GeminiCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19078 := (<-this.LoadMarkets())
-		PanicOnError(retRes19078)
+		retRes19088 := (<-this.LoadMarkets())
+		PanicOnError(retRes19088)
 
 		groupedByNetwork := (<-this.FetchDepositAddressesByNetwork(code, params))
 		PanicOnError(groupedByNetwork)
@@ -2279,8 +2280,8 @@ func (this *GeminiCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19268 := (<-this.LoadMarkets())
-		PanicOnError(retRes19268)
+		retRes19278 := (<-this.LoadMarkets())
+		PanicOnError(retRes19278)
 		var currency any = this.Currency(code)
 		code = GetValue(currency, "code")
 		var networkCode any = nil
@@ -2328,8 +2329,9 @@ func (this *GeminiCore) Sign(path any, optionalArgs ...any) any {
 			panic(AuthenticationError(Add(this.Id, " sign() requires an account-key, master-keys are not-supported")))
 		}
 		var nonce any = ToString(this.Nonce())
+		var finalUrl any = url
 		var request any = this.Extend(map[string]any{
-			"request": url,
+			"request": finalUrl,
 			"nonce":   nonce,
 		}, query)
 		var payload any = this.Json(request)
@@ -2402,8 +2404,8 @@ func (this *GeminiCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20168 := (<-this.LoadMarkets())
-		PanicOnError(retRes20168)
+		retRes20188 := (<-this.LoadMarkets())
+		PanicOnError(retRes20188)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -2453,8 +2455,8 @@ func (this *GeminiCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes20468 := (<-this.LoadMarkets())
-		PanicOnError(retRes20468)
+		retRes20488 := (<-this.LoadMarkets())
+		PanicOnError(retRes20488)
 		var market any = this.Market(symbol)
 		var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request any = map[string]any{
@@ -2496,8 +2498,8 @@ func (this *GeminiCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20748 := (<-this.LoadMarkets())
-		PanicOnError(retRes20748)
+		retRes20768 := (<-this.LoadMarkets())
+		PanicOnError(retRes20768)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),

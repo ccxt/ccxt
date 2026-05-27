@@ -1541,8 +1541,9 @@ class bybit extends Exchange {
             $amountPrecision = $this->parse_number('1');
             $pricePrecision = $this->parse_number('0.01');
         }
+        $convertedExpireDate = $this->convert_expire_date_to_market_id_date($expiry);
         return array(
-            'id' => $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType,
+            'id' => $base . '-' . $convertedExpireDate . '-' . $strike . '-' . $optionType,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $base,
             'quote' => $quote,
@@ -1954,8 +1955,8 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_future_markets($params): array {
-        $params = $this->extend($params);
+    public function fetch_future_markets($params = array ()): array {
+        $params = $this->extend($params, array());
         $params['limit'] = 1000; // minimize number of requests
         $preLaunchMarkets = array();
         $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
@@ -2094,7 +2095,7 @@ class bybit extends Exchange {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
             $contractSize = $inverse ? $this->safe_number_2($lotSizeFilter, 'minTradingQty', 'minOrderQty') : $this->parse_number('1');
-            $result[] = $this->safe_market_structure(array(
+            $parsedMarket = $this->safe_market_structure(array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -2145,6 +2146,7 @@ class bybit extends Exchange {
                 'created' => $this->safe_integer($market, 'launchTime'),
                 'info' => $market,
             ));
+            $result[] = $parsedMarket;
         }
         return $result;
     }
@@ -4921,7 +4923,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $row = $this->safe_list($result, 'list', array());
-        return $this->parse_orders($row, null);
+        return $this->parse_orders($row);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -5802,9 +5804,9 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $chains = $this->safe_list($result, 'chains', array());
         $coin = $this->safe_string($result, 'coin');
-        $currency = $this->currency($coin);
-        $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-            'currency' => $currency['code'],
+        $currencyFromResponse = $this->currency($coin);
+        $parsed = $this->parse_deposit_addresses($chains, [ $currencyFromResponse['code'] ], false, array(
+            'currency' => $currencyFromResponse['code'],
         ));
         return $this->index_by($parsed, 'network');
     }
@@ -7120,8 +7122,8 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->add_pagination_cursor_to_result($response);
         $id = $this->safe_string($result, 'symbol');
-        $market = $this->safe_market($id, $market, null, 'contract');
-        return $this->parse_open_interests_history($data, $market, $since, $limit);
+        $safeMarketObj = $this->safe_market($id, $market, null, 'contract');
+        return $this->parse_open_interests_history($data, $safeMarketObj, $since, $limit);
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
@@ -7180,9 +7182,9 @@ class bybit extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $id = $this->safe_string($result, 'symbol');
-        $market = $this->safe_market($id, $market, null, 'contract');
+        $safeMarketObj = $this->safe_market($id, $market, null, 'contract');
         $data = $this->add_pagination_cursor_to_result($response);
-        return $this->parse_open_interest($data[0], $market);
+        return $this->parse_open_interest($data[0], $safeMarketObj);
     }
 
     public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -7355,7 +7357,7 @@ class bybit extends Exchange {
         //
         $data = $this->safe_dict($response, 'result', array());
         $rows = $this->safe_list($data, 'loanAccountList', array());
-        $interest = $this->parse_borrow_interests($rows, null);
+        $interest = $this->parse_borrow_interests($rows);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 

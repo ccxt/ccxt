@@ -748,63 +748,61 @@ func (this *BitrueCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//         ],
 		//     }
 		//
-		var result any = map[string]any{}
 		var coins any = this.SafeList(response, "coins", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
-			var currency any = GetValue(coins, i)
-			var id any = this.SafeString(currency, "coin")
-			var name any = this.SafeString(currency, "coinFulName")
-			var code any = this.SafeCurrencyCode(id)
-			var networkDetails any = this.SafeList(currency, "chainDetail", []any{})
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(networkDetails)); j++ {
-				var entry any = GetValue(networkDetails, j)
-				var networkId any = this.SafeString(entry, "chain")
-				var network any = this.NetworkIdToCode(networkId, code)
-				AddElementToObject(networks, network, map[string]any{
-					"info":      entry,
-					"id":        networkId,
-					"network":   network,
-					"deposit":   this.SafeBool(entry, "enableDeposit"),
-					"withdraw":  this.SafeBool(entry, "enableWithdraw"),
-					"active":    nil,
-					"fee":       this.SafeNumber(entry, "withdrawFee"),
-					"precision": nil,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(entry, "minWithdraw"),
-							"max": this.SafeNumber(entry, "maxWithdraw"),
-						},
-					},
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"name":      name,
-				"code":      code,
-				"precision": nil,
-				"info":      currency,
-				"active":    nil,
-				"deposit":   nil,
-				"withdraw":  nil,
-				"networks":  networks,
-				"fee":       nil,
-				"fees":      nil,
-				"type":      "crypto",
-				"limits": map[string]any{
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(coins)
 		return nil
 
 	}()
 	return ch
+}
+func (this *BitrueCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "coin")
+	var name any = this.SafeString(rawCurrency, "coinFulName")
+	var code any = this.SafeCurrencyCode(id)
+	var networkDetails any = this.SafeList(rawCurrency, "chainDetail", []any{})
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(networkDetails)); j++ {
+		var entry any = GetValue(networkDetails, j)
+		var networkId any = this.SafeString(entry, "chain")
+		var network any = this.NetworkIdToCode(networkId, code)
+		AddElementToObject(networks, network, map[string]any{
+			"info":      entry,
+			"id":        networkId,
+			"network":   network,
+			"deposit":   this.SafeBool(entry, "enableDeposit"),
+			"withdraw":  this.SafeBool(entry, "enableWithdraw"),
+			"active":    nil,
+			"fee":       this.SafeNumber(entry, "withdrawFee"),
+			"precision": nil,
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(entry, "minWithdraw"),
+					"max": this.SafeNumber(entry, "maxWithdraw"),
+				},
+			},
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"name":      name,
+		"code":      code,
+		"precision": nil,
+		"info":      rawCurrency,
+		"active":    nil,
+		"deposit":   nil,
+		"withdraw":  nil,
+		"networks":  networks,
+		"fee":       nil,
+		"fees":      nil,
+		"type":      "crypto",
+		"limits": map[string]any{
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+	})
 }
 
 /**
@@ -921,8 +919,8 @@ func (this *BitrueCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes92812 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes92812)
+			retRes92712 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes92712)
 		}
 
 		ch <- this.ParseMarkets(markets)
@@ -985,6 +983,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(minCost, nil)) {
 		minCost = this.SafeNumber(market, "minOrderMoney")
 	}
+	var isSpot any = (IsEqual(typeVar, "spot"))
 	return map[string]any{
 		"id":             id,
 		"lowercaseId":    lowercaseId,
@@ -996,7 +995,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 		"quoteId":        quoteId,
 		"settleId":       settleId,
 		"type":           typeVar,
-		"spot":           (IsEqual(typeVar, "spot")),
+		"spot":           isSpot,
 		"margin":         false,
 		"swap":           isContract,
 		"future":         false,

@@ -1,2 +1,2 @@
-declare function testSleep(): Promise<void>;
+declare function testSleep(): Promise<boolean>;
 export default testSleep;

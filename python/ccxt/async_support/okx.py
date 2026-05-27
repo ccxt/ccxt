@@ -1823,6 +1823,9 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
+        leverageAboveOne = Precise.string_gt(maxLeverage, '1')
+        quoteEqualSettle = (quoteId == settleId)
+        baseEqualSettle = (baseId == settleId)
         status = self.safe_string(market, 'state')
         instIdCode = self.safe_integer(market, 'instIdCode')
         return self.extend(fees, {
@@ -1837,14 +1840,14 @@ class okx(Exchange, ImplicitAPI):
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
+            'margin': spot and leverageAboveOne,
             'swap': swap,
             'future': future,
             'option': option,
             'active': status == 'live',
             'contract': contract,
-            'linear': (quoteId == settleId) if contract else None,
-            'inverse': (baseId == settleId) if contract else None,
+            'linear': quoteEqualSettle if contract else None,
+            'inverse': baseEqualSettle if contract else None,
             'contractSize': self.safe_number(market, 'ctVal') if contract else None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -2158,9 +2161,13 @@ class okx(Exchange, ImplicitAPI):
         #          ts: '1728467346900'
         #     },
         #
+        instType = self.safe_string(ticker, 'instType')
+        marketType = None
+        if instType is not None:
+            marketType = 'spot' if (instType == 'SPOT') else 'swap'
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
-        market = self.safe_market(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-', marketType)
         symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')

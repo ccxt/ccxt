@@ -68,7 +68,6 @@ func  (this *BinanceusCore) Describe() any  {
             "watchPositions": false,
         },
         "options": map[string]any {
-            "fetchCurrencies": false,
             "quoteOrderQty": false,
             "defaultType": "spot",
             "fetchMarkets": map[string]any {

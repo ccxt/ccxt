@@ -1866,8 +1866,8 @@ class hyperliquid extends Exchange {
          *
          * returns $enableUnifiedMargin so the user can check if unified account is enabled
          * @param {string} $method the $method for which we want to check if unified margin is enabled, this is used to check options for specific methods ($e->g. fetchBalance can have a specific option to enable unified margin)
-         * @param $address
-         * @param $shouldRefresh
+         * @param {string} [$address] the wallet $address to query; defaults to the configured walletAddress
+         * @param {boolean} [$shouldRefresh] force a fresh $request instead of returning the cached value
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {bool} $enableUnifiedMargin
          */
@@ -1888,12 +1888,19 @@ class hyperliquid extends Exchange {
             try {
                 $response = $this->publicPostInfo ($this->extend($request, $params));
             } catch (Exception $e) {
+                if ($e instanceof InvalidProxySettings) {
+                    throw $e; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+                }
                 $response = null; // ignore this error and assume unified margin is not enabled
             }
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            $enableUnifiedMargin = $response === '"unifiedAccount"';
+            if ($response !== null) {
+                $response = str_replace('"', '', $response);
+                $response = str_replace('"', '', $response);
+                $enableUnifiedMargin = $response === 'unifiedAccount';
+            }
             // don't cache this result if this is a different addresss
             $this->options['enableUnifiedMargin'] = $enableUnifiedMargin; // cache this for future calls
         }
@@ -1952,8 +1959,8 @@ class hyperliquid extends Exchange {
     public function enable_user_dex_abstraction(bool $enabled, $params = array ()) {
         /**
          * If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
-         * @param $enabled
-         * @param $params
+         * @param {boolean} $enabled whether to enable user dex abstraction
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
          * @return dictionary response from the exchange
          */
@@ -2163,7 +2170,7 @@ class hyperliquid extends Exchange {
                 $ordersToBeParsed[] = $order;
             }
         }
-        return $this->parse_orders($ordersToBeParsed, null);
+        return $this->parse_orders($ordersToBeParsed);
     }
 
     public function create_order_request(string $symbol, string $type, string $side, string $amount, ?string $price = null, $params = array ()) {
@@ -2206,10 +2213,11 @@ class hyperliquid extends Exchange {
             } else {
                 $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
             }
+            $tpSlType = ($isTp) ? 'tp' : 'sl';
             $orderType['trigger'] = array(
                 'isMarket' => $isMarket,
                 'triggerPx' => $triggerPrice,
-                'tpsl' => ($isTp) ? 'tp' : 'sl',
+                'tpsl' => $tpSlType,
             );
         } else {
             $orderType['limit'] = array(
@@ -2525,9 +2533,10 @@ class hyperliquid extends Exchange {
         } else {
             $cancelAction['type'] = 'cancel';
             for ($i = 0; $i < count($ids); $i++) {
+                $o = $this->parse_to_numeric($ids[$i]);
                 $cancelReq[] = array(
                     'a' => $baseId,
-                    'o' => $this->parse_to_numeric($ids[$i]),
+                    'o' => $o,
                 );
             }
         }
@@ -2734,10 +2743,11 @@ class hyperliquid extends Exchange {
                 } else {
                     $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
                 }
+                $tpSlType = ($isTp) ? 'tp' : 'sl';
                 $orderType['trigger'] = array(
                     'isMarket' => $isMarket,
                     'triggerPx' => $triggerPrice,
-                    'tpsl' => ($isTp) ? 'tp' : 'sl',
+                    'tpsl' => $tpSlType,
                 );
             } else {
                 $orderType['limit'] = array(
@@ -3326,8 +3336,9 @@ class hyperliquid extends Exchange {
         //
         $error = $this->safe_string($order, 'error');
         if ($error !== null) {
+            $finalOrder = $order; // java req
             return $this->safe_order(array(
-                'info' => $order,
+                'info' => $finalOrder,
                 'status' => 'rejected',
             ));
         }
@@ -3361,6 +3372,7 @@ class hyperliquid extends Exchange {
         if ($tif !== null) {
             $postOnly = ($tif === 'ALO');
         }
+        $triggerPx = $this->safe_bool($entry, 'isTrigger') ? $this->safe_number($entry, 'triggerPx') : null;
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -3376,7 +3388,7 @@ class hyperliquid extends Exchange {
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
             'side' => $side,
             'price' => $this->safe_string($entry, 'limitPx'),
-            'triggerPrice' => $this->safe_bool($entry, 'isTrigger') ? $this->safe_number($entry, 'triggerPx') : null,
+            'triggerPrice' => $triggerPx,
             'amount' => $totalAmount,
             'cost' => null,
             'average' => $this->safe_string($entry, 'avgPx'),
@@ -3653,7 +3665,7 @@ class hyperliquid extends Exchange {
         $data = $this->safe_list($response, 'assetPositions', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_position($data[$i], null);
+            $result[] = $this->parse_position($data[$i]);
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
@@ -3970,10 +3982,11 @@ class hyperliquid extends Exchange {
                 $vaultAddress = $this->format_vault_address($vaultAddress);
                 $strAmount = $strAmount . ' subaccount:' . $vaultAddress;
             }
+            $strAmountFinal = $strAmount; // java req
             $toPerp = ($toAccount === 'perp') || ($toAccount === 'swap');
             $transferPayload = array(
                 'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
-                'amount' => $strAmount,
+                'amount' => $strAmountFinal,
                 'toPerp' => $toPerp,
                 'nonce' => $nonce,
             );
@@ -3983,7 +3996,7 @@ class hyperliquid extends Exchange {
                     'hyperliquidChain' => $transferPayload['hyperliquidChain'],
                     'signatureChainId' => '0x66eee',
                     'type' => 'usdClassTransfer',
-                    'amount' => $strAmount,
+                    'amount' => $strAmountFinal,
                     'toPerp' => $toPerp,
                     'nonce' => $nonce,
                 ),

@@ -1621,7 +1621,7 @@ func (this *LunoCore) ParseLedgerComment(comment any) any {
 	var firstWord any = this.SafeString(words, 0)
 	var thirdWord any = this.SafeString(words, 2)
 	var fourthWord any = this.SafeString(words, 3)
-	var typeVar any = this.SafeString(types, firstWord, nil)
+	var typeVar any = this.SafeString(types, firstWord)
 	if IsTrue(IsTrue((IsEqual(typeVar, nil))) && IsTrue((IsEqual(thirdWord, "fee")))) {
 		typeVar = "fee"
 	}

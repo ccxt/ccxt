@@ -49,7 +49,7 @@ public partial class toobit : ccxt.toobit
                         { "1w", "1w" },
                         { "1M", "1M" },
                     } },
-                    { "watchOrderBook", new Dictionary<string, object>() {
+                    { "watchOrderBookForSymbols", new Dictionary<string, object>() {
                         { "channel", "depth" },
                     } },
                     { "listenKeyRefreshRate", 1200000 },
@@ -575,7 +575,7 @@ public partial class toobit : ccxt.toobit
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
         object channel = null;
-        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "depth");
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object messageHashes = new List<object>() {};

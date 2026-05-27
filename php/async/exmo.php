@@ -402,9 +402,8 @@ class exmo extends Exchange {
             $params = $this->omit($params, 'method');
             if ($method === 'fetchPrivateTradingFees') {
                 return Async\await($this->fetch_private_trading_fees($params));
-            } else {
-                return Async\await($this->fetch_public_trading_fees($params));
             }
+            return Async\await($this->fetch_public_trading_fees($params));
         }) ();
     }
 
@@ -1183,7 +1182,8 @@ class exmo extends Exchange {
             Async\await($this->load_markets());
             $ids = null;
             if ($symbols === null) {
-                $ids = implode(',', $this->ids);
+                $allIds = $this->ids;
+                $ids = implode(',', $allIds);
                 // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
                 if (strlen($ids) > 2048) {
                     $numIds = count($this->ids);
@@ -2229,43 +2229,18 @@ class exmo extends Exchange {
                     'status' => 'canceled',
                 ));
                 return $this->parse_orders($response, $market, $since, $limit, $params);
-            } else {
-                $responseSwap = Async\await($this->privatePostMarginUserOrderHistory ($this->extend($request, $params)));
-                //
-                //    {
-                //        "items" => array(
-                //            {
-                //                "event_id" => "692862104574106858",
-                //                "event_time" => "1694116400173489405",
-                //                "event_type" => "OrderCancelStarted",
-                //                "order_id" => "692862104561289319",
-                //                "order_type" => "stop_limit_sell",
-                //                "order_status" => "cancel_started",
-                //                "trade_id" => "0",
-                //                "trade_type":"",
-                //                "trade_quantity" => "0",
-                //                "trade_price" => "0",
-                //                "pair" => "ADA_USDT",
-                //                "quantity" => "12",
-                //                "price" => "0.23",
-                //                "stop_price" => "0.22",
-                //                "distance" => "0"
-                //            }
-                //            ...
-                //        )
-                //    }
-                //
-                $items = $this->safe_value($responseSwap, 'items');
-                $orders = $this->parse_orders($items, $market, $since, $limit, $params);
-                $result = array();
-                for ($i = 0; $i < count($orders); $i++) {
-                    $order = $orders[$i];
-                    if ($order['status'] === 'canceled') {
-                        $result[] = $order;
-                    }
-                }
-                return $result;
             }
+            $responseSwap = Async\await($this->privatePostMarginUserOrderHistory ($this->extend($request, $params)));
+            $items = $this->safe_value($responseSwap, 'items');
+            $orders = $this->parse_orders($items, $market, $since, $limit, $params);
+            $result = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                if ($order['status'] === 'canceled') {
+                    $result[] = $order;
+                }
+            }
+            return $result;
         }) ();
     }
 

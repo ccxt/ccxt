@@ -762,6 +762,14 @@ func  (this *GrvtCore) HandleOrderBook(client any, message any)  {
         ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
         ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
     }
+    // grvt defaults to the delta channel (v1.book.d); if the very first
+    // message is a delta, the freshly-created orderbook has symbol=null
+    // because no snapshot has reset it yet. ccxt.Set it unconditionally — we
+    // know the symbol from the selector regardless of channel. Java's
+    // typed ccxt.WsOrderBook surfaces this as `"symbol":null` in the output
+    // Python/JS dict-backed orderbooks happen to mask it but the
+    // unconditional assignment is correct for every language.
+    ccxt.AddElementToObject(orderbook, "symbol", symbol)
     ccxt.AddElementToObject(orderbook, "nonce", sequenceNumber)
     var messageHash any = ccxt.Add("orderbook::", symbol)
     ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -776,8 +784,8 @@ func  (this *GrvtCore) Authenticate(optionalArgs ...any) <- chan any {
             _ = params
             this.CheckRequiredCredentials()
         
-            retRes6068 := (<-this.SignIn())
-            ccxt.PanicOnError(retRes6068)
+            retRes6148 := (<-this.SignIn())
+            ccxt.PanicOnError(retRes6148)
             var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any {})
             var authenticated any = this.SafeString(wsOptions, "token")
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
@@ -829,11 +837,11 @@ func  (this *GrvtCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes6438 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6438)
+            retRes6518 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6518)
         
-            retRes6448 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes6448)
+            retRes6528 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes6528)
             var subAccountId any = this.GetSubAccountId(params)
             var messageHashes any = []any{}
             var rawHashes any = []any{}
@@ -938,11 +946,11 @@ func  (this *GrvtCore) WatchPositions(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes7308 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes7308)
+            retRes7388 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes7388)
         
-            retRes7318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7318)
+            retRes7398 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7398)
             var subAccountId any = this.GetSubAccountId(params)
             symbols = this.MarketSymbols(symbols)
             var rawHashes any = []any{}
@@ -1049,11 +1057,11 @@ func  (this *GrvtCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-            retRes8178 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8178)
+            retRes8258 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8258)
         
-            retRes8188 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes8188)
+            retRes8268 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes8268)
             var subAccountId any = this.GetSubAccountId(params)
             var messageHashes any = []any{}
             var rawHashes any = []any{}

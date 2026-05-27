@@ -69,9 +69,9 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python and PHP code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 

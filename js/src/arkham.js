@@ -1295,7 +1295,7 @@ export default class arkham extends Exchange {
         //
         // []  returns an empty array, even when successfully cancels orders
         //
-        return this.parseOrders(response, undefined);
+        return this.parseOrders(response);
     }
     /**
      * @method
@@ -1834,7 +1834,8 @@ export default class arkham extends Exchange {
         //    }
         //
         const data = this.safeList(response, 'addresses');
-        const parsed = this.parseDepositAddresses(data, undefined, false, { 'network': networkCode });
+        const networkCodeUnified = networkCode; // java req
+        const parsed = this.parseDepositAddresses(data, undefined, false, { 'network': networkCodeUnified });
         return this.indexBy(parsed, 'network');
     }
     parseDepositAddress(entry, currency = undefined) {
@@ -2392,11 +2393,13 @@ export default class arkham extends Exchange {
             const marketId = this.safeString(info, 'market');
             market = this.safeMarket(marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber(tier, 'positionLimit');
+            const curr = market['linear'] ? market['base'] : market['quote'];
+            const notional = minNotional;
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-                'currency': market['linear'] ? market['base'] : market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(tier, 'marginRate'),
                 'maxLeverage': this.safeInteger(tier, 'leverageRate'),

@@ -837,6 +837,7 @@ public partial class gemini : Exchange
             inverse = false;
         }
         object type = ((bool) isTrue(swap)) ? "swap" : "spot";
+        object isSpot = !isTrue(swap);
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -847,7 +848,7 @@ public partial class gemini : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", !isTrue(swap) },
+            { "spot", isSpot },
             { "margin", false },
             { "swap", swap },
             { "future", false },
@@ -2063,8 +2064,9 @@ public partial class gemini : Exchange
                 throw new AuthenticationError ((string)add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
             object nonce = ((object)this.nonce()).ToString();
+            object finalUrl = url;
             object request = this.extend(new Dictionary<string, object>() {
-                { "request", url },
+                { "request", finalUrl },
                 { "nonce", nonce },
             }, query);
             object payload = this.json(request);

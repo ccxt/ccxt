@@ -331,6 +331,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "bybit":
 		itf := NewBybit(options)
 		return itf
+	case "bybiteu":
+		itf := NewBybiteu(options)
+		return itf
 	case "bydfi":
 		itf := NewBydfi(options)
 		return itf
@@ -549,9 +552,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "zebpay":
 		itf := NewZebpay(options)
-		return itf
-	case "zonda":
-		itf := NewZonda(options)
 		return itf
 	default:
 		return nil

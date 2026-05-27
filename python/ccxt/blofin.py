@@ -557,6 +557,7 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'maxLeverage', '100')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
+        isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -569,7 +570,7 @@ class blofin(Exchange, ImplicitAPI):
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': future,
             'active': isActive,

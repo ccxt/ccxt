@@ -1043,9 +1043,10 @@ class lbank(Exchange, ImplicitAPI):
         fee = None
         feeCost = self.safe_string(trade, 'tradeFee')
         if feeCost is not None:
+            feeCurr = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': market['base'] if (side == 'buy') else market['quote'],
+                'currency': feeCurr,
                 'rate': self.safe_string(trade, 'tradeFeeRate'),
             }
         return self.safe_trade({
@@ -1159,11 +1160,13 @@ class lbank(Exchange, ImplicitAPI):
         if since is None:
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - (duration * 1000 * limit)
+        parsedSince = self.parse_to_int(since / 1000)
+        parsedLimit = min(limit + 1, 2000)  # max 2000
         request: dict = {
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
-            'time': self.parse_to_int(since / 1000),
-            'size': min(limit + 1, 2000),  # max 2000
+            'time': parsedSince,
+            'size': parsedLimit,
         }
         response = self.spotPublicGetKline(self.extend(request, params))
         ohlcvs = self.safe_list(response, 'data', [])
@@ -2853,9 +2856,10 @@ class lbank(Exchange, ImplicitAPI):
                 signatureMethod = 'RSA'
             else:
                 signatureMethod = 'HmacSHA256'
+            finalSig = signatureMethod  # java req
             auth = self.rawencode(self.keysort(self.extend({
                 'echostr': echostr,
-                'signature_method': signatureMethod,
+                'signature_method': finalSig,
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)

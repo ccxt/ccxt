@@ -1637,7 +1637,7 @@ func (this *ModetradeCore) ParseTimeInForce(timeInForce any) any {
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *ModetradeCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
@@ -1878,7 +1878,7 @@ func (this *ModetradeCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
 		//
 		//     {
 		//         "success": true,
-		//         "timestamp": 1702989203989,
+		//         "timestamp": 1702989203988,
 		//         "data": {
 		//             "rows": [{
 		//                 "order_id": 13,

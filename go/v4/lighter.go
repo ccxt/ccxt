@@ -449,7 +449,7 @@ func (this *LighterCore) GetLighterPrivateKey(strAccountIndex any, strApiKeyInde
  * @method
  * @name lighter#preLoadLighterLibrary
  * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
- * @param params
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {boolean} true if the signer was loaded, false otherwise
  */
 func (this *LighterCore) PreLoadLighterLibrary(optionalArgs ...any) <-chan any {

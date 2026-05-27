@@ -474,90 +474,89 @@ class bitmex(Exchange, ImplicitAPI):
         #        },
         #     }
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            asset = self.safe_string(currency, 'asset')
-            code = self.safe_currency_code(asset)
-            id = self.safe_string(currency, 'currency')
-            name = self.safe_string(currency, 'name')
-            chains = self.safe_value(currency, 'networks', [])
-            depositEnabled = False
-            withdrawEnabled = False
-            networks: dict = {}
-            scale = self.safe_string(currency, 'scale')
-            precisionString = self.parse_precision(scale)
-            precision = self.parse_number(precisionString)
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'asset')
-                network = self.network_id_to_code(networkId)
-                withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
-                withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
-                isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
-                isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
-                active = (isDepositEnabled and isWithdrawEnabled)
-                if isDepositEnabled:
-                    depositEnabled = True
-                if isWithdrawEnabled:
-                    withdrawEnabled = True
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': withdrawalFee,
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            currencyEnabled = self.safe_value(currency, 'enabled')
-            currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
-            minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
-            minWithdrawal = self.parse_number(Precise.string_mul(minWithdrawalString, precisionString))
-            maxWithdrawalString = self.safe_string(currency, 'maxWithdrawalAmount')
-            maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
-            minDepositString = self.safe_string(currency, 'minDepositAmount')
-            minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
-            isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': None,
-                'precision': precision,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        asset = self.safe_string(currency, 'asset')
+        code = self.safe_currency_code(asset)
+        id = self.safe_string(currency, 'currency')
+        name = self.safe_string(currency, 'name')
+        chains = self.safe_value(currency, 'networks', [])
+        depositEnabled = False
+        withdrawEnabled = False
+        networks: dict = {}
+        scale = self.safe_string(currency, 'scale')
+        precisionString = self.parse_precision(scale)
+        precision = self.parse_number(precisionString)
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'asset')
+            network = self.network_id_to_code(networkId)
+            withdrawalFeeRaw = self.safe_string(chain, 'withdrawalFee')
+            withdrawalFee = self.parse_number(Precise.string_mul(withdrawalFeeRaw, precisionString))
+            isDepositEnabled = self.safe_bool(chain, 'depositEnabled', False)
+            isWithdrawEnabled = self.safe_bool(chain, 'withdrawalEnabled', False)
+            active = (isDepositEnabled and isWithdrawEnabled)
+            if isDepositEnabled:
+                depositEnabled = True
+            if isWithdrawEnabled:
+                withdrawEnabled = True
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
+                'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': withdrawalFee,
+                'precision': None,
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': minWithdrawal,
-                        'max': maxWithdrawal,
-                    },
                     'deposit': {
-                        'min': minDeposit,
+                        'min': None,
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto' if isCrypto else 'other',
             }
-        return result
+        currencyEnabled = self.safe_value(currency, 'enabled')
+        currencyActive = currencyEnabled or (depositEnabled or withdrawEnabled)
+        minWithdrawalString = self.safe_string(currency, 'minWithdrawalAmount')
+        minWithdrawal = self.parse_number(Precise.string_mul(minWithdrawalString, precisionString))
+        maxWithdrawalString = self.safe_string(currency, 'maxWithdrawalAmount')
+        maxWithdrawal = self.parse_number(Precise.string_mul(maxWithdrawalString, precisionString))
+        minDepositString = self.safe_string(currency, 'minDepositAmount')
+        minDeposit = self.parse_number(Precise.string_mul(minDepositString, precisionString))
+        isCrypto = self.safe_string(currency, 'currencyType') == 'Crypto'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': name,
+            'active': currencyActive,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': minWithdrawal,
+                    'max': maxWithdrawal,
+                },
+                'deposit': {
+                    'min': minDeposit,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto' if isCrypto else 'other',
+        })
 
     def convert_from_real_amount(self, code, amount):
         currency = self.currency(code)
@@ -1446,13 +1445,14 @@ class bitmex(Exchange, ImplicitAPI):
         status = self.safe_string(transaction, 'transactStatus')
         if status is not None:
             status = self.parse_transaction_status(status)
+        code = currency['code']
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'transactID'),
             'txid': self.safe_string(transaction, 'tx'),
             'type': type,
-            'currency': currency['code'],
-            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), currency['code']),
+            'currency': code,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network'), code),
             'amount': self.parse_number(amount),
             'status': status,
             'timestamp': transactTime,
@@ -1962,6 +1962,7 @@ class bitmex(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         orderType = self.capitalize(type)
+        capitalizeOrderType = orderType
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
             if (not market['swap']) and (not market['future']):
@@ -1974,7 +1975,7 @@ class bitmex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': qty,  # lot size multiplied by the number of contracts
-            'ordType': orderType,
+            'ordType': capitalizeOrderType,
             'text': brokerId,
         }
         execInstructions = []
@@ -2736,9 +2737,10 @@ class bitmex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         currency = self.currency(code)
         params = self.omit(params, 'network')
+        parsedNetwork = self.network_code_to_id(networkCode, currency['code'])
         request: dict = {
             'currency': currency['id'],
-            'network': self.network_code_to_id(networkCode, currency['code']),
+            'network': parsedNetwork,
         }
         response = self.privateGetUserDepositAddress(self.extend(request, params))
         #

@@ -24,7 +24,7 @@ declare class testMainClass {
     lang: string;
     proxyTestFileName: string;
     parseCliArgsAndProps(): void;
-    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
+    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<boolean>;
     initInner(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<boolean>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<boolean>;

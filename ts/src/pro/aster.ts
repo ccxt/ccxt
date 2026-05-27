@@ -389,13 +389,11 @@ export default class aster extends asterRest {
 
     parseWsTicker (message, marketType) {
         const event = this.safeString (message, 'e');
-        const part = event.split ('@');
-        const channel = this.safeString (part, 1);
         const marketId = this.safeString (message, 's');
         const timestamp = this.safeInteger (message, 'E');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const last = this.safeString (message, 'c');
-        if (channel === 'markPriceUpdate') {
+        if (event === 'markPriceUpdate') {
             return this.safeTicker ({
                 'symbol': market['symbol'],
                 'timestamp': timestamp,
@@ -1236,7 +1234,11 @@ export default class aster extends asterRest {
             return;
         }
         try {
-            await this.sapiPrivatePutV3ListenKey (); // extend the expiry
+            if (type === 'spot') {
+                await this.sapiPrivatePutV3ListenKey (); // extend the expiry
+            } else {
+                await this.fapiPrivatePutV3ListenKey (); // extend the expiry
+            }
         } catch (error) {
             const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
             const client = this.client (url);
@@ -1922,13 +1924,11 @@ export default class aster extends asterRest {
         const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {
-            'ticker': this.handleTicker,
+            '24hrTicker': this.handleTicker,
             'aggTrade': this.handleTrade,
-            'depth5': this.handleOrderBook,
-            'depth10': this.handleOrderBook,
-            'depth20': this.handleOrderBook,
+            'depthUpdate': this.handleOrderBook,
             'kline': this.handleOHLCV,
-            'markPrice': this.handleTicker,
+            'markPriceUpdate': this.handleTicker,
             'bookTicker': this.handleBidAsk,
             'outboundAccountPosition': this.handleBalance,
             'ACCOUNT_UPDATE': this.handleBalanceAndPosition,

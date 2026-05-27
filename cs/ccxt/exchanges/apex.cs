@@ -496,82 +496,85 @@ public partial class apex : Exchange
         // }
         object rows = this.safeList(spotConfig, "assets", new List<object>() {});
         object chains = this.safeList(multiChain, "chains", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        ((IDictionary<string,object>)this.options)["_temp_currencies_chains"] = chains;
+        object result = this.parseCurrencies(rows);
+        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_chains");
+        return result;
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object currencyId = this.safeString(currency, "token");
+        object code = this.safeCurrencyCode(currencyId);
+        object name = this.safeString(currency, "displayName");
+        object networks = new Dictionary<string, object>() {};
+        object chains = getValue(this.options, "_temp_currencies_chains");
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(rows, i);
-            object currencyId = this.safeString(currency, "token");
-            object code = this.safeCurrencyCode(currencyId);
-            object name = this.safeString(currency, "displayName");
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object chain = getValue(chains, j);
+            object tokens = this.safeList(chain, "tokens", new List<object>() {});
+            for (object f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
             {
-                object chain = getValue(chains, j);
-                object tokens = this.safeList(chain, "tokens", new List<object>() {});
-                for (object f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
+                object token = getValue(tokens, f);
+                object tokenName = this.safeString(token, "token");
+                if (isTrue(isEqual(tokenName, currencyId)))
                 {
-                    object token = getValue(tokens, f);
-                    object tokenName = this.safeString(token, "token");
-                    if (isTrue(isEqual(tokenName, currencyId)))
-                    {
-                        object networkId = this.safeString(chain, "chainId");
-                        object networkCode = this.networkIdToCode(networkId);
-                        ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                            { "info", chain },
-                            { "id", networkId },
-                            { "network", networkCode },
-                            { "active", null },
-                            { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
-                            { "withdraw", this.safeBool(token, "withdrawEnable") },
-                            { "fee", this.safeNumber(token, "minFee") },
-                            { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
-                            { "limits", new Dictionary<string, object>() {
-                                { "withdraw", new Dictionary<string, object>() {
-                                    { "min", this.safeNumber(token, "minWithdraw") },
-                                    { "max", null },
-                                } },
-                                { "deposit", new Dictionary<string, object>() {
-                                    { "min", this.safeNumber(chain, "minDeposit") },
-                                    { "max", null },
-                                } },
+                    object networkId = this.safeString(chain, "chainId");
+                    object networkCode = this.networkIdToCode(networkId);
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                        { "info", chain },
+                        { "id", networkId },
+                        { "network", networkCode },
+                        { "active", null },
+                        { "deposit", !isTrue(this.safeBool(chain, "depositDisable")) },
+                        { "withdraw", this.safeBool(token, "withdrawEnable") },
+                        { "fee", this.safeNumber(token, "minFee") },
+                        { "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))) },
+                        { "limits", new Dictionary<string, object>() {
+                            { "withdraw", new Dictionary<string, object>() {
+                                { "min", this.safeNumber(token, "minWithdraw") },
+                                { "max", null },
                             } },
-                        };
-                    }
+                            { "deposit", new Dictionary<string, object>() {
+                                { "min", this.safeNumber(chain, "minDeposit") },
+                                { "max", null },
+                            } },
+                        } },
+                    };
                 }
             }
-            object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-            object networksLength = getArrayLength(networkKeys);
-            object emptyChains = isEqual(networksLength, 0); // non-functional coins
-            object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "code", code },
-                { "id", currencyId },
-                { "type", "crypto" },
-                { "name", name },
-                { "active", null },
-                { "deposit", valueForEmpty },
-                { "withdraw", valueForEmpty },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", networks },
-            });
         }
-        return result;
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkKeys);
+        object emptyChains = isEqual(networksLength, 0); // non-functional coins
+        object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", currency },
+            { "code", code },
+            { "id", currencyId },
+            { "type", "crypto" },
+            { "name", name },
+            { "active", null },
+            { "deposit", valueForEmpty },
+            { "withdraw", valueForEmpty },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -1262,7 +1265,7 @@ public partial class apex : Exchange
             { "IMMEDIATE_OR_CANCEL", "IMMEDIATE_OR_CANCEL" },
             { "POST_ONLY", "POST_ONLY" },
         };
-        return this.safeString(timeInForces, timeInForce, null);
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1443,14 +1446,16 @@ public partial class apex : Exchange
         {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
+        object finalClientOrderId = clientOrderId; // java req
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"});
+        object finalOrderPrice = orderPrice; // java req
         object orderToSign = new Dictionary<string, object>() {
             { "accountId", accountId },
-            { "slotId", clientOrderId },
-            { "nonce", clientOrderId },
+            { "slotId", finalClientOrderId },
+            { "nonce", finalClientOrderId },
             { "pairId", getValue(market, "quoteId") },
             { "size", orderSize },
-            { "price", orderPrice },
+            { "price", finalOrderPrice },
             { "direction", orderSide },
             { "makerFeeRate", maker },
             { "takerFeeRate", taker },
@@ -1465,11 +1470,11 @@ public partial class apex : Exchange
             { "side", orderSide },
             { "type", orderType },
             { "size", orderSize },
-            { "price", orderPrice },
+            { "price", finalOrderPrice },
             { "limitFee", limitFee },
             { "expiration", (Math.Floor(Double.Parse((add(divide(timeNow, 1000), multiply(multiply(multiply(30, 24), 60), 60))).ToString()))) },
             { "timeInForce", timeInForce },
-            { "clientId", clientOrderId },
+            { "clientId", finalClientOrderId },
             { "brokerId", this.safeString(this.options, "brokerId", "6956") },
         };
         if (isTrue(!isEqual(triggerPrice, null)))
@@ -1520,6 +1525,7 @@ public partial class apex : Exchange
         {
             nonce = this.safeString(getValue(subAccounts, 0), "nonce", "0");
         }
+        object finalNonce = nonce; // java req
         object ethAddress = this.safeString(accountData, "ethereumAddress", "");
         object accountId = this.safeString(accountData, "id", "");
         object currency = new Dictionary<string, object>() {};
@@ -1539,13 +1545,16 @@ public partial class apex : Exchange
             }
         }
         object tokenId = this.safeString(currency, "tokenId", "");
-        object amountNumber = this.parseToInt(multiply(amount, (Math.Pow(Convert.ToDouble(10), Convert.ToDouble(this.safeNumber(currency, "decimals", 0))))));
+        object decimalsNum = this.safeNumber(currency, "decimals", 0);
+        object mathPowResult = (Math.Pow(Convert.ToDouble(10), Convert.ToDouble(decimalsNum)));
+        object amountNumber = this.parseToInt(multiply(amount, mathPowResult));
         object timestampSeconds = this.parseToInt(divide(this.milliseconds(), 1000));
         object clientOrderId = this.safeStringN(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
         if (isTrue(isEqual(clientOrderId, null)))
         {
             clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, "accountId"));
         }
+        object finalClientOrderId = clientOrderId; // java req
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId", "client_order_id"});
         if (isTrue(isTrue(!isEqual(fromAccount, null)) && isTrue(isEqual(((string)fromAccount).ToLower(), "contract"))))
         {
@@ -1560,7 +1569,7 @@ public partial class apex : Exchange
                 { "tokenId", tokenId },
                 { "amount", ((object)amountNumber).ToString() },
                 { "fee", "0" },
-                { "nonce", clientOrderId },
+                { "nonce", finalClientOrderId },
                 { "timestampSeconds", expireTime },
                 { "isContract", true },
             };
@@ -1568,7 +1577,7 @@ public partial class apex : Exchange
             object request = new Dictionary<string, object>() {
                 { "amount", amount },
                 { "expireTime", expireTime },
-                { "clientWithdrawId", clientOrderId },
+                { "clientWithdrawId", finalClientOrderId },
                 { "signature", signature },
                 { "token", code },
                 { "ethAddress", ethAddress },
@@ -1576,10 +1585,11 @@ public partial class apex : Exchange
             object response = await this.privatePostV3ContractTransferOut(this.extend(request, parameters));
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object currentTime = this.milliseconds();
+            object parsedAmount = this.parseNumber(amount);
             return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
                 { "timestamp", currentTime },
                 { "datetime", this.iso8601(currentTime) },
-                { "amount", this.parseNumber(amount) },
+                { "amount", parsedAmount },
                 { "fromAccount", "contract" },
                 { "toAccount", "spot" },
             });
@@ -1593,14 +1603,16 @@ public partial class apex : Exchange
                 { "tokenId", tokenId },
                 { "amount", ((object)amountNumber).ToString() },
                 { "fee", "0" },
-                { "nonce", nonce },
+                { "nonce", finalNonce },
                 { "timestampSeconds", timestampSeconds },
             };
             object signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
+            object amountStr = ((object)amount).ToString();
+            object ts = timestampSeconds; // java req
             object request = new Dictionary<string, object>() {
-                { "amount", ((object)amount).ToString() },
-                { "timestamp", timestampSeconds },
-                { "clientTransferId", clientOrderId },
+                { "amount", amountStr },
+                { "timestamp", ts },
+                { "clientTransferId", finalClientOrderId },
                 { "signature", signature },
                 { "zkAccountId", zkAccountId },
                 { "subAccountId", subAccountId },
@@ -1611,7 +1623,7 @@ public partial class apex : Exchange
                 { "receiverZkAccountId", receiverZkAccountId },
                 { "receiverSubAccountId", receiverSubAccountId },
                 { "receiverAddress", receiverAddress },
-                { "nonce", nonce },
+                { "nonce", finalNonce },
             };
             object response = await this.privatePostV3TransferOut(this.extend(request, parameters));
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -1676,7 +1688,7 @@ public partial class apex : Exchange
      * @description cancels an open order
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
-     * @param symbol
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

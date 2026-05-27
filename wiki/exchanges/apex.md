@@ -391,12 +391,12 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol |  | Yes |  |
+| symbol | <code>string</code> | No | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-apex.cancelOrder (id, symbol[, params])
+apex.cancelOrder (id[, symbol, params])
 ```
 
 

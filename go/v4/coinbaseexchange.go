@@ -357,6 +357,7 @@ func (this *CoinbaseexchangeCore) FetchCurrencies(optionalArgs ...any) <-chan an
 
 		response := (<-this.PublicGetCurrencies(params))
 		PanicOnError(response)
+
 		//
 		//   {
 		//     "id": "USDT",
@@ -398,68 +399,65 @@ func (this *CoinbaseexchangeCore) FetchCurrencies(optionalArgs ...any) <-chan an
 		//     "display_name": "USDT"
 		//   }
 		//
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var currency any = GetValue(response, i)
-			var id any = this.SafeString(currency, "id")
-			var name any = this.SafeString(currency, "name")
-			var code any = this.SafeCurrencyCode(id)
-			var details any = this.SafeDict(currency, "details", map[string]any{})
-			var networks any = map[string]any{}
-			var supportedNetworks any = this.SafeList(currency, "supported_networks", []any{})
-			for j := 0; IsLessThan(j, GetArrayLength(supportedNetworks)); j++ {
-				var network any = GetValue(supportedNetworks, j)
-				var networkId any = this.SafeString(network, "id")
-				var networkCode any = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"id":        networkId,
-					"name":      this.SafeString(network, "name"),
-					"network":   networkCode,
-					"active":    IsEqual(this.SafeString(network, "status"), "online"),
-					"withdraw":  nil,
-					"deposit":   nil,
-					"fee":       nil,
-					"precision": nil,
-					"limits": map[string]any{
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(network, "min_withdrawal_amount"),
-							"max": this.SafeNumber(network, "max_withdrawal_amount"),
-						},
-					},
-					"contract": this.SafeString(network, "contract_address"),
-					"info":     network,
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"code":      code,
-				"info":      currency,
-				"type":      this.SafeString(details, "type"),
-				"name":      name,
-				"active":    IsEqual(this.SafeString(currency, "status"), "online"),
-				"deposit":   nil,
-				"withdraw":  nil,
-				"fee":       nil,
-				"precision": this.SafeNumber(currency, "max_precision"),
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": this.SafeNumber(details, "min_size"),
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": this.SafeNumber(details, "min_withdrawal_amount"),
-						"max": this.SafeNumber(details, "max_withdrawal_amount"),
-					},
-				},
-				"networks": networks,
-			}))
-		}
-
-		ch <- result
+		ch <- this.ParseCurrencies(response)
 		return nil
 
 	}()
 	return ch
+}
+func (this *CoinbaseexchangeCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "id")
+	var name any = this.SafeString(rawCurrency, "name")
+	var code any = this.SafeCurrencyCode(id)
+	var details any = this.SafeDict(rawCurrency, "details", map[string]any{})
+	var networks any = map[string]any{}
+	var supportedNetworks any = this.SafeList(rawCurrency, "supported_networks", []any{})
+	for j := 0; IsLessThan(j, GetArrayLength(supportedNetworks)); j++ {
+		var network any = GetValue(supportedNetworks, j)
+		var networkId any = this.SafeString(network, "id")
+		var networkCode any = this.NetworkIdToCode(networkId)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"id":        networkId,
+			"name":      this.SafeString(network, "name"),
+			"network":   networkCode,
+			"active":    IsEqual(this.SafeString(network, "status"), "online"),
+			"withdraw":  nil,
+			"deposit":   nil,
+			"fee":       nil,
+			"precision": nil,
+			"limits": map[string]any{
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(network, "min_withdrawal_amount"),
+					"max": this.SafeNumber(network, "max_withdrawal_amount"),
+				},
+			},
+			"contract": this.SafeString(network, "contract_address"),
+			"info":     network,
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"code":      code,
+		"info":      rawCurrency,
+		"type":      this.SafeString(details, "type"),
+		"name":      name,
+		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "online"),
+		"deposit":   nil,
+		"withdraw":  nil,
+		"fee":       nil,
+		"precision": this.SafeNumber(rawCurrency, "max_precision"),
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": this.SafeNumber(details, "min_size"),
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": this.SafeNumber(details, "min_withdrawal_amount"),
+				"max": this.SafeNumber(details, "max_withdrawal_amount"),
+			},
+		},
+		"networks": networks,
+	})
 }
 
 /**
@@ -615,8 +613,8 @@ func (this *CoinbaseexchangeCore) FetchAccounts(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7068 := (<-this.LoadMarkets())
-		PanicOnError(retRes7068)
+		retRes7058 := (<-this.LoadMarkets())
+		PanicOnError(retRes7058)
 
 		response := (<-this.PrivateGetAccounts(params))
 		PanicOnError(response)
@@ -699,8 +697,8 @@ func (this *CoinbaseexchangeCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes7758 := (<-this.LoadMarkets())
-		PanicOnError(retRes7758)
+		retRes7748 := (<-this.LoadMarkets())
+		PanicOnError(retRes7748)
 
 		response := (<-this.PrivateGetAccounts(params))
 		PanicOnError(response)
@@ -732,8 +730,8 @@ func (this *CoinbaseexchangeCore) FetchOrderBook(symbol any, optionalArgs ...any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes7918 := (<-this.LoadMarkets())
-		PanicOnError(retRes7918)
+		retRes7908 := (<-this.LoadMarkets())
+		PanicOnError(retRes7908)
 		// level 1 - only the best bid and ask
 		// level 2 - top 50 bids and asks (aggregated)
 		// level 3 - full order book (non aggregated)
@@ -870,8 +868,8 @@ func (this *CoinbaseexchangeCore) FetchTickers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9118 := (<-this.LoadMarkets())
-		PanicOnError(retRes9118)
+		retRes9108 := (<-this.LoadMarkets())
+		PanicOnError(retRes9108)
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
 
@@ -933,8 +931,8 @@ func (this *CoinbaseexchangeCore) FetchTicker(symbol any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9598 := (<-this.LoadMarkets())
-		PanicOnError(retRes9598)
+		retRes9588 := (<-this.LoadMarkets())
+		PanicOnError(retRes9588)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"id": GetValue(market, "id"),
@@ -1031,13 +1029,14 @@ func (this *CoinbaseexchangeCore) ParseTrade(trade any, optionalArgs ...any) any
 	}
 	var price any = this.SafeString(trade, "price")
 	var amount any = this.SafeString(trade, "size")
+	var symbol any = GetValue(market, "symbol")
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       symbol,
 		"type":         nil,
 		"takerOrMaker": takerOrMaker,
 		"side":         side,

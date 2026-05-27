@@ -556,6 +556,7 @@ class blofin extends Exchange {
         $maxLeverage = $this->safe_string($market, 'maxLeverage', '100');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
+        $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -568,7 +569,7 @@ class blofin extends Exchange {
             'type' => $type,
             'spot' => $spot,
             'option' => $option,
-            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
+            'margin' => $isMargin,
             'swap' => $swap,
             'future' => $future,
             'active' => $isActive,

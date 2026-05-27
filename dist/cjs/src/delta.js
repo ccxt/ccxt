@@ -365,6 +365,7 @@ class delta extends delta$1["default"] {
         const strike = this.safeString(optionParts, 2);
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
+        const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
         return {
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -387,7 +388,7 @@ class delta extends delta$1["default"] {
             'contractSize': this.parseNumber('1'),
             'expiry': timestamp,
             'expiryDatetime': datetime,
-            'optionType': (optionType === 'C') ? 'call' : 'put',
+            'optionType': optionTypeUnified,
             'strike': this.parseNumber(strike),
             'precision': {
                 'amount': undefined,

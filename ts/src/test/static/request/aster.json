@@ -17,6 +17,15 @@
     },
     "outputType": "urlencoded",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://sapi.asterdex.com/api/v3/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
         "withdraw": [
             {
                 "description": "arbitrum",

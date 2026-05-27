@@ -3029,10 +3029,10 @@ public partial class hashkey : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds(request);
         } else if (isTrue(isEqual(marketType, "swap")))
         {
-            response = this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds(request);
         } else
         {
             throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
@@ -4304,8 +4304,8 @@ public partial class hashkey : Exchange
             return null;
         }
         object errorInArray = false;
-        object responseCodeString = this.safeString(response, "code", null);
-        object responseCodeInteger = this.safeInteger(response, "code", null); // some codes in response are returned as '0000' others as 0
+        object responseCodeString = this.safeString(response, "code");
+        object responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
         if (isTrue(isEqual(responseCodeInteger, 0)))
         {
             object result = this.safeList(response, "result", new List<object>() {}); // for batch methods

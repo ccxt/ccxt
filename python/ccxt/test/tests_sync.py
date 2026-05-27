@@ -47,6 +47,7 @@ class testMainClass:
         except Exception as e:
             dump('[TEST_FAILURE]')  # tell run-tests.js this is failure
             raise e
+        return True
 
     def init_inner(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args_and_props()
@@ -508,12 +509,19 @@ class testMainClass:
         else:
             if exchange.has['spot']:
                 primary_symbol = self.get_valid_symbol(exchange, True)
-                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
-                spot_symbols = [primary_symbol, secondary_symbol]
+                if primary_symbol is not None:
+                    secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                    spot_symbols = [primary_symbol, secondary_symbol]
             if exchange.has['swap']:
                 primary_symbol = self.get_valid_symbol(exchange, False)
-                secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
-                swap_symbols = [primary_symbol, secondary_symbol]
+                # some exchanges advertise has['swap']=true via describe() but
+                # the live market list contains no swap entries (e.g. bequant
+                # inherits hitbtc swap support but exposes only spot pairs).
+                # getValidSymbol returns undefined in that case — skip swap
+                # tests rather than crashing on `undefined.replace(...)`.
+                if primary_symbol is not None:
+                    secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
+                    swap_symbols = [primary_symbol, secondary_symbol]
         if spot_symbols is not None:
             dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spot_symbols))
         if swap_symbols is not None:
@@ -785,7 +793,7 @@ class testMainClass:
                 stored_value = stored_output[key]
                 new_value = new_output[key]
                 self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check, key)
-        elif isinstance(stored_output, list) and (isinstance(new_output, list)):
+        elif (stored_output is not None) and isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
             self.assert_static_error(stored_array_length == new_array_length, 'output length mismatch', stored_output, new_output)
@@ -1083,6 +1091,9 @@ class testMainClass:
                 is_disabled_go = exchange.safe_bool(result, 'disabledGO', False)
                 if is_disabled_go and (self.lang == 'GO'):
                     continue
+                is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
+                if is_disabled_java and (self.lang == 'java'):
+                    continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_request_statically(exchange, method, result, type, skip_keys)
@@ -1136,6 +1147,9 @@ class testMainClass:
                 is_disabled_go = exchange.safe_bool(result, 'disabledGO', False)
                 if is_disabled_go and (self.lang == 'GO'):
                     continue
+                is_disabled_java = exchange.safe_bool(result, 'disabledJava', False)
+                if is_disabled_java and (self.lang == 'java'):
+                    continue
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
                 self.test_response_statically(exchange, method, skip_keys, result)
                 # reset options
@@ -1175,6 +1189,10 @@ class testMainClass:
         is_disabled_go = exchange.safe_bool(exchange_data, 'disabledGO', False)
         if is_disabled_go and (self.lang == 'GO'):
             dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in go')
+            return True
+        is_disabled_java = exchange.safe_bool(exchange_data, 'disabledJava', False)
+        if is_disabled_java and (self.lang == 'java'):
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in java')
             return True
         return False
 
@@ -1644,6 +1662,8 @@ class testMainClass:
         return True
 
     def test_woofi_pro(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('woofipro')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
         id = 'CCXT'
@@ -1697,6 +1717,8 @@ class testMainClass:
         return True
 
     def test_paradex(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('paradex')
         exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781'
         exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b'
@@ -1766,6 +1788,8 @@ class testMainClass:
         return True
 
     def test_derive(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('derive')
         id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749'
         assert exchange.options['id'] == id, 'derive - id: ' + id + ' not in options'
@@ -1787,6 +1811,8 @@ class testMainClass:
         return True
 
     def test_mode_trade(self):
+        if self.lang == 'java':
+            return False
         exchange = self.init_offline_exchange('modetrade')
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets'
         id = 'CCXTMODE'

@@ -1935,12 +1935,12 @@ export default class xt extends Exchange {
         let response = undefined;
         if (market['spot']) {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min (limit, 1000);
             }
             response = await this.publicSpotGetTradeRecent (this.extend (request, params));
         } else {
             if (limit !== undefined) {
-                request['num'] = limit;
+                request['num'] = Math.min (limit, 1000);
             }
             if (market['linear']) {
                 response = await this.publicLinearGetFutureMarketV1PublicQDeal (this.extend (request, params));
@@ -4357,11 +4357,12 @@ export default class xt extends Exchange {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'symbol');
             market = this.safeMarket (marketId, market, '_', 'contract');
+            const minNotional = this.safeNumber (brackets[i - 1], 'maxNominalValue', 0);
             tiers.push ({
                 'tier': this.safeInteger (tier, 'bracket'),
                 'symbol': this.safeSymbol (marketId, market, '_', 'contract'),
                 'currency': market['settle'],
-                'minNotional': this.safeNumber (brackets[i - 1], 'maxNominalValue', 0),
+                'minNotional': minNotional,
                 'maxNotional': this.safeNumber (tier, 'maxNominalValue'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintMarginRate'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),

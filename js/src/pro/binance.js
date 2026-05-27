@@ -235,8 +235,13 @@ export default class binance extends binanceRest {
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
-            const firstProtocol = baseUrl.indexOf('://');
-            if (firstProtocol !== -1 && baseUrl.indexOf('://', firstProtocol + 3) !== -1) {
+            // const firstProtocol = baseUrl.indexOf ('://');
+            // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
+            //     return baseUrl;
+            // }
+            const baseUrlSplit = baseUrl.split('://');
+            const baseUrlSplitLength = baseUrlSplit.length;
+            if (baseUrlSplitLength > 2) {
                 return baseUrl;
             }
             // only rewrite when the URL ends with exactly "/ws"
@@ -1500,7 +1505,7 @@ export default class binance extends binanceRest {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [timezone, params] = this.handleParamString(params, 'timezone', undefined);
+        [timezone, params] = this.handleParamString(params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq(timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
@@ -1565,7 +1570,7 @@ export default class binance extends binanceRest {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [timezone, params] = this.handleParamString(params, 'timezone', undefined);
+        [timezone, params] = this.handleParamString(params, 'timezone');
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq(timezone, '8'));
         const rawHashes = [];
         const subMessageHashes = [];
@@ -2403,7 +2408,7 @@ export default class binance extends binanceRest {
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
-     * @param marketType {string} only support on 'spot'
+     * @param {string} [marketType] only supports 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */

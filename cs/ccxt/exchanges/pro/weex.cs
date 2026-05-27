@@ -1480,13 +1480,11 @@ public partial class weex : ccxt.weex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        object newOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsOrder(rawOrder);
             callDynamically(orders, "append", new object[] {parsed});
-            ((IList<object>)newOrders).Add(parsed);
             object symbol = getValue(parsed, "symbol");
             ((IDictionary<string,object>)symbols)[(string)symbol] = true;
         }
@@ -1501,9 +1499,9 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbolKeys, i);
             object symbolMessageHash = add(add(messageHash, "::"), symbol);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {newOrders, symbolMessageHash});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {orders, symbolMessageHash});
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newOrders, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -1984,7 +1982,7 @@ public partial class weex : ccxt.weex
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawPosition = this.safeDict(data, i, new Dictionary<string, object>() {});
-            object position = this.parsePosition(rawPosition);
+            object position = this.parseWsPosition(rawPosition);
             callDynamically(cache, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }
@@ -2002,6 +2000,12 @@ public partial class weex : ccxt.weex
             }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
+    }
+
+    public virtual object parseWsPosition(object position, object market = null)
+    {
+        // same as REST api
+        return this.parsePosition(position, market);
     }
 
     public virtual object getMarketFromClientAndMessage(WebSocketClient client, object message)

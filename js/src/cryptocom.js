@@ -481,6 +481,7 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': InvalidOrder,
                     '219': InvalidOrder,
                     '306': InsufficientFunds,
                     '314': InvalidOrder,
@@ -811,6 +812,8 @@ export default class cryptocom extends Exchange {
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
+            const isLinear = (contract) ? true : undefined;
+            const isInverse = (contract) ? false : undefined;
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
@@ -828,8 +831,8 @@ export default class cryptocom extends Exchange {
                 'option': option,
                 'active': this.safeBool(market, 'tradable'),
                 'contract': contract,
-                'linear': (contract) ? true : undefined,
-                'inverse': (contract) ? false : undefined,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': this.safeNumber(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry),
@@ -2120,10 +2123,8 @@ export default class cryptocom extends Exchange {
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
-        else {
-            const keys = Object.keys(depositAddresses);
-            return depositAddresses[keys[0]];
-        }
+        const keys = Object.keys(depositAddresses);
+        return depositAddresses[keys[0]];
     }
     /**
      * @method

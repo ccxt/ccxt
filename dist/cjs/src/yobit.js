@@ -579,7 +579,8 @@ class yobit extends yobit$1["default"] {
         await this.loadMarkets();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join('-');
+            const allIds = this.ids;
+            ids = allIds.join('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
@@ -1116,8 +1117,9 @@ class yobit extends yobit$1["default"] {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        const intId = parseInt(id);
         const request = {
-            'order_id': parseInt(id),
+            'order_id': intId,
         };
         const response = await this.privatePostOrderInfo(this.extend(request, params));
         id = id.toString();

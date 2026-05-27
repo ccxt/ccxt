@@ -895,9 +895,10 @@ public partial class aftermath : Exchange
         account = ((IList<object>)accountparametersVariable)[0];
         parameters = ((IList<object>)accountparametersVariable)[1];
         object order = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
-        object orders = await this.createOrders(new List<object>() {((object)order)}, new Dictionary<string, object>() {
+        object accountObj = new Dictionary<string, object>() {
             { "account", account },
-        });
+        };
+        object orders = await this.createOrders(new List<object>() {((object)order)}, accountObj);
         return getValue(orders, 0);
     }
 
@@ -1296,10 +1297,10 @@ public partial class aftermath : Exchange
         //     "collateral": 39.0
         // }
         //
-        return this.extend(this.parseTransaction(response, currency), new Dictionary<string, object>() {
-            { "addressFrom", account },
-            { "amount", amount },
-        });
+        object parsedTx = this.parseTransaction(response, currency);
+        ((IDictionary<string,object>)parsedTx)["addressFrom "] = account;
+        ((IDictionary<string,object>)parsedTx)["amount"] = amount;
+        return parsedTx;
     }
 
     public override object parseTransaction(object transaction, object currency = null)

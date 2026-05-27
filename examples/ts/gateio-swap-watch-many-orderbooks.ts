@@ -9,7 +9,7 @@ async function loop (exchange, method, symbol) {
         try {
             const orderbook = await exchange[method] (symbol);
             console.log (exchange.iso8601 (exchange.milliseconds ()), orderbook['datetime'], orderbook['nonce'], symbol, orderbook['asks'][0], orderbook['bids'][0]);
-        } catch (e) {
+        } catch (e: any) {
             console.log (e.constructor.name, e.message);
         }
     }

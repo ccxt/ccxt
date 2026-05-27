@@ -1116,7 +1116,7 @@ class foxbit(Exchange, ImplicitAPI):
         #     "remark": "A remarkable note for the order.",
         #     "funds_received": "290.0"
         # }
-        return self.parse_order(response, None)
+        return self.parse_order(response)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

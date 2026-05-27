@@ -479,6 +479,7 @@ export default class cryptocom extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': InvalidOrder, // { "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" }
                     '219': InvalidOrder,
                     '306': InsufficientFunds, // { "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : { "client_oid" : "1753xxx", "order_id" : "6530xxx" } }
                     '314': InvalidOrder, // { "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : { "client_oid" : "1700xxx", "order_id" : "6530xxx" } }
@@ -807,6 +808,8 @@ export default class cryptocom extends Exchange {
                 symbol = symbol + ':' + quote + '-' + this.yymmdd (expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
+            const isLinear = (contract) ? true : undefined;
+            const isInverse = (contract) ? false : undefined;
             result.push ({
                 'id': this.safeString (market, 'symbol'),
                 'symbol': symbol,
@@ -824,8 +827,8 @@ export default class cryptocom extends Exchange {
                 'option': option,
                 'active': this.safeBool (market, 'tradable'),
                 'contract': contract,
-                'linear': (contract) ? true : undefined,
-                'inverse': (contract) ? false : undefined,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': this.safeNumber (market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -2099,10 +2102,9 @@ export default class cryptocom extends Exchange {
         const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params);
         if (network in depositAddresses) {
             return depositAddresses[network];
-        } else {
-            const keys = Object.keys (depositAddresses);
-            return depositAddresses[keys[0]];
         }
+        const keys = Object.keys (depositAddresses);
+        return depositAddresses[keys[0]];
     }
 
     /**

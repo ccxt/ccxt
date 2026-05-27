@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.52';
+const version = '4.5.55';
 
 (Exchange as any).ccxtVersion = version
 
@@ -83,6 +83,7 @@ import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
+import bybiteu from  './src/bybiteu.js'
 import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
@@ -156,7 +157,6 @@ import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zebpay from  './src/zebpay.js'
-import zonda from  './src/zonda.js'
 
 
 // pro exchanges
@@ -187,6 +187,7 @@ import blockchaincomPro from  './src/pro/blockchaincom.js'
 import blofinPro from  './src/pro/blofin.js'
 import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
+import bybiteuPro from  './src/pro/bybiteu.js'
 import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -279,6 +280,7 @@ const exchanges = {
     'btcturk':                btcturk,
     'bullish':                bullish,
     'bybit':                  bybit,
+    'bybiteu':                bybiteu,
     'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
@@ -352,7 +354,6 @@ const exchanges = {
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zebpay':                 zebpay,
-    'zonda':                  zonda,
 }
 
 const pro = {
@@ -383,6 +384,7 @@ const pro = {
     'blofin':                 blofinPro,
     'bullish':                bullishPro,
     'bybit':                  bybitPro,
+    'bybiteu':                bybiteuPro,
     'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
@@ -618,6 +620,7 @@ export {
     btcturk,
     bullish,
     bybit,
+    bybiteu,
     bydfi,
     cex,
     coinbase,
@@ -690,8 +693,7 @@ export {
     xt,
     yobit,
     zaif,
-    zebpay,
-    zonda,    
+    zebpay,    
 }
 
 export default ccxt;

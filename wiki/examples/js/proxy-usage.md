@@ -42,5 +42,52 @@ async function example_webSockets() {
 await example_httpProxy();
 // await example_socksProxy ();
 // await example_webSockets ();
+/*
+
+Note, in some languages you can also set your custom agent like, eg:
+
+
+############################ JAVASCRIPT ############################
+
+const SocksProxyAgent = require ('socks-proxy-agent');
+const socks = 'socks://127.0.0.1:1080';
+const myAgent = new SocksProxyAgent (socks);
+const exchange = new ccxt.binance ({
+    'httpsAgent': myAgent,
+    'options': {
+        'ws': {
+            'options': { 'agent': myAgent },
+        },
+    },
+});
+
+
+
+############################ PYTHON ############################
+import asyncio
+import ccxt.async_support as ccxt
+import aiohttp
+import aiohttp_socks
+
+async def test():
+
+    connector = aiohttp_socks.ProxyConnector.from_url('socks5://user:password@127.0.0.1:1080')
+    session = aiohttp.ClientSession(connector=connector)
+
+    exchange = ccxt.binance({
+        'session': session,
+        # ...
+    })
+
+    # ...
+
+    await exchange.close()  # Close the exchange
+    await session.close()  # don't forget to close the session
+
+    # ...
+
+asyncio.run(test())
+
+*/ 
  
 ```

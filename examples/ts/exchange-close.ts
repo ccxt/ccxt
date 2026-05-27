@@ -14,7 +14,7 @@ async function watchOrderBook (exchange, symbol) {
             const orderbook = await exchange.watchOrderBook (symbol);
             orderbooks[symbol] = orderbook;
             console.log (exchange.iso8601 (exchange.milliseconds ()), orderbook['datetime'], orderbook['nonce'], symbol, orderbook['asks'][0], orderbook['bids'][0]);
-        } catch (e) {
+        } catch (e: any) {
             console.log (e.constructor.name, e.message);
         }
     }

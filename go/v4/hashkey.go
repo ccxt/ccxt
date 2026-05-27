@@ -3328,10 +3328,12 @@ func (this *HashkeyCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request)))
+			response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(request))
 			PanicOnError(response)
 		} else if IsTrue(IsEqual(marketType, "swap")) {
-			response = this.PrivateDeleteApiV1FuturesCancelOrderByIds(this.Extend(request))
+
+			response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(request))
+			PanicOnError(response)
 		} else {
 			panic(NotSupported(Add(Add(Add(Add(Add(this.Id, " "), methodName), "() is not supported for "), marketType), " type of markets")))
 		}
@@ -4781,8 +4783,8 @@ func (this *HashkeyCore) HandleErrors(code any, reason any, url any, method any,
 		return nil
 	}
 	var errorInArray any = false
-	var responseCodeString any = this.SafeString(response, "code", nil)
-	var responseCodeInteger any = this.SafeInteger(response, "code", nil) // some codes in response are returned as '0000' others as 0
+	var responseCodeString any = this.SafeString(response, "code")
+	var responseCodeInteger any = this.SafeInteger(response, "code") // some codes in response are returned as '0000' others as 0
 	if IsTrue(IsEqual(responseCodeInteger, 0)) {
 		var result any = this.SafeList(response, "result", []any{}) // for batch methods
 		for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
