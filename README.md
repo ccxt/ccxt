@@ -198,7 +198,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 8.1+)
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
 - [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
-- ccxt in **Java** (Java 21+, Gradle)
+- [ccxt in **Java**](https://central.sonatype.com/artifact/io.github.ccxt/ccxt) (Java 21+, Gradle)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
