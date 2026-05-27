@@ -150,13 +150,6 @@ jobs:
       - run: npm publish --provenance
         env:
           NPM_CONFIG_PROVENANCE: true
-      - name: Publish Go node_modules
-        env:
-          VERSION: ${{ env.NPM_VERSION }}
-        run: |
-          cd go/
-          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
-          cd ..
       - name: Publish Java package
         env:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
@@ -165,3 +158,10 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
         run: npm run publishJava
+      - name: Publish Go node_modules
+        env:
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+          cd go/
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
+          cd ..
