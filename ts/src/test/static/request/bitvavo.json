@@ -57,6 +57,32 @@
                 "input": []
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers?symbol=BTC&start=0&limit=2&end=1000&subaccountId=3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "input": [
+                    "BTC",
+                    0,
+                    2,
+                    {
+                        "until": 1000,
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ]
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer",
+                "method": "fetchTransfer",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers/4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "input": [
+                    "4fa85f64-5717-4562-b3fc-2c963f66afa6"
+                ]
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetch trading fee",

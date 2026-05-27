@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -124,8 +124,8 @@ export default class bitvavo extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
-                'fetchTransfer': false,
-                'fetchTransfers': false,
+                'fetchTransfer': true,
+                'fetchTransfers': true,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -1233,6 +1233,137 @@ export default class bitvavo extends Exchange {
             'type': this.safeString (account, 'type'),
             'code': undefined,
             'info': account,
+        };
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTransfers
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-transfers/
+     * @description fetch a history of internal transfers made on an account
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {string} [params.subaccountId] the unique identifier for the subaccount
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['symbol'] = currency['id'];
+        }
+        const subaccountId = this.safeString (params, 'subaccountId');
+        if (subaccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a subaccountId parameter');
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
+        const response = await this.privateGetSubaccountsTransfers (this.extend (request, params));
+        //
+        //     {
+        //         "items": [
+        //             {
+        //                 "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "direction": "masterToSub",
+        //                 "symbol": "BTC",
+        //                 "amount": "0.1",
+        //                 "status": "completed",
+        //                 "createdAt": "1700000000000"
+        //             }
+        //         ],
+        //         "start": 0,
+        //         "end": 0,
+        //         "limit": 25
+        //     }
+        //
+        const items = this.safeList (response, 'items', []);
+        return this.parseTransfers (items, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchTransfer
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-transfer/
+     * @description fetches a transfer
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const request: Dict = {
+            'transferId': id,
+        };
+        const response = await this.privateGetSubaccountsTransfersTransferId (this.extend (request, params));
+        //
+        //     {
+        //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "clientRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "direction": "masterToSub",
+        //         "symbol": "BTC",
+        //         "amount": "0.1",
+        //         "status": "completed",
+        //         "createdAt": "1700000000000"
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
+            'completed': 'ok',
+            'pending': 'pending',
+            'failed': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        const currencyId = this.safeString (transfer, 'symbol');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const subaccountId = this.safeString (transfer, 'subaccountId');
+        const direction = this.safeString (transfer, 'direction');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (direction === 'masterToSub') {
+            fromAccount = 'master';
+            toAccount = subaccountId;
+        } else if (direction === 'subToMaster') {
+            fromAccount = subaccountId;
+            toAccount = 'master';
+        }
+        let timestamp = this.safeInteger (transfer, 'createdAt');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (transfer, 'createdAt'));
+        }
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transferId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'status')),
         };
     }
 

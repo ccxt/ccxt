@@ -165,6 +165,99 @@
                 ]
             }
         ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "input": [
+                    "BTC",
+                    0,
+                    2,
+                    {
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "direction": "masterToSub",
+                            "symbol": "BTC",
+                            "amount": "0.1",
+                            "status": "completed",
+                            "createdAt": "1700000000000"
+                        }
+                    ],
+                    "start": 0,
+                    "end": 0,
+                    "limit": 25
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "direction": "masterToSub",
+                            "symbol": "BTC",
+                            "amount": "0.1",
+                            "status": "completed",
+                            "createdAt": "1700000000000"
+                        },
+                        "id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "currency": "BTC",
+                        "amount": 0.1,
+                        "fromAccount": "master",
+                        "toAccount": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer",
+                "method": "fetchTransfer",
+                "input": [
+                    "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "direction": "subToMaster",
+                    "symbol": "BTC",
+                    "amount": "0.2",
+                    "status": "pending",
+                    "createdAt": "1700000000001"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "direction": "subToMaster",
+                        "symbol": "BTC",
+                        "amount": "0.2",
+                        "status": "pending",
+                        "createdAt": "1700000000001"
+                    },
+                    "id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "timestamp": 1700000000001,
+                    "datetime": "2023-11-14T22:13:20.001Z",
+                    "currency": "BTC",
+                    "amount": 0.2,
+                    "fromAccount": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "toAccount": "master",
+                    "status": "pending"
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order limit buy",
