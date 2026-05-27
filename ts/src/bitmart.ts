@@ -1257,20 +1257,20 @@ export default class bitmart extends Exchange {
         const tempCurrencies = [];
         for (let i = 0; i < spotCurrencies.length; i++) {
             const spotEntry = spotCurrencies[i];
+            const networkItems = [];
             const id = this.safeString (spotEntry, 'id');
-            const newItem = {
-                '_spotEntry': spotEntry,
-                '_networkEntries': [],
-            };
             for (let j = 0; j < accountCurrencies.length; j++) {
                 const entry = accountCurrencies[j];
                 const networkCurrencyId = this.safeString (entry, 'currency');
                 // if it's equal or starts with the currency-id (followed by separator either dash or space)
                 if (networkCurrencyId === id || networkCurrencyId.startsWith (id + '-') || networkCurrencyId.startsWith (id + ' ')) {
-                    newItem['_networkEntries'].push (entry);
+                    networkItems.push (entry);
                 }
             }
-            tempCurrencies.push (newItem);
+            tempCurrencies.push ({
+                '_spotEntry': spotEntry,
+                '_networkEntries': networkItems,
+            });
         }
         return this.parseCurrencies (tempCurrencies);
     }
