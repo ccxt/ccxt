@@ -5,6 +5,7 @@ import psutil
 import time
 from collections import defaultdict
 from datetime import datetime
+from typing import Dict
 
 sys.path.append('./python')
 
@@ -12,20 +13,21 @@ import ccxt.pro as ccxt
 
 class PerformanceMetrics:
     def __init__(self):
-        self.message_count = defaultdict(int)
-        self.error_count = defaultdict(int)
-        self.start_time = time.time()
-        self.process = psutil.Process()
-        self.last_print_time = time.time()
-        self.print_interval = 5  # Print metrics every 5 seconds
+        self.message_count: Dict[str, int] = defaultdict(int)
+        self.error_count: Dict[str, int] = defaultdict(int)
+        self.start_time: float = time.time()
+        self.process: psutil.Process = psutil.Process()
+        self.last_print_time: float = time.time()
+        self.print_interval: float = 5.0  # Print metrics every 5 seconds
+        assert self.print_interval > 0, 'print_interval must be positive'
 
-    def increment_message_count(self, symbol):
+    def increment_message_count(self, symbol: str) -> None:
         self.message_count[symbol] += 1
 
-    def increment_error_count(self, symbol):
+    def increment_error_count(self, symbol: str) -> None:
         self.error_count[symbol] += 1
 
-    def get_metrics(self):
+    def get_metrics(self) -> Dict[str, object]:
         current_time = time.time()
         elapsed = current_time - self.start_time
         
@@ -48,14 +50,14 @@ class PerformanceMetrics:
             'symbols_subscribed': len(self.message_count)
         }
 
-    def should_print_metrics(self):
+    def should_print_metrics(self) -> bool:
         current_time = time.time()
         if current_time - self.last_print_time >= self.print_interval:
             self.last_print_time = current_time
             return True
         return False
 
-async def watch_orderbook(binance, symbol, metrics):
+async def watch_orderbook(binance, symbol: str, metrics: 'PerformanceMetrics') -> None:
     while True:
         try:
             await binance.watch_order_book(symbol)
@@ -81,6 +83,7 @@ async def main():
     binance = ccxt.binance({})
     await binance.load_markets()
     symbols = binance.symbols
+    assert isinstance(symbols, list) and len(symbols) > 0, 'markets not loaded or no symbols available'
     metrics = PerformanceMetrics()
     
     print(f"Starting to monitor {len(symbols)} symbols...")
