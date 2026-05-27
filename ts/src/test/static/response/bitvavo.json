@@ -132,6 +132,39 @@
                 }
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "type": "spot",
+                            "status": "open",
+                            "label": "string"
+                        }
+                    ],
+                    "currentPage": 1,
+                    "totalPages": 1,
+                    "maxItems": 100
+                },
+                "parsedResponse": [
+                    {
+                        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "type": "spot",
+                        "code": null,
+                        "info": {
+                            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "type": "spot",
+                            "status": "open",
+                            "label": "string"
+                        }
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order limit buy",

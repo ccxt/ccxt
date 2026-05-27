@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ export default class bitvavo extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'editOrder': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -1195,6 +1195,45 @@ export default class bitvavo extends Exchange {
         //     ]
         //
         return this.parseBalance (response);
+    }
+
+    /**
+     * @method
+     * @name bitvavo#fetchAccounts
+     * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
+     * @description fetch all the accounts associated with a profile
+     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     */
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        await this.loadMarkets ();
+        const response = await this.privateGetSubaccounts (params);
+        //
+        //     {
+        //         "items": [
+        //             {
+        //                 "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //                 "type": "spot",
+        //                 "status": "open",
+        //                 "label": "string"
+        //             }
+        //         ],
+        //         "currentPage": 0,
+        //         "totalPages": 0,
+        //         "maxItems": 0
+        //     }
+        //
+        const accounts = this.safeList (response, 'items', []);
+        return this.parseAccounts (accounts);
+    }
+
+    parseAccount (account: Dict): Account {
+        return {
+            'id': this.safeString (account, 'id'),
+            'type': this.safeString (account, 'type'),
+            'code': undefined,
+            'info': account,
+        };
     }
 
     /**

@@ -49,6 +49,14 @@
                 "input": []
             }
         ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.bitvavo.com/v2/subaccounts",
+                "input": []
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetch trading fee",
