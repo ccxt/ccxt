@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_currency.php';
 function test_fetch_currencies($exchange, $skipped_properties) {
     return Async\async(function () use ($exchange, $skipped_properties) {
         $method = 'fetchCurrencies';
-        $currencies = Async\await($exchange->fetch_currencies());
+        $currencies = \React\Async\await($exchange->fetch_currencies());
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         $num_inactive_currencies = 0;
         $max_inactive_currencies_percentage = $exchange->safe_integer($skipped_properties, 'maxInactiveCurrenciesPercentage', 50); // no more than X% currencies should be inactive
@@ -43,7 +43,7 @@ function test_fetch_currencies($exchange, $skipped_properties) {
                     $num_inactive_currencies = $num_inactive_currencies + 1;
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                $code = $exchange->safe_string($currency, 'code', null);
+                $code = $exchange->safe_string($currency, 'code');
                 $withdraw = $exchange->safe_bool($currency, 'withdraw');
                 $deposit = $exchange->safe_bool($currency, 'deposit');
                 if ($exchange->in_array($code, $required_active_currencies)) {

@@ -1441,6 +1441,9 @@ class weex extends Exchange {
             $priceType = $this->safe_string_upper($params, 'price');
             $params = $this->omit($params, array( 'historical', 'until', 'price' ));
             $response = null;
+            if ($limit !== null) {
+                $limit = min ($limit, 1000); // hardcap threshold
+            }
             if ($historical) {
                 if ($priceType !== null) {
                     $request['priceType'] = $priceType;
@@ -1511,7 +1514,7 @@ class weex extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = null;
             if ($market['spot']) {
@@ -1818,7 +1821,7 @@ class weex extends Exchange {
              * query for balance and get the amount of funds available for trading or funds locked in positions
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot')
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2448,7 +2451,7 @@ class weex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
              * @param {boolean} [$params->trigger] *swap only* whether to fetch $trigger orders (default is false)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -3388,7 +3391,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->safe_string($position, 'symbol');
+        $marketId = $this->safe_string_2($position, 'symbol', 'coinId'); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3403,20 +3406,23 @@ class weex extends Exchange {
         } elseif ($separatedMode === 'SEPARATED') {
             $hedged = true;
         }
+        $notional = $this->safe_string($position, 'openValue');
+        $size = $this->safe_string($position, 'size');
+        $entryPrice = Precise::string_div($notional, $size);
         return $this->safe_position(array(
             'symbol' => $market['symbol'],
             'id' => $this->safe_string_2($position, 'id', 'positionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'contracts' => $this->safe_number($position, 'size'),
+            'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'side' => $this->safe_string_lower($position, 'side'),
-            'notional' => $this->safe_number($position, 'openValue'),
+            'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizePnl'),
             'realizedPnl' => null,
             'collateral' => null,
-            'entryPrice' => null,
+            'entryPrice' => $this->parse_number($entryPrice),
             'markPrice' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidatePrice'),
             'marginMode' => $marginMode,
@@ -3431,7 +3437,7 @@ class weex extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
             'percentage' => null,
-            'info' => null,
+            'info' => $position,
         ));
     }
 
@@ -3493,7 +3499,7 @@ class weex extends Exchange {
              * fetch the trading fees for a contract $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -3674,7 +3680,7 @@ class weex extends Exchange {
              *
              * @param {string[]} [$symbols] a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

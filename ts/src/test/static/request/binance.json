@@ -2024,11 +2024,11 @@
                 "url": "https://api.binance.com/sapi/v1/asset/transfer",
                 "input": [
                   "USDT",
-                  1.23434223,
+                  1.23434,
                   "main",
                   "funding"
                 ],
-                "output": "timestamp=1718723373536&asset=USDT&amount=1.23434223&type=MAIN_FUNDING&recvWindow=10000&signature=731b5bbe83853c1cb5b3715a569fd67554e39681ecf5098c1646264e9c98a555"
+                "output": "timestamp=1718723373536&asset=USDT&amount=1.23434&type=MAIN_FUNDING&recvWindow=10000&signature=731b5bbe83853c1cb5b3715a569fd67554e39681ecf5098c1646264e9c98a555"
             }
         ],
         "fetchDeposits": [

@@ -1103,10 +1103,12 @@ class p2b(Exchange, ImplicitAPI):
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchMyTrades() the time between since and params["until"] cannot be greater than 24 hours')
         market = self.market(symbol)
+        sinceSec = self.parse_to_int(since / 1000)
+        untilSec = self.parse_to_int(until / 1000)
         request: dict = {
             'market': market['id'],
-            'startTime': self.parse_to_int(since / 1000),
-            'endTime': self.parse_to_int(until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         }
         if limit is not None:
             request['limit'] = limit
@@ -1172,9 +1174,11 @@ class p2b(Exchange, ImplicitAPI):
             since = until - 86400000
         if (until - since) > 86400000:
             raise BadRequest(self.id + ' fetchClosedOrders() the time between since and params["until"] cannot be greater than 24 hours')
+        sinceSec = self.parse_to_int(since / 1000)
+        untilSec = self.parse_to_int(until / 1000)
         request: dict = {
-            'startTime': self.parse_to_int(since / 1000),
-            'endTime': self.parse_to_int(until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         }
         if market is not None:
             request['market'] = market['id']

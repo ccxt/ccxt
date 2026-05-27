@@ -923,12 +923,9 @@ class hollaex(Exchange, ImplicitAPI):
         timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
         start = since
         now = self.milliseconds()
-        if until is None and start is None:
-            until = now
-            start = until - timeDelta
-        elif until is None:
+        if until is None:
             until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        elif start is None:
+        if start is None:
             start = until - timeDelta
         request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
         request['to'] = self.parse_to_int(until / 1000)  # convert to seconds

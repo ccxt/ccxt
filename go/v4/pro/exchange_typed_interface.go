@@ -13,7 +13,7 @@ type IExchange interface {
 }
 
 
-func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExchange {
+func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
     case "aftermath":
@@ -96,6 +96,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExc
         return itf
     case "bybit":
         itf := NewBybit(options)
+        return itf
+    case "bybiteu":
+        itf := NewBybiteu(options)
         return itf
     case "bydfi":
         itf := NewBydfi(options)

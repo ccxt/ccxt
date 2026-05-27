@@ -112,10 +112,10 @@ export default class krakenfutures extends krakenfuturesRest {
      * @name krakenfutures#watchPositions
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
@@ -171,6 +171,7 @@ export default class krakenfutures extends krakenfuturesRest {
     handleMyTrades(client: Client, message: any): void;
     parseWsMyTrade(trade: any, market?: any): Trade;
     watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
+    subscriptionExistsForHash(url: string, hash: string): boolean;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: any, message: any): void;

@@ -800,6 +800,7 @@ class gemini(Exchange, ImplicitAPI):
             linear = True  # always linear
             inverse = False
         type = 'swap' if swap else 'spot'
+        isSpot = not swap
         return {
             'id': marketId,
             'symbol': symbol,
@@ -810,7 +811,7 @@ class gemini(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': not swap,
+            'spot': isSpot,
             'margin': False,
             'swap': swap,
             'future': False,
@@ -1862,8 +1863,9 @@ class gemini(Exchange, ImplicitAPI):
             if apiKey.find('account') < 0:
                 raise AuthenticationError(self.id + ' sign() requires an account-key, master-keys are not-supported')
             nonce = str(self.nonce())
+            finalUrl = url
             request = self.extend({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query)
             payload = self.json(request)

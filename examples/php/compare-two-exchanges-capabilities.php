@@ -52,4 +52,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

@@ -1268,7 +1268,8 @@ public partial class bitflyer : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
-            object auth = String.Join("", ((IList<object>)new List<object>() {nonce, method, request}).ToArray());
+            object content = new List<object>() {nonce, method, request};
+            object auth = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 if (isTrue(!isEqual(method, "GET")))

@@ -307,7 +307,7 @@ class grvt(ccxt.async_support.grvt):
             market = self.market(symbol)
             marketId = market['id']
             limitRaw = self.safe_integer(params, 'limit', 50)  # 50, 200, 500, 1000
-            rawHashes.append(marketId + '@' + limitRaw)
+            rawHashes.append(marketId + '@' + str(limitRaw))
             messageHashes.append('trade::' + market['symbol'])
         request = {
             'stream': 'v1.trade',
@@ -499,14 +499,14 @@ class grvt(ccxt.async_support.grvt):
         interval = None
         interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
         symbols = self.market_symbols(symbols)
-        extraPart = (interval + '-' + limit) if isSnapshot else interval
+        extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             marketId = market['id']
-            rawHashes.append(marketId + '@' + str(extraPart))
+            rawHashes.append(marketId + '@' + extraPart)
             messageHashes.append('orderbook::' + market['symbol'])
         request = {
             'stream': channel,
@@ -566,6 +566,14 @@ class grvt(ccxt.async_support.grvt):
             self.handle_deltas_with_keys(orderbook['bids'], bids, 'price', 'size')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
+        # grvt defaults to the delta channel(v1.book.d); if the very first
+        # message is a delta, the freshly-created orderbook has symbol=null
+        # because no snapshot has reset it yet. Set it unconditionally — we
+        # know the symbol from the selector regardless of channel. Java's
+        # typed WsOrderBook surfaces self as `"symbol":null` in the output
+        # Python/JS dict-backed orderbooks happen to mask it but the
+        # unconditional assignment is correct for every language.
+        orderbook['symbol'] = symbol
         orderbook['nonce'] = sequenceNumber
         messageHash = 'orderbook::' + symbol
         self.orderbooks[symbol] = orderbook

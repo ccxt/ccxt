@@ -4,6 +4,106 @@
         "operatorId": 123456
     },
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "USDC",
+                        "name": "USD Coin",
+                        "decimals": "6",
+                        "depositFee": "0",
+                        "depositConfirmations": "32",
+                        "depositStatus": "OK",
+                        "withdrawalFee": "1.2",
+                        "withdrawalMinAmount": "1.2",
+                        "withdrawalStatus": "OK",
+                        "networks": [
+                            "ETH"
+                        ],
+                        "message": ""
+                    }
+                ],
+                "parsedResponse": {
+                    "USDC": {
+                        "info": {
+                            "symbol": "USDC",
+                            "name": "USD Coin",
+                            "decimals": "6",
+                            "depositFee": "0",
+                            "depositConfirmations": "32",
+                            "depositStatus": "OK",
+                            "withdrawalFee": "1.2",
+                            "withdrawalMinAmount": "1.2",
+                            "withdrawalStatus": "OK",
+                            "networks": [
+                                "ETH"
+                            ],
+                            "message": ""
+                        },
+                        "id": "USDC",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USD Coin",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 1.2,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "USDC",
+                                    "name": "USD Coin",
+                                    "decimals": "6",
+                                    "depositFee": "0",
+                                    "depositConfirmations": "32",
+                                    "depositStatus": "OK",
+                                    "withdrawalFee": "1.2",
+                                    "withdrawalMinAmount": "1.2",
+                                    "withdrawalStatus": "OK",
+                                    "networks": [
+                                        "ETH"
+                                    ],
+                                    "message": ""
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1.2,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order limit buy",

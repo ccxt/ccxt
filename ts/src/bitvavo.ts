@@ -174,7 +174,7 @@ export default class bitvavo extends Exchange {
                         'account': 1,
                         'order': 1,
                         'orders': 5,
-                        'ordersOpen': { 'cost': 1, 'noMarket': 25 },
+                        'ordersOpen': { 'cost': 5, 'noMarket': 100 },
                         'trades': 5,
                         'balance': 5,
                         'deposit': 1,
@@ -198,9 +198,9 @@ export default class bitvavo extends Exchange {
                     },
                     'delete': {
                         'order': 1,
-                        'orders': 1,
+                        'orders': { 'cost': 25, 'noMarket': 100 },
                         'institutional/subaccounts/order': 1,
-                        'institutional/subaccounts/orders': 1,
+                        'institutional/subaccounts/orders': { 'cost': 25, 'noMarket': 100 },
                     },
                 },
             },
@@ -320,7 +320,7 @@ export default class bitvavo extends Exchange {
                     '102': BadRequest, // Invalid JSON.
                     '103': RateLimitExceeded, // You have been rate limited. Please observe the Bitvavo-Ratelimit-AllowAt header to see when you can send requests again. Failure to respect this limit will result in an IP ban. The default value is 1000 weighted requests per minute. Please contact support if you wish to increase this limit.
                     '104': RateLimitExceeded, // You have been rate limited by the number of new orders. The default value is 100 new orders per second or 100.000 new orders per day. Please update existing orders instead of cancelling and creating orders. Please contact support if you wish to increase this limit.
-                    '105': PermissionDenied, // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
+                    '105': RateLimitExceeded, // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
                     '107': ExchangeNotAvailable, // The matching engine is overloaded. Please wait 500ms and resubmit your order.
                     '108': ExchangeNotAvailable, // The matching engine could not process your order in time. Please consider increasing the access window or resubmit your order.
                     '109': ExchangeNotAvailable, // The matching engine did not respond in time. Operation may or may not have succeeded.
@@ -562,10 +562,10 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrenciesCustom (response);
+        return this.parseCurrencies (response);
     }
 
-    parseCurrenciesCustom (currencies) {
+    parseCurrency (rawCurrency: Dict): Currency {
         //
         //     [
         //         {
@@ -600,70 +600,65 @@ export default class bitvavo extends Exchange {
         //     ]
         //
         const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
-        const result: Dict = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString (currency, 'symbol');
-            const code = this.safeCurrencyCode (id);
-            const isFiat = this.inArray (code, fiatCurrencies);
-            const networks: Dict = {};
-            const networksArray = this.safeList (currency, 'networks', []);
-            const deposit = this.safeString (currency, 'depositStatus') === 'OK';
-            const withdrawal = this.safeString (currency, 'withdrawalStatus') === 'OK';
-            const active = deposit && withdrawal;
-            const withdrawFee = this.safeNumber (currency, 'withdrawalFee');
-            const precision = this.safeString (currency, 'decimals', '8');
-            const minWithdraw = this.safeNumber (currency, 'withdrawalMinAmount');
-            // btw, absolutely all of them have 1 network atm
-            for (let j = 0; j < networksArray.length; j++) {
-                const networkId = networksArray[j];
-                const networkCode = this.networkIdToCode (networkId);
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': active,
-                    'deposit': deposit,
-                    'withdraw': withdrawal,
-                    'fee': withdrawFee,
-                    'precision': this.parseNumber (this.parsePrecision (precision)),
-                    'limits': {
-                        'withdraw': {
-                            'min': minWithdraw,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString (currency, 'name'),
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        const isFiat = this.inArray (code, fiatCurrencies);
+        const networks: Dict = {};
+        const networksArray = this.safeList (rawCurrency, 'networks', []);
+        const deposit = this.safeString (rawCurrency, 'depositStatus') === 'OK';
+        const withdrawal = this.safeString (rawCurrency, 'withdrawalStatus') === 'OK';
+        const active = deposit && withdrawal;
+        const withdrawFee = this.safeNumber (rawCurrency, 'withdrawalFee');
+        const precision = this.safeString (rawCurrency, 'decimals', '8');
+        const minWithdraw = this.safeNumber (rawCurrency, 'withdrawalMinAmount');
+        // btw, absolutely all of them have 1 network atm
+        for (let j = 0; j < networksArray.length; j++) {
+            const networkId = networksArray[j];
+            const networkCode = this.networkIdToCode (networkId);
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdrawal,
-                'networks': networks,
                 'fee': withdrawFee,
-                'precision': undefined,
-                'type': isFiat ? 'fiat' : 'crypto',
+                'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': minWithdraw,
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString (rawCurrency, 'name'),
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdrawal,
+            'networks': networks,
+            'fee': withdrawFee,
+            'precision': undefined,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': minWithdraw,
+                    'max': undefined,
+                },
+            },
+        });
     }
 
     /**

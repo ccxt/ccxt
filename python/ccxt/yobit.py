@@ -584,7 +584,8 @@ class yobit(Exchange, ImplicitAPI):
         self.load_markets()
         ids = None
         if symbols is None:
-            ids = '-'.join(self.ids)
+            allIds = self.ids
+            ids = '-'.join(allIds)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
                 numIds = len(self.ids)
@@ -1096,8 +1097,9 @@ class yobit(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
+        intId = int(id)
         request: dict = {
-            'order_id': int(id),
+            'order_id': intId,
         }
         response = self.privatePostOrderInfo(self.extend(request, params))
         id = str(id)

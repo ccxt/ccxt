@@ -6,7 +6,7 @@ var coincheck$1 = require('../coincheck.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coincheck extends coincheck$1["default"] {
     describe() {

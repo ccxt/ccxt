@@ -1527,6 +1527,7 @@ public partial class coinbase : Exchange
         //        has_promo_fee: false
         //    }
         //
+        object promises = await promiseAll(spotUnresolvedPromises);
         object unresolvedContractPromises = new List<object>() {};
         try
         {
@@ -1540,7 +1541,6 @@ public partial class coinbase : Exchange
         {
             unresolvedContractPromises = new List<object>() {}; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
-        object promises = await promiseAll(spotUnresolvedPromises);
         object contractPromises = null;
         try
         {
@@ -5701,7 +5701,7 @@ public partial class coinbase : Exchange
      * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account ID to fetch deposit addresses for
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {

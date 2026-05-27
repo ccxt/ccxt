@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class p2b
@@ -1113,10 +1113,12 @@ class p2b extends p2b$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market(symbol);
+        const sinceSec = this.parseToInt(since / 1000);
+        const untilSec = this.parseToInt(until / 1000);
         const request = {
             'market': market['id'],
-            'startTime': this.parseToInt(since / 1000),
-            'endTime': this.parseToInt(until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1189,9 +1191,11 @@ class p2b extends p2b$1["default"] {
         if ((until - since) > 86400000) {
             throw new errors.BadRequest(this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
+        const sinceSec = this.parseToInt(since / 1000);
+        const untilSec = this.parseToInt(until / 1000);
         const request = {
-            'startTime': this.parseToInt(since / 1000),
-            'endTime': this.parseToInt(until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (market !== undefined) {
             request['market'] = market['id'];

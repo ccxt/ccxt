@@ -13,7 +13,7 @@ function test_base64_to_binary() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    assert('GO_SKIP_START');
+    // @SKIP_START_GO
     // Test 1: Simple base64
     $b64_1 = 'aGVsbG8='; // hello
     $binary1 = $exchange->base64_to_binary($b64_1);
@@ -54,6 +54,6 @@ function test_base64_to_binary() {
     $b64_10 = 'aGVsbG8rd29ybGQvdGVzdA=='; // hello+world/test
     $binary10 = $exchange->base64_to_binary($b64_10);
     assert($exchange->binary_to_base64($binary10) === $b64_10);
-    assert('GO_SKIP_END');
+    // @SKIP_END_GO
     assert($exchange->safe_string(null, 'key') === null, 'GO_WORKAROUND');
 }

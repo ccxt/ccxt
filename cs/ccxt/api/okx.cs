@@ -1731,6 +1731,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostAccountSetTradingConfig",parameters);
     }
 
+    public async Task<object> privatePostAccountDemoAdjustBalance (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountDemoAdjustBalance",parameters);
+    }
+
     public async Task<object> privatePostAssetSubaccountTransfer (object parameters = null)
     {
         return await this.callAsync ("privatePostAssetSubaccountTransfer",parameters);

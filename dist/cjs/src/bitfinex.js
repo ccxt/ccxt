@@ -8,7 +8,7 @@ var bitfinex$1 = require('./abstract/bitfinex.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class bitfinex
@@ -1204,16 +1204,14 @@ class bitfinex extends bitfinex$1["default"] {
         const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol = undefined;
         let minusIndex = 0;
-        let isFundingCurrency = false;
         if (isFetchTicker) {
             minusIndex = 1;
-            isFundingCurrency = (length === 16);
         }
         else {
             const marketId = this.safeString(ticker, 0);
             market = this.safeMarket(marketId, market);
-            isFundingCurrency = (length === 17);
         }
+        const isFundingCurrency = length >= 17;
         symbol = this.safeSymbol(undefined, market);
         let last = undefined;
         let bid = undefined;

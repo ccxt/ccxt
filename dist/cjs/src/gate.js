@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -1731,6 +1731,10 @@ class gate extends gate$1["default"] {
                 const maxMultiplier = Precise["default"].stringAdd('1', priceDeviate);
                 const minPrice = Precise["default"].stringMul(minMultiplier, markPrice);
                 const maxPrice = Precise["default"].stringMul(maxMultiplier, markPrice);
+                let createdTs = this.safeTimestamp(market, 'create_time');
+                if (createdTs === 0) {
+                    createdTs = undefined;
+                }
                 result.push({
                     'id': id,
                     'symbol': symbol,
@@ -1779,7 +1783,7 @@ class gate extends gate$1["default"] {
                             'max': undefined,
                         },
                     },
-                    'created': this.safeTimestamp(market, 'create_time'),
+                    'created': createdTs,
                     'info': market,
                 });
             }

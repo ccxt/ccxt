@@ -3301,10 +3301,10 @@ public partial class bitmart : Exchange
         object succeeded = this.safeValue(data, "succeed");
         if (isTrue(!isEqual(succeeded, null)))
         {
-            id = this.safeString(succeeded, 0);
-            if (isTrue(isEqual(id, null)))
+            object id2 = this.safeString(succeeded, 0);
+            if (isTrue(isEqual(id2, null)))
             {
-                throw new InvalidOrder ((string)add(add(add(add(this.id, " cancelOrder() failed to cancel "), symbol), " order id "), id)) ;
+                throw new InvalidOrder ((string)add(add(add(add(this.id, " cancelOrder() failed to cancel "), symbol), " order id "), id2)) ;
             }
         } else
         {
@@ -4810,8 +4810,9 @@ public partial class bitmart : Exchange
         {
             limit = 10;
         }
+        object pageNumber = this.safeInteger(parameters, "page", 1);
         object request = new Dictionary<string, object>() {
-            { "page", this.safeInteger(parameters, "page", 1) },
+            { "page", pageNumber },
             { "limit", limit },
         };
         object currency = null;

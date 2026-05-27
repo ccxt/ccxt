@@ -667,7 +667,6 @@ class kraken(Exchange, ImplicitAPI):
             id = keys[i]
             isSynthetic = False
             if id.find(':BTNL') >= 0:
-                # continue  # skip syntetic markets
                 isSynthetic = True
             market = markets[id]
             baseIdRaw = self.safe_string(market, 'base')
@@ -702,7 +701,7 @@ class kraken(Exchange, ImplicitAPI):
                     precisionAmount = currencyPrecision
             status = self.safe_string(market, 'status')
             isActive = status == 'online'
-            symbol = not (base + '/' + quote) if isSynthetic else id
+            symbol = (base + '/' + quote) if (not isSynthetic) else id
             result.append({
                 'id': id,
                 'wsId': self.safe_string(market, 'wsname'),
@@ -1701,10 +1700,11 @@ class kraken(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
+            parsedAmount = self.amount_to_precision(market['symbol'], amount)
             req: dict = {
                 'type': side,
                 'ordertype': type,
-                'volume': self.amount_to_precision(market['symbol'], amount),
+                'volume': parsedAmount,
             }
             orderRequest = self.order_request('createOrders', marketId, type, req, amount, price, orderParams)
             ordersRequests.append(orderRequest[0])
@@ -2009,12 +2009,12 @@ class kraken(Exchange, ImplicitAPI):
                 takeProfitPrice = triggerPrice
             elif rawType == 'stop loss':
                 stopLossPrice = triggerPrice
-        finalType = self.parse_order_type(rawType)
+        typeParsed = self.parse_order_type(rawType)
         # unlike from endpoints which provide eg: "take-profit-limit"
         # for "space-delimited" orders we dont have market/limit suffixes, their format is
         # eg: `stop loss > limit 123`, so we need to parse them manually
-        if self.in_array(finalType, ['stop loss', 'take profit']):
-            finalType = 'market' if (price is None) else 'limit'
+        if self.in_array(typeParsed, ['stop loss', 'take profit']):
+            typeParsed = 'market' if (price is None) else 'limit'
         amendId = self.safe_string(order, 'amend_id')
         if amendId is not None:
             isPostOnly = None
@@ -2027,7 +2027,7 @@ class kraken(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': finalType,
+            'type': typeParsed,
             'timeInForce': None,
             'postOnly': isPostOnly,
             'side': side,
@@ -3335,16 +3335,16 @@ class kraken(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        fromAccount = self.parse_account_type(fromAccount)
-        toAccount = self.parse_account_type(toAccount)
+        fromAccountParsed = self.parse_account_type(fromAccount)
+        toAccountParsed = self.parse_account_type(toAccount)
         request: dict = {
             'amount': self.currency_to_precision(code, amount),
-            'from': fromAccount,
-            'to': toAccount,
+            'from': fromAccountParsed,
+            'to': toAccountParsed,
             'asset': currency['id'],
         }
-        if fromAccount != 'Spot Wallet':
-            raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount + '. Use krakenfutures instead to transfer from the futures account.')
+        if fromAccountParsed != 'Spot Wallet':
+            raise BadRequest(self.id + ' transfer cannot transfer from ' + fromAccountParsed + ' to ' + toAccountParsed + '. Use krakenfutures instead to transfer from the futures account.')
         response = await self.privatePostWalletTransfer(self.extend(request, params))
         #
         #   {
@@ -3358,8 +3358,8 @@ class kraken(Exchange, ImplicitAPI):
         transfer = self.parse_transfer(response, currency)
         return self.extend(transfer, {
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': fromAccountParsed,
+            'toAccount': toAccountParsed,
         })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:

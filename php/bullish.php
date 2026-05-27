@@ -511,32 +511,31 @@ class bullish extends Exchange {
         //         ), ...
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $precision = $this->safe_string($currency, 'precision');
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => $name,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $this->safe_number($currency, 'minFee'),
-                'precision' => $this->parse_number($this->parse_precision($precision)),
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
-                ),
-                'networks' => array(),
-                'type' => 'crypto',
-                'info' => $currency,
-            );
-        }
-        return $result;
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $precision = $this->safe_string($rawCurrency, 'precision');
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'name' => $name,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => $this->safe_number($rawCurrency, 'minFee'),
+            'precision' => $this->parse_number($this->parse_precision($precision)),
+            'limits' => array(
+                'amount' => array( 'min' => null, 'max' => null ),
+                'withdraw' => array( 'min' => null, 'max' => null ),
+            ),
+            'networks' => array(),
+            'type' => 'crypto',
+            'info' => $rawCurrency,
+        ));
     }
 
     public function fetch_markets($params = array ()): array {

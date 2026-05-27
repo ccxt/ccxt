@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
@@ -3301,9 +3301,9 @@ class bitmart extends bitmart$1["default"] {
         }
         const succeeded = this.safeValue(data, 'succeed');
         if (succeeded !== undefined) {
-            id = this.safeString(succeeded, 0);
-            if (id === undefined) {
-                throw new errors.InvalidOrder(this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id);
+            const id2 = this.safeString(succeeded, 0);
+            if (id2 === undefined) {
+                throw new errors.InvalidOrder(this.id + ' cancelOrder() failed to cancel ' + symbol + ' order id ' + id2);
             }
         }
         else {
@@ -4641,8 +4641,9 @@ class bitmart extends bitmart$1["default"] {
         if (limit === undefined) {
             limit = 10;
         }
+        const pageNumber = this.safeInteger(params, 'page', 1);
         const request = {
-            'page': this.safeInteger(params, 'page', 1),
+            'page': pageNumber,
             'limit': limit, // default is 10, max is 100
         };
         let currency = undefined;

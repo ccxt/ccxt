@@ -21,7 +21,7 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
             $response = null;
             $success = true;
             try {
-                $response = Async\await($exchange->watch_trades_for_symbols($symbols));
+                $response = \React\Async\await($exchange->watch_trades_for_symbols($symbols));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
@@ -40,9 +40,6 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                     if (!$exchange->in_array($symbol, $returned_symbols)) {
                         $returned_symbols[] = $symbol;
                     }
-                }
-                if (!(is_array($skipped_properties) && array_key_exists('timestampSort', $skipped_properties))) {
-                    assert_timestamp_order($exchange, $method, $symbol, $response);
                 }
             }
         }

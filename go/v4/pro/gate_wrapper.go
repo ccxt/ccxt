@@ -6,7 +6,7 @@ type Gate struct {
    exchangeTyped *ccxt.Gate
 }
 
-func NewGate(userConfig map[string]interface{}) *Gate {
+func NewGate(userConfig map[string]any) *Gate {
    p := NewGateCore()
    p.Init(userConfig)
    return &Gate{
@@ -58,12 +58,12 @@ func (this *Gate) CreateOrderWs(symbol string, typeVar string, side string, amou
         opt(&opts)
     }
 
-    var price interface{} = nil
+    var price any = nil
     if opts.Price != nil {
         price = *opts.Price
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -90,7 +90,7 @@ func (this *Gate) CreateOrdersWs(orders []ccxt.OrderRequest, options ...ccxt.Cre
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -119,12 +119,12 @@ func (this *Gate) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -154,12 +154,12 @@ func (this *Gate) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions)
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -192,17 +192,17 @@ func (this *Gate) EditOrderWs(id string, symbol string, typeVar string, side str
         opt(&opts)
     }
 
-    var amount interface{} = nil
+    var amount any = nil
     if opts.Amount != nil {
         amount = *opts.Amount
     }
 
-    var price interface{} = nil
+    var price any = nil
     if opts.Price != nil {
         price = *opts.Price
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -235,12 +235,12 @@ func (this *Gate) FetchOrderWs(id string, options ...ccxt.FetchOrderWsOptions) (
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -269,22 +269,22 @@ func (this *Gate) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -313,22 +313,22 @@ func (this *Gate) FetchClosedOrdersWs(options ...ccxt.FetchClosedOrdersWsOptions
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -346,22 +346,22 @@ func (this *Gate) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrde
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -394,12 +394,12 @@ func (this *Gate) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
         opt(&opts)
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -417,7 +417,7 @@ func (this *Gate) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func (this *Gate) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Gate) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
 
     opts := ccxt.UnWatchOrderBookOptionsStruct{}
 
@@ -425,7 +425,7 @@ func (this *Gate) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -454,7 +454,7 @@ func (this *Gate) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions)
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -483,12 +483,12 @@ func (this *Gate) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticker
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -517,12 +517,12 @@ func (this *Gate) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tick
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -554,17 +554,17 @@ func (this *Gate) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -596,17 +596,17 @@ func (this *Gate) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchT
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -624,7 +624,7 @@ func (this *Gate) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchT
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {
 
     opts := ccxt.UnWatchTradesForSymbolsOptionsStruct{}
 
@@ -632,7 +632,7 @@ func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -650,7 +650,7 @@ func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Gate) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (interface{}, error) {
+func (this *Gate) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {
 
     opts := ccxt.UnWatchTradesOptionsStruct{}
 
@@ -658,7 +658,7 @@ func (this *Gate) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
         opt(&opts)
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -690,22 +690,22 @@ func (this *Gate) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) (
         opt(&opts)
     }
 
-    var timeframe interface{} = nil
+    var timeframe any = nil
     if opts.Timeframe != nil {
         timeframe = *opts.Timeframe
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -737,22 +737,22 @@ func (this *Gate) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tr
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -773,7 +773,7 @@ func (this *Gate) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Gate) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
+func (this *Gate) WatchBalance(params ...any) (ccxt.Balances, error) {
     res := <- this.Core.WatchBalance(params...)
     if ccxt.IsError(res) {
         return ccxt.Balances{}, ccxt.CreateReturnError(res)
@@ -801,22 +801,22 @@ func (this *Gate) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.
         opt(&opts)
     }
 
-    var symbols interface{} = nil
+    var symbols any = nil
     if opts.Symbols != nil {
         symbols = *opts.Symbols
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -850,22 +850,22 @@ func (this *Gate) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order,
         opt(&opts)
     }
 
-    var symbol interface{} = nil
+    var symbol any = nil
     if opts.Symbol != nil {
         symbol = *opts.Symbol
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -896,17 +896,17 @@ func (this *Gate) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiqu
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -937,17 +937,17 @@ func (this *Gate) WatchMyLiquidationsForSymbols(symbols []string, options ...ccx
         opt(&opts)
     }
 
-    var since interface{} = nil
+    var since any = nil
     if opts.Since != nil {
         since = *opts.Since
     }
 
-    var limit interface{} = nil
+    var limit any = nil
     if opts.Limit != nil {
         limit = *opts.Limit
     }
 
-    var params interface{} = nil
+    var params any = nil
     if opts.Params != nil {
         params = *opts.Params
     }
@@ -959,11 +959,11 @@ func (this *Gate) WatchMyLiquidationsForSymbols(symbols []string, options ...ccx
 }
 // missing typed methods from base
 //nolint
-func (this *Gate) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Gate) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
 func (this *Gate) CancelOrders(ids []string, options ...ccxt.CancelOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
 func (this *Gate) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...ccxt.CancelOrdersWithClientOrderIdsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
 func (this *Gate) CancelAllOrders(options ...ccxt.CancelAllOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelAllOrders(options...)}
-func (this *Gate) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
+func (this *Gate) CancelAllOrdersAfter(timeout int64, options ...ccxt.CancelAllOrdersAfterOptions) (map[string]any, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
 func (this *Gate) CancelOrder(id string, options ...ccxt.CancelOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrder(id, options...)}
 func (this *Gate) CancelOrderWithClientOrderId(clientOrderId string, options ...ccxt.CancelOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
 func (this *Gate) CancelOrdersForSymbols(orders []ccxt.CancellationRequest, options ...ccxt.CancelOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
@@ -997,29 +997,29 @@ func (this *Gate) EditLimitSellOrder(id string, symbol string, amount float64, o
 func (this *Gate) EditOrder(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
 func (this *Gate) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWithClientOrderIdOptions) (ccxt.Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
 func (this *Gate) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
-func (this *Gate) FetchAccounts(params ...interface{}) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
+func (this *Gate) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Gate) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Gate) FetchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
+func (this *Gate) FetchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalance(params...)}
 func (this *Gate) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Gate) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
-func (this *Gate) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Gate) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
 func (this *Gate) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
 func (this *Gate) FetchClosedOrders(options ...ccxt.FetchClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchClosedOrders(options...)}
-func (this *Gate) FetchConvertCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Gate) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
 func (this *Gate) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
 func (this *Gate) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
 func (this *Gate) FetchConvertTradeHistory(options ...ccxt.FetchConvertTradeHistoryOptions) ([]ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
 func (this *Gate) FetchCrossBorrowRate(code string, options ...ccxt.FetchCrossBorrowRateOptions) (ccxt.CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
-func (this *Gate) FetchCrossBorrowRates(params ...interface{}) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
-func (this *Gate) FetchCurrencies(params ...interface{}) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
+func (this *Gate) FetchCrossBorrowRates(params ...any) (ccxt.CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Gate) FetchCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchCurrencies(params...)}
 func (this *Gate) FetchDepositAddress(code string, options ...ccxt.FetchDepositAddressOptions) (ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddress(code, options...)}
 func (this *Gate) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
 func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
 func (this *Gate) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDeposits(options...)}
 func (this *Gate) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
-func (this *Gate) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
-func (this *Gate) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
-func (this *Gate) FetchFreeBalance(params ...interface{}) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Gate) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Gate) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
+func (this *Gate) FetchFreeBalance(params ...any) (ccxt.Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
 func (this *Gate) FetchFundingHistory(options ...ccxt.FetchFundingHistoryOptions) ([]ccxt.FundingHistory, error) {return this.exchangeTyped.FetchFundingHistory(options...)}
 func (this *Gate) FetchFundingInterval(symbol string, options ...ccxt.FetchFundingIntervalOptions) (ccxt.FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
 func (this *Gate) FetchFundingIntervals(options ...ccxt.FetchFundingIntervalsOptions) (ccxt.FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
@@ -1029,7 +1029,7 @@ func (this *Gate) FetchFundingRates(options ...ccxt.FetchFundingRatesOptions) (c
 func (this *Gate) FetchGreeks(symbol string, options ...ccxt.FetchGreeksOptions) (ccxt.Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
 func (this *Gate) FetchIndexOHLCV(symbol string, options ...ccxt.FetchIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
 func (this *Gate) FetchIsolatedBorrowRate(symbol string, options ...ccxt.FetchIsolatedBorrowRateOptions) (ccxt.IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
-func (this *Gate) FetchIsolatedBorrowRates(params ...interface{}) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
+func (this *Gate) FetchIsolatedBorrowRates(params ...any) (ccxt.IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
 func (this *Gate) FetchLastPrices(options ...ccxt.FetchLastPricesOptions) (ccxt.LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
 func (this *Gate) FetchLedger(options ...ccxt.FetchLedgerOptions) ([]ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedger(options...)}
 func (this *Gate) FetchLedgerEntry(id string, options ...ccxt.FetchLedgerEntryOptions) (ccxt.LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
@@ -1043,7 +1043,7 @@ func (this *Gate) FetchMarginAdjustmentHistory(options ...ccxt.FetchMarginAdjust
 func (this *Gate) FetchMarginMode(symbol string, options ...ccxt.FetchMarginModeOptions) (ccxt.MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
 func (this *Gate) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
 func (this *Gate) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
-func (this *Gate) FetchMarkets(params ...interface{}) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
+func (this *Gate) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error) {return this.exchangeTyped.FetchMarkets(params...)}
 func (this *Gate) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
 func (this *Gate) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
 func (this *Gate) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
@@ -1063,32 +1063,32 @@ func (this *Gate) FetchOrderBooks(options ...ccxt.FetchOrderBooksOptions) (ccxt.
 func (this *Gate) FetchOrders(options ...ccxt.FetchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrders(options...)}
 func (this *Gate) FetchOrderStatus(id string, options ...ccxt.FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
 func (this *Gate) FetchOrderTrades(id string, options ...ccxt.FetchOrderTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchOrderTrades(id, options...)}
-func (this *Gate) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Gate) FetchPaymentMethods(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
 func (this *Gate) FetchPosition(symbol string, options ...ccxt.FetchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.FetchPosition(symbol, options...)}
 func (this *Gate) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
-func (this *Gate) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Gate) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.FetchPositionMode(options...)}
 func (this *Gate) FetchPositions(options ...ccxt.FetchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositions(options...)}
 func (this *Gate) FetchPositionsForSymbol(symbol string, options ...ccxt.FetchPositionsForSymbolOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
 func (this *Gate) FetchPositionsHistory(options ...ccxt.FetchPositionsHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
 func (this *Gate) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
 func (this *Gate) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
-func (this *Gate) FetchStatus(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchStatus(params...)}
+func (this *Gate) FetchStatus(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchStatus(params...)}
 func (this *Gate) FetchTicker(symbol string, options ...ccxt.FetchTickerOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTicker(symbol, options...)}
 func (this *Gate) FetchTickers(options ...ccxt.FetchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickers(options...)}
-func (this *Gate) FetchTime(params ...interface{}) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
+func (this *Gate) FetchTime(params ...any) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
 func (this *Gate) FetchTrades(symbol string, options ...ccxt.FetchTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTrades(symbol, options...)}
 func (this *Gate) FetchTradingFee(symbol string, options ...ccxt.FetchTradingFeeOptions) (ccxt.TradingFeeInterface, error) {return this.exchangeTyped.FetchTradingFee(symbol, options...)}
-func (this *Gate) FetchTradingFees(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
-func (this *Gate) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
-func (this *Gate) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
-func (this *Gate) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Gate) FetchTradingFees(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
+func (this *Gate) FetchTradingLimits(options ...ccxt.FetchTradingLimitsOptions) (map[string]any, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Gate) FetchTransactionFee(code string, options ...ccxt.FetchTransactionFeeOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Gate) FetchTransactionFees(options ...ccxt.FetchTransactionFeesOptions) (map[string]any, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
 func (this *Gate) FetchTransactions(options ...ccxt.FetchTransactionsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
 func (this *Gate) FetchTransfer(id string, options ...ccxt.FetchTransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
 func (this *Gate) FetchTransfers(options ...ccxt.FetchTransfersOptions) ([]ccxt.TransferEntry, error) {return this.exchangeTyped.FetchTransfers(options...)}
 func (this *Gate) FetchWithdrawals(options ...ccxt.FetchWithdrawalsOptions) ([]ccxt.Transaction, error) {return this.exchangeTyped.FetchWithdrawals(options...)}
 func (this *Gate) SetMargin(symbol string, amount float64, options ...ccxt.SetMarginOptions) (ccxt.MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
-func (this *Gate) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
-func (this *Gate) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
+func (this *Gate) SetMarginMode(marginMode string, options ...ccxt.SetMarginModeOptions) (map[string]any, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Gate) SetPositionMode(hedged bool, options ...ccxt.SetPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
 func (this *Gate) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...ccxt.TransferOptions) (ccxt.TransferEntry, error) {return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)}
 func (this *Gate) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {return this.exchangeTyped.Withdraw(code, amount, address, options...)}
 func (this *Gate) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
@@ -1110,8 +1110,8 @@ func (this *Gate) CreateTakeProfitOrderWs(symbol string, typeVar string, side st
 func (this *Gate) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTrailingAmountOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Gate) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTrailingPercentOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
 func (this *Gate) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateTriggerOrderWsOptions) (ccxt.Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
-func (this *Gate) FetchBalanceWs(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
-func (this *Gate) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Gate) FetchBalanceWs(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Gate) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
 func (this *Gate) FetchMyTradesWs(options ...ccxt.FetchMyTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
 func (this *Gate) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
 func (this *Gate) FetchOrderBookWs(symbol string, options ...ccxt.FetchOrderBookWsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.FetchOrderBookWs(symbol, options...)}
@@ -1122,16 +1122,16 @@ func (this *Gate) FetchPositionWs(symbol string, options ...ccxt.FetchPositionWs
 func (this *Gate) FetchTickersWs(options ...ccxt.FetchTickersWsOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
 func (this *Gate) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
 func (this *Gate) FetchTradesWs(symbol string, options ...ccxt.FetchTradesWsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
-func (this *Gate) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
-func (this *Gate) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
-func (this *Gate) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
-func (this *Gate) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
-func (this *Gate) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
-func (this *Gate) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
-func (this *Gate) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
-func (this *Gate) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
-func (this *Gate) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
-func (this *Gate) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Gate) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Gate) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Gate) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Gate) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Gate) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Gate) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Gate) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Gate) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Gate) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (any, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Gate) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {return this.exchangeTyped.UnWatchTickers(options...)}
 func (this *Gate) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Gate) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
 func (this *Gate) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}

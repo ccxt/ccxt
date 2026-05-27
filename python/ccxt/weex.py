@@ -1396,6 +1396,8 @@ class weex(Exchange, ImplicitAPI):
         priceType = self.safe_string_upper(params, 'price')
         params = self.omit(params, ['historical', 'until', 'price'])
         response = None
+        if limit is not None:
+            limit = min(limit, 1000)  # hardcap threshold
         if historical:
             if priceType is not None:
                 request['priceType'] = priceType
@@ -1456,7 +1458,7 @@ class weex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = None
         if market['spot']:
             response = self.publicGetApiV3MarketTrades(self.extend(request, params))
@@ -1733,7 +1735,7 @@ class weex(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in positions
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap'(default is 'spot')
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -2283,7 +2285,7 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :param boolean [params.trigger]: *swap only* whether to fetch trigger orders(default is False)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -3133,7 +3135,7 @@ class weex(Exchange, ImplicitAPI):
         errorCode = self.safe_string(position, 'errorCode')
         if errorMessage is not None:
             self.handle_order_or_position_error(errorCode, errorMessage, position)
-        marketId = self.safe_string(position, 'symbol')
+        marketId = self.safe_string_2(position, 'symbol', 'coinId')  # coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = self.safe_market(marketId, market, None, 'contract')
         timestamp = self.safe_integer(position, 'createdTime')
         marginType = self.safe_string_2(position, 'marginType', 'marginMode')
@@ -3146,20 +3148,23 @@ class weex(Exchange, ImplicitAPI):
             hedged = False
         elif separatedMode == 'SEPARATED':
             hedged = True
+        notional = self.safe_string(position, 'openValue')
+        size = self.safe_string(position, 'size')
+        entryPrice = Precise.string_div(notional, size)
         return self.safe_position({
             'symbol': market['symbol'],
             'id': self.safe_string_2(position, 'id', 'positionId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'contracts': self.safe_number(position, 'size'),
+            'contracts': self.parse_number(size),
             'contractSize': None,
             'side': self.safe_string_lower(position, 'side'),
-            'notional': self.safe_number(position, 'openValue'),
+            'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.safe_number(position, 'unrealizePnl'),
             'realizedPnl': None,
             'collateral': None,
-            'entryPrice': None,
+            'entryPrice': self.parse_number(entryPrice),
             'markPrice': None,
             'liquidationPrice': self.safe_number(position, 'liquidatePrice'),
             'marginMode': marginMode,
@@ -3174,7 +3179,7 @@ class weex(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
             'percentage': None,
-            'info': None,
+            'info': position,
         })
 
     def close_all_positions(self, params={}) -> List[Position]:
@@ -3228,7 +3233,7 @@ class weex(Exchange, ImplicitAPI):
         fetch the trading fees for a contract market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3387,7 +3392,7 @@ class weex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)

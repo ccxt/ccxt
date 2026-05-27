@@ -1407,6 +1407,10 @@ public partial class weex : Exchange
         object priceType = this.safeStringUpper(parameters, "price");
         parameters = this.omit(parameters, new List<object>() {"historical", "until", "price"});
         object response = null;
+        if (isTrue(!isEqual(limit, null)))
+        {
+            limit = mathMin(limit, 1000); // hardcap threshold
+        }
         if (isTrue(historical))
         {
             if (isTrue(!isEqual(priceType, null)))
@@ -1483,7 +1487,7 @@ public partial class weex : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -1809,7 +1813,7 @@ public partial class weex : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -2534,7 +2538,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3579,7 +3583,7 @@ public partial class weex : Exchange
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        object marketId = this.safeString(position, "symbol");
+        object marketId = this.safeString2(position, "symbol", "coinId"); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
         object timestamp = this.safeInteger(position, "createdTime");
         object marginType = this.safeString2(position, "marginType", "marginMode");
@@ -3597,20 +3601,23 @@ public partial class weex : Exchange
         {
             hedged = true;
         }
+        object notional = this.safeString(position, "openValue");
+        object size = this.safeString(position, "size");
+        object entryPrice = Precise.stringDiv(notional, size);
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "id", this.safeString2(position, "id", "positionId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "contracts", this.safeNumber(position, "size") },
+            { "contracts", this.parseNumber(size) },
             { "contractSize", null },
             { "side", this.safeStringLower(position, "side") },
-            { "notional", this.safeNumber(position, "openValue") },
+            { "notional", this.parseNumber(notional) },
             { "leverage", this.safeNumber(position, "leverage") },
             { "unrealizedPnl", this.safeNumber(position, "unrealizePnl") },
             { "realizedPnl", null },
             { "collateral", null },
-            { "entryPrice", null },
+            { "entryPrice", this.parseNumber(entryPrice) },
             { "markPrice", null },
             { "liquidationPrice", this.safeNumber(position, "liquidatePrice") },
             { "marginMode", marginMode },
@@ -3625,7 +3632,7 @@ public partial class weex : Exchange
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
             { "percentage", null },
-            { "info", null },
+            { "info", position },
         });
     }
 
@@ -3685,7 +3692,7 @@ public partial class weex : Exchange
      * @description fetch the trading fees for a contract market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -3872,7 +3879,7 @@ public partial class weex : Exchange
      * @see https://www.weex.com/api-doc/contract/Account_API/GetSymbolConfig
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverages(object symbols = null, object parameters = null)
     {

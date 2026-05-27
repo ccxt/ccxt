@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, RateLimitExceeded, InvalidProxySettings } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -1877,8 +1877,8 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
      * @description returns enableUnifiedMargin so the user can check if unified account is enabled
      * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
-     * @param address
-     * @param shouldRefresh
+     * @param {string} [address] the wallet address to query; defaults to the configured walletAddress
+     * @param {boolean} [shouldRefresh] force a fresh request instead of returning the cached value
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
@@ -1900,12 +1900,19 @@ export default class hyperliquid extends Exchange {
             try {
                 response = await this.publicPostInfo (this.extend (request, params));
             } catch (e) {
+                if (e instanceof InvalidProxySettings) {
+                    throw e; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+                }
                 response = undefined; // ignore this error and assume unified margin is not enabled
             }
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            enableUnifiedMargin = response === '"unifiedAccount"';
+            if (response !== undefined) {
+                response = response.replace ('"', '');
+                response = response.replace ('"', '');
+                enableUnifiedMargin = response === 'unifiedAccount';
+            }
             // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
         }
@@ -1965,8 +1972,8 @@ export default class hyperliquid extends Exchange {
      * @method
      * @name hyperliquid#enableUserDexAbstraction
      * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
-     * @param enabled
-     * @param params
+     * @param {boolean} enabled whether to enable user dex abstraction
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
      * @returns dictionary response from the exchange
      */
@@ -2181,7 +2188,7 @@ export default class hyperliquid extends Exchange {
                 ordersToBeParsed.push (order);
             }
         }
-        return this.parseOrders (ordersToBeParsed, undefined);
+        return this.parseOrders (ordersToBeParsed);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
@@ -2224,10 +2231,11 @@ export default class hyperliquid extends Exchange {
             } else {
                 triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
             }
+            const tpSlType = (isTp) ? 'tp' : 'sl';
             orderType['trigger'] = {
                 'isMarket': isMarket,
                 'triggerPx': triggerPrice,
-                'tpsl': (isTp) ? 'tp' : 'sl',
+                'tpsl': tpSlType,
             };
         } else {
             orderType['limit'] = {
@@ -2547,9 +2555,10 @@ export default class hyperliquid extends Exchange {
         } else {
             cancelAction['type'] = 'cancel';
             for (let i = 0; i < ids.length; i++) {
+                const o = this.parseToNumeric (ids[i]);
                 cancelReq.push ({
                     'a': baseId,
-                    'o': this.parseToNumeric (ids[i]),
+                    'o': o,
                 });
             }
         }
@@ -2758,10 +2767,11 @@ export default class hyperliquid extends Exchange {
                 } else {
                     triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
                 }
+                const tpSlType = (isTp) ? 'tp' : 'sl';
                 orderType['trigger'] = {
                     'isMarket': isMarket,
                     'triggerPx': triggerPrice,
-                    'tpsl': (isTp) ? 'tp' : 'sl',
+                    'tpsl': tpSlType,
                 };
             } else {
                 orderType['limit'] = {
@@ -3360,8 +3370,9 @@ export default class hyperliquid extends Exchange {
         //
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
+            const finalOrder = order; // java req
             return this.safeOrder ({
-                'info': order,
+                'info': finalOrder,
                 'status': 'rejected',
             });
         }
@@ -3395,6 +3406,7 @@ export default class hyperliquid extends Exchange {
         if (tif !== undefined) {
             postOnly = (tif === 'ALO');
         }
+        const triggerPx = this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined;
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -3410,7 +3422,7 @@ export default class hyperliquid extends Exchange {
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
             'price': this.safeString (entry, 'limitPx'),
-            'triggerPrice': this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
+            'triggerPrice': triggerPx,
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString (entry, 'avgPx'),
@@ -3687,7 +3699,7 @@ export default class hyperliquid extends Exchange {
         const data = this.safeList (response, 'assetPositions', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePosition (data[i], undefined));
+            result.push (this.parsePosition (data[i]));
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -4008,10 +4020,11 @@ export default class hyperliquid extends Exchange {
                 vaultAddress = this.formatVaultAddress (vaultAddress);
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
+            const strAmountFinal = strAmount; // java req
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
             const transferPayload: Dict = {
                 'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-                'amount': strAmount,
+                'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
             };
@@ -4021,7 +4034,7 @@ export default class hyperliquid extends Exchange {
                     'hyperliquidChain': transferPayload['hyperliquidChain'],
                     'signatureChainId': '0x66eee',
                     'type': 'usdClassTransfer',
-                    'amount': strAmount,
+                    'amount': strAmountFinal,
                     'toPerp': toPerp,
                     'nonce': nonce,
                 },

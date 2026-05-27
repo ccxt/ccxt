@@ -69,9 +69,9 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python and PHP code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
@@ -393,8 +393,15 @@ exchange = ccxt.grvt({
 	'privateKey': 'XXXXXXX', // the l1 private key (hex)
 })
 ```
+Note: Users who signed up via email, their wallet is powered by Privy (GRVT's embedded wallet solution). To export the private key:
 
-CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+1. Go to https://home.privy.io
+2. Log in with the same email/Google account used to sign up on GRVT
+3. From there, you can export the private key
+
+*(If you need a help, you can visit https://support.privy.io)*
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
 
 ```
 exchange.options['builderFee'] = False

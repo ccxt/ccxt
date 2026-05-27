@@ -420,13 +420,13 @@ returns enableUnifiedMargin so the user can check if unified account is enabled
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | method | <code>string</code> | Yes | the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin) |
-| address |  | Yes |  |
-| shouldRefresh |  | Yes |  |
+| address | <code>string</code> | No | the wallet address to query; defaults to the configured walletAddress |
+| shouldRefresh | <code>boolean</code> | No | force a fresh request instead of returning the cached value |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hyperliquid.isUnifiedEnabled (method, address, shouldRefresh[, params])
+hyperliquid.isUnifiedEnabled (method[, address, shouldRefresh, params])
 ```
 
 
@@ -463,13 +463,13 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| enabled |  | Yes |  |
-| params |  | Yes |  |
+| enabled | <code>boolean</code> | Yes | whether to enable user dex abstraction |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
 
 
 ```javascript
-hyperliquid.enableUserDexAbstraction (enabled, params[])
+hyperliquid.enableUserDexAbstraction (enabled[, params])
 ```
 
 
@@ -1915,7 +1915,7 @@ hyperliquid.watchOrders (symbol[, since, limit, params])
 unWatches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
 

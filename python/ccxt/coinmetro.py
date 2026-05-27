@@ -382,53 +382,52 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            typeRaw = self.safe_string(currency, 'type')
-            type = None
-            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
-                type = 'crypto'
-            elif typeRaw == 'fiat':
-                type = 'fiat'
-            precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
-            if code == 'RENDER':
-                # RENDER is an exception(with broken info)
-                precisionDigits = '4'
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'name': code,
-                'type': type,
-                'info': currency,
-                'active': self.safe_bool(currency, 'canTrade'),
-                'deposit': self.safe_bool(currency, 'canDeposit'),
-                'withdraw': self.safe_bool(currency, 'canWithdraw'),
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(precisionDigits)),
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'minQty'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': {},
-            })
-        if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            currenciesById = self.index_by(result, 'id')
-            self.options['currenciesByIdForParseMarket'] = currenciesById
-            currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
-            currencyIdsList = list(currenciesById.keys())
-            for i in range(0, len(currencyIdsList)):
-                currentCurrencyIdsList.append(currencyIdsList[i])
-            self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
+        result = self.parse_currencies(response)
+        currenciesById = self.index_by(result, 'id')
+        self.options['currenciesByIdForParseMarket'] = currenciesById
+        currentCurrencyIdsList = self.safe_list(self.options, 'currencyIdsListForParseMarket', [])
+        currencyIdsList = list(currenciesById.keys())
+        for i in range(0, len(currencyIdsList)):
+            currentCurrencyIdsList.append(currencyIdsList[i])
+        self.options['currencyIdsListForParseMarket'] = currentCurrencyIdsList
         return result
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        typeRaw = self.safe_string(rawCurrency, 'type')
+        type = None
+        if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20' or typeRaw == 'crypto':
+            type = 'crypto'
+        elif typeRaw == 'fiat':
+            type = 'fiat'
+        precisionDigits = self.safe_string_2(rawCurrency, 'digits', 'notabeneDecimals')
+        if code == 'RENDER':
+            # RENDER is an exception(with broken info)
+            precisionDigits = '4'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': code,
+            'type': type,
+            'info': rawCurrency,
+            'active': self.safe_bool(rawCurrency, 'canTrade'),
+            'deposit': self.safe_bool(rawCurrency, 'canDeposit'),
+            'withdraw': self.safe_bool(rawCurrency, 'canWithdraw'),
+            'fee': None,
+            'precision': self.parse_number(self.parse_precision(precisionDigits)),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(rawCurrency, 'minQty'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -441,8 +440,6 @@ class coinmetro(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetMarkets(params))
-        if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            promises.append(self.fetch_currencies())
         responses = promises
         response = responses[0]
         #

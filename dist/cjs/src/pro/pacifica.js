@@ -6,7 +6,7 @@ var pacifica$1 = require('../pacifica.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class pacifica extends pacifica$1["default"] {
     describe() {
@@ -1075,7 +1075,7 @@ class pacifica extends pacifica$1["default"] {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();

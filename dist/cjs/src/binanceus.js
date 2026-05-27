@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var binance = require('./binance.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class binanceus extends binance["default"] {
     describe() {
@@ -46,6 +46,7 @@ class binanceus extends binance["default"] {
                 'defaultType': 'spot',
                 'fetchMargins': false,
                 'quoteOrderQty': false,
+                'fetchCurrencies': false,
             },
             'has': {
                 'CORS': undefined,

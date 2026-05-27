@@ -1409,6 +1409,10 @@ class xt(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         if limit is not None:
+            if market['spot']:
+                limit = min(limit, 1000)  # spot max limit
+            else:
+                limit = min(limit, 1500)  # derivatives max limit
             request['limit'] = limit
         else:
             request['limit'] = 1000
@@ -1892,11 +1896,11 @@ class xt(Exchange, ImplicitAPI):
         response = None
         if market['spot']:
             if limit is not None:
-                request['limit'] = limit
+                request['limit'] = min(limit, 1000)
             response = self.publicSpotGetTradeRecent(self.extend(request, params))
         else:
             if limit is not None:
-                request['num'] = limit
+                request['num'] = min(limit, 1000)
             if market['linear']:
                 response = self.publicLinearGetFutureMarketV1PublicQDeal(self.extend(request, params))
             elif market['inverse']:
@@ -4177,11 +4181,12 @@ class xt(Exchange, ImplicitAPI):
             tier = brackets[i]
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId, market, '_', 'contract')
+            minNotional = self.safe_number(brackets[i - 1], 'maxNominalValue', 0)
             tiers.append({
                 'tier': self.safe_integer(tier, 'bracket'),
                 'symbol': self.safe_symbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
-                'minNotional': self.safe_number(brackets[i - 1], 'maxNominalValue', 0),
+                'minNotional': minNotional,
                 'maxNotional': self.safe_number(tier, 'maxNominalValue'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintMarginRate'),
                 'maxLeverage': self.safe_number(tier, 'maxLeverage'),

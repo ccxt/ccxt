@@ -273,7 +273,7 @@
                                     }
                                 }
                             },
-                            "CRONOS": {
+                            "CRC20": {
                                 "info": {
                                     "network_id": "CRONOS",
                                     "withdrawal_fee": "0.18000000",
@@ -283,7 +283,7 @@
                                     "confirmation_required": "15"
                                 },
                                 "id": "CRONOS",
-                                "network": "CRONOS",
+                                "network": "CRC20",
                                 "active": true,
                                 "deposit": true,
                                 "withdraw": true,

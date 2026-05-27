@@ -5,7 +5,7 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 
 
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ccxt.ICoreExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
     switch exchangeId {
     case "aftermath":
         aftermathItf := NewAftermathCore()
@@ -115,6 +115,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bybitItf := NewBybitCore()
         bybitItf.Init(exchangeArgs)
         return bybitItf, true
+    case "bybiteu":
+        bybiteuItf := NewBybiteuCore()
+        bybiteuItf.Init(exchangeArgs)
+        return bybiteuItf, true
     case "bydfi":
         bydfiItf := NewBydfiCore()
         bydfiItf.Init(exchangeArgs)

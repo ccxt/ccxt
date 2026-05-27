@@ -9,7 +9,9 @@ var cairo = require('../calldata/cairo.js');
 require('../../../scure-base/index.js');
 var num = require('../num.js');
 
-// ----------------------------------------------------------------------------
+/**
+ * Class Hash
+ */
 function computePedersenHash(a, b) {
     return index$1.pedersen(BigInt(a), BigInt(b));
 }

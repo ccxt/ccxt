@@ -12,8 +12,8 @@ use React\Promise;
 
 function create_order_after_delay($exchange) {
     return Async\async(function () use ($exchange) {
-        Async\await($exchange->sleep(3000));
-        Async\await($exchange->create_order('BTC/USDT:USDT', 'market', 'buy', 0.001));
+        \React\Async\await($exchange->sleep(3000));
+        \React\Async\await($exchange->create_order('BTC/USDT:USDT', 'market', 'buy', 0.001));
     }) ();
 }
 
@@ -26,11 +26,11 @@ function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
         $positions_subscription = null;
         try {
             // First call uses snapshot
-            $positions_subscription = Async\await($exchange->watch_positions());
+            $positions_subscription = \React\Async\await($exchange->watch_positions());
             // trigger a position update
             $exchange->spawn('create_order_after_delay', $exchange);
             // Second call uses subscription
-            $positions_subscription = Async\await($exchange->watch_positions());
+            $positions_subscription = \React\Async\await($exchange->watch_positions());
         } catch(\Throwable $e) {
             if (!is_temporary_failure($e)) {
                 throw $e;
@@ -43,7 +43,7 @@ function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
         // Assert unWatchPositions for one symbol is not supported
         $error_response = null;
         try {
-            $error_response = Async\await($exchange->un_watch_positions([$symbol]));
+            $error_response = \React\Async\await($exchange->un_watch_positions([$symbol]));
         } catch(\Throwable $e) {
             $error_response = $e;
         }
@@ -51,7 +51,7 @@ function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
         // Test unwatching all positions (without specific symbols)
         $response_all = null;
         try {
-            $response_all = Async\await($exchange->un_watch_positions());
+            $response_all = \React\Async\await($exchange->un_watch_positions());
         } catch(\Throwable $e) {
             if (!is_temporary_failure($e)) {
                 throw $e;
@@ -63,9 +63,9 @@ function test_un_watch_positions($exchange, $skipped_properties, $symbol) {
         // Test that we can resubscribe after unwatching (to ensure cleanup was proper)
         $resubscribe_response = null;
         try {
-            $resubscribe_response = Async\await($exchange->watch_positions());
+            $resubscribe_response = \React\Async\await($exchange->watch_positions());
             $exchange->spawn('create_order_after_delay', $exchange);
-            $resubscribe_response = Async\await($exchange->watch_positions());
+            $resubscribe_response = \React\Async\await($exchange->watch_positions());
         } catch(\Throwable $e) {
             if (!is_temporary_failure($e)) {
                 throw $e;

@@ -8,7 +8,7 @@ var Cache = require('../base/ws/Cache.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 var Precise = require('../base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class gate extends gate$1["default"] {
     describe() {
@@ -84,16 +84,16 @@ class gate extends gate$1["default"] {
                 },
                 'test': {
                     'swap': {
-                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
+                        'usdt': 'wss://ws-testnet.gate.com/v4/ws/futures/usdt',
                         'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
                     },
                     'future': {
-                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
-                        'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/btc',
+                        'usdt': 'wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/usdt',
+                        'btc': 'wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/btc',
                     },
                     'option': {
-                        'usdt': 'wss://op-ws-testnet.gateio.live/v4/ws/usdt',
-                        'btc': 'wss://op-ws-testnet.gateio.live/v4/ws/btc',
+                        'usdt': 'wss://ws-testnet.gate.com/v4/ws/options/usdt',
+                        'btc': 'wss://ws-testnet.gate.com/v4/ws/options/btc',
                     },
                 },
             },

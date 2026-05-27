@@ -356,7 +356,6 @@ class bitopro(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = await self.publicGetProvisioningCurrencies(params)
-        currencies = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -373,43 +372,39 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
+        currencies = self.safe_list(response, 'data', [])
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
         fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            currencyId = self.safe_string(currency, 'currency')
-            code = self.safe_currency_code(currencyId)
-            deposit = self.safe_bool(currency, 'deposit')
-            withdraw = self.safe_bool(currency, 'withdraw')
-            fee = self.safe_number(currency, 'withdrawFee')
-            withdrawMin = self.safe_number(currency, 'minWithdraw')
-            withdrawMax = self.safe_number(currency, 'maxWithdraw')
-            limits: dict = {
+        currencyId = self.safe_string(rawCurrency, 'currency')
+        code = self.safe_currency_code(currencyId)
+        deposit = self.safe_bool(rawCurrency, 'deposit')
+        withdraw = self.safe_bool(rawCurrency, 'withdraw')
+        isFiat = self.in_array(code, fiatCurrencies)
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'type': 'fiat' if isFiat else 'crypto',
+            'name': None,
+            'active': deposit and withdraw,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': self.safe_number(rawCurrency, 'withdrawFee'),
+            'precision': None,
+            'limits': {
                 'withdraw': {
-                    'min': withdrawMin,
-                    'max': withdrawMax,
+                    'min': self.safe_number(rawCurrency, 'minWithdraw'),
+                    'max': self.safe_number(rawCurrency, 'maxWithdraw'),
                 },
                 'amount': {
                     'min': None,
                     'max': None,
                 },
-            }
-            isFiat = self.in_array(code, fiatCurrencies)
-            result[code] = {
-                'id': currencyId,
-                'code': code,
-                'info': currency,
-                'type': 'fiat' if isFiat else 'crypto',
-                'name': None,
-                'active': deposit and withdraw,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': None,
-                'limits': limits,
-                'networks': None,
-            }
-        return result
+            },
+            'networks': None,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1009,7 +1004,7 @@ class bitopro(Exchange, ImplicitAPI):
             '4': 'canceled',
             '6': 'canceled',
         }
-        return self.safe_string(statuses, status, None)
+        return self.safe_string(statuses, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #

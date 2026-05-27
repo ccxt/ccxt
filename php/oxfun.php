@@ -2286,8 +2286,8 @@ class oxfun extends Exchange {
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->clientOrderId] a unique id for the $order
-         * @param {int} [$params->timestamp] in milliseconds. If an $order reaches the matching engine and the current timestamp exceeds timestamp . $recvWindow, then the $order will be rejected.
-         * @param {int} [$params->recvWindow] in milliseconds. If an $order reaches the matching engine and the current timestamp exceeds timestamp . $recvWindow, then the $order will be rejected. If timestamp is provided without $recvWindow, then a default $recvWindow of 1000ms is used.
+         * @param {int} [$params->timestamp] in milliseconds. If an $order reaches the matching engine and the current $timestamp exceeds $timestamp . $recvWindow, then the $order will be rejected.
+         * @param {int} [$params->recvWindow] in milliseconds. If an $order reaches the matching engine and the current $timestamp exceeds $timestamp . $recvWindow, then the $order will be rejected. If $timestamp is provided without $recvWindow, then a default $recvWindow of 1000ms is used.
          * @param {string} [$params->responseType] FULL or ACK
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for market buy orders
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
@@ -2299,9 +2299,11 @@ class oxfun extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->load_markets();
+        $responseType = $this->safe_string($params, 'responseType', 'FULL');
+        $timestamp = $this->safe_integer($params, 'timestamp', $this->milliseconds());
         $request = array(
-            'responseType' => $this->safe_string($params, 'responseType', 'FULL'),
-            'timestamp' => $this->safe_integer($params, 'timestamp', $this->milliseconds()),
+            'responseType' => $responseType,
+            'timestamp' => $timestamp,
         );
         $params = $this->omit($params, array( 'responseType', 'timestamp' ));
         $recvWindow = $this->safe_integer($params, 'recvWindow');
@@ -2313,7 +2315,7 @@ class oxfun extends Exchange {
         $request['orders'] = array( $orderRequest );
         $response = $this->privatePostV3OrdersPlace ($request);
         //
-        // accepted market $order responseType FULL
+        // accepted market $order $responseType FULL
         //     {
         //         "success" => true,
         //         "data" => array(
@@ -2343,7 +2345,7 @@ class oxfun extends Exchange {
         //         )
         //     }
         //
-        // accepted limit $order responseType FULL
+        // accepted limit $order $responseType FULL
         //     {
         //         "success" => true,
         //         "data" => array(
@@ -2368,7 +2370,7 @@ class oxfun extends Exchange {
         //         )
         //     }
         //
-        // accepted $order responseType ACK
+        // accepted $order $responseType ACK
         //     {
         //         "success" => true,
         //         "data" => array(
@@ -2962,7 +2964,7 @@ class oxfun extends Exchange {
             return null;
         }
         if ($code !== 200) {
-            $responseCode = $this->safe_string($response, 'code', null);
+            $responseCode = $this->safe_string($response, 'code');
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);

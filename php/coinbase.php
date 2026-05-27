@@ -1493,6 +1493,7 @@ class coinbase extends Exchange {
         //        has_promo_fee => false
         //    }
         //
+        $promises = $spotUnresolvedPromises;
         $unresolvedContractPromises = array();
         try {
             $unresolvedContractPromises = array(
@@ -1502,7 +1503,6 @@ class coinbase extends Exchange {
         } catch (Exception $e) {
             $unresolvedContractPromises = array(); // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
         }
-        $promises = $spotUnresolvedPromises;
         $contractPromises = null;
         try {
             $contractPromises = $unresolvedContractPromises; // some users don't have access to contracts
@@ -5298,7 +5298,7 @@ class coinbase extends Exchange {
          * @param {string[]} [$codes] list of unified currency $codes, default is null (all currencies)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] account ID to fetch deposit addresses for
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by currency code
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by currency code
          */
         $this->load_markets();
         $request = $this->prepare_account_request(null, $params);

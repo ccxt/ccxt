@@ -46,7 +46,7 @@ public partial class testMainClass
         this.ext = getExt();
     }
 
-    public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
+    public async virtual Task<object> init(object exchangeId, object symbolArgv, object methodArgv)
     {
         try
         {
@@ -56,6 +56,7 @@ public partial class testMainClass
             dump("[TEST_FAILURE]"); // tell run-tests.js this is failure
             throw e;
         }
+        return true;
     }
 
     public async virtual Task<object> initInner(object exchangeId, object symbolArgv, object methodArgv)
@@ -679,7 +680,7 @@ public partial class testMainClass
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         object codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
         object spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
-        object swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USDC:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USDC:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
+        object swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
         object targetSymbols = ((bool) isTrue(spot)) ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -745,14 +746,25 @@ public partial class testMainClass
             if (isTrue(getValue(exchange.has, "spot")))
             {
                 object primarySymbol = this.getValidSymbol(exchange, true);
-                object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
-                spotSymbols = new List<object>() {primarySymbol, secondarySymbol};
+                if (isTrue(!isEqual(primarySymbol, null)))
+                {
+                    object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
+                    spotSymbols = new List<object>() {primarySymbol, secondarySymbol};
+                }
             }
             if (isTrue(getValue(exchange.has, "swap")))
             {
                 object primarySymbol = this.getValidSymbol(exchange, false);
-                object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
-                swapSymbols = new List<object>() {primarySymbol, secondarySymbol};
+                // some exchanges advertise has['swap']=true via describe() but
+                // the live market list contains no swap entries (e.g. bequant
+                // inherits hitbtc swap support but exposes only spot pairs).
+                // getValidSymbol returns undefined in that case — skip swap
+                // tests rather than crashing on `undefined.replace(...)`.
+                if (isTrue(!isEqual(primarySymbol, null)))
+                {
+                    object secondarySymbol = ((string)primarySymbol).Replace((string)"BTC", (string)"ETH"); // this should work any exchange
+                    swapSymbols = new List<object>() {primarySymbol, secondarySymbol};
+                }
             }
         }
         if (isTrue(!isEqual(spotSymbols, null)))
@@ -1148,7 +1160,7 @@ public partial class testMainClass
                 object newValue = getValue(newOutput, key);
                 this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (isTrue(isTrue(((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))) && isTrue((((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))))
+        } else if (isTrue(isTrue(isTrue((!isEqual(storedOutput, null))) && isTrue(((storedOutput is IList<object>) || (storedOutput.GetType().IsGenericType && storedOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) && isTrue((((newOutput is IList<object>) || (newOutput.GetType().IsGenericType && newOutput.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))))
         {
             object storedArrayLength = getArrayLength(storedOutput);
             object newArrayLength = getArrayLength(newOutput);
@@ -1587,6 +1599,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
+                if (isTrue(isTrue(isDisabledJava) && isTrue((isEqual(this.lang, "java")))))
+                {
+                    continue;
+                }
                 object type = exchange.safeString(exchangeData, "outputType");
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
                 await this.testRequestStatically(exchange, method, result, type, skipKeys);
@@ -1670,6 +1687,11 @@ public partial class testMainClass
                 {
                     continue;
                 }
+                object isDisabledJava = exchange.safeBool(result, "disabledJava", false);
+                if (isTrue(isTrue(isDisabledJava) && isTrue((isEqual(this.lang, "java")))))
+                {
+                    continue;
+                }
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
                 await this.testResponseStatically(exchange, method, skipKeys, result);
                 // reset options
@@ -1728,6 +1750,12 @@ public partial class testMainClass
         if (isTrue(isTrue(isDisabledGO) && isTrue((isEqual(this.lang, "GO")))))
         {
             dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"));
+            return true;
+        }
+        object isDisabledJava = exchange.safeBool(exchangeData, "disabledJava", false);
+        if (isTrue(isTrue(isDisabledJava) && isTrue((isEqual(this.lang, "java")))))
+        {
+            dump(add(add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in java"));
             return true;
         }
         return false;
@@ -2388,6 +2416,10 @@ public partial class testMainClass
 
     public async virtual Task<object> testWoofiPro()
     {
+        if (isTrue(isEqual(this.lang, "java")))
+        {
+            return false;
+        }
         Exchange exchange = this.initOfflineExchange("woofipro");
         exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
         object id = "CCXT";
@@ -2463,6 +2495,10 @@ public partial class testMainClass
 
     public async virtual Task<object> testParadex()
     {
+        if (isTrue(isEqual(this.lang, "java")))
+        {
+            return false;
+        }
         Exchange exchange = this.initOfflineExchange("paradex");
         exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
         exchange.privateKey = "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b";
@@ -2553,6 +2589,10 @@ public partial class testMainClass
 
     public async virtual Task<object> testDerive()
     {
+        if (isTrue(isEqual(this.lang, "java")))
+        {
+            return false;
+        }
         Exchange exchange = this.initOfflineExchange("derive");
         object id = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
         assert(isEqual(getValue(exchange.options, "id"), id), add(add("derive - id: ", id), " not in options"));
@@ -2581,6 +2621,10 @@ public partial class testMainClass
 
     public async virtual Task<object> testModeTrade()
     {
+        if (isTrue(isEqual(this.lang, "java")))
+        {
+            return false;
+        }
         Exchange exchange = this.initOfflineExchange("modetrade");
         exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
         object id = "CCXTMODE";

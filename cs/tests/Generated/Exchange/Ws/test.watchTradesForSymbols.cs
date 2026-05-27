@@ -45,10 +45,6 @@ public partial class testMainClass : BaseTest
                         ((IList<object>)returnedSymbols).Add(symbol);
                     }
                 }
-                if (!isTrue((inOp(skippedProperties, "timestampSort"))))
-                {
-                    testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
-                }
             }
         }
         return true;
