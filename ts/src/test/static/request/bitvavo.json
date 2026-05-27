@@ -83,6 +83,38 @@
                 ]
             }
         ],
+        "transfer": [
+            {
+                "description": "transfer master to subaccount",
+                "method": "transfer",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers",
+                "input": [
+                    "BTC",
+                    0.1,
+                    "master",
+                    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    {
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "output": "{\"subaccountId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"direction\":\"masterToSub\",\"symbol\":\"BTC\",\"amount\":\"0.1\",\"clientRequestId\":\"5fa85f64-5717-4562-b3fc-2c963f66afa6\"}"
+            },
+            {
+                "description": "transfer subaccount to master",
+                "method": "transfer",
+                "url": "https://api.bitvavo.com/v2/subaccounts/transfers",
+                "input": [
+                    "BTC",
+                    0.2,
+                    "subaccount",
+                    "master",
+                    {
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "output": "{\"subaccountId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"direction\":\"subToMaster\",\"symbol\":\"BTC\",\"amount\":\"0.2\"}"
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetch trading fee",

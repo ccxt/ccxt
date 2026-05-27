@@ -258,6 +258,51 @@
                 }
             }
         ],
+        "transfer": [
+            {
+                "description": "transfer master to subaccount",
+                "method": "transfer",
+                "input": [
+                    "BTC",
+                    0.1,
+                    "master",
+                    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    {
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "httpResponse": {
+                    "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "direction": "masterToSub",
+                    "symbol": "BTC",
+                    "amount": "0.1",
+                    "status": "completed",
+                    "createdAt": "1700000000000"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "direction": "masterToSub",
+                        "symbol": "BTC",
+                        "amount": "0.1",
+                        "status": "completed",
+                        "createdAt": "1700000000000"
+                    },
+                    "id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "currency": "BTC",
+                    "amount": 0.1,
+                    "fromAccount": "master",
+                    "toAccount": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "status": "ok"
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order limit buy",
