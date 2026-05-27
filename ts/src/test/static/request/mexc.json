@@ -367,6 +367,9 @@
         "fetchOpenOrders": [
             {
                 "description": "swap open orders",
+                "options": {
+                    "defaultType": "swap"
+                },
                 "method": "fetchOpenOrders",
                 "url": "https://api.mexc.com/api/v1/private/order/list/open_orders?page_size=100",
                 "input": [],
