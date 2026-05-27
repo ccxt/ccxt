@@ -817,6 +817,8 @@ class cryptocom extends Exchange {
                     $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
                     $contract = true;
                 }
+                $isLinear = ($contract) ? true : null;
+                $isInverse = ($contract) ? false : null;
                 $result[] = array(
                     'id' => $this->safe_string($market, 'symbol'),
                     'symbol' => $symbol,
@@ -834,8 +836,8 @@ class cryptocom extends Exchange {
                     'option' => $option,
                     'active' => $this->safe_bool($market, 'tradable'),
                     'contract' => $contract,
-                    'linear' => ($contract) ? true : null,
-                    'inverse' => ($contract) ? false : null,
+                    'linear' => $isLinear,
+                    'inverse' => $isInverse,
                     'contractSize' => $this->safe_number($market, 'contract_size'),
                     'expiry' => $expiry,
                     'expiryDatetime' => $this->iso8601($expiry),
@@ -2149,10 +2151,9 @@ class cryptocom extends Exchange {
             $depositAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
             if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
                 return $depositAddresses[$network];
-            } else {
-                $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
-                return $depositAddresses[$keys[0]];
             }
+            $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
+            return $depositAddresses[$keys[0]];
         }) ();
     }
 

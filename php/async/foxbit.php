@@ -1194,7 +1194,7 @@ class foxbit extends Exchange {
             //     "remark" => "A remarkable note for the order.",
             //     "funds_received" => "290.0"
             // }
-            return $this->parse_order($response, null);
+            return $this->parse_order($response);
         }) ();
     }
 

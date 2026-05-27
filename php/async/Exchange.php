@@ -1734,7 +1734,7 @@ class Exchange extends \ccxt\Exchange {
                 $this->features[$marketType] = null;
             } else {
                 if ($marketType === 'spot') {
-                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType);
                 } else {
                     $this->features[$marketType] = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
@@ -3634,7 +3634,7 @@ class Exchange extends \ccxt\Exchange {
         $positions = $this->to_array($positions);
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->extend($this->parse_position($positions[$i], null), $params);
+            $position = $this->extend($this->parse_position($positions[$i]), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -3649,7 +3649,7 @@ class Exchange extends \ccxt\Exchange {
         $ranks = $this->to_array($ranks);
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i]), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);

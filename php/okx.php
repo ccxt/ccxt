@@ -1823,6 +1823,9 @@ class okx extends Exchange {
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
+        $leverageAboveOne = Precise::string_gt($maxLeverage, '1');
+        $quoteEqualSettle = ($quoteId === $settleId);
+        $baseEqualSettle = ($baseId === $settleId);
         $status = $this->safe_string($market, 'state');
         $instIdCode = $this->safe_integer($market, 'instIdCode');
         return $this->extend($fees, array(
@@ -1837,14 +1840,14 @@ class okx extends Exchange {
             'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
+            'margin' => $spot && $leverageAboveOne,
             'swap' => $swap,
             'future' => $future,
             'option' => $option,
             'active' => $status === 'live',
             'contract' => $contract,
-            'linear' => $contract ? ($quoteId === $settleId) : null,
-            'inverse' => $contract ? ($baseId === $settleId) : null,
+            'linear' => $contract ? $quoteEqualSettle : null,
+            'inverse' => $contract ? $baseEqualSettle : null,
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),

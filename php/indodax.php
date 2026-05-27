@@ -1404,10 +1404,11 @@ class indodax extends Exchange {
                         $network = strtoupper($this->network_id_to_code($networkId));
                     }
                 }
+                $finalNetwork = $network; // java req
                 $result[$code] = array(
                     'info' => array(),
                     'currency' => $code,
-                    'network' => $network,
+                    'network' => $finalNetwork,
                     'address' => $address,
                     'tag' => null,
                 );

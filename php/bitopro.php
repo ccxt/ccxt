@@ -1026,7 +1026,7 @@ class bitopro extends Exchange {
             '4' => 'canceled',
             '6' => 'canceled',
         );
-        return $this->safe_string($statuses, $status, null);
+        return $this->safe_string($statuses, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {

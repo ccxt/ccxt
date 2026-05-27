@@ -977,6 +977,7 @@ class bitrue extends Exchange {
         if ($minCost === null) {
             $minCost = $this->safe_number($market, 'minOrderMoney');
         }
+        $isSpot = ($type === 'spot');
         return array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
@@ -988,7 +989,7 @@ class bitrue extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => ($type === 'spot'),
+            'spot' => $isSpot,
             'margin' => false,
             'swap' => $isContract,
             'future' => false,

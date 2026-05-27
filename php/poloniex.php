@@ -925,6 +925,7 @@ class poloniex extends Exchange {
         if ($alias !== null) {
             $type = 'future';
         }
+        $marketType = ($type === 'future') ? 'future' : 'swap';
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -934,7 +935,7 @@ class poloniex extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'settleId' => $settleId,
-            'type' => ($type === 'future') ? 'future' : 'swap',
+            'type' => $marketType,
             'spot' => false,
             'margin' => false,
             'swap' => $type === 'swap',

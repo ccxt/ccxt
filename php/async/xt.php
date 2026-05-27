@@ -4436,11 +4436,12 @@ class xt extends Exchange {
             $tier = $brackets[$i];
             $marketId = $this->safe_string($info, 'symbol');
             $market = $this->safe_market($marketId, $market, '_', 'contract');
+            $minNotional = $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0);
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'bracket'),
                 'symbol' => $this->safe_symbol($marketId, $market, '_', 'contract'),
                 'currency' => $market['settle'],
-                'minNotional' => $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0),
+                'minNotional' => $minNotional,
                 'maxNotional' => $this->safe_number($tier, 'maxNominalValue'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintMarginRate'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),

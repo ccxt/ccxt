@@ -874,7 +874,8 @@ class aftermath extends Exchange {
             $account = null;
             list($account, $params) = $this->handle_option_and_params($params, 'createOrder', 'account');
             $order = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
-            $orders = Async\await($this->create_orders(array( $order ), array( 'account' => $account )));
+            $accountObj = array( 'account' => $account );
+            $orders = Async\await($this->create_orders(array( $order ), $accountObj));
             return $orders[0];
         }) ();
     }
@@ -1258,10 +1259,14 @@ class aftermath extends Exchange {
             //     "collateral" => 39.0
             // }
             //
-            return $this->extend($this->parse_transaction($response, $currency), array(
-                'addressFrom' => $account,
-                'amount' => $amount,
-            ));
+            $parsedTx = $this->parse_transaction($response, $currency);
+            $parsedTx['addressFrom '] = $account;
+            $parsedTx['amount'] = $amount;
+            return $parsedTx;
+            // return $this->extend(, array(
+            //     'addressFrom' => $account,
+            //     'amount' => $amount,
+            // ));
         }) ();
     }
 

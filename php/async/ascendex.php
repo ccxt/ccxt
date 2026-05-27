@@ -922,12 +922,14 @@ class ascendex extends Exchange {
                 $accountGroup = $this->safe_string($data, 'accountGroup');
                 $this->options['account-group'] = $accountGroup;
             }
+            $finalResponse = $response; // java req
+            $finalAccountGroup = $accountGroup;
             return array(
                 array(
-                    'id' => $accountGroup,
+                    'id' => $finalAccountGroup,
                     'type' => null,
                     'code' => null,
-                    'info' => $response,
+                    'info' => $finalResponse,
                 ),
             );
         }) ();
@@ -3089,8 +3091,9 @@ class ascendex extends Exchange {
             if ($type === 'reduce') {
                 $amount = Precise::string_abs($amount);
             }
+            $parsedAmount = $this->parse_number($amount);
             return $this->extend($this->parse_margin_modification($response, $market), array(
-                'amount' => $this->parse_number($amount),
+                'amount' => $parsedAmount,
                 'type' => $type,
             ));
         }) ();

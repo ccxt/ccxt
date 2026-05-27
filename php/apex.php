@@ -1231,7 +1231,7 @@ class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL' => 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY' => 'POST_ONLY',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1383,14 +1383,16 @@ class apex extends Exchange {
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($accountId);
         }
+        $finalClientOrderId = $clientOrderId; // java req
         $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ));
+        $finalOrderPrice = $orderPrice; // java req
         $orderToSign = array(
             'accountId' => $accountId,
-            'slotId' => $clientOrderId,
-            'nonce' => $clientOrderId,
+            'slotId' => $finalClientOrderId,
+            'nonce' => $finalClientOrderId,
             'pairId' => $market['quoteId'],
             'size' => $orderSize,
-            'price' => $orderPrice,
+            'price' => $finalOrderPrice,
             'direction' => $orderSide,
             'makerFeeRate' => $maker,
             'takerFeeRate' => $taker,
@@ -1404,11 +1406,11 @@ class apex extends Exchange {
             'side' => $orderSide,
             'type' => $orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size' => $orderSize,
-            'price' => $orderPrice,
+            'price' => $finalOrderPrice,
             'limitFee' => $limitFee,
             'expiration' => (int) floor($timeNow / 1000 + 30 * 24 * 60 * 60),
             'timeInForce' => $timeInForce,
-            'clientId' => $clientOrderId,
+            'clientId' => $finalClientOrderId,
             'brokerId' => $this->safe_string($this->options, 'brokerId', '6956'),
         );
         if ($triggerPrice !== null) {
@@ -1453,6 +1455,7 @@ class apex extends Exchange {
         if (strlen($subAccounts) > 0) {
             $nonce = $this->safe_string($subAccounts[0], 'nonce', '0');
         }
+        $finalNonce = $nonce; // java req
         $ethAddress = $this->safe_string($accountData, 'ethereumAddress', '');
         $accountId = $this->safe_string($accountData, 'id', '');
         $currency = array();
@@ -1468,12 +1471,15 @@ class apex extends Exchange {
             }
         }
         $tokenId = $this->safe_string($currency, 'tokenId', '');
-        $amountNumber = $this->parse_to_int($amount * (pow(10, $this->safe_number($currency, 'decimals', 0))));
+        $decimalsNum = $this->safe_number($currency, 'decimals', 0);
+        $mathPowResult = (pow(10, $decimalsNum));
+        $amountNumber = $this->parse_to_int($amount * $mathPowResult);
         $timestampSeconds = $this->parse_to_int($this->milliseconds() / 1000);
         $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId === null) {
             $clientOrderId = $this->generate_random_client_id_omni($this->safe_string($this->options, 'accountId'));
         }
+        $finalClientOrderId = $clientOrderId; // java req
         $params = $this->omit($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
         if ($fromAccount !== null && strtolower($fromAccount) === 'contract') {
             $formattedUint32 = '4294967295';
@@ -1487,7 +1493,7 @@ class apex extends Exchange {
                 'tokenId' => $tokenId,
                 'amount' => (string) $amountNumber,
                 'fee' => '0',
-                'nonce' => $clientOrderId,
+                'nonce' => $finalClientOrderId,
                 'timestampSeconds' => $expireTime,
                 'isContract' => true,
             );
@@ -1495,7 +1501,7 @@ class apex extends Exchange {
             $request = array(
                 'amount' => $amount,
                 'expireTime' => $expireTime,
-                'clientWithdrawId' => $clientOrderId,
+                'clientWithdrawId' => $finalClientOrderId,
                 'signature' => $signature,
                 'token' => $code,
                 'ethAddress' => $ethAddress,
@@ -1503,10 +1509,11 @@ class apex extends Exchange {
             $response = $this->privatePostV3ContractTransferOut ($this->extend($request, $params));
             $data = $this->safe_dict($response, 'data', array());
             $currentTime = $this->milliseconds();
+            $parsedAmount = $this->parse_number($amount);
             return $this->extend($this->parse_transfer($data, $this->currency($code)), array(
                 'timestamp' => $currentTime,
                 'datetime' => $this->iso8601($currentTime),
-                'amount' => $this->parse_number($amount),
+                'amount' => $parsedAmount,
                 'fromAccount' => 'contract',
                 'toAccount' => 'spot',
             ));
@@ -1519,14 +1526,16 @@ class apex extends Exchange {
                 'tokenId' => $tokenId,
                 'amount' => (string) $amountNumber,
                 'fee' => '0',
-                'nonce' => $nonce,
+                'nonce' => $finalNonce,
                 'timestampSeconds' => $timestampSeconds,
             );
             $signature = $this->get_zk_transfer_signature_obj($this->remove0x_prefix($this->get_seeds()), $orderToSign);
+            $amountStr = (string) $amount;
+            $ts = $timestampSeconds; // java req
             $request = array(
-                'amount' => (string) $amount,
-                'timestamp' => $timestampSeconds,
-                'clientTransferId' => $clientOrderId,
+                'amount' => $amountStr,
+                'timestamp' => $ts,
+                'clientTransferId' => $finalClientOrderId,
                 'signature' => $signature,
                 'zkAccountId' => $zkAccountId,
                 'subAccountId' => $subAccountId,
@@ -1537,7 +1546,7 @@ class apex extends Exchange {
                 'receiverZkAccountId' => $receiverZkAccountId,
                 'receiverSubAccountId' => $receiverSubAccountId,
                 'receiverAddress' => $receiverAddress,
-                'nonce' => $nonce,
+                'nonce' => $finalNonce,
             );
             $response = $this->privatePostV3TransferOut ($this->extend($request, $params));
             $data = $this->safe_dict($response, 'data', array());
@@ -1599,7 +1608,7 @@ class apex extends Exchange {
          * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
          *
          * @param {string} $id order $id
-         * @param $symbol
+         * @param {string} [$symbol] unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */

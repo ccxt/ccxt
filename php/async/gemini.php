@@ -839,6 +839,7 @@ class gemini extends Exchange {
             $inverse = false;
         }
         $type = $swap ? 'swap' : 'spot';
+        $isSpot = !$swap;
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -849,7 +850,7 @@ class gemini extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => !$swap,
+            'spot' => $isSpot,
             'margin' => false,
             'swap' => $swap,
             'future' => false,
@@ -1998,8 +1999,9 @@ class gemini extends Exchange {
                 throw new AuthenticationError($this->id . ' sign() requires an account-key, master-keys are not-supported');
             }
             $nonce = (string) $this->nonce();
+            $finalUrl = $url;
             $request = $this->extend(array(
-                'request' => $url,
+                'request' => $finalUrl,
                 'nonce' => $nonce,
             ), $query);
             $payload = $this->json($request);
