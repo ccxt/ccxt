@@ -924,6 +924,7 @@ class poloniex(Exchange, ImplicitAPI):
         type = 'swap'
         if alias is not None:
             type = 'future'
+        marketType = 'future' if (type == 'future') else 'swap'
         return {
             'id': id,
             'symbol': symbol,
@@ -933,7 +934,7 @@ class poloniex(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'future' if (type == 'future') else 'swap',
+            'type': marketType,
             'spot': False,
             'margin': False,
             'swap': type == 'swap',

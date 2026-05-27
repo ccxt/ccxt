@@ -1822,6 +1822,9 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
+        leverageAboveOne = Precise.string_gt(maxLeverage, '1')
+        quoteEqualSettle = (quoteId == settleId)
+        baseEqualSettle = (baseId == settleId)
         status = self.safe_string(market, 'state')
         instIdCode = self.safe_integer(market, 'instIdCode')
         return self.extend(fees, {
@@ -1836,14 +1839,14 @@ class okx(Exchange, ImplicitAPI):
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
+            'margin': spot and leverageAboveOne,
             'swap': swap,
             'future': future,
             'option': option,
             'active': status == 'live',
             'contract': contract,
-            'linear': (quoteId == settleId) if contract else None,
-            'inverse': (baseId == settleId) if contract else None,
+            'linear': quoteEqualSettle if contract else None,
+            'inverse': baseEqualSettle if contract else None,
             'contractSize': self.safe_number(market, 'ctVal') if contract else None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),

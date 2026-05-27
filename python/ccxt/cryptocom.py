@@ -817,6 +817,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
                 contract = True
+            isLinear = True if (contract) else None
+            isInverse = False if (contract) else None
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
@@ -834,8 +836,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'option': option,
                 'active': self.safe_bool(market, 'tradable'),
                 'contract': contract,
-                'linear': True if (contract) else None,
-                'inverse': False if (contract) else None,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': self.safe_number(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -2010,9 +2012,8 @@ class cryptocom(Exchange, ImplicitAPI):
         depositAddresses = self.fetch_deposit_addresses_by_network(code, params)
         if network in depositAddresses:
             return depositAddresses[network]
-        else:
-            keys = list(depositAddresses.keys())
-            return depositAddresses[keys[0]]
+        keys = list(depositAddresses.keys())
+        return depositAddresses[keys[0]]
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

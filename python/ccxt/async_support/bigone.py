@@ -1215,15 +1215,18 @@ class bigone(Exchange, ImplicitAPI):
         makerFeeCost = self.safe_string(trade, 'maker_fee')
         takerFeeCost = self.safe_string(trade, 'taker_fee')
         if makerFeeCost is not None:
+            makerCode = makerCurrencyCode
             if takerFeeCost is not None:
+                takerCode = takerCurrencyCode
                 result['fees'] = [
-                    {'cost': makerFeeCost, 'currency': makerCurrencyCode},
-                    {'cost': takerFeeCost, 'currency': takerCurrencyCode},
+                    {'cost': makerFeeCost, 'currency': makerCode},
+                    {'cost': takerFeeCost, 'currency': takerCode},
                 ]
             else:
-                result['fee'] = {'cost': makerFeeCost, 'currency': makerCurrencyCode}
+                result['fee'] = {'cost': makerFeeCost, 'currency': makerCode}
         elif takerFeeCost is not None:
-            result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
+            takerCode2 = takerCurrencyCode
+            result['fee'] = {'cost': takerFeeCost, 'currency': takerCode2}
         else:
             result['fee'] = None
         return self.safe_trade(result, market)

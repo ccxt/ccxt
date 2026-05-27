@@ -1545,7 +1545,7 @@ class bitmex(ccxt.async_support.bitmex):
                     return  # protecting from weird update
                 if not (marketId in numUpdatesByMarketId):
                     numUpdatesByMarketId[marketId] = 0
-                numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId, 1)
+                numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId[marketId], 1)
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]

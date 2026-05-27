@@ -3751,7 +3751,7 @@ class mexc(Exchange, ImplicitAPI):
             for i in range(0, len(wallet)):
                 entry = wallet[i]
                 marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId, None)
+                symbol = self.safe_symbol(marketId)
                 base = self.safe_value(entry, 'baseAsset', {})
                 quote = self.safe_value(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
@@ -4522,14 +4522,17 @@ class mexc(Exchange, ImplicitAPI):
             ]
         while(Precise.string_lt(floor, maxVol)):
             cap = Precise.string_add(floor, riskIncrVol)
+            minNotional = self.parse_number(floor)
+            mainMarginRate = self.parse_number(maintenanceMarginRate)
+            maxLev = self.parse_number(Precise.string_div('1', initialMarginRate))
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
                 'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': self.safe_currency_code(quoteId),
-                'minNotional': self.parse_number(floor),
+                'minNotional': minNotional,
                 'maxNotional': self.parse_number(cap),
-                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
-                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'maintenanceMarginRate': mainMarginRate,
+                'maxLeverage': maxLev,
                 'info': info,
             })
             initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
@@ -5126,9 +5129,9 @@ class mexc(Exchange, ImplicitAPI):
 
         https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history    :param str code: unified currency code of the currency transferred
+        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
 
- @param code
+        :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5830,8 +5833,8 @@ class mexc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['spot']:
             raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
-        marginMode = marginMode.lower()
-        if marginMode != 'isolated' and marginMode != 'cross':
+        marginModeLower = marginMode.lower()
+        if marginModeLower != 'isolated' and marginModeLower != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
         leverage = self.safe_integer(params, 'leverage')
         if leverage is None:
@@ -5839,7 +5842,7 @@ class mexc(Exchange, ImplicitAPI):
         direction = self.safe_string_lower_2(params, 'direction', 'positionId')
         request: dict = {
             'leverage': leverage,
-            'openType': 1 if (marginMode == 'isolated') else 2,
+            'openType': 1 if (marginModeLower == 'isolated') else 2,
         }
         if symbol is not None:
             request['symbol'] = market['id']
@@ -5935,7 +5938,7 @@ class mexc(Exchange, ImplicitAPI):
         success = self.safe_bool(response, 'success', False)  # v1
         if success is True:
             return None
-        responseCode = self.safe_string(response, 'code', None)
+        responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

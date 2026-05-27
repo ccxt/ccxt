@@ -6324,9 +6324,10 @@ class binance(Exchange, ImplicitAPI):
         initialUppercaseType = type.upper()
         isMarketOrder = initialUppercaseType == 'MARKET'
         isLimitOrder = initialUppercaseType == 'LIMIT'
+        upperCaseSide = side.upper()
         request: dict = {
             'symbol': market['id'],
-            'side': side.upper(),
+            'side': upperCaseSide,
         }
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'createOrder', 'papi', 'portfolioMargin', False)
@@ -7603,10 +7604,9 @@ class binance(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return self.parse_orders(response, market)
         else:
+            order = self.safe_order({'info': response})
             return [
-                self.safe_order({
-                    'info': response,
-                }),
+                order,
             ]
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):

@@ -1422,7 +1422,7 @@ class binance(ccxt.async_support.binance):
             type = 'future' if firstMarket['linear'] else 'delivery'
         isSpot = (type == 'spot')
         timezone = None
-        timezone, params = self.handle_param_string(params, 'timezone', None)
+        timezone, params = self.handle_param_string(params, 'timezone')
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         messageHashes = []
@@ -1483,7 +1483,7 @@ class binance(ccxt.async_support.binance):
             type = 'future' if firstMarket['linear'] else 'delivery'
         isSpot = (type == 'spot')
         timezone = None
-        timezone, params = self.handle_param_string(params, 'timezone', None)
+        timezone, params = self.handle_param_string(params, 'timezone')
         isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         subMessageHashes = []
@@ -2261,7 +2261,7 @@ class binance(ccxt.async_support.binance):
     async def ensure_user_data_stream_ws_subscribe_signature(self, marketType: str = 'spot'):
         """
         watches best bid & ask for symbols
- @param marketType {string} only support on 'spot'
+        :param str [marketType]: only supports 'spot'
 
         {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
 
