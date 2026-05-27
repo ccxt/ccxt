@@ -854,6 +854,10 @@ export default class bitfinex extends Exchange {
             indexedNetworks[networkName] = networksList;
         }
         const ids = this.safeList (response, 0, []);
+        return this.parseCurrenciesCustom (ids, indexed, indexedNetworks);
+    }
+
+    parseCurrenciesCustom (ids, indexed, indexedNetworks) {
         const allowedIds = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -863,17 +867,17 @@ export default class bitfinex extends Exchange {
             }
             allowedIds.push (id);
         }
-        this.options['_fetchCurrencies_indexed'] = indexed;
-        this.options['_fetchCurrencies_indexed_networks'] = indexedNetworks;
-        const result = this.parseCurrencies (allowedIds);
-        delete this.options['_fetchCurrencies_indexed'];
-        delete this.options['_fetchCurrencies_indexed_networks'];
+        const result = {};
+        const arr = this.toArray (allowedIds);
+        for (let i = 0; i < arr.length; i++) {
+            const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
         return result;
     }
 
-    parseCurrency (id): Currency {
-        const indexed = this.safeDict (this.options, '_fetchCurrencies_indexed', {});
-        const indexedNetworks = this.safeDict (this.options, '_fetchCurrencies_indexed_networks', {});
+    parseCurrencyCustom (id, indexed, indexedNetworks): Currency {
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);
@@ -890,7 +894,7 @@ export default class bitfinex extends Exchange {
         const netwokIds = this.safeList (indexedNetworks, id, []);
         for (let j = 0; j < netwokIds.length; j++) {
             const networkId = netwokIds[j];
-            const network = this.networkIdToCode (networkId);
+            const network = this.networkIdToCode (networkId, code);
             const dwStatuses = this.safeList (indexed['statuses'], networkId, []);
             networks[network] = {
                 'info': networkId,
