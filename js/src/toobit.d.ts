@@ -375,7 +375,7 @@ export default class toobit extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchDepositsOrWithdrawalsHelper(type: any, code: any, since: any, limit: any, params: any): Promise<Transaction[]>;
+    fetchDepositsOrWithdrawalsHelper(type: any, code: any, since: any, limit: any, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): string;
     /**

@@ -100,7 +100,7 @@ ${imports}
 
 
 
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${prefix}ICoreExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (${prefix}ICoreExchange, bool) {
     switch exchangeId {
 ${ws ? '' : ExchangeStatement}
 ${caseStatements}
@@ -137,7 +137,7 @@ import "strings"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 ${interfaceMatch[1]}
 
-func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
+func CreateExchange(exchangeId string, options map[string]any) IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
     case "exchange":
@@ -180,7 +180,7 @@ import (
 
 ${interfaceWs}
 
-func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExchange {
+func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
 ${caseStatements}

@@ -681,12 +681,13 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
+            const settle = settleId ? this.safeCurrencyCode (settleId) : undefined;
             result.push ({
                 'id': this.safeString (market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settleId ? this.safeCurrencyCode (settleId) : undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -833,27 +834,33 @@ export default class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const description = this.safeString (market, 'description');
-            const [ baseDescription, quoteDescription ] = description.split (' / ');
-            const minimumOrder = this.safeString (market, 'minimum_order_value');
-            const parts = minimumOrder.split (' ');
-            const cost = parts[0];
-            if (!(base in result)) {
-                const baseDecimals = this.safeInteger (market, 'base_decimals');
-                result[base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
-            }
-            if (!(quote in result)) {
-                const counterDecimals = this.safeInteger (market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
-            }
+        this.options['_temp_currencies_result'] = {};
+        const result = this.parseCurrencies (response);
+        const finalResult = this.deepExtend (result, this.options['_temp_currencies_result']);
+        delete this.options['_temp_currencies_result'];
+        return finalResult;
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const market = rawCurrency;
+        const existing = this.safeDict (this.options, '_temp_currencies_result', {});
+        const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const description = this.safeString (market, 'description');
+        const [ baseDescription, quoteDescription ] = description.split (' / ');
+        const minimumOrder = this.safeString (market, 'minimum_order_value');
+        const parts = minimumOrder.split (' ');
+        const cost = parts[0];
+        if (!(base in existing)) {
+            const baseDecimals = this.safeInteger (market, 'base_decimals');
+            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject (baseId, base, baseDescription, baseDecimals, undefined, market);
         }
-        return result;
+        if (!(quote in existing)) {
+            const counterDecimals = this.safeInteger (market, 'counter_decimals');
+            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject (quoteId, quote, quoteDescription, counterDecimals, this.parseNumber (cost), market);
+        }
+        return this.options['_temp_currencies_result'][quote];
     }
 
     /**
@@ -914,7 +921,7 @@ export default class bitstamp extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'pair');
-        const symbol = this.safeSymbol (marketId, market, undefined);
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
@@ -1338,8 +1345,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseBalance (response): Balances {
+        const finalResponse = response; // java req
         const result: Dict = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };
@@ -2359,7 +2367,7 @@ export default class bitstamp extends Exchange {
      * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();

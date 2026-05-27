@@ -328,6 +328,7 @@ class mexc extends Exchange {
                             'position/funding_records' => 2,
                             'position/position_mode' => 2,
                             'order/list/open_orders/{symbol}' => 2,
+                            'order/list/open_orders' => 2,
                             'order/list/history_orders' => 2,
                             'order/list/order_deals/v3' => 2,
                             'order/external/{symbol}/{external_oid}' => 2,
@@ -2616,7 +2617,7 @@ class mexc extends Exchange {
                 $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
                 $response = Async\await($this->contractPrivatePostPlanorderPlace ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->contractPrivatePostOrderSubmit ($this->extend($request, $params)));
+                $response = Async\await($this->contractPrivatePostOrderCreate ($this->extend($request, $params)));
             }
             //
             // Swap
@@ -2625,8 +2626,10 @@ class mexc extends Exchange {
             // Trigger
             //     array("success":true,"code":0,"data":259208506303929856)
             //
-            $data = $this->safe_string($response, 'data');
-            return $this->safe_order(array( 'id' => $data ), $market);
+            // array("success":true,"code":0,"data":array("orderId":"814218083416790528","ts":1779795118533))
+            //
+            $data = $this->safe_dict($response, 'data');
+            return $this->safe_order(array( 'id' => $this->safe_string($data, 'orderId'), 'timestamp' => $this->safe_integer($data, 'ts') ), $market);
         }) ();
     }
 
@@ -3161,8 +3164,12 @@ class mexc extends Exchange {
                 //
                 return $this->parse_orders($response, $market, $since, $limit);
             } else {
-                // TO_DO => another possible way is through => open_orders/{$symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
-                return Async\await($this->fetch_orders_by_state(2, $symbol, $since, $limit, $params));
+                if ($limit === null) {
+                    $request['page_size'] = 100; // max
+                }
+                $swapResponse = Async\await($this->contractPrivateGetOrderListOpenOrders ($this->extend($request, $params)));
+                $data = $this->safe_list($swapResponse, 'data', array());
+                return $this->parse_orders($data, $market, $since, $limit, $params);
             }
         }) ();
     }
@@ -3973,7 +3980,7 @@ class mexc extends Exchange {
             for ($i = 0; $i < count($wallet); $i++) {
                 $entry = $wallet[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
-                $symbol = $this->safe_symbol($marketId, null);
+                $symbol = $this->safe_symbol($marketId);
                 $base = $this->safe_value($entry, 'baseAsset', array());
                 $quote = $this->safe_value($entry, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
@@ -4812,14 +4819,17 @@ class mexc extends Exchange {
         }
         while (Precise::string_lt($floor, $maxVol)) {
             $cap = Precise::string_add($floor, $riskIncrVol);
+            $minNotional = $this->parse_number($floor);
+            $mainMarginRate = $this->parse_number($maintenanceMarginRate);
+            $maxLev = $this->parse_number(Precise::string_div('1', $initialMarginRate));
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
                 'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_currency_code($quoteId),
-                'minNotional' => $this->parse_number($floor),
+                'minNotional' => $minNotional,
                 'maxNotional' => $this->parse_number($cap),
-                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
-                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
+                'maintenanceMarginRate' => $mainMarginRate,
+                'maxLeverage' => $maxLev,
                 'info' => $info,
             );
             $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
@@ -5470,9 +5480,9 @@ class mexc extends Exchange {
              *
              * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
              * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-             * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} $code unified $currency $code of the $currency transferred
+             * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
              *
-             * @param $code
+             * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6237,8 +6247,8 @@ class mexc extends Exchange {
             if ($market['spot']) {
                 throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
             }
-            $marginMode = strtolower($marginMode);
-            if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
+            $marginModeLower = strtolower($marginMode);
+            if ($marginModeLower !== 'isolated' && $marginModeLower !== 'cross') {
                 throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
             }
             $leverage = $this->safe_integer($params, 'leverage');
@@ -6248,7 +6258,7 @@ class mexc extends Exchange {
             $direction = $this->safe_string_lower_2($params, 'direction', 'positionId');
             $request = array(
                 'leverage' => $leverage,
-                'openType' => ($marginMode === 'isolated') ? 1 : 2,
+                'openType' => ($marginModeLower === 'isolated') ? 1 : 2,
             );
             if ($symbol !== null) {
                 $request['symbol'] = $market['id'];
@@ -6363,7 +6373,7 @@ class mexc extends Exchange {
         if ($success === true) {
             return null;
         }
-        $responseCode = $this->safe_string($response, 'code', null);
+        $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== null) && ($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

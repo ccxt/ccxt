@@ -3311,9 +3311,9 @@ class bitmart extends Exchange {
             }
             $succeeded = $this->safe_value($data, 'succeed');
             if ($succeeded !== null) {
-                $id = $this->safe_string($succeeded, 0);
-                if ($id === null) {
-                    throw new InvalidOrder($this->id . ' cancelOrder() failed to cancel ' . $symbol . ' $order $id ' . $id);
+                $id2 = $this->safe_string($succeeded, 0);
+                if ($id2 === null) {
+                    throw new InvalidOrder($this->id . ' cancelOrder() failed to cancel ' . $symbol . ' $order $id ' . $id2);
                 }
             } else {
                 $result = $this->safe_value($data, 'result');
@@ -4692,8 +4692,9 @@ class bitmart extends Exchange {
             if ($limit === null) {
                 $limit = 10;
             }
+            $pageNumber = $this->safe_integer($params, 'page', 1);
             $request = array(
-                'page' => $this->safe_integer($params, 'page', 1), // default is 1, max is 1000
+                'page' => $pageNumber, // default is 1, max is 1000
                 'limit' => $limit, // default is 10, max is 100
             );
             $currency = null;

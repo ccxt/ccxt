@@ -1066,9 +1066,10 @@ export default class lbank extends Exchange {
         let fee = undefined;
         const feeCost = this.safeString (trade, 'tradeFee');
         if (feeCost !== undefined) {
+            const feeCurr = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': (side === 'buy') ? market['base'] : market['quote'],
+                'currency': feeCurr,
                 'rate': this.safeString (trade, 'tradeFeeRate'),
             };
         }
@@ -1191,11 +1192,13 @@ export default class lbank extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             since = this.milliseconds () - (duration * 1000 * limit);
         }
+        const parsedSince = this.parseToInt (since / 1000);
+        const parsedLimit = Math.min (limit + 1, 2000); // max 2000;
         const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
-            'time': this.parseToInt (since / 1000),
-            'size': Math.min (limit + 1, 2000), // max 2000
+            'time': parsedSince,
+            'size': parsedLimit,
         };
         const response = await this.spotPublicGetKline (this.extend (request, params));
         const ohlcvs = this.safeList (response, 'data', []);
@@ -2999,9 +3002,10 @@ export default class lbank extends Exchange {
             } else {
                 signatureMethod = 'HmacSHA256';
             }
+            const finalSig = signatureMethod; // java req
             const auth = this.rawencode (this.keysort (this.extend ({
                 'echostr': echostr,
-                'signature_method': signatureMethod,
+                'signature_method': finalSig,
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode (auth);

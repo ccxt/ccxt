@@ -653,7 +653,6 @@ export default class kraken extends Exchange {
             const id = keys[i];
             let isSynthetic = false;
             if (id.indexOf (':BTNL') >= 0) {
-                // continue; // skip syntetic markets
                 isSynthetic = true;
             }
             const market = markets[id];
@@ -693,7 +692,7 @@ export default class kraken extends Exchange {
             }
             const status = this.safeString (market, 'status');
             const isActive = status === 'online';
-            const symbol = !isSynthetic ? (base + '/' + quote) : id;
+            const symbol = (!isSynthetic) ? (base + '/' + quote) : id;
             result.push ({
                 'id': id,
                 'wsId': this.safeString (market, 'wsname'),
@@ -1752,10 +1751,11 @@ export default class kraken extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
+            const parsedAmount = this.amountToPrecision (market['symbol'], amount);
             const req: Dict = {
                 'type': side,
                 'ordertype': type,
-                'volume': this.amountToPrecision (market['symbol'], amount),
+                'volume': parsedAmount,
             };
             const orderRequest = this.orderRequest ('createOrders', marketId, type, req, amount, price, orderParams);
             ordersRequests.push (orderRequest[0]);
@@ -2086,12 +2086,12 @@ export default class kraken extends Exchange {
                 stopLossPrice = triggerPrice;
             }
         }
-        let finalType = this.parseOrderType (rawType);
+        let typeParsed = this.parseOrderType (rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if (this.inArray (finalType, [ 'stop loss', 'take profit' ])) {
-            finalType = (price === undefined) ? 'market' : 'limit';
+        if (this.inArray (typeParsed, [ 'stop loss', 'take profit' ])) {
+            typeParsed = (price === undefined) ? 'market' : 'limit';
         }
         const amendId = this.safeString (order, 'amend_id');
         if (amendId !== undefined) {
@@ -2106,7 +2106,7 @@ export default class kraken extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': finalType,
+            'type': typeParsed,
             'timeInForce': undefined,
             'postOnly': isPostOnly,
             'side': side,
@@ -3523,16 +3523,16 @@ export default class kraken extends Exchange {
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        fromAccount = this.parseAccountType (fromAccount);
-        toAccount = this.parseAccountType (toAccount);
+        const fromAccountParsed = this.parseAccountType (fromAccount);
+        const toAccountParsed = this.parseAccountType (toAccount);
         const request: Dict = {
             'amount': this.currencyToPrecision (code, amount),
-            'from': fromAccount,
-            'to': toAccount,
+            'from': fromAccountParsed,
+            'to': toAccountParsed,
             'asset': currency['id'],
         };
-        if (fromAccount !== 'Spot Wallet') {
-            throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccount + ' to ' + toAccount + '. Use krakenfutures instead to transfer from the futures account.');
+        if (fromAccountParsed !== 'Spot Wallet') {
+            throw new BadRequest (this.id + ' transfer cannot transfer from ' + fromAccountParsed + ' to ' + toAccountParsed + '. Use krakenfutures instead to transfer from the futures account.');
         }
         const response = await this.privatePostWalletTransfer (this.extend (request, params));
         //
@@ -3547,8 +3547,8 @@ export default class kraken extends Exchange {
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
             'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
+            'fromAccount': fromAccountParsed,
+            'toAccount': toAccountParsed,
         });
     }
 

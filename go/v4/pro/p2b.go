@@ -18,9 +18,9 @@ func NewP2bCore() *P2bCore {
     return p
 }
 
-func  (this *P2bCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *P2bCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "cancelAllOrdersWs": false,
             "cancelOrdersWs": false,
@@ -41,29 +41,29 @@ func  (this *P2bCore) Describe() interface{}  {
             "watchTrades": true,
             "watchTradesForSymbols": true,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "ws": "wss://apiws.p2pb2b.com/",
             },
         },
-        "options": map[string]interface{} {
+        "options": map[string]any {
             "OHLCVLimit": 1000,
             "tradesLimit": 1000,
-            "timeframes": map[string]interface{} {
+            "timeframes": map[string]any {
                 "15m": 900,
                 "30m": 1800,
                 "1h": 3600,
                 "1d": 86400,
             },
-            "watchTicker": map[string]interface{} {
+            "watchTicker": map[string]any {
                 "name": "state",
             },
-            "watchTickers": map[string]interface{} {
+            "watchTickers": map[string]any {
                 "name": "state",
             },
             "tickerSubs": this.CreateSafeDictionary(),
         },
-        "streaming": map[string]interface{} {
+        "streaming": map[string]any {
             "ping": this.Ping,
         },
     })
@@ -78,20 +78,20 @@ func  (this *P2bCore) Describe() interface{}  {
  * @param {object} [params] extra parameters specific to the p2b api
  * @returns {object} data from the websocket stream
  */
-func  (this *P2bCore) Subscribe(name interface{}, messageHash interface{}, request interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) Subscribe(name any, messageHash any, request any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var subscribe interface{} = map[string]interface{} {
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var subscribe any = map[string]any {
                 "method": name,
                 "params": request,
                 "id": this.Milliseconds(),
             }
-            var query interface{} = this.Extend(subscribe, params)
+            var query any = this.Extend(subscribe, params)
         
                 retRes8115 :=  (<-this.Watch(url, messageHash, query, messageHash))
                 ccxt.PanicOnError(retRes8115)
@@ -113,9 +113,9 @@ func  (this *P2bCore) Subscribe(name interface{}, messageHash interface{}, reque
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func  (this *P2bCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     timeframe := ccxt.GetArg(optionalArgs, 0, "15m")
@@ -124,19 +124,19 @@ func  (this *P2bCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{}
             _ = since
             limit := ccxt.GetArg(optionalArgs, 2, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
             retRes978 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes978)
-            var timeframes interface{} = this.SafeValue(this.Options, "timeframes", map[string]interface{} {})
-            var channel interface{} = this.SafeInteger(timeframes, timeframe)
+            var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any {})
+            var channel any = this.SafeInteger(timeframes, timeframe)
             if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
                 panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id, " watchOHLCV cannot take a timeframe of "), timeframe)))
             }
-            var market interface{} = this.Market(symbol)
-            var request interface{} = []interface{}{ccxt.GetValue(market, "id"), channel}
-            var messageHash interface{} = ccxt.Add("kline::", ccxt.GetValue(market, "symbol"))
+            var market any = this.Market(symbol)
+            var request any = []any{ccxt.GetValue(market, "id"), channel}
+            var messageHash any = ccxt.Add("kline::", ccxt.GetValue(market, "symbol"))
         
             ohlcv:= (<-this.Subscribe("kline.subscribe", messageHash, request, params))
             ccxt.PanicOnError(ohlcv)
@@ -161,27 +161,27 @@ func  (this *P2bCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{}
  * @param {object} [params.method] 'state' (default) or 'price'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *P2bCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
             retRes1288 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1288)
-            var watchTickerOptions interface{} = this.SafeDict(this.Options, "watchTicker")
-            var name interface{} = this.SafeString(watchTickerOptions, "name", "state") // or price
+            var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
+            var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
             nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
             name = ccxt.GetValue(nameparamsVariable,0)
             params = ccxt.GetValue(nameparamsVariable,1)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             ccxt.AddElementToObject(ccxt.GetValue(this.Options, "tickerSubs"), ccxt.GetValue(market, "id"), true) // we need to re-subscribe to all tickers upon watching a new ticker
-            var tickerSubs interface{} = ccxt.GetValue(this.Options, "tickerSubs")
-            var request interface{} = ccxt.ObjectKeys(tickerSubs)
-            var messageHash interface{} = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
+            var tickerSubs any = ccxt.GetValue(this.Options, "tickerSubs")
+            var request any = ccxt.ObjectKeys(tickerSubs)
+            var messageHash any = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
         
                 retRes13815 :=  (<-this.Subscribe(ccxt.Add(name, ".subscribe"), messageHash, request, params))
                 ccxt.PanicOnError(retRes13815)
@@ -202,33 +202,33 @@ func  (this *P2bCore) WatchTicker(symbol interface{}, optionalArgs ...interface{
  * @param {object} [params.method] 'state' (default) or 'price'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *P2bCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) WatchTickers(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     symbols := ccxt.GetArg(optionalArgs, 0, nil)
             _ = symbols
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes1538 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1538)
             symbols = this.MarketSymbols(symbols, nil, false)
-            var watchTickerOptions interface{} = this.SafeDict(this.Options, "watchTicker")
-            var name interface{} = this.SafeString(watchTickerOptions, "name", "state") // or price
+            var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
+            var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
             nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
             name = ccxt.GetValue(nameparamsVariable,0)
             params = ccxt.GetValue(nameparamsVariable,1)
-            var messageHashes interface{} = []interface{}{}
-            var args interface{} = []interface{}{}
+            var messageHashes any = []any{}
+            var args any = []any{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-                var market interface{} = this.Market(ccxt.GetValue(symbols, i))
+                var market any = this.Market(ccxt.GetValue(symbols, i))
                 ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol")))
                 ccxt.AppendToArray(&args, ccxt.GetValue(market, "id"))
             }
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var request interface{} = map[string]interface{} {
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var request any = map[string]any {
                 "method": ccxt.Add(name, ".subscribe"),
                 "params": args,
                 "id": this.Milliseconds(),
@@ -254,19 +254,19 @@ func  (this *P2bCore) WatchTickers(optionalArgs ...interface{}) <- chan interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *P2bCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes18715 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                retRes18715 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
                 ccxt.PanicOnError(retRes18715)
                 ch <- retRes18715
                 return nil
@@ -285,41 +285,41 @@ func  (this *P2bCore) WatchTrades(symbol interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func  (this *P2bCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
             retRes2028 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2028)
             symbols = this.MarketSymbols(symbols, nil, false, true, true)
-            var messageHashes interface{} = []interface{}{}
+            var messageHashes any = []any{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                     ccxt.AppendToArray(&messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbols, i)))
                 }
             }
-            var marketIds interface{} = this.MarketIds(symbols)
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var subscribe interface{} = map[string]interface{} {
+            var marketIds any = this.MarketIds(symbols)
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var subscribe any = map[string]any {
                 "method": "deals.subscribe",
                 "params": marketIds,
                 "id": this.Milliseconds(),
             }
-            var query interface{} = this.Extend(subscribe, params)
+            var query any = this.Extend(subscribe, params)
         
             trades:= (<-this.WatchMultiple(url, messageHashes, query, messageHashes))
             ccxt.PanicOnError(trades)
             if ccxt.IsTrue(this.NewUpdates) {
-                var first interface{} = this.SafeValue(trades, 0)
-                var tradeSymbol interface{} = this.SafeString(first, "symbol")
+                var first any = this.SafeValue(trades, 0)
+                var tradeSymbol any = this.SafeString(first, "symbol")
                 limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
             }
         
@@ -340,26 +340,26 @@ func  (this *P2bCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ..
  * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func  (this *P2bCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *P2bCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes2398 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2398)
-            var market interface{} = this.Market(symbol)
-            var name interface{} = "depth.subscribe"
-            var messageHash interface{} = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
-            var interval interface{} = this.SafeString(params, "interval", "0.001")
+            var market any = this.Market(symbol)
+            var name any = "depth.subscribe"
+            var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
+            var interval any = this.SafeString(params, "interval", "0.001")
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 limit = 100
             }
-            var request interface{} = []interface{}{ccxt.GetValue(market, "id"), limit, interval}
+            var request any = []any{ccxt.GetValue(market, "id"), limit, interval}
         
             orderbook:= (<-this.Subscribe(name, messageHash, request, params))
             ccxt.PanicOnError(orderbook)
@@ -370,7 +370,7 @@ func  (this *P2bCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfa
             }()
             return ch
         }
-func  (this *P2bCore) HandleOHLCV(client interface{}, message interface{}) interface{}  {
+func  (this *P2bCore) HandleOHLCV(client any, message any) any  {
     //
     //    {
     //        "method": "kline.update",
@@ -389,23 +389,23 @@ func  (this *P2bCore) HandleOHLCV(client interface{}, message interface{}) inter
     //        "id": null
     //    }
     //
-    var data interface{} = this.SafeList(message, "params")
+    var data any = this.SafeList(message, "params")
     data = this.SafeList(data, 0)
-    var method interface{} = this.SafeString(message, "method")
-    var splitMethod interface{} = ccxt.Split(method, ".")
-    var channel interface{} = this.SafeString(splitMethod, 0)
-    var marketId interface{} = this.SafeString(data, 7)
-    var market interface{} = this.SafeMarket(marketId)
-    var timeframes interface{} = this.SafeDict(this.Options, "timeframes", map[string]interface{} {})
-    var timeframe interface{} = this.FindTimeframe(channel, timeframes)
-    var symbol interface{} = this.SafeString(market, "symbol")
-    var messageHash interface{} = ccxt.Add(ccxt.Add(channel, "::"), symbol)
-    var parsed interface{} = this.ParseOHLCV(data, market)
-    ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]interface{} {}))
-    var stored interface{} = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+    var method any = this.SafeString(message, "method")
+    var splitMethod any = ccxt.Split(method, ".")
+    var channel any = this.SafeString(splitMethod, 0)
+    var marketId any = this.SafeString(data, 7)
+    var market any = this.SafeMarket(marketId)
+    var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any {})
+    var timeframe any = this.FindTimeframe(channel, timeframes)
+    var symbol any = this.SafeString(market, "symbol")
+    var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
+    var parsed any = this.ParseOHLCV(data, market)
+    ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any {}))
+    var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
     if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
         if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-            var limit interface{} = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+            var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
             stored = ccxt.NewArrayCacheByTimestamp(limit)
             ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
         }
@@ -414,7 +414,7 @@ func  (this *P2bCore) HandleOHLCV(client interface{}, message interface{}) inter
     }
     return message
 }
-func  (this *P2bCore) HandleTrade(client interface{}, message interface{}) interface{}  {
+func  (this *P2bCore) HandleTrade(client any, message any) any  {
     //
     //    {
     //        "method": "deals.update",
@@ -434,27 +434,27 @@ func  (this *P2bCore) HandleTrade(client interface{}, message interface{}) inter
     //        "id": null
     //    }
     //
-    var data interface{} = this.SafeList(message, "params", []interface{}{})
-    var trades interface{} = this.SafeList(data, 1)
-    var marketId interface{} = this.SafeString(data, 0)
-    var market interface{} = this.SafeMarket(marketId)
-    var symbol interface{} = this.SafeString(market, "symbol")
-    var tradesArray interface{} = this.SafeValue(this.Trades, symbol)
+    var data any = this.SafeList(message, "params", []any{})
+    var trades any = this.SafeList(data, 1)
+    var marketId any = this.SafeString(data, 0)
+    var market any = this.SafeMarket(marketId)
+    var symbol any = this.SafeString(market, "symbol")
+    var tradesArray any = this.SafeValue(this.Trades, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
-        var tradesLimit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var tradesLimit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
         tradesArray = ccxt.NewArrayCache(tradesLimit)
         ccxt.AddElementToObject(this.Trades, symbol, tradesArray)
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
-        var item interface{} = ccxt.GetValue(trades, i)
-        var trade interface{} = this.ParseTrade(item, market)
+        var item any = ccxt.GetValue(trades, i)
+        var trade any = this.ParseTrade(item, market)
         tradesArray.(ccxt.Appender).Append(trade)
     }
-    var messageHash interface{} = ccxt.Add("deals::", symbol)
+    var messageHash any = ccxt.Add("deals::", symbol)
     client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
     return message
 }
-func  (this *P2bCore) HandleTicker(client interface{}, message interface{}) interface{}  {
+func  (this *P2bCore) HandleTicker(client any, message any) any  {
     //
     // state
     //
@@ -487,17 +487,17 @@ func  (this *P2bCore) HandleTicker(client interface{}, message interface{}) inte
     //        "id": null
     //    }
     //
-    var data interface{} = this.SafeList(message, "params", []interface{}{})
-    var marketId interface{} = this.SafeString(data, 0)
-    var market interface{} = this.SafeMarket(marketId)
-    var method interface{} = this.SafeString(message, "method")
-    var splitMethod interface{} = ccxt.Split(method, ".")
-    var messageHashStart interface{} = this.SafeString(splitMethod, 0)
-    var tickerData interface{} = this.SafeDict(data, 1)
-    var ticker interface{} = nil
+    var data any = this.SafeList(message, "params", []any{})
+    var marketId any = this.SafeString(data, 0)
+    var market any = this.SafeMarket(marketId)
+    var method any = this.SafeString(message, "method")
+    var splitMethod any = ccxt.Split(method, ".")
+    var messageHashStart any = this.SafeString(splitMethod, 0)
+    var tickerData any = this.SafeDict(data, 1)
+    var ticker any = nil
     if ccxt.IsTrue(ccxt.IsEqual(method, "price.update")) {
-        var lastPrice interface{} = this.SafeString(data, 1)
-        ticker = this.SafeTicker(map[string]interface{} {
+        var lastPrice any = this.SafeString(data, 1)
+        ticker = this.SafeTicker(map[string]any {
             "last": lastPrice,
             "close": lastPrice,
             "symbol": ccxt.GetValue(market, "symbol"),
@@ -505,13 +505,13 @@ func  (this *P2bCore) HandleTicker(client interface{}, message interface{}) inte
     } else {
         ticker = this.ParseTicker(tickerData, market)
     }
-    var symbol interface{} = ccxt.GetValue(ticker, "symbol")
+    var symbol any = ccxt.GetValue(ticker, "symbol")
     ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-    var messageHash interface{} = ccxt.Add(ccxt.Add(messageHashStart, "::"), symbol)
+    var messageHash any = ccxt.Add(ccxt.Add(messageHashStart, "::"), symbol)
     client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
     return message
 }
-func  (this *P2bCore) HandleOrderBook(client interface{}, message interface{})  {
+func  (this *P2bCore) HandleOrderBook(client any, message any)  {
     //
     //    {
     //        "method": "depth.update",
@@ -530,83 +530,83 @@ func  (this *P2bCore) HandleOrderBook(client interface{}, message interface{})  
     //        "id": null
     //    }
     //
-    var params interface{} = this.SafeList(message, "params", []interface{}{})
-    var data interface{} = this.SafeDict(params, 1)
-    var asks interface{} = this.SafeList(data, "asks")
-    var bids interface{} = this.SafeList(data, "bids")
-    var marketId interface{} = this.SafeString(params, 2)
-    var market interface{} = this.SafeMarket(marketId)
-    var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var messageHash interface{} = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
-    var subscription interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]interface{} {})
-    var limit interface{} = this.SafeInteger(subscription, "limit")
-    var orderbook interface{} = this.SafeValue(this.Orderbooks, symbol)
+    var params any = this.SafeList(message, "params", []any{})
+    var data any = this.SafeDict(params, 1)
+    var asks any = this.SafeList(data, "asks")
+    var bids any = this.SafeList(data, "bids")
+    var marketId any = this.SafeString(params, 2)
+    var market any = this.SafeMarket(marketId)
+    var symbol any = ccxt.GetValue(market, "symbol")
+    var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))
+    var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any {})
+    var limit any = this.SafeInteger(subscription, "limit")
+    var orderbook any = this.SafeValue(this.Orderbooks, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
-        ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]interface{} {}, limit))
+        ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any {}, limit))
         orderbook = ccxt.GetValue(this.Orderbooks, symbol)
     }
     if ccxt.IsTrue(!ccxt.IsEqual(bids, nil)) {
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bids)); i++ {
-            var bid interface{} = this.SafeValue(bids, i)
-            var price interface{} = this.SafeNumber(bid, 0)
-            var amount interface{} = this.SafeNumber(bid, 1)
-            var bookSide interface{} = ccxt.GetValue(orderbook, "bids")
+            var bid any = this.SafeValue(bids, i)
+            var price any = this.SafeNumber(bid, 0)
+            var amount any = this.SafeNumber(bid, 1)
+            var bookSide any = ccxt.GetValue(orderbook, "bids")
             bookSide.(ccxt.IOrderBookSide).Store(price, amount)
         }
     }
     if ccxt.IsTrue(!ccxt.IsEqual(asks, nil)) {
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(asks)); i++ {
-            var ask interface{} = this.SafeValue(asks, i)
-            var price interface{} = this.SafeNumber(ask, 0)
-            var amount interface{} = this.SafeNumber(ask, 1)
-            var bookside interface{} = ccxt.GetValue(orderbook, "asks")
+            var ask any = this.SafeValue(asks, i)
+            var price any = this.SafeNumber(ask, 0)
+            var amount any = this.SafeNumber(ask, 1)
+            var bookside any = ccxt.GetValue(orderbook, "asks")
             bookside.(ccxt.IOrderBookSide).Store(price, amount)
         }
     }
     ccxt.AddElementToObject(orderbook, "symbol", symbol)
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func  (this *P2bCore) HandleMessage(client interface{}, message interface{})  {
+func  (this *P2bCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
         return
     }
-    var result interface{} = this.SafeString(message, "result")
+    var result any = this.SafeString(message, "result")
     if ccxt.IsTrue(ccxt.IsEqual(result, "pong")) {
         this.HandlePong(client, message)
         return
     }
-    var method interface{} = this.SafeString(message, "method")
-    var methods interface{} = map[string]interface{} {
+    var method any = this.SafeString(message, "method")
+    var methods any = map[string]any {
         "depth.update": this.HandleOrderBook,
         "price.update": this.HandleTicker,
         "kline.update": this.HandleOHLCV,
         "state.update": this.HandleTicker,
         "deals.update": this.HandleTrade,
     }
-    var endpoint interface{} = this.SafeValue(methods, method)
+    var endpoint any = this.SafeValue(methods, method)
     if ccxt.IsTrue(!ccxt.IsEqual(endpoint, nil)) {
         ccxt.CallDynamically(endpoint, client, message)
     }
 }
-func  (this *P2bCore) HandleErrorMessage(client interface{}, message interface{}) interface{}  {
-    var error interface{} = this.SafeString(message, "error")
+func  (this *P2bCore) HandleErrorMessage(client any, message any) any  {
+    var error any = this.SafeString(message, "error")
     if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
         panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " error: "), this.Json(error))))
     }
     return false
 }
-func  (this *P2bCore) Ping(client interface{}) interface{}  {
+func  (this *P2bCore) Ping(client any) any  {
     /**
      * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
      * @param client
      */
-    return map[string]interface{} {
+    return map[string]any {
         "method": "server.ping",
-        "params": []interface{}{},
+        "params": []any{},
         "id": this.Milliseconds(),
     }
 }
-func  (this *P2bCore) HandlePong(client interface{}, message interface{}) interface{}  {
+func  (this *P2bCore) HandlePong(client any, message any) any  {
     //
     //    {
     //        error: null,
@@ -617,17 +617,17 @@ func  (this *P2bCore) HandlePong(client interface{}, message interface{}) interf
     client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "id", this.Milliseconds()))
     return message
 }
-func  (this *P2bCore) OnError(client interface{}, error interface{})  {
+func  (this *P2bCore) OnError(client any, error any)  {
     ccxt.AddElementToObject(this.Options, "tickerSubs", this.CreateSafeDictionary())
     this.base.OnError(client, error)
 }
-func  (this *P2bCore) OnClose(client interface{}, error interface{})  {
+func  (this *P2bCore) OnClose(client any, error any)  {
     ccxt.AddElementToObject(this.Options, "tickerSubs", this.CreateSafeDictionary())
     this.base.OnClose(client, error)
 }
 
 
-func (this *P2bCore) Init(userConfig map[string]interface{}) {
+func (this *P2bCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

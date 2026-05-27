@@ -13,19 +13,19 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
-        $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
-        $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-        $results = Async\await(Promise\all([$without_symbol, $with_symbol]));
-        test_fetch_tickers_amounts($exchange, $skipped_properties, $results[0]);
+        $without_symbol = fetch_tickers_helper_test($exchange, $skipped_properties, null);
+        $with_symbol = fetch_tickers_helper_test($exchange, $skipped_properties, [$symbol]);
+        $results = \React\Async\await(\React\Promise\all([$without_symbol, $with_symbol]));
+        fetch_tickers_amounts_test($exchange, $skipped_properties, $results[0]);
         return $results;
     }) ();
 }
 
 
-function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
+function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols, $arg_params = array()) {
     return Async\async(function () use ($exchange, $skipped_properties, $arg_symbols, $arg_params) {
         $method = 'fetchTickers';
-        $response = Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
+        $response = \React\Async\await($exchange->fetch_tickers($arg_symbols, $arg_params));
         assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
         $values = is_array($response) ? array_values($response) : array();
         $checked_symbol = null;
@@ -43,7 +43,7 @@ function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
 }
 
 
-function test_fetch_tickers_amounts($exchange, $skipped_properties, $tickers) {
+function fetch_tickers_amounts_test($exchange, $skipped_properties, $tickers) {
     $tickers_values = is_array($tickers) ? array_values($tickers) : array();
     if (!(is_array($skipped_properties) && array_key_exists('checkActiveSymbols', $skipped_properties))) {
         //

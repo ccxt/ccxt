@@ -2780,13 +2780,13 @@ watches best bid & ask for symbols
 
 **See**: [Binance User Data Stream Documentation](https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| marketType | <code>string</code> | only support on 'spot' |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marketType | <code>string</code> | No | only supports 'spot' |
 
 
 ```javascript
-binance.ensureUserDataStreamWsSubscribeSignature (marketType, [undefined])
+binance.ensureUserDataStreamWsSubscribeSignature ([marketType])
 ```
 
 

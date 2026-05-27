@@ -66,16 +66,16 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: Int;
     verbose: boolean;
-    twofa: string;
     apiKey: string;
     secret: string;
     uid: string;
-    accountId: string;
     login: string;
     password: string;
     privateKey: string;
     walletAddress: string;
     token: string;
+    twofa: string;
+    accountId: string;
     balance: any;
     liquidations: any;
     orderbooks: Dictionary<Ob>;
@@ -187,11 +187,9 @@ export default class Exchange {
     exceptions: Dictionary<string>;
     timeframes: Dictionary<number | string>;
     version: Str;
-    marketsByAltname: Dictionary<Market>;
     name: Str;
     lastRestRequestTimestamp: int;
     targetAccount: string;
-    stablePairs: Dictionary<boolean>;
     httpProxyAgentModule: any;
     httpsProxyAgentModule: any;
     socksProxyAgentModule: any;
@@ -407,7 +405,7 @@ export default class Exchange {
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
-    createSafeDictionary(): {};
+    createSafeDictionary(isWs?: boolean): {};
     convertToSafeDictionary(dict: any): any;
     randomBytes(length: number): string;
     randNumber(size: number): number;
@@ -572,16 +570,24 @@ export default class Exchange {
     getDefaultOptions(): {
         defaultNetworkCodeReplacements: {
             ETH: {
-                ERC20: string;
-            };
-            TRX: {
-                TRC20: string;
+                primary: string;
+                secondary: string;
+                default: string;
             };
             CRO: {
-                CRC20: string;
+                primary: string;
+                secondary: string;
+                default: string;
             };
-            BRC20: {
-                BRC20: string;
+            TRX: {
+                primary: string;
+                secondary: string;
+                default: string;
+            };
+            BTC: {
+                primary: string;
+                secondary: string;
+                default: string;
             };
         };
     };
@@ -656,6 +662,28 @@ export default class Exchange {
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: Str): any;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
+    safeNetwork(network: any): {
+        info: any;
+        id: string;
+        name: string;
+        network: string;
+        active: boolean;
+        deposit: boolean;
+        withdraw: boolean;
+        fee: number;
+        precision: number;
+        limits: {
+            withdraw: {
+                min: number;
+                max: number;
+            };
+            deposit: {
+                min: number;
+                max: number;
+            };
+        };
+    };
+    prioritizedNetworkAliases(networkCode?: Str, currencyCode?: Str, allowDefault?: boolean): any[];
     networkCodeToId(networkCode: string, currencyCode?: Str): string;
     networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     handleNetworkCodeAndParams(params: any): any[];

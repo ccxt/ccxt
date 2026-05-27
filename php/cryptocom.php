@@ -476,6 +476,7 @@ class cryptocom extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '213' => '\\ccxt\\InvalidOrder', // array( "id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format" )
                     '219' => '\\ccxt\\InvalidOrder',
                     '306' => '\\ccxt\\InsufficientFunds', // array( "id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : array( "client_oid" : "1753xxx", "order_id" : "6530xxx" ) )
                     '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
@@ -804,6 +805,8 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . ':' . $quote . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $symbolOptionType;
                 $contract = true;
             }
+            $isLinear = ($contract) ? true : null;
+            $isInverse = ($contract) ? false : null;
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
@@ -821,8 +824,8 @@ class cryptocom extends Exchange {
                 'option' => $option,
                 'active' => $this->safe_bool($market, 'tradable'),
                 'contract' => $contract,
-                'linear' => ($contract) ? true : null,
-                'inverse' => ($contract) ? false : null,
+                'linear' => $isLinear,
+                'inverse' => $isInverse,
                 'contractSize' => $this->safe_number($market, 'contract_size'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -2096,10 +2099,9 @@ class cryptocom extends Exchange {
         $depositAddresses = $this->fetch_deposit_addresses_by_network($code, $params);
         if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
             return $depositAddresses[$network];
-        } else {
-            $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
-            return $depositAddresses[$keys[0]];
         }
+        $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
+        return $depositAddresses[$keys[0]];
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

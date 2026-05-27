@@ -49,6 +49,7 @@ class binanceus extends binance {
                 'defaultType' => 'spot',
                 'fetchMargins' => false,
                 'quoteOrderQty' => false,
+                'fetchCurrencies' => false,
             ),
             'has' => array(
                 'CORS' => null,

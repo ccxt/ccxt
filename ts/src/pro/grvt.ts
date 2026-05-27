@@ -317,7 +317,7 @@ export default class grvt extends grvtRest {
             const market = this.market (symbol);
             const marketId = market['id'];
             const limitRaw = this.safeInteger (params, 'limit', 50); // 50, 200, 500, 1000
-            rawHashes.push (marketId + '@' + limitRaw);
+            rawHashes.push (marketId + '@' + limitRaw.toString ());
             messageHashes.push ('trade::' + market['symbol']);
         }
         const request = {
@@ -525,14 +525,14 @@ export default class grvt extends grvtRest {
         let interval = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
         symbols = this.marketSymbols (symbols);
-        const extraPart = isSnapshot ? (interval + '-' + limit) : interval;
+        const extraPart = isSnapshot ? (interval.toString () + '-' + limit.toString ()) : interval.toString ();
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const marketId = market['id'];
-            rawHashes.push (marketId + '@' + extraPart.toString ());
+            rawHashes.push (marketId + '@' + extraPart);
             messageHashes.push ('orderbook::' + market['symbol']);
         }
         const request = {
@@ -596,6 +596,14 @@ export default class grvt extends grvtRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
+        // grvt defaults to the delta channel (v1.book.d); if the very first
+        // message is a delta, the freshly-created orderbook has symbol=null
+        // because no snapshot has reset it yet. Set it unconditionally — we
+        // know the symbol from the selector regardless of channel. Java's
+        // typed WsOrderBook surfaces this as `"symbol":null` in the output;
+        // Python/JS dict-backed orderbooks happen to mask it but the
+        // unconditional assignment is correct for every language.
+        orderbook['symbol'] = symbol;
         orderbook['nonce'] = sequenceNumber;
         const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;

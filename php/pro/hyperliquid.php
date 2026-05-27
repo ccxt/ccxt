@@ -772,6 +772,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //     }
         //
         $entry = $this->safe_list($message, 'data', array());
+        $entryLength = count($entry);
+        if ($entryLength === 0) {
+            return;
+        }
         $first = $this->safe_dict($entry, 0, array());
         $coin = $this->safe_string($first, 'coin');
         $marketId = $this->coinToMarketId ($coin);
@@ -1370,7 +1374,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {

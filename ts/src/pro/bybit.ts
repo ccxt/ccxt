@@ -12,7 +12,12 @@ import Client from '../base/ws/Client.js';
 
 export default class bybit extends bybitRest {
     describe (): any {
-        return this.deepExtend (super.describe (), {
+        const superDescribe = super.describe ();
+        return this.deepExtend (superDescribe, this.describeData ());
+    }
+
+    describeData (): any {
+        return {
             'has': {
                 'ws': true,
                 'createOrderWs': true,
@@ -165,7 +170,7 @@ export default class bybit extends bybitRest {
                 'ping': this.ping,
                 'keepAlive': 18000,
             },
-        });
+        };
     }
 
     requestId () {
@@ -2410,7 +2415,7 @@ export default class bybit extends bybitRest {
                     delete client.subscriptions[messageHash];
                 }
             } else {
-                const messageHash = this.safeString (message, 'reqId');
+                const messageHash = this.safeString2 (message, 'req_id', 'reqId');
                 client.reject (error, messageHash);
             }
             return true;

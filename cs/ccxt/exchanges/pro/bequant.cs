@@ -10,8 +10,10 @@ public partial class bequant : hitbtc
     public override object describe()
     {
         // eslint-disable-next-line new-cap
-        object describeExtended = this.getDescribeForExtendedWsExchange(new ccxt.bequant(), new ccxt.hitbtc(), base.describe());
-        return this.deepExtend(describeExtended, new Dictionary<string, object>() {
+        var restInstance = new ccxt.bequant();
+        object restDescribe = restInstance.describe();
+        object extended = this.deepExtend(base.describe(), restDescribe);
+        return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "bequant" },
             { "name", "Bequant" },
             { "countries", new List<object>() {"MT"} },

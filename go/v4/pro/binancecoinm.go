@@ -18,21 +18,21 @@ func NewBinancecoinmCore() *BinancecoinmCore {
     return p
 }
 
-func  (this *BinancecoinmCore) Describe() interface{}  {
+func  (this *BinancecoinmCore) Describe() any  {
     // eslint-disable-next-line new-cap
     restInstance := ccxt.NewBinancecoinm(nil)
-    var restDescribe interface{} = restInstance.Describe()
-    var extended interface{} = this.DeepExtend(this.base.Describe(), restDescribe)
-    return this.DeepExtend(extended, map[string]interface{} {
+    var restDescribe any = restInstance.Describe()
+    var extended any = this.DeepExtend(this.base.Describe(), restDescribe)
+    return this.DeepExtend(extended, map[string]any {
         "id": "binancecoinm",
         "name": "Binance COIN-M",
-        "urls": map[string]interface{} {
+        "urls": map[string]any {
             "logo": "https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg",
             "doc": "https://developers.binance.com/en",
         },
-        "options": map[string]interface{} {
-            "fetchMarkets": map[string]interface{} {
-                "types": []interface{}{"inverse"},
+        "options": map[string]any {
+            "fetchMarkets": map[string]any {
+                "types": []any{"inverse"},
             },
             "defaultSubType": "inverse",
         },
@@ -40,7 +40,7 @@ func  (this *BinancecoinmCore) Describe() interface{}  {
 }
 
 
-func (this *BinancecoinmCore) Init(userConfig map[string]interface{}) {
+func (this *BinancecoinmCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var crypto = require('./crypto.js');
 
-// ----------------------------------------------------------------------------
+/*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 const u32 = (arr) => new Uint32Array(arr.buffer, arr.byteOffset, Math.floor(arr.byteLength / 4));
 // Cast array to view
 const createView = (arr) => new DataView(arr.buffer, arr.byteOffset, arr.byteLength);

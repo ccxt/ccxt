@@ -21,9 +21,9 @@ public partial class Exchange
         var res = await this.fetchMarketsWs(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public Dictionary<string, object> CreateSafeDictionary()
+    public Dictionary<string, object> CreateSafeDictionary(bool isWs = false)
     {
-        var res = this.createSafeDictionary();
+        var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
     public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
@@ -1408,6 +1408,7 @@ public class  Btcmarkets: btcmarkets { public Btcmarkets(object args = null) : b
 public class  Btcturk: btcturk { public Btcturk(object args = null) : base(args) { } }
 public class  Bullish: bullish { public Bullish(object args = null) : base(args) { } }
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
+public class  Bybiteu: bybiteu { public Bybiteu(object args = null) : base(args) { } }
 public class  Bydfi: bydfi { public Bydfi(object args = null) : base(args) { } }
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
@@ -1481,4 +1482,3 @@ public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
 public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
-public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

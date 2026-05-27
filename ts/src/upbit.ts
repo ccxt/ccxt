@@ -780,17 +780,14 @@ export default class upbit extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let ids = undefined;
-        if (symbols === undefined) {
-            ids = this.ids.join (',');
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join (',');
+        const ids = (symbols !== undefined) ? this.marketIds (symbols) : this.ids;
+        const promises = [];
+        const queries = this.idsQueryStrings (ids, 6400); // seems upbit server limitations
+        for (let i = 0; i < queries.length; i++) {
+            const idsQuery = queries[i];
+            promises.push (this.publicGetTicker ({ 'markets': idsQuery }));
         }
-        const request: Dict = {
-            'markets': ids,
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const responses = await Promise.all (promises);
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -819,13 +816,28 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const result: Dict = {};
-        for (let t = 0; t < response.length; t++) {
-            const ticker = this.parseTicker (response[t]);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+        const concated = this.arraysConcat (responses);
+        return this.parseTickers (concated, symbols);
+    }
+
+    idsQueryStrings (ids: string[], maxQueryLength: number) {
+        let idsString = '';
+        const queries = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            if (idsString !== '') {
+                idsString = idsString + ',';
+            }
+            idsString = idsString + id;
+            if (idsString.length >= maxQueryLength) {
+                queries.push (idsString);
+                idsString = '';
+            }
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        if (idsString !== '') {
+            queries.push (idsString);
+        }
+        return queries;
     }
 
     /**

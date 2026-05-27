@@ -15,6 +15,7 @@ export default class bitmex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(currency: Dict): Currency;
     convertFromRealAmount(code: any, amount: any): number;
     convertToRealAmount(code: Str, amount: Str): string;
     amountToPrecision(symbol: any, amount: any): string;

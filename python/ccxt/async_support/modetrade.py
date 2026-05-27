@@ -1385,7 +1385,7 @@ class modetrade(Exchange, ImplicitAPI):
             'fok': 'FOK',
             'post_only': 'PO',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order_status(self, status: Str):
         if status is not None:
@@ -1603,7 +1603,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         #     {
         #         "success": True,
-        #         "timestamp": 1702989203989,
+        #         "timestamp": 1702989203988,
         #         "data": {
         #             "rows": [{
         #                 "order_id": 13,

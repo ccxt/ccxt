@@ -34,6 +34,9 @@
 * [setMargin](#setmargin)
 * [watchBalance](#watchbalance)
 * [watchOrders](#watchorders)
+* [watchTrades](#watchtrades)
+* [watchOHLCV](#watchohlcv)
+* [watchTicker](#watchticker)
 
 <a name="fetchStatus" id="fetchstatus"></a>
 
@@ -763,5 +766,73 @@ watches information on user orders
 
 ```javascript
 bitrue.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="watchTrades" id="watchtrades"></a>
+
+### watchTrades{docsify-ignore}
+watches public trades for a swap (futures) market
+
+**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitrue.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="watchOHLCV" id="watchohlcv"></a>
+
+### watchOHLCV{docsify-ignore}
+watches OHLCV candles for a swap (futures) market
+
+**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitrue.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a 24h ticker for a swap (futures) market
+
+**Kind**: instance method of [<code>bitrue</code>](#bitrue)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+**See**: https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitrue.watchTicker (symbol[, params])
 ```
 

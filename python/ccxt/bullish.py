@@ -529,31 +529,30 @@ class bullish(Exchange, ImplicitAPI):
         #         }, ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            precision = self.safe_string(currency, 'precision')
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(currency, 'minFee'),
-                'precision': self.parse_number(self.parse_precision(precision)),
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': currency,
-            }
-        return result
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        name = self.safe_string(rawCurrency, 'name')
+        precision = self.safe_string(rawCurrency, 'precision')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': self.safe_number(rawCurrency, 'minFee'),
+            'precision': self.parse_number(self.parse_precision(precision)),
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {'min': None, 'max': None},
+            },
+            'networks': {},
+            'type': 'crypto',
+            'info': rawCurrency,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

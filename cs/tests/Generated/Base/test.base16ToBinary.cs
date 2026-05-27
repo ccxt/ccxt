@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             Assert(isEqual(exchange.parseNumber(null), null), "GO_WORKAROUND");
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             // Test 1: simple known bytes
             // 'ff' => [255]
             object binary1 = exchange.base16ToBinary("ff");
@@ -45,6 +45,5 @@ public partial class BaseTest
             object hex8 = "cafebabe";
             object binary8 = exchange.base16ToBinary(hex8);
             Assert(isEqual(exchange.binaryToBase16(binary8), hex8));
-            Assert("GO_SKIP_END");
         }
 }

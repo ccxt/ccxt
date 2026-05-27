@@ -705,6 +705,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #     }
         #
         entry = self.safe_list(message, 'data', [])
+        entryLength = len(entry)
+        if entryLength == 0:
+            return
         first = self.safe_dict(entry, 0, {})
         coin = self.safe_string(first, 'coin')
         marketId = self.coinToMarketId(coin)
@@ -1244,7 +1247,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str symbol: unified market symbol of the market orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         if symbol is not None:

@@ -1758,6 +1758,10 @@ class gate extends Exchange {
                     $maxMultiplier = Precise::string_add('1', $priceDeviate);
                     $minPrice = Precise::string_mul($minMultiplier, $markPrice);
                     $maxPrice = Precise::string_mul($maxMultiplier, $markPrice);
+                    $createdTs = $this->safe_timestamp($market, 'create_time');
+                    if ($createdTs === 0) {
+                        $createdTs = null;
+                    }
                     $result[] = array(
                         'id' => $id,
                         'symbol' => $symbol,
@@ -1806,7 +1810,7 @@ class gate extends Exchange {
                                 'max' => null,
                             ),
                         ),
-                        'created' => $this->safe_timestamp($market, 'create_time'),
+                        'created' => $createdTs,
                         'info' => $market,
                     );
                 }

@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func (e *Exchange) base16ToBinary(str interface{}) []byte {
+func (e *Exchange) base16ToBinary(str any) []byte {
 	hexStr := str.(string)
 	bytes, err := hex.DecodeString(hexStr)
 	if err != nil {
@@ -19,7 +19,7 @@ func (e *Exchange) base16ToBinary(str interface{}) []byte {
 	return bytes
 }
 
-func (e *Exchange) Base16ToBinary(str interface{}) []byte {
+func (e *Exchange) Base16ToBinary(str any) []byte {
 	return e.base16ToBinary(str)
 }
 
@@ -41,7 +41,7 @@ func convertHexStringToByteArray(hexString string) ([]byte, error) {
 	return bytes, nil
 }
 
-func (e *Exchange) remove0xPrefix(str interface{}) string {
+func (e *Exchange) remove0xPrefix(str any) string {
 	s := str.(string)
 	if strings.HasPrefix(s, "0x") {
 		return s[2:]
@@ -49,32 +49,32 @@ func (e *Exchange) remove0xPrefix(str interface{}) string {
 	return s
 }
 
-func (e *Exchange) Remove0xPrefix(str interface{}) string {
+func (e *Exchange) Remove0xPrefix(str any) string {
 	return e.remove0xPrefix(str)
 }
 
-func (e *Exchange) stringToBase64(pt interface{}) string {
+func (e *Exchange) stringToBase64(pt any) string {
 	return stringToBase64(pt)
 }
 
-func (e *Exchange) StringToBase64(pt interface{}) string {
+func (e *Exchange) StringToBase64(pt any) string {
 	return stringToBase64(pt)
 }
 
-func stringToBase64(pt interface{}) string {
+func stringToBase64(pt any) string {
 	plainText := pt.(string)
 	return base64.StdEncoding.EncodeToString([]byte(plainText))
 }
 
-func (e *Exchange) base64ToBinary(pt interface{}) []byte {
+func (e *Exchange) base64ToBinary(pt any) []byte {
 	return base64ToBinary(pt)
 }
 
-func (e *Exchange) Base64ToBinary(pt interface{}) []byte {
+func (e *Exchange) Base64ToBinary(pt any) []byte {
 	return base64ToBinary(pt)
 }
 
-func base64ToBinary(pt interface{}) []byte {
+func base64ToBinary(pt any) []byte {
 	plainText := pt.(string)
 	bytes, err := base64.StdEncoding.DecodeString(plainText)
 	if err != nil {
@@ -145,7 +145,7 @@ func (e *Exchange) base58ToBinary(input string) ([]byte, error) {
 }
 
 // An error can be returned, but that would not conform to the unified interface.
-func (e *Exchange) Base58ToBinary(pt interface{}) []byte {
+func (e *Exchange) Base58ToBinary(pt any) []byte {
 	plainText := pt.(string)
 	// base58.Decode() only Bitcoin Aplhabet
 	b, err := e.base58ToBinary(plainText)
@@ -156,7 +156,7 @@ func (e *Exchange) Base58ToBinary(pt interface{}) []byte {
 	return b
 }
 
-// func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
+// func (e *Exchange) BinaryConcat(a, b any) []byte {
 // 	var first, second []byte
 // 	if s, ok := a.(string); ok {
 // 		first = []byte(s)
@@ -171,7 +171,7 @@ func (e *Exchange) Base58ToBinary(pt interface{}) []byte {
 // 	return append(first, second...)
 // }
 
-func (e *Exchange) BinaryConcat(parts ...interface{}) []byte {
+func (e *Exchange) BinaryConcat(parts ...any) []byte {
 	var result []byte
 	for _, part := range parts {
 		switch v := part.(type) {
@@ -186,21 +186,21 @@ func (e *Exchange) BinaryConcat(parts ...interface{}) []byte {
 	return result
 }
 
-func (e *Exchange) binaryConcatArray(a interface{}) string {
+func (e *Exchange) binaryConcatArray(a any) string {
 	// return a.(string) // stub
 	return ""
 }
 
-func (e *Exchange) BinaryConcatArray(a interface{}) string {
+func (e *Exchange) BinaryConcatArray(a any) string {
 	return e.binaryConcatArray(a)
 }
 
-func (e *Exchange) numberToBE(n, padding interface{}) string {
+func (e *Exchange) numberToBE(n, padding any) string {
 	// return n.(string) // stub
 	return ""
 }
 
-func (e *Exchange) NumberToBE(n, padding interface{}) string {
+func (e *Exchange) NumberToBE(n, padding any) string {
 	return e.numberToBE(n, padding)
 }
 
@@ -208,7 +208,7 @@ func BinaryToHex(buff []byte) string {
 	return strings.ToLower(hex.EncodeToString(buff))
 }
 
-func (e *Exchange) BinaryToBase16(buff2 interface{}) string {
+func (e *Exchange) BinaryToBase16(buff2 any) string {
 	buff := buff2.([]byte)
 	return BinaryToHex(buff)
 }
@@ -251,13 +251,13 @@ func binaryToBase58(input []byte) string {
 	return string(ret)
 }
 
-func (e *Exchange) BinaryToBase58(buff2 interface{}) string {
+func (e *Exchange) BinaryToBase58(buff2 any) string {
 	buff := buff2.([]byte)
 	// base58.Encode() only Bitcoin Aplhabet
 	return binaryToBase58(buff)
 }
 
-func (e *Exchange) BinaryToBase64(buff2 interface{}) string {
+func (e *Exchange) BinaryToBase64(buff2 any) string {
 	buff := buff2.([]byte)
 	return base64.StdEncoding.EncodeToString(buff)
 }
@@ -266,28 +266,28 @@ func (e *Exchange) StringToBinary(buff string) []byte {
 	return []byte(buff)
 }
 
-func (e *Exchange) BinaryToString(buff interface{}) string {
+func (e *Exchange) BinaryToString(buff any) string {
 	return string(buff.([]byte))
 }
 
-func (e *Exchange) Encode(data interface{}) string {
+func (e *Exchange) Encode(data any) string {
 	return data.(string) // stub
 }
 
-func Encode(data interface{}) string {
+func Encode(data any) string {
 	return data.(string) // stub
 }
 
-func (e *Exchange) Decode(data interface{}) string {
+func (e *Exchange) Decode(data any) string {
 	return data.(string) // stub
 }
 
-// func (e *Exchange) IntToBase16(number interface{}) string {
+// func (e *Exchange) IntToBase16(number any) string {
 // 	n := number.(int64)
 // 	return fmt.Sprintf("%x", n)
 // }
 
-func (e *Exchange) IntToBase16(number interface{}) string {
+func (e *Exchange) IntToBase16(number any) string {
 	switch v := number.(type) {
 	case int:
 		return fmt.Sprintf("%x", int64(v))
@@ -303,12 +303,12 @@ func (e *Exchange) IntToBase16(number interface{}) string {
 }
 
 // This function requires implementation of a message packer
-func (e *Exchange) packb(data interface{}) interface{} {
+func (e *Exchange) packb(data any) any {
 	return nil
 }
 
-func (e *Exchange) Rawencode(params ...interface{}) string {
-	parameters := params[0].(map[string]interface{})
+func (e *Exchange) Rawencode(params ...any) string {
+	parameters := params[0].(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
@@ -333,11 +333,11 @@ func (e *Exchange) Rawencode(params ...interface{}) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
-	parameters := parameters2.(map[string]interface{})
+func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 any) string {
+	parameters := parameters2.(map[string]any)
 	var outList []string
 	for key, value := range parameters {
-		if values, ok := value.([]interface{}); ok {
+		if values, ok := value.([]any); ok {
 			for _, item := range values {
 				outList = append(outList, fmt.Sprintf("%s=%v", key, item))
 			}
@@ -352,14 +352,14 @@ func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
+func (e *Exchange) UrlencodeNested(parameters2 any) string {
 	var outList []string
 
 	// Define recursive function
-	var recurse func(interface{}, string)
-	recurse = func(params interface{}, prefix string) {
+	var recurse func(any, string)
+	recurse = func(params any, prefix string) {
 		switch v := params.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			keys := make([]string, 0, len(v))
 			for k := range v {
 				keys = append(keys, k)
@@ -389,7 +389,7 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 				}
 				recurse(v[k], newPrefix)
 			}
-		case []interface{}:
+		case []any:
 			for i, val := range v {
 				var newPrefix string
 				if prefix == "" {
@@ -424,8 +424,8 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 }
 
 // without sorting
-// func (e *Exchange) Urlencode(params ...interface{}) string {
-// 	parameters := params[0].(map[string]interface{})
+// func (e *Exchange) Urlencode(params ...any) string {
+// 	parameters := params[0].(map[string]any)
 // 	sort := GetArg(params, 1, false).(bool)
 // 	var queryString []string
 // 	for key, value := range parameters {
@@ -449,8 +449,8 @@ func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 // 	return strings.Join(queryString, "&")
 // }
 
-func (e *Exchange) Urlencode(params ...interface{}) string {
-	parameters := params[0].(map[string]interface{})
+func (e *Exchange) Urlencode(params ...any) string {
+	parameters := params[0].(map[string]any)
 	shouldSort := GetArg(params, 1, false).(bool)
 
 	var keys []string
@@ -487,7 +487,7 @@ func (e *Exchange) Urlencode(params ...interface{}) string {
 	return strings.Join(queryString, "&")
 }
 
-func (e *Exchange) EncodeURIComponent(str interface{}) string {
+func (e *Exchange) EncodeURIComponent(str any) string {
 	s := str.(string)
 	var result bytes.Buffer
 	unreserved := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~"
@@ -501,11 +501,11 @@ func (e *Exchange) EncodeURIComponent(str interface{}) string {
 	return result.String()
 }
 
-func (e *Exchange) UrlencodeBase64(s interface{}) string {
+func (e *Exchange) UrlencodeBase64(s any) string {
 	return Base64urlencode(s)
 }
 
-func Base64urlencode(s interface{}) string {
+func Base64urlencode(s any) string {
 	var str string
 	if stringVal, ok := s.(string); ok {
 		str = stringToBase64(stringVal)
@@ -515,7 +515,7 @@ func Base64urlencode(s interface{}) string {
 	return strings.TrimRight(strings.ReplaceAll(strings.ReplaceAll(str, "+", "-"), "/", "_"), "=")
 }
 
-func (e *Exchange) stringToCharsArray(str interface{}) interface{} {
+func (e *Exchange) stringToCharsArray(str any) any {
 	// Convert the input to a string
 	inputStr := fmt.Sprintf("%v", str)
 	// Create a slice to hold the result

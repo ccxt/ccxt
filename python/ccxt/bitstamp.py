@@ -690,12 +690,13 @@ class bitstamp(Exchange, ImplicitAPI):
                 elif payoffType == 'Inverse':
                     subType = 'inverse'
             isSpot = (type == 'spot')
+            settle = self.safe_currency_code(settleId) if settleId else None
             result.append({
                 'id': self.safe_string(market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': self.safe_currency_code(settleId) if settleId else None,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -836,24 +837,30 @@ class bitstamp(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            market = response[i]
-            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            description = self.safe_string(market, 'description')
-            baseDescription, quoteDescription = description.split(' / ')
-            minimumOrder = self.safe_string(market, 'minimum_order_value')
-            parts = minimumOrder.split(' ')
-            cost = parts[0]
-            if not (base in result):
-                baseDecimals = self.safe_integer(market, 'base_decimals')
-                result[base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
-            if not (quote in result):
-                counterDecimals = self.safe_integer(market, 'counter_decimals')
-                result[quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
-        return result
+        self.options['_temp_currencies_result'] = {}
+        result = self.parse_currencies(response)
+        finalResult = self.deep_extend(result, self.options['_temp_currencies_result'])
+        del self.options['_temp_currencies_result']
+        return finalResult
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        market = rawCurrency
+        existing = self.safe_dict(self.options, '_temp_currencies_result', {})
+        baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        description = self.safe_string(market, 'description')
+        baseDescription, quoteDescription = description.split(' / ')
+        minimumOrder = self.safe_string(market, 'minimum_order_value')
+        parts = minimumOrder.split(' ')
+        cost = parts[0]
+        if not (base in existing):
+            baseDecimals = self.safe_integer(market, 'base_decimals')
+            self.options['_temp_currencies_result'][base] = self.construct_currency_object(baseId, base, baseDescription, baseDecimals, None, market)
+        if not (quote in existing):
+            counterDecimals = self.safe_integer(market, 'counter_decimals')
+            self.options['_temp_currencies_result'][quote] = self.construct_currency_object(quoteId, quote, quoteDescription, counterDecimals, self.parse_number(cost), market)
+        return self.options['_temp_currencies_result'][quote]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -912,7 +919,7 @@ class bitstamp(Exchange, ImplicitAPI):
         # }
         #
         marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market, None)
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'volume')
@@ -1301,8 +1308,9 @@ class bitstamp(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
+        finalResponse = response  # java req
         result: dict = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': None,
             'datetime': None,
         }
@@ -2254,7 +2262,7 @@ class bitstamp(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

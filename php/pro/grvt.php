@@ -330,7 +330,7 @@ class grvt extends \ccxt\async\grvt {
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
                 $limitRaw = $this->safe_integer($params, 'limit', 50); // 50, 200, 500, 1000
-                $rawHashes[] = $marketId . '@' . $limitRaw;
+                $rawHashes[] = $marketId . '@' . (string) $limitRaw;
                 $messageHashes[] = 'trade::' . $market['symbol'];
             }
             $request = array(
@@ -546,14 +546,14 @@ class grvt extends \ccxt\async\grvt {
             $interval = null;
             list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'interval', 500);
             $symbols = $this->market_symbols($symbols);
-            $extraPart = $isSnapshot ? ($interval . '-' . $limit) : $interval;
+            $extraPart = $isSnapshot ? (string) ($interval . '-' . (string) $limit) : (string) $interval;
             $rawHashes = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
-                $rawHashes[] = $marketId . '@' . (string) $extraPart;
+                $rawHashes[] = $marketId . '@' . $extraPart;
                 $messageHashes[] = 'orderbook::' . $market['symbol'];
             }
             $request = array(
@@ -618,6 +618,14 @@ class grvt extends \ccxt\async\grvt {
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }
+        // grvt defaults to the delta channel (v1.book.d); if the very first
+        // $message is a delta, the freshly-created $orderbook has $symbol=null
+        // because no $snapshot has reset it yet. Set it unconditionally — we
+        // know the $symbol from the $selector regardless of channel. Java's
+        // typed WsOrderBook surfaces this as `"symbol":null` in the output;
+        // Python/JS dict-backed orderbooks happen to mask it but the
+        // unconditional assignment is correct for every language.
+        $orderbook['symbol'] = $symbol;
         $orderbook['nonce'] = $sequenceNumber;
         $messageHash = 'orderbook::' . $symbol;
         $this->orderbooks[$symbol] = $orderbook;

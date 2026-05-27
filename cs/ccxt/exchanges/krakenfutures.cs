@@ -2124,6 +2124,7 @@ public partial class krakenfutures : Exchange
             object innerStatus = this.safeString(order, "status");
             object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new Dictionary<string, object>() {});
             object fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
+            object unifiedSymbol = this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market);
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
@@ -2132,7 +2133,7 @@ public partial class krakenfutures : Exchange
                 { "datetime", datetime },
                 { "lastTradeTimestamp", null },
                 { "lastUpdateTimestamp", this.parse8601(this.safeString(orderDictFromFetchOrder, "lastUpdateTimestamp")) },
-                { "symbol", this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market) },
+                { "symbol", unifiedSymbol },
                 { "type", null },
                 { "timeInForce", null },
                 { "postOnly", null },

@@ -500,74 +500,77 @@ class apex(Exchange, ImplicitAPI):
         # }
         rows = self.safe_list(spotConfig, 'assets', [])
         chains = self.safe_list(multiChain, 'chains', [])
-        result: dict = {}
-        for i in range(0, len(rows)):
-            currency = rows[i]
-            currencyId = self.safe_string(currency, 'token')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(currency, 'displayName')
-            networks: dict = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                tokens = self.safe_list(chain, 'tokens', [])
-                for f in range(0, len(tokens)):
-                    token = tokens[f]
-                    tokenName = self.safe_string(token, 'token')
-                    if tokenName == currencyId:
-                        networkId = self.safe_string(chain, 'chainId')
-                        networkCode = self.network_id_to_code(networkId)
-                        networks[networkCode] = {
-                            'info': chain,
-                            'id': networkId,
-                            'network': networkCode,
-                            'active': None,
-                            'deposit': not self.safe_bool(chain, 'depositDisable'),
-                            'withdraw': self.safe_bool(token, 'withdrawEnable'),
-                            'fee': self.safe_number(token, 'minFee'),
-                            'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
-                            'limits': {
-                                'withdraw': {
-                                    'min': self.safe_number(token, 'minWithdraw'),
-                                    'max': None,
-                                },
-                                'deposit': {
-                                    'min': self.safe_number(chain, 'minDeposit'),
-                                    'max': None,
-                                },
-                            },
-                        }
-            networkKeys = list(networks.keys())
-            networksLength = len(networkKeys)
-            emptyChains = networksLength == 0  # non-functional coins
-            valueForEmpty = False if emptyChains else None
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'type': 'crypto',
-                'name': name,
-                'active': None,
-                'deposit': valueForEmpty,
-                'withdraw': valueForEmpty,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'networks': networks,
-            })
+        self.options['_temp_currencies_chains'] = chains
+        result = self.parse_currencies(rows)
+        del self.options['_temp_currencies_chains']
         return result
+
+    def parse_currency(self, currency: dict) -> Currency:
+        currencyId = self.safe_string(currency, 'token')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(currency, 'displayName')
+        networks: dict = {}
+        chains = self.options['_temp_currencies_chains']
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            tokens = self.safe_list(chain, 'tokens', [])
+            for f in range(0, len(tokens)):
+                token = tokens[f]
+                tokenName = self.safe_string(token, 'token')
+                if tokenName == currencyId:
+                    networkId = self.safe_string(chain, 'chainId')
+                    networkCode = self.network_id_to_code(networkId)
+                    networks[networkCode] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': networkCode,
+                        'active': None,
+                        'deposit': not self.safe_bool(chain, 'depositDisable'),
+                        'withdraw': self.safe_bool(token, 'withdrawEnable'),
+                        'fee': self.safe_number(token, 'minFee'),
+                        'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),
+                        'limits': {
+                            'withdraw': {
+                                'min': self.safe_number(token, 'minWithdraw'),
+                                'max': None,
+                            },
+                            'deposit': {
+                                'min': self.safe_number(chain, 'minDeposit'),
+                                'max': None,
+                            },
+                        },
+                    }
+        networkKeys = list(networks.keys())
+        networksLength = len(networkKeys)
+        emptyChains = networksLength == 0  # non-functional coins
+        valueForEmpty = False if emptyChains else None
+        return self.safe_currency_structure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'type': 'crypto',
+            'name': name,
+            'active': None,
+            'deposit': valueForEmpty,
+            'withdraw': valueForEmpty,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -1204,7 +1207,7 @@ class apex(Exchange, ImplicitAPI):
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order_status(self, status: Str):
         if status is not None:
@@ -1332,14 +1335,16 @@ class apex(Exchange, ImplicitAPI):
         accountId = await self.get_account_id()
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(accountId)
+        finalClientOrderId = clientOrderId  # java req
         params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice'])
+        finalOrderPrice = orderPrice  # java req
         orderToSign = {
             'accountId': accountId,
-            'slotId': clientOrderId,
-            'nonce': clientOrderId,
+            'slotId': finalClientOrderId,
+            'nonce': finalClientOrderId,
             'pairId': market['quoteId'],
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'direction': orderSide,
             'makerFeeRate': maker,
             'takerFeeRate': taker,
@@ -1352,11 +1357,11 @@ class apex(Exchange, ImplicitAPI):
             'side': orderSide,
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'limitFee': limitFee,
             'expiration': int(math.floor(timeNow / 1000 + 30 * 24 * 60 * 60)),
             'timeInForce': timeInForce,
-            'clientId': clientOrderId,
+            'clientId': finalClientOrderId,
             'brokerId': self.safe_string(self.options, 'brokerId', '6956'),
         }
         if triggerPrice is not None:
@@ -1398,6 +1403,7 @@ class apex(Exchange, ImplicitAPI):
         nonce = '0'
         if len(subAccounts) > 0:
             nonce = self.safe_string(subAccounts[0], 'nonce', '0')
+        finalNonce = nonce  # java req
         ethAddress = self.safe_string(accountData, 'ethereumAddress', '')
         accountId = self.safe_string(accountData, 'id', '')
         currency = {}
@@ -1410,11 +1416,14 @@ class apex(Exchange, ImplicitAPI):
             if self.safe_string(assets[i], 'token', '') == code:
                 currency = assets[i]
         tokenId = self.safe_string(currency, 'tokenId', '')
-        amountNumber = self.parse_to_int(amount * (math.pow(10, self.safe_number(currency, 'decimals', 0))))
+        decimalsNum = self.safe_number(currency, 'decimals', 0)
+        mathPowResult = (math.pow(10, decimalsNum))
+        amountNumber = self.parse_to_int(amount * mathPowResult)
         timestampSeconds = self.parse_to_int(self.milliseconds() / 1000)
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         if clientOrderId is None:
             clientOrderId = self.generate_random_client_id_omni(self.safe_string(self.options, 'accountId'))
+        finalClientOrderId = clientOrderId  # java req
         params = self.omit(params, ['clientId', 'clientOrderId', 'client_order_id'])
         if fromAccount is not None and fromAccount.lower() == 'contract':
             formattedUint32 = '4294967295'
@@ -1428,7 +1437,7 @@ class apex(Exchange, ImplicitAPI):
                 'tokenId': tokenId,
                 'amount': str(amountNumber),
                 'fee': '0',
-                'nonce': clientOrderId,
+                'nonce': finalClientOrderId,
                 'timestampSeconds': expireTime,
                 'isContract': True,
             }
@@ -1436,7 +1445,7 @@ class apex(Exchange, ImplicitAPI):
             request: dict = {
                 'amount': amount,
                 'expireTime': expireTime,
-                'clientWithdrawId': clientOrderId,
+                'clientWithdrawId': finalClientOrderId,
                 'signature': signature,
                 'token': code,
                 'ethAddress': ethAddress,
@@ -1444,10 +1453,11 @@ class apex(Exchange, ImplicitAPI):
             response = await self.privatePostV3ContractTransferOut(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
             currentTime = self.milliseconds()
+            parsedAmount = self.parse_number(amount)
             return self.extend(self.parse_transfer(data, self.currency(code)), {
                 'timestamp': currentTime,
                 'datetime': self.iso8601(currentTime),
-                'amount': self.parse_number(amount),
+                'amount': parsedAmount,
                 'fromAccount': 'contract',
                 'toAccount': 'spot',
             })
@@ -1460,14 +1470,16 @@ class apex(Exchange, ImplicitAPI):
                 'tokenId': tokenId,
                 'amount': str(amountNumber),
                 'fee': '0',
-                'nonce': nonce,
+                'nonce': finalNonce,
                 'timestampSeconds': timestampSeconds,
             }
             signature = await self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), orderToSign)
+            amountStr = str(amount)
+            ts = timestampSeconds  # java req
             request: dict = {
-                'amount': str(amount),
-                'timestamp': timestampSeconds,
-                'clientTransferId': clientOrderId,
+                'amount': amountStr,
+                'timestamp': ts,
+                'clientTransferId': finalClientOrderId,
                 'signature': signature,
                 'zkAccountId': zkAccountId,
                 'subAccountId': subAccountId,
@@ -1478,7 +1490,7 @@ class apex(Exchange, ImplicitAPI):
                 'receiverZkAccountId': receiverZkAccountId,
                 'receiverSubAccountId': receiverSubAccountId,
                 'receiverAddress': receiverAddress,
-                'nonce': nonce,
+                'nonce': finalNonce,
             }
             response = await self.privatePostV3TransferOut(self.extend(request, params))
             data = self.safe_dict(response, 'data', {})
@@ -1535,7 +1547,7 @@ class apex(Exchange, ImplicitAPI):
         https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
 
         :param str id: order id
- @param symbol
+        :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

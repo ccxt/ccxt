@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bingx extends bingx$1["default"] {
     describe() {
@@ -696,7 +696,9 @@ class bingx extends bingx$1["default"] {
             // const limit = [ 5, 10, 20, 50, 100 ]
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
-            const limit = this.safeInteger(subscription, 'limit');
+            // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
+            // default to a reasonable depth instead of throwing NPE in the Java port.
+            const limit = this.safeInteger(subscription, 'limit', 100);
             this.orderbooks[symbol] = this.orderBook({}, limit);
         }
         orderbook = this.orderbooks[symbol];
@@ -842,7 +844,10 @@ class bingx extends bingx$1["default"] {
         if (this.safeValue(this.ohlcvs[symbol], rawTimeframe) === undefined) {
             const subscriptionHash = dataType;
             const subscription = client.subscriptions[subscriptionHash];
-            const limit = this.safeInteger(subscription, 'limit');
+            // subscription.limit is only set when watchOHLCV registers the subscription;
+            // when handleMessage routes a non-OHLCV-originated subscription here (or the
+            // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            const limit = this.safeInteger(subscription, 'limit', this.safeInteger(this.options, 'OHLCVLimit', 1000));
             this.ohlcvs[symbol][unifiedTimeframe] = new Cache.ArrayCacheByTimestamp(limit);
         }
         const stored = this.ohlcvs[symbol][unifiedTimeframe];

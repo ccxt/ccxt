@@ -1549,8 +1549,9 @@ class bybit(Exchange, ImplicitAPI):
         elif base == 'SOL':
             amountPrecision = self.parse_number('1')
             pricePrecision = self.parse_number('0.01')
+        convertedExpireDate = self.convert_expire_date_to_market_id_date(expiry)
         return {
-            'id': base + '-' + self.convert_expire_date_to_market_id_date(expiry) + '-' + strike + '-' + optionType,
+            'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
@@ -1934,8 +1935,8 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    def fetch_future_markets(self, params) -> List[Market]:
-        params = self.extend(params)
+    def fetch_future_markets(self, params={}) -> List[Market]:
+        params = self.extend(params, {})
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
         usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
@@ -2063,7 +2064,7 @@ class bybit(Exchange, ImplicitAPI):
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number_2(lotSizeFilter, 'minTradingQty', 'minOrderQty') if inverse else self.parse_number('1')
-            result.append(self.safe_market_structure({
+            parsedMarket = self.safe_market_structure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -2113,7 +2114,8 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
-            }))
+            })
+            result.append(parsedMarket)
         return result
 
     def fetch_option_markets(self, params) -> List[Market]:
@@ -4696,7 +4698,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         row = self.safe_list(result, 'list', [])
-        return self.parse_orders(row, None)
+        return self.parse_orders(row)
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -5518,9 +5520,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         chains = self.safe_list(result, 'chains', [])
         coin = self.safe_string(result, 'coin')
-        currency = self.currency(coin)
-        parsed = self.parse_deposit_addresses(chains, [currency['code']], False, {
-            'currency': currency['code'],
+        currencyFromResponse = self.currency(coin)
+        parsed = self.parse_deposit_addresses(chains, [currencyFromResponse['code']], False, {
+            'currency': currencyFromResponse['code'],
         })
         return self.index_by(parsed, 'network')
 
@@ -6754,8 +6756,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         data = self.add_pagination_cursor_to_result(response)
         id = self.safe_string(result, 'symbol')
-        market = self.safe_market(id, market, None, 'contract')
-        return self.parse_open_interests_history(data, market, since, limit)
+        safeMarketObj = self.safe_market(id, market, None, 'contract')
+        return self.parse_open_interests_history(data, safeMarketObj, since, limit)
 
     def fetch_open_interest(self, symbol: str, params={}):
         """
@@ -6811,9 +6813,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = self.safe_dict(response, 'result', {})
         id = self.safe_string(result, 'symbol')
-        market = self.safe_market(id, market, None, 'contract')
+        safeMarketObj = self.safe_market(id, market, None, 'contract')
         data = self.add_pagination_cursor_to_result(response)
-        return self.parse_open_interest(data[0], market)
+        return self.parse_open_interest(data[0], safeMarketObj)
 
     def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         """
@@ -6977,7 +6979,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         data = self.safe_dict(response, 'result', {})
         rows = self.safe_list(data, 'loanAccountList', [])
-        interest = self.parse_borrow_interests(rows, None)
+        interest = self.parse_borrow_interests(rows)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
     def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):

@@ -1283,7 +1283,7 @@ class luno extends Exchange {
         $firstWord = $this->safe_string($words, 0);
         $thirdWord = $this->safe_string($words, 2);
         $fourthWord = $this->safe_string($words, 3);
-        $type = $this->safe_string($types, $firstWord, null);
+        $type = $this->safe_string($types, $firstWord);
         if (($type === null) && ($thirdWord === 'fee')) {
             $type = 'fee';
         }

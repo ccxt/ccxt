@@ -1452,7 +1452,7 @@ class modetrade extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {
@@ -1691,7 +1691,7 @@ class modetrade extends Exchange {
             //
             //     {
             //         "success" => true,
-            //         "timestamp" => 1702989203989,
+            //         "timestamp" => 1702989203988,
             //         "data" => {
             //             "rows" => [array(
             //                 "order_id" => 13,

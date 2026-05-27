@@ -253,17 +253,17 @@ export default class Exchange {
 
     timeout: Int = 10000;  // milliseconds
     verbose: boolean = false;
-    twofa: string = undefined;  // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
     uid: string;
-    accountId: string;
     login: string;
     password: string;
     privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
     walletAddress: string;  // a wallet address "0x"-prefixed hexstring
     token: string;  // reserved for HTTP auth in some cases
+    twofa: string;
+    accountId: string;
 
     balance: any = {};
     liquidations: any = undefined;
@@ -336,10 +336,10 @@ export default class Exchange {
         token: Bool,  // reserved for HTTP auth in some cases
     };
 
-    rateLimit: Num = undefined; // milliseconds
+    rateLimit: Num = 2000; // milliseconds
     tokenBucket: Dictionary<number> = undefined;
     throttler: any = undefined;
-    enableRateLimit: boolean = undefined;
+    enableRateLimit: boolean = true;
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
     rateLimiterAlgorithm: string = 'leakyBucket';
 
@@ -395,15 +395,11 @@ export default class Exchange {
 
     version: Str = undefined;
 
-    marketsByAltname: Dictionary<Market> = undefined;
-
     name: Str = undefined;
 
     lastRestRequestTimestamp: int;
 
     targetAccount: string = undefined;
-
-    stablePairs: Dictionary<boolean> = {};
 
     httpProxyAgentModule: any = undefined;
     httpsProxyAgentModule: any = undefined;
@@ -1924,7 +1920,7 @@ export default class Exchange {
         this.options = this.extend (this.options, newOptions);
     }
 
-    createSafeDictionary () {
+    createSafeDictionary (isWs: boolean = false) { // eslint-disable-line no-unused-vars
         return {};
     }
 
@@ -2266,15 +2262,16 @@ export default class Exchange {
 
     describe (): any {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
+            'rateLimiterAlgorithm': this.rateLimiterAlgorithm,
             'timeout': this.timeout, // milliseconds = seconds * 1000
-            'certified': false, // if certified by the CCXT dev team
-            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
-            'alias': false, // whether this exchange is an alias to another exchange
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,
@@ -2520,9 +2517,12 @@ export default class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -2559,6 +2559,7 @@ export default class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
@@ -3582,7 +3583,7 @@ export default class Exchange {
                 this.features[marketType] = undefined;
             } else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
                 } else {
                     this.features[marketType] = {};
                     for (let j = 0; j < subTypes.length; j++) {
@@ -3648,7 +3649,7 @@ export default class Exchange {
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3664,7 +3665,7 @@ export default class Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
-         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -3750,10 +3751,10 @@ export default class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
-                'ETH': { 'ERC20': 'ETH' },
-                'TRX': { 'TRC20': 'TRX' },
-                'CRO': { 'CRC20': 'CRONOS' },
-                'BRC20': { 'BRC20': 'BTC' },
+                'ETH': { 'primary': 'ETH', 'secondary': 'ERC20', 'default': 'secondary' },
+                'CRO': { 'primary': 'CRONOS', 'secondary': 'CRC20', 'default': 'secondary' },
+                'TRX': { 'primary': 'TRX', 'secondary': 'TRC20', 'default': 'secondary' },
+                'BTC': { 'primary': 'BTC', 'secondary': 'BRC20', 'default': 'primary' },
             },
         };
     }
@@ -5170,6 +5171,85 @@ export default class Exchange {
         return ohlcv;
     }
 
+    safeNetwork (network) {
+        const withdrawEnabled = this.safeBool (network, 'withdraw');
+        const depositEnabled = this.safeBool (network, 'deposit');
+        const limits = this.safeDict (network, 'limits');
+        const withdraw = this.safeDict (limits, 'withdraw');
+        const deposit = this.safeDict (limits, 'deposit');
+        const isEnabled = (withdrawEnabled && depositEnabled);
+        return {
+            'info': network['info'],
+            'id': this.safeString (network, 'id'),
+            'name': this.safeString (network, 'name'),
+            'network': this.safeString (network, 'network'),
+            'active': this.safeBool (network, 'active', isEnabled),
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': this.safeNumber (network, 'fee'),
+            'precision': this.safeNumber (network, 'precision'),
+            'limits': {
+                'withdraw': {
+                    'min': this.safeNumber (withdraw, 'min'),
+                    'max': this.safeNumber (withdraw, 'max'),
+                },
+                'deposit': {
+                    'min': this.safeNumber (deposit, 'min'),
+                    'max': this.safeNumber (deposit, 'max'),
+                },
+            },
+        };
+    }
+
+    prioritizedNetworkAliases (networkCode: Str = undefined, currencyCode: Str = undefined, allowDefault = false) {
+        /**
+         * @method
+         * @name Exchange#prioritizedNetworkAliases
+         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
+         *   ---------------------------------
+         *   | input          | output       |
+         *   --------------------------------|
+         *   | ETH & USDC     | ERC20, ETH   |
+         *   | ERC20 & USDC   | ERC20, ETH   |
+         *   | ETH & ETH      | ETH, ERC20   |
+         *   | ERC20 & ETH    | ETH, ERC20   |
+         *   | ERC20          | ERC20, ETH   |
+         *   | ETH            | ERC20, ETH   |
+         *   ---------------------------------
+         * @param {string} networkCode unified network-code
+         * @param {string} currencyCode unified currency-code
+         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
+         * @returns {string[]} [preferredChain, alternativeChain]
+         */
+        if (networkCode === undefined) {
+            return undefined;
+        }
+        const replacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
+        const keys = Object.keys (replacements);
+        for (let i = 0; i < keys.length; i++) {
+            const baseCoin = keys[i];
+            const entry = replacements[baseCoin];
+            const primary = entry['primary'];
+            const secondary = entry['secondary'];
+            if (networkCode !== primary && networkCode !== secondary) {
+                continue;
+            }
+            // pick which form goes first in the returned pair
+            let preferPrimary = false;
+            if (currencyCode === baseCoin) {
+                preferPrimary = true; // mainnet currency uses primary chain
+            } else if (currencyCode !== undefined) {
+                preferPrimary = false; // any other (token) currency uses secondary chain
+            } else if (allowDefault) {
+                preferPrimary = (entry['default'] === 'primary');
+            } else {
+                preferPrimary = (networkCode === primary); // keep user input first
+            }
+            return (preferPrimary) ? [ primary, secondary ] : [ secondary, primary ];
+        }
+        return [ networkCode, networkCode ];
+    }
+
     networkCodeToId (networkCode: string, currencyCode: Str = undefined): string {
         /**
          * @ignore
@@ -5183,51 +5263,27 @@ export default class Exchange {
         if (networkCode === undefined) {
             return undefined;
         }
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkIdsByCodes, networkCode);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if (networkId === undefined) {
-            if (currencyCode === undefined) {
-                const currencies = Object.values (this.currencies);
-                for (let i = 0; i < currencies.length; i++) {
-                    const currency = currencies[i];
-                    const networks = this.safeDict (currency, 'networks');
-                    const network = this.safeDict (networks, networkCode);
-                    networkId = this.safeString (network, 'id');
-                    if (networkId !== undefined) {
-                        break;
-                    }
-                }
-            } else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
-                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-                if (currencyCode in defaultNetworkCodeReplacements) {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-                    const keys = Object.keys (replacementObject);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        const value = replacementObject[key];
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (value === networkCode) {
-                            networkId = this.safeString (networkIdsByCodes, key);
-                            break;
-                        }
-                    }
-                } else {
-                    // serach for network inside currency
-                    const currency = this.safeDict (this.currencies, currencyCode);
-                    const networks = this.safeDict (currency, 'networks');
-                    const network = this.safeDict (networks, networkCode);
-                    networkId = this.safeString (network, 'id');
-                }
-            }
-            // if it wasn't found, we just set the provided value to network-id
-            if (networkId === undefined) {
-                networkId = networkCode;
+        const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
+        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
+        const [ preferredChain, alternativeChain ] = this.prioritizedNetworkAliases (networkCode, currencyCode, false);
+        const networkId = this.safeString2 (networkIdsByCodes, preferredChain, alternativeChain);
+        if (networkId !== undefined) {
+            return networkId;
+        }
+        // fall back to scanning loaded currencies
+        let currenciesToCheck = [];
+        if (currencyCode === undefined) {
+            currenciesToCheck = Object.keys (this.currencies);
+        } else {
+            currenciesToCheck = [ this.safeDict (this.currencies, currencyCode) ];
+        }
+        for (let i = 0; i < currenciesToCheck.length; i++) {
+            const networks = this.safeDict (currenciesToCheck[i], 'networks', {});
+            if (networkCode in networks) {
+                return this.safeString (networks[networkCode], 'id');
             }
         }
-        return networkId;
+        return networkCode;
     }
 
     networkIdToCode (networkId: Str = undefined, currencyCode: Str = undefined): string {
@@ -5244,16 +5300,17 @@ export default class Exchange {
             return undefined;
         }
         const networkCodesByIds = this.safeDict (this.options, 'networksById', {});
-        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
-        // replace mainnet network-codes (i.e. ERC20->ETH)
-        if (currencyCode !== undefined) {
-            const defaultNetworkCodeReplacements = this.safeDict (this.options, 'defaultNetworkCodeReplacements', {});
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeDict (defaultNetworkCodeReplacements, currencyCode, {});
-                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+        const networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        const [ preferredChain, alternativeChain ] = this.prioritizedNetworkAliases (networkCode, currencyCode, true);
+        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
+        // it disambiguates them — trust the direct id→code inversion instead of guessing
+        if (currencyCode === undefined) {
+            const networkIdsByCodes = this.safeDict (this.options, 'networks', {});
+            if ((preferredChain in networkIdsByCodes) && (alternativeChain in networkIdsByCodes)) {
+                return networkCode;
             }
         }
-        return networkCode;
+        return preferredChain;
     }
 
     handleNetworkCodeAndParams (params) {
@@ -5408,7 +5465,7 @@ export default class Exchange {
         //
         const percentage = this.safeValue (position, 'percentage');
         if ((percentage === undefined) && (unrealizedPnlString !== undefined) && (initialMarginString !== undefined)) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             const percentageString = Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100');
             position['percentage'] = this.parseNumber (percentageString);
         }
@@ -5431,7 +5488,7 @@ export default class Exchange {
         positions = this.toArray (positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.extend (this.parsePosition (positions[i], undefined), params);
+            const position = this.extend (this.parsePosition (positions[i]), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -5446,7 +5503,7 @@ export default class Exchange {
         ranks = this.toArray (ranks);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend (this.parseADLRank (ranks[i], undefined), params);
+            const rank = this.extend (this.parseADLRank (ranks[i]), params);
             result.push (rank);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -5725,13 +5782,13 @@ export default class Exchange {
         [ retries, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailure', 0);
         let retryDelay = undefined;
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', 0);
-        this.lastRestRequestTimestamp = this.milliseconds ();
-        const request = this.sign (path, api, method, params, headers, body);
-        this.last_request_headers = request['headers'];
-        this.last_request_body = request['body'];
-        this.last_request_url = request['url'];
         for (let i = 0; i < retries + 1; i++) {
             try {
+                this.lastRestRequestTimestamp = this.milliseconds ();
+                const request = this.sign (path, api, method, params, headers, body);
+                this.last_request_headers = request['headers'];
+                this.last_request_body = request['body'];
+                this.last_request_url = request['url'];
                 return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
             } catch (e) {
                 if (e instanceof OperationFailed) {
@@ -6671,7 +6728,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrder() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
@@ -6695,7 +6752,7 @@ export default class Exchange {
         if (triggerPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTriggerOrderWs() requires a triggerPrice argument');
         }
-        params['triggerPrice'] = triggerPrice;
+        params = this.extend (params, { 'triggerPrice': triggerPrice });
         if (this.has['createTriggerOrderWs']) {
             return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
@@ -6719,7 +6776,7 @@ export default class Exchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrder() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
@@ -6743,7 +6800,7 @@ export default class Exchange {
         if (stopLossPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createStopLossOrderWs() requires a stopLossPrice argument');
         }
-        params['stopLossPrice'] = stopLossPrice;
+        params = this.extend (params, { 'stopLossPrice': stopLossPrice });
         if (this.has['createStopLossOrderWs']) {
             return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
@@ -6767,7 +6824,7 @@ export default class Exchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrder() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrder']) {
             return await this.createOrder (symbol, type, side, amount, price, params);
         }
@@ -6791,7 +6848,7 @@ export default class Exchange {
         if (takeProfitPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument');
         }
-        params['takeProfitPrice'] = takeProfitPrice;
+        params = this.extend (params, { 'takeProfitPrice': takeProfitPrice });
         if (this.has['createTakeProfitOrderWs']) {
             return await this.createOrderWs (symbol, type, side, amount, price, params);
         }
@@ -7337,7 +7394,7 @@ export default class Exchange {
             return undefined;
         }
         const market = this.market (symbol);
-        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, TRUNCATE, this.safeString2 (market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol: string, price): string {

@@ -26,6 +26,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionHistory](#fetchpositionhistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchFundingRate](#fetchfundingrate)
 * [setMargin](#setmargin)
@@ -566,6 +567,30 @@ fetch all open positions
 
 ```javascript
 phemex.fetchPositions ([symbols, params])
+```
+
+
+<a name="fetchPositionHistory" id="fetchpositionhistory"></a>
+
+### fetchPositionHistory{docsify-ignore}
+fetches historical positions
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://phemex-docs.github.io/#query-closed-positions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified contract symbol |
+| since | <code>int</code> | No | the earliest time in ms to fetch positions for |
+| limit | <code>int</code> | No | the maximum amount of records to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch positions for |
+
+
+```javascript
+phemex.fetchPositionHistory (symbol[, since, limit, params])
 ```
 
 

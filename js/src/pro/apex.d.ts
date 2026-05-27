@@ -53,6 +53,8 @@ export default class apex extends apexRest {
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     watchTopics(url: any, messageHashes: any, topics: any, params?: {}): Promise<any>;
+    getWsPublicUrl(): string;
+    getWsPrivateUrl(): string;
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;

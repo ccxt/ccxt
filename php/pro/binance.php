@@ -241,8 +241,13 @@ class binance extends \ccxt\async\binance {
         $baseUrl = $this->urls['api']['ws'][$type];
         if ($type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
-            $firstProtocol = mb_strpos($baseUrl, '://');
-            if ($firstProtocol !== -1 && mb_strpos($baseUrl, '://', $firstProtocol + 3) !== -1) {
+            // $firstProtocol = mb_strpos($baseUrl, '://');
+            // if ($firstProtocol !== -1 && mb_strpos($baseUrl, '://', $firstProtocol + 3) !== -1) {
+            //     return $baseUrl;
+            // }
+            $baseUrlSplit = explode('://', $baseUrl);
+            $baseUrlSplitLength = count($baseUrlSplit);
+            if ($baseUrlSplitLength > 2) {
                 return $baseUrl;
             }
             // only rewrite when the URL ends with exactly "/ws"
@@ -1555,7 +1560,7 @@ class binance extends \ccxt\async\binance {
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
-            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone');
             $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
             $rawHashes = array();
             $messageHashes = array();
@@ -1623,7 +1628,7 @@ class binance extends \ccxt\async\binance {
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
-            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone');
             $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
             $rawHashes = array();
             $subMessageHashes = array();
@@ -2494,7 +2499,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($marketType) {
             /**
              * watches best bid & ask for symbols
-             * @param $marketType {string} only support on 'spot'
+             * @param {string} [$marketType] only supports 'spot'
              *
              * @see array(@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-$subscription-user_data Binance User Data Stream Documentation)
              *
@@ -3636,6 +3641,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrdersWs() requires a $symbol argument');
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $this->get_market_type('cancelAllOrdersWs', $market, $params);
