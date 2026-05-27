@@ -3912,7 +3912,7 @@ export default class mexc extends Exchange {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
                 const marketId = this.safeString (entry, 'symbol');
-                const symbol = this.safeSymbol (marketId, undefined);
+                const symbol = this.safeSymbol (marketId);
                 const base = this.safeValue (entry, 'baseAsset', {});
                 const quote = this.safeValue (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
@@ -4727,14 +4727,17 @@ export default class mexc extends Exchange {
         }
         while (Precise.stringLt (floor, maxVol)) {
             const cap = Precise.stringAdd (floor, riskIncrVol);
+            const minNotional = this.parseNumber (floor);
+            const mainMarginRate = this.parseNumber (maintenanceMarginRate);
+            const maxLev = this.parseNumber (Precise.stringDiv ('1', initialMarginRate));
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode (quoteId),
-                'minNotional': this.parseNumber (floor),
+                'minNotional': minNotional,
                 'maxNotional': this.parseNumber (cap),
-                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'maintenanceMarginRate': mainMarginRate,
+                'maxLeverage': maxLev,
                 'info': info,
             });
             initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
@@ -5368,8 +5371,8 @@ export default class mexc extends Exchange {
      * @description fetch a history of internal transfers made on an account
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
-     * @param code
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+     * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6118,8 +6121,8 @@ export default class mexc extends Exchange {
         if (market['spot']) {
             throw new BadSymbol (this.id + ' setMarginMode() supports contract markets only');
         }
-        marginMode = marginMode.toLowerCase ();
-        if (marginMode !== 'isolated' && marginMode !== 'cross') {
+        const marginModeLower = marginMode.toLowerCase ();
+        if (marginModeLower !== 'isolated' && marginModeLower !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         const leverage = this.safeInteger (params, 'leverage');
@@ -6129,7 +6132,7 @@ export default class mexc extends Exchange {
         const direction = this.safeStringLower2 (params, 'direction', 'positionId');
         const request: Dict = {
             'leverage': leverage,
-            'openType': (marginMode === 'isolated') ? 1 : 2,
+            'openType': (marginModeLower === 'isolated') ? 1 : 2,
         };
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
@@ -6243,7 +6246,7 @@ export default class mexc extends Exchange {
         if (success === true) {
             return undefined;
         }
-        const responseCode = this.safeString (response, 'code', undefined);
+        const responseCode = this.safeString (response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);

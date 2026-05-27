@@ -1,5 +1,8 @@
 
-// AUTO-TRANSPILE //
+// This example uses Node-only libraries (ololog, as-table, ansicolor)
+// and ansi-color property chains (str.red.dim, str.green) that can't
+// be transpiled meaningfully to Python or PHP. Kept as a JS-only
+// developer tool — the auto-transpile flag is intentionally omitted.
 
 'use strict';
 

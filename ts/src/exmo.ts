@@ -393,9 +393,8 @@ export default class exmo extends Exchange {
         params = this.omit (params, 'method');
         if (method === 'fetchPrivateTradingFees') {
             return await this.fetchPrivateTradingFees (params);
-        } else {
-            return await this.fetchPublicTradingFees (params);
         }
+        return await this.fetchPublicTradingFees (params);
     }
 
     async fetchPrivateTradingFees (params = {}) {
@@ -1154,7 +1153,8 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         let ids = undefined;
         if (symbols === undefined) {
-            ids = this.ids.join (',');
+            const allIds = this.ids;
+            ids = allIds.join (',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
                 const numIds = this.ids.length;
@@ -2174,43 +2174,18 @@ export default class exmo extends Exchange {
                 'status': 'canceled',
             });
             return this.parseOrders (response, market, since, limit, params);
-        } else {
-            const responseSwap = await this.privatePostMarginUserOrderHistory (this.extend (request, params));
-            //
-            //    {
-            //        "items": [
-            //            {
-            //                "event_id": "692862104574106858",
-            //                "event_time": "1694116400173489405",
-            //                "event_type": "OrderCancelStarted",
-            //                "order_id": "692862104561289319",
-            //                "order_type": "stop_limit_sell",
-            //                "order_status": "cancel_started",
-            //                "trade_id": "0",
-            //                "trade_type":"",
-            //                "trade_quantity": "0",
-            //                "trade_price": "0",
-            //                "pair": "ADA_USDT",
-            //                "quantity": "12",
-            //                "price": "0.23",
-            //                "stop_price": "0.22",
-            //                "distance": "0"
-            //            }
-            //            ...
-            //        ]
-            //    }
-            //
-            const items = this.safeValue (responseSwap, 'items');
-            const orders = this.parseOrders (items, market, since, limit, params);
-            const result = [];
-            for (let i = 0; i < orders.length; i++) {
-                const order = orders[i];
-                if (order['status'] === 'canceled') {
-                    result.push (order);
-                }
-            }
-            return result;
         }
+        const responseSwap = await this.privatePostMarginUserOrderHistory (this.extend (request, params));
+        const items = this.safeValue (responseSwap, 'items');
+        const orders = this.parseOrders (items, market, since, limit, params);
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            if (order['status'] === 'canceled') {
+                result.push (order);
+            }
+        }
+        return result;
     }
 
     /**

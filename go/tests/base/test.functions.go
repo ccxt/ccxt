@@ -36,7 +36,6 @@ var FunctionsMap = map[string]any{
 	"isJsonEncodedObject":             TestIsJsonEncodedObject,
 	"json":                            TestJson,
 	"keysort":                         TestKeysort,
-	"networkMethods":                  TestNetworkMethods,
 	"numberToBE":                      TestNumberToBE,
 	"numberToString":                  TestNumberToString,
 	"omit":                            TestOmit,
@@ -126,10 +125,6 @@ var FunctionsMap = map[string]any{
 }
 
 var WsFunctionsMap = map[string]any{
-	"unWatchPositions":            TestUnWatchPositions,
-	"watchBalance":                TestWatchBalance,
-	"watchBidsAsks":               TestWatchBidsAsks,
-	"watchLiquidations":           TestWatchLiquidations,
 	"watchLiquidationsForSymbols": TestWatchLiquidationsForSymbols,
 	"watchMyTrades":               TestWatchMyTrades,
 	"watchOHLCV":                  TestWatchOHLCV,
