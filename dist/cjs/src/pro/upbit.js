@@ -8,7 +8,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var rsa = require('../base/functions/rsa.js');
 var errors = require('../base/errors.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class upbit extends upbit$1["default"] {
     describe() {

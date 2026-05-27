@@ -7,6 +7,8 @@ php/pro/*.php linguist-generated=true
 go/v4/pro/*.go linguist-generated=true
 cs/ccxt/exchanges/pro/*.cs linguist-generated=true
 java/lib/src/main/java/io/github/ccxt/exchanges/pro/*.java linguist-generated=true
+java/tests/src/main/java/tests/exchange/*.java linguist-generated=true
+java/tests/src/main/java/tests/exchange/ws/*.java linguist-generated=true
 *.png binary
 *.so  binary
 *.wasm binary

@@ -100,6 +100,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Gateio Swaps](./examples/php/gateio-swaps.md)
 
+- [Gateio Watch Balance](./examples/php/gateio-watch-balance.md)
+
 - [Huobi Fetch Balance](./examples/php/huobi-fetch-balance.md)
 
 - [Huobi Futures](./examples/php/huobi-futures.md)

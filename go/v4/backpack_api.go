@@ -7,226 +7,226 @@
 
 package ccxt
 
-func (this *BackpackCore) PublicGetApiV1Assets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Assets", args...)
+func (this *BackpackCore) PublicGetApiV1Assets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Assets", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Collateral (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Collateral", args...)
+func (this *BackpackCore) PublicGetApiV1Collateral(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Collateral", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1BorrowLendMarkets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1BorrowLendMarkets", args...)
+func (this *BackpackCore) PublicGetApiV1BorrowLendMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1BorrowLendMarkets", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1BorrowLendMarketsHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1BorrowLendMarketsHistory", args...)
+func (this *BackpackCore) PublicGetApiV1BorrowLendMarketsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1BorrowLendMarketsHistory", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Markets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Markets", args...)
+func (this *BackpackCore) PublicGetApiV1Markets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Markets", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Market (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Market", args...)
+func (this *BackpackCore) PublicGetApiV1Market(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Market", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Ticker (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Ticker", args...)
+func (this *BackpackCore) PublicGetApiV1Ticker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Ticker", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Tickers (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Tickers", args...)
+func (this *BackpackCore) PublicGetApiV1Tickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Tickers", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Depth (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Depth", args...)
+func (this *BackpackCore) PublicGetApiV1Depth(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Depth", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Klines (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Klines", args...)
+func (this *BackpackCore) PublicGetApiV1Klines(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Klines", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1MarkPrices (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1MarkPrices", args...)
+func (this *BackpackCore) PublicGetApiV1MarkPrices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1MarkPrices", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1OpenInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1OpenInterest", args...)
+func (this *BackpackCore) PublicGetApiV1OpenInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1OpenInterest", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1FundingRates (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1FundingRates", args...)
+func (this *BackpackCore) PublicGetApiV1FundingRates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1FundingRates", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Status (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Status", args...)
+func (this *BackpackCore) PublicGetApiV1Status(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Status", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Ping (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Ping", args...)
+func (this *BackpackCore) PublicGetApiV1Ping(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Ping", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Time (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Time", args...)
+func (this *BackpackCore) PublicGetApiV1Time(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Time", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Wallets (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Wallets", args...)
+func (this *BackpackCore) PublicGetApiV1Wallets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Wallets", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1Trades (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1Trades", args...)
+func (this *BackpackCore) PublicGetApiV1Trades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1Trades", args...)
 }
 
-func (this *BackpackCore) PublicGetApiV1TradesHistory (args ...any) <-chan any {
-   return this.callEndpointAsync("publicGetApiV1TradesHistory", args...)
+func (this *BackpackCore) PublicGetApiV1TradesHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetApiV1TradesHistory", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1Account (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1Account", args...)
+func (this *BackpackCore) PrivateGetApiV1Account(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsBorrow (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1AccountLimitsBorrow", args...)
+func (this *BackpackCore) PrivateGetApiV1AccountLimitsBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1AccountLimitsBorrow", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsOrder (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1AccountLimitsOrder", args...)
+func (this *BackpackCore) PrivateGetApiV1AccountLimitsOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1AccountLimitsOrder", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsWithdrawal (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1AccountLimitsWithdrawal", args...)
+func (this *BackpackCore) PrivateGetApiV1AccountLimitsWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1AccountLimitsWithdrawal", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1BorrowLendPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1BorrowLendPositions", args...)
+func (this *BackpackCore) PrivateGetApiV1BorrowLendPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1BorrowLendPositions", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1Capital (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1Capital", args...)
+func (this *BackpackCore) PrivateGetApiV1Capital(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1Capital", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1CapitalCollateral (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1CapitalCollateral", args...)
+func (this *BackpackCore) PrivateGetApiV1CapitalCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1CapitalCollateral", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1CapitalDeposits (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1CapitalDeposits", args...)
+func (this *BackpackCore) PrivateGetWapiV1CapitalDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1CapitalDeposits", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1CapitalDepositAddress (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1CapitalDepositAddress", args...)
+func (this *BackpackCore) PrivateGetWapiV1CapitalDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1CapitalDepositAddress", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1CapitalWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1CapitalWithdrawals", args...)
+func (this *BackpackCore) PrivateGetWapiV1CapitalWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1CapitalWithdrawals", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1Position (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1Position", args...)
+func (this *BackpackCore) PrivateGetApiV1Position(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1Position", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLend (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLend", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLend(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLend", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryInterest (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryInterest", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryInterest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryInterest", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLendPositions (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLendPositions", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLendPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLendPositions", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryDust (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryDust", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryDust(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryDust", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryFills (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryFills", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryFills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryFills", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryFunding (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryFunding", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryFunding", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryOrders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryOrders", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryOrders", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryRfq (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryRfq", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryRfq", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryQuote", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryQuote", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistorySettlement (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistorySettlement", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistorySettlement(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistorySettlement", args...)
 }
 
-func (this *BackpackCore) PrivateGetWapiV1HistoryStrategies (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetWapiV1HistoryStrategies", args...)
+func (this *BackpackCore) PrivateGetWapiV1HistoryStrategies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWapiV1HistoryStrategies", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1Order (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1Order", args...)
+func (this *BackpackCore) PrivateGetApiV1Order(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1Order", args...)
 }
 
-func (this *BackpackCore) PrivateGetApiV1Orders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateGetApiV1Orders", args...)
+func (this *BackpackCore) PrivateGetApiV1Orders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1Orders", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1AccountConvertDust (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1AccountConvertDust", args...)
+func (this *BackpackCore) PrivatePostApiV1AccountConvertDust(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1AccountConvertDust", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1BorrowLend (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1BorrowLend", args...)
+func (this *BackpackCore) PrivatePostApiV1BorrowLend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1BorrowLend", args...)
 }
 
-func (this *BackpackCore) PrivatePostWapiV1CapitalWithdrawals (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostWapiV1CapitalWithdrawals", args...)
+func (this *BackpackCore) PrivatePostWapiV1CapitalWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWapiV1CapitalWithdrawals", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1Order (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1Order", args...)
+func (this *BackpackCore) PrivatePostApiV1Order(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1Order", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1Orders (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1Orders", args...)
+func (this *BackpackCore) PrivatePostApiV1Orders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1Orders", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1Rfq (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1Rfq", args...)
+func (this *BackpackCore) PrivatePostApiV1Rfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1Rfq", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1RfqAccept (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1RfqAccept", args...)
+func (this *BackpackCore) PrivatePostApiV1RfqAccept(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1RfqAccept", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1RfqRefresh (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1RfqRefresh", args...)
+func (this *BackpackCore) PrivatePostApiV1RfqRefresh(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1RfqRefresh", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1RfqCancel (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1RfqCancel", args...)
+func (this *BackpackCore) PrivatePostApiV1RfqCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1RfqCancel", args...)
 }
 
-func (this *BackpackCore) PrivatePostApiV1RfqQuote (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePostApiV1RfqQuote", args...)
+func (this *BackpackCore) PrivatePostApiV1RfqQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1RfqQuote", args...)
 }
 
-func (this *BackpackCore) PrivateDeleteApiV1Order (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteApiV1Order", args...)
+func (this *BackpackCore) PrivateDeleteApiV1Order(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteApiV1Order", args...)
 }
 
-func (this *BackpackCore) PrivateDeleteApiV1Orders (args ...any) <-chan any {
-   return this.callEndpointAsync("privateDeleteApiV1Orders", args...)
+func (this *BackpackCore) PrivateDeleteApiV1Orders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteApiV1Orders", args...)
 }
 
-func (this *BackpackCore) PrivatePatchApiV1Account (args ...any) <-chan any {
-   return this.callEndpointAsync("privatePatchApiV1Account", args...)
+func (this *BackpackCore) PrivatePatchApiV1Account(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchApiV1Account", args...)
 }
