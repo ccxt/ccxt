@@ -678,6 +678,43 @@
             }
         }
     },
+    "bybiteu": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "fetchCurrencies": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "incorrect calcs: https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4452"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "fetchPositions": "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "account": "account is not provided",
+                "status": "status is not provided",
+                "fee": "undefined"
+            },
+            "fetchOpenInterestHistory": {
+                "openInterestAmount": "openInterestAmount is not provided"
+            },
+            "fetchBorrowRate": "does not work with unified account",
+            "orderBook": {
+                "compareToNextItem": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3794"
+            },
+            "watchOrderBook": {
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:623"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            }
+        }
+    },
     "bigone": {
         "skipMethods": {
             "loadMarkets": {

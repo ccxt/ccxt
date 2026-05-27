@@ -44,11 +44,18 @@ public partial class testMainClass : BaseTest
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         // check market
         object market = null;
+        object isUnrecognizedSymbol = false;
         object isFetchTickerCalled = isEqual(method, "fetchTicker");
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
-        if (isTrue(isTrue(!isEqual(symbolForMarket, null)) && isTrue((inOp(exchange.markets, symbolForMarket)))))
+        if (isTrue(!isEqual(symbolForMarket, null)))
         {
-            market = exchange.market(symbolForMarket);
+            if (isTrue(inOp(exchange.markets, symbolForMarket)))
+            {
+                market = exchange.market(symbolForMarket);
+            } else
+            {
+                isUnrecognizedSymbol = true;
+            }
         }
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
         if (!isTrue((inOp(skippedProperties, "checkInactiveMarkets"))))
@@ -180,7 +187,7 @@ public partial class testMainClass : BaseTest
         }
         object percentage = exchange.safeString(entry, "percentage");
         object change = exchange.safeString(entry, "change");
-        if (!isTrue((inOp(skippedProperties, "maxIncrease"))))
+        if (isTrue(!isTrue((inOp(skippedProperties, "maxIncrease"))) && !isTrue(isUnrecognizedSymbol)))
         {
             //
             // percentage

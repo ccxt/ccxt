@@ -2581,8 +2581,10 @@ class mexc extends Exchange {
         // Trigger
         //     array("success":true,"code":0,"data":259208506303929856)
         //
-        $data = $this->safe_string($response, 'data');
-        return $this->safe_order(array( 'id' => $data ), $market);
+        // array("success":true,"code":0,"data":array("orderId":"814218083416790528","ts":1779795118533))
+        //
+        $data = $this->safe_dict($response, 'data');
+        return $this->safe_order(array( 'id' => $this->safe_string($data, 'orderId'), 'timestamp' => $this->safe_integer($data, 'ts') ), $market);
     }
 
     public function create_orders(array $orders, $params = array ()) {

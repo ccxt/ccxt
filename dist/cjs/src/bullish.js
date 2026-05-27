@@ -513,32 +513,30 @@ class bullish extends bullish$1["default"] {
         //         }, ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'name');
-            const precision = this.safeString(currency, 'precision');
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber(currency, 'minFee'),
-                'precision': this.parseNumber(this.parsePrecision(precision)),
-                'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': currency,
-            };
-        }
-        return result;
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const name = this.safeString(rawCurrency, 'name');
+        const precision = this.safeString(rawCurrency, 'precision');
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': this.safeNumber(rawCurrency, 'minFee'),
+            'precision': this.parseNumber(this.parsePrecision(precision)),
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+            'type': 'crypto',
+            'info': rawCurrency,
+        });
     }
     /**
      * @method

@@ -534,51 +534,23 @@ class ascendex(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            currency = data[i]
-            id = self.safe_string(currency, 'assetCode')
-            code = self.safe_currency_code(id)
-            chains = self.safe_list(currency, 'blockChain', [])
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'nativeScale')))
-            networks = {}
-            for j in range(0, len(chains)):
-                networkEtnry = chains[j]
-                networkId = self.safe_string(networkEtnry, 'chainName')
-                networkCode = self.network_code_to_id(networkId)
-                networks[networkCode] = {
-                    'fee': self.safe_number(networkEtnry, 'withdrawFee'),
-                    'active': None,
-                    'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
-                    'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(networkEtnry, 'minWithdrawal'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkEtnry, 'minDepositAmt'),
-                            'max': None,
-                        },
-                    },
-                }
-            # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': None,
-                'margin': None,
-                'name': self.safe_string(currency, 'assetName'),
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'assetCode')
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(rawCurrency, 'blockChain', [])
+        precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'nativeScale')))
+        networks = {}
+        for j in range(0, len(chains)):
+            networkEtnry = chains[j]
+            networkId = self.safe_string(networkEtnry, 'chainName')
+            networkCode = self.network_code_to_id(networkId)
+            networks[networkCode] = {
+                'fee': self.safe_number(networkEtnry, 'withdrawFee'),
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
+                'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -586,13 +558,40 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'minWithdrawalAmt'),
+                        'min': self.safe_number(networkEtnry, 'minWithdrawal'),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_number(networkEtnry, 'minDepositAmt'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': None,
+            'margin': None,
+            'name': self.safe_string(rawCurrency, 'assetName'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'minWithdrawalAmt'),
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """

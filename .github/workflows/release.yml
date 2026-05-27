@@ -131,13 +131,6 @@ jobs:
         with:
             packages-dir: 'python/dist'
             print_hash: true
-      - name: Publish Go node_modules
-        env:
-          VERSION: ${{ env.NPM_VERSION }}
-        run: |
-          cd go/
-          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
-          cd ..
       - name: C# Release Build
         run: npm run buildCSRelease
       - name: NuGet login (OIDC - temp API key)
@@ -157,3 +150,10 @@ jobs:
       - run: npm publish --provenance
         env:
           NPM_CONFIG_PROVENANCE: true
+      - name: Publish Go node_modules
+        env:
+          VERSION: ${{ env.NPM_VERSION }}
+        run: |
+          cd go/
+          GOPROXY=proxy.golang.org go list -m github.com/ccxt/ccxt/go/v4@$VERSION
+          cd ..

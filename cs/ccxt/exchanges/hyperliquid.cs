@@ -2055,12 +2055,21 @@ public partial class hyperliquid : Exchange
                 response = await this.publicPostInfo(this.extend(request, parameters));
             } catch(Exception e)
             {
+                if (isTrue(e is InvalidProxySettings))
+                {
+                    throw e;
+                }
                 response = null; // ignore this error and assume unified margin is not enabled
             }
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            enableUnifiedMargin = isEqual(response, "\"unifiedAccount\"");
+            if (isTrue(!isEqual(response, null)))
+            {
+                response = ((string)response).Replace((string)"\"", (string)"");
+                response = ((string)response).Replace((string)"\"", (string)"");
+                enableUnifiedMargin = isEqual(response, "unifiedAccount");
+            }
             // don't cache this result if this is a different addresss
             ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
         }

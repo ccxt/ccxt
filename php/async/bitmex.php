@@ -471,95 +471,94 @@ class bitmex extends Exchange {
             //        ),
             //     }
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $asset = $this->safe_string($currency, 'asset');
-                $code = $this->safe_currency_code($asset);
-                $id = $this->safe_string($currency, 'currency');
-                $name = $this->safe_string($currency, 'name');
-                $chains = $this->safe_value($currency, 'networks', array());
-                $depositEnabled = false;
-                $withdrawEnabled = false;
-                $networks = array();
-                $scale = $this->safe_string($currency, 'scale');
-                $precisionString = $this->parse_precision($scale);
-                $precision = $this->parse_number($precisionString);
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'asset');
-                    $network = $this->network_id_to_code($networkId);
-                    $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
-                    $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
-                    $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
-                    $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
-                    $active = ($isDepositEnabled && $isWithdrawEnabled);
-                    if ($isDepositEnabled) {
-                        $depositEnabled = true;
-                    }
-                    if ($isWithdrawEnabled) {
-                        $withdrawEnabled = true;
-                    }
-                    $networks[$network] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $network,
-                        'active' => $active,
-                        'deposit' => $isDepositEnabled,
-                        'withdraw' => $isWithdrawEnabled,
-                        'fee' => $withdrawalFee,
-                        'precision' => null,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $currencyEnabled = $this->safe_value($currency, 'enabled');
-                $currencyActive = $currencyEnabled || ($depositEnabled || $withdrawEnabled);
-                $minWithdrawalString = $this->safe_string($currency, 'minWithdrawalAmount');
-                $minWithdrawal = $this->parse_number(Precise::string_mul($minWithdrawalString, $precisionString));
-                $maxWithdrawalString = $this->safe_string($currency, 'maxWithdrawalAmount');
-                $maxWithdrawal = $this->parse_number(Precise::string_mul($maxWithdrawalString, $precisionString));
-                $minDepositString = $this->safe_string($currency, 'minDepositAmount');
-                $minDeposit = $this->parse_number(Precise::string_mul($minDepositString, $precisionString));
-                $isCrypto = $this->safe_string($currency, 'currencyType') === 'Crypto';
-                $result[$code] = array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'name' => $name,
-                    'active' => $currencyActive,
-                    'deposit' => $depositEnabled,
-                    'withdraw' => $withdrawEnabled,
-                    'fee' => null,
-                    'precision' => $precision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $minWithdrawal,
-                            'max' => $maxWithdrawal,
-                        ),
-                        'deposit' => array(
-                            'min' => $minDeposit,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'type' => $isCrypto ? 'crypto' : 'other',
-                );
-            }
-            return $result;
+            return $this->parse_currencies($response);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $asset = $this->safe_string($currency, 'asset');
+        $code = $this->safe_currency_code($asset);
+        $id = $this->safe_string($currency, 'currency');
+        $name = $this->safe_string($currency, 'name');
+        $chains = $this->safe_value($currency, 'networks', array());
+        $depositEnabled = false;
+        $withdrawEnabled = false;
+        $networks = array();
+        $scale = $this->safe_string($currency, 'scale');
+        $precisionString = $this->parse_precision($scale);
+        $precision = $this->parse_number($precisionString);
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'asset');
+            $network = $this->network_id_to_code($networkId);
+            $withdrawalFeeRaw = $this->safe_string($chain, 'withdrawalFee');
+            $withdrawalFee = $this->parse_number(Precise::string_mul($withdrawalFeeRaw, $precisionString));
+            $isDepositEnabled = $this->safe_bool($chain, 'depositEnabled', false);
+            $isWithdrawEnabled = $this->safe_bool($chain, 'withdrawalEnabled', false);
+            $active = ($isDepositEnabled && $isWithdrawEnabled);
+            if ($isDepositEnabled) {
+                $depositEnabled = true;
+            }
+            if ($isWithdrawEnabled) {
+                $withdrawEnabled = true;
+            }
+            $networks[$network] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $network,
+                'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
+                'fee' => $withdrawalFee,
+                'precision' => null,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        $currencyEnabled = $this->safe_value($currency, 'enabled');
+        $currencyActive = $currencyEnabled || ($depositEnabled || $withdrawEnabled);
+        $minWithdrawalString = $this->safe_string($currency, 'minWithdrawalAmount');
+        $minWithdrawal = $this->parse_number(Precise::string_mul($minWithdrawalString, $precisionString));
+        $maxWithdrawalString = $this->safe_string($currency, 'maxWithdrawalAmount');
+        $maxWithdrawal = $this->parse_number(Precise::string_mul($maxWithdrawalString, $precisionString));
+        $minDepositString = $this->safe_string($currency, 'minDepositAmount');
+        $minDeposit = $this->parse_number(Precise::string_mul($minDepositString, $precisionString));
+        $isCrypto = $this->safe_string($currency, 'currencyType') === 'Crypto';
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $currency,
+            'name' => $name,
+            'active' => $currencyActive,
+            'deposit' => $depositEnabled,
+            'withdraw' => $withdrawEnabled,
+            'fee' => null,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $minWithdrawal,
+                    'max' => $maxWithdrawal,
+                ),
+                'deposit' => array(
+                    'min' => $minDeposit,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => $isCrypto ? 'crypto' : 'other',
+        ));
     }
 
     public function convert_from_real_amount($code, $amount) {
