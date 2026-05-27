@@ -770,7 +770,7 @@ class bitrue(Exchange, ImplicitAPI):
         #                 {
         #                     "chain": "BEP20",
         #                     "enableWithdraw": True,
-        #                     "enableDeposit": True,
+        #                     "enableDeposit": False,
         #                     "withdrawFee": "0.2000",
         #                     "minWithdraw": "5.0000",
         #                     "maxWithdraw": "1000000000000000.0000",
@@ -780,56 +780,55 @@ class bitrue(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
-        result: dict = {}
         coins = self.safe_list(response, 'coins', [])
-        for i in range(0, len(coins)):
-            currency = coins[i]
-            id = self.safe_string(currency, 'coin')
-            name = self.safe_string(currency, 'coinFulName')
-            code = self.safe_currency_code(id)
-            networkDetails = self.safe_list(currency, 'chainDetail', [])
-            networks: dict = {}
-            for j in range(0, len(networkDetails)):
-                entry = networkDetails[j]
-                networkId = self.safe_string(entry, 'chain')
-                network = self.network_id_to_code(networkId, code)
-                networks[network] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': network,
-                    'deposit': self.safe_bool(entry, 'enableDeposit'),
-                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
-                    'active': None,
-                    'fee': self.safe_number(entry, 'withdrawFee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(entry, 'minWithdraw'),
-                            'max': self.safe_number(entry, 'maxWithdraw'),
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': None,
-                'info': currency,
+        return self.parse_currencies(coins)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        name = self.safe_string(rawCurrency, 'coinFulName')
+        code = self.safe_currency_code(id)
+        networkDetails = self.safe_list(rawCurrency, 'chainDetail', [])
+        networks: dict = {}
+        for j in range(0, len(networkDetails)):
+            entry = networkDetails[j]
+            networkId = self.safe_string(entry, 'chain')
+            network = self.network_id_to_code(networkId, code)
+            networks[network] = {
+                'info': entry,
+                'id': networkId,
+                'network': network,
+                'deposit': self.safe_bool(entry, 'enableDeposit'),
+                'withdraw': self.safe_bool(entry, 'enableWithdraw'),
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'networks': networks,
-                'fee': None,
-                'fees': None,
-                'type': 'crypto',
+                'fee': self.safe_number(entry, 'withdrawFee'),
+                'precision': None,
                 'limits': {
                     'withdraw': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(entry, 'minWithdraw'),
+                        'max': self.safe_number(entry, 'maxWithdraw'),
                     },
                 },
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': None,
+            'info': rawCurrency,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'networks': networks,
+            'fee': None,
+            'fees': None,
+            'type': 'crypto',
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -984,6 +983,7 @@ class bitrue(Exchange, ImplicitAPI):
         minCost = self.safe_number(amountFilter, 'minVal')
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
+        isSpot = (type == 'spot')
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -995,7 +995,7 @@ class bitrue(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type == 'spot'),
+            'spot': isSpot,
             'margin': False,
             'swap': isContract,
             'future': False,

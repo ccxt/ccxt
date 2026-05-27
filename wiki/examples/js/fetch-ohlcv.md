@@ -5,6 +5,7 @@
  import ccxt from '../../js/ccxt.js';
 // AUTO-TRANSPILE //
 async function example() {
+    // eslint-disable-next-line import/no-named-as-default-member
     const myex = new ccxt.okx({});
     const fromTimestamp = myex.milliseconds() - 86400 * 1000; // last 24 hrs
     const ohlcv = await myex.fetchOHLCV('BTC/USDT', '1m', fromTimestamp, 3, { 'whatever': 123 });

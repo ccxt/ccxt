@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitstamp
@@ -524,7 +524,6 @@ class bitstamp extends bitstamp$1["default"] {
                     'Your account is frozen': errors.PermissionDenied,
                     'Please update your profile with your FATCA information, before using API.': errors.PermissionDenied,
                     'Order not found.': errors.OrderNotFound,
-                    'Price is more than 20% below market price.': errors.InvalidOrder,
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon.": errors.OnMaintenance,
                     'Order could not be placed.': errors.ExchangeNotAvailable,
                     'Invalid offset.': errors.BadRequest,
@@ -532,6 +531,7 @@ class bitstamp extends bitstamp$1["default"] {
                 },
                 'broad': {
                     'Minimum order size is': errors.InvalidOrder,
+                    'Price is more than': errors.InvalidOrder,
                     'Check your account balance for details.': errors.InsufficientFunds,
                     'Ensure this value has at least': errors.InvalidAddress,
                     'Ensure that there are no more than': errors.InvalidOrder, // {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
@@ -682,12 +682,13 @@ class bitstamp extends bitstamp$1["default"] {
                 }
             }
             const isSpot = (type === 'spot');
+            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settleId ? this.safeCurrencyCode(settleId) : undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -831,27 +832,32 @@ class bitstamp extends bitstamp$1["default"] {
         //         },
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const description = this.safeString(market, 'description');
-            const [baseDescription, quoteDescription] = description.split(' / ');
-            const minimumOrder = this.safeString(market, 'minimum_order_value');
-            const parts = minimumOrder.split(' ');
-            const cost = parts[0];
-            if (!(base in result)) {
-                const baseDecimals = this.safeInteger(market, 'base_decimals');
-                result[base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
-            }
-            if (!(quote in result)) {
-                const counterDecimals = this.safeInteger(market, 'counter_decimals');
-                result[quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
-            }
+        this.options['_temp_currencies_result'] = {};
+        const result = this.parseCurrencies(response);
+        const finalResult = this.deepExtend(result, this.options['_temp_currencies_result']);
+        delete this.options['_temp_currencies_result'];
+        return finalResult;
+    }
+    parseCurrency(rawCurrency) {
+        const market = rawCurrency;
+        const existing = this.safeDict(this.options, '_temp_currencies_result', {});
+        const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const description = this.safeString(market, 'description');
+        const [baseDescription, quoteDescription] = description.split(' / ');
+        const minimumOrder = this.safeString(market, 'minimum_order_value');
+        const parts = minimumOrder.split(' ');
+        const cost = parts[0];
+        if (!(base in existing)) {
+            const baseDecimals = this.safeInteger(market, 'base_decimals');
+            this.options['_temp_currencies_result'][base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
         }
-        return result;
+        if (!(quote in existing)) {
+            const counterDecimals = this.safeInteger(market, 'counter_decimals');
+            this.options['_temp_currencies_result'][quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
+        }
+        return this.options['_temp_currencies_result'][quote];
     }
     /**
      * @method
@@ -910,7 +916,7 @@ class bitstamp extends bitstamp$1["default"] {
         // }
         //
         const marketId = this.safeString(ticker, 'pair');
-        const symbol = this.safeSymbol(marketId, market, undefined);
+        const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'volume');
@@ -1137,6 +1143,19 @@ class bitstamp extends bitstamp$1["default"] {
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, market['baseId'], amountString);
         costString = this.safeString(trade, market['quoteId'], costString);
+        // this endpoint is not aligned with "markets" endpoint
+        const baseIdLower = market['baseId'].toLowerCase();
+        const quoteIdLower = market['quoteId'].toLowerCase();
+        const dashedIdLower = baseIdLower + '_' + quoteIdLower;
+        if (priceString === undefined) {
+            priceString = this.safeString(trade, dashedIdLower);
+        }
+        if (amountString === undefined) {
+            amountString = this.safeString(trade, baseIdLower);
+        }
+        if (costString === undefined) {
+            costString = this.safeString(trade, quoteIdLower);
+        }
         symbol = market['symbol'];
         const datetimeString = this.safeString2(trade, 'date', 'datetime');
         let timestamp = undefined;
@@ -1319,8 +1338,9 @@ class bitstamp extends bitstamp$1["default"] {
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
     parseBalance(response) {
+        const finalResponse = response; // java req
         const result = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };
@@ -2328,7 +2348,7 @@ class bitstamp extends bitstamp$1["default"] {
      * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();

@@ -479,7 +479,7 @@ class backpack(Exchange, ImplicitAPI):
                     'INSUFFICIENT_SUPPLY': InsufficientFunds,
                     'INVALID_ASSET': BadRequest,
                     'INVALID_MARKET': BadSymbol,
-                    'INVALID_PRICE': BadRequest,
+                    'INVALID_PRICE': InvalidOrder,  # {"code":"INVALID_PRICE","message":"Price is too far from the last active price"}
                     'INVALID_POSITION_ID': BadRequest,
                     'INVALID_QUANTITY': BadRequest,
                     'INVALID_RANGE': BadRequest,
@@ -541,69 +541,68 @@ class backpack(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currecy = response[i]
-            currencyId = self.safe_string(currecy, 'symbol')
-            code = self.safe_currency_code(currencyId)
-            networks = self.safe_list(currecy, 'tokens', [])
-            parsedNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                networkId = self.safe_string(network, 'blockchain')
-                networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
-                networkCode = self.network_id_to_code(networkIdLowerCase)
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(network, 'minimumWithdrawal'),
-                            'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(network, 'minimumDeposit'),
-                            'max': None,
-                        },
-                    },
-                    'active': None,
-                    'deposit': self.safe_bool(network, 'depositEnabled'),
-                    'withdraw': self.safe_bool(network, 'withdrawEnabled'),
-                    'fee': self.safe_number(network, 'withdrawalFee'),
-                    'precision': None,
-                    'info': network,
-                }
-            active = None
-            deposit = None
-            withdraw = None
-            if self.is_empty(parsedNetworks):  # if networks are not provided
-                active = False
-                deposit = False
-                withdraw = False
-            result[code] = self.safe_currency_structure({
-                'id': currencyId,
-                'code': code,
-                'precision': None,
-                'type': 'crypto',  # todo check if it is always crypto
-                'name': self.safe_string(currecy, 'displayName'),
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': None,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(currencyId)
+        networks = self.safe_list(rawCurrency, 'tokens', [])
+        parsedNetworks: dict = {}
+        for j in range(0, len(networks)):
+            network = networks[j]
+            networkId = self.safe_string(network, 'blockchain')
+            networkIdLowerCase = self.safe_string_lower(network, 'blockchain')
+            networkCode = self.network_id_to_code(networkIdLowerCase)
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
                     'withdraw': {
-                        'min': None,
+                        'min': self.safe_number(network, 'minimumWithdrawal'),
+                        'max': self.parse_number(self.omit_zero(self.safe_string(network, 'maximumWithdrawal'))),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(network, 'minimumDeposit'),
                         'max': None,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            })
-        return result
+                'active': None,
+                'deposit': self.safe_bool(network, 'depositEnabled'),
+                'withdraw': self.safe_bool(network, 'withdrawEnabled'),
+                'fee': self.safe_number(network, 'withdrawalFee'),
+                'precision': None,
+                'info': network,
+            }
+        active = None
+        deposit = None
+        withdraw = None
+        if self.is_empty(parsedNetworks):  # if networks are not provided
+            active = False
+            deposit = False
+            withdraw = False
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'precision': None,
+            'type': 'crypto',  # todo check if it is always crypto
+            'name': self.safe_string(rawCurrency, 'displayName'),
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': None,
+            'limits': {
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

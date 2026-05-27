@@ -559,6 +559,7 @@ public partial class hitbtc : Exchange
                 { "XMT", "MTL" },
                 { "XPNT", "PNT" },
             } },
+            { "rollingWindowSize", 1000 },
         });
     }
 
@@ -772,57 +773,71 @@ public partial class hitbtc : Exchange
         //        },
         //    }
         //
-        object result = new Dictionary<string, object>() {};
-        object currencies = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        object enhancedArray = this.addKeyInArrayItems(response, "_coin_id");
+        return this.parseCurrencies(enhancedArray);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object currencyId = getValue(currency, "_coin_id");
+        object code = this.safeCurrencyCode(currencyId);
+        object entry = currency;
+        object rawNetworks = this.safeList(entry, "networks", new List<object>() {});
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
         {
-            object currencyId = getValue(currencies, i);
-            object code = this.safeCurrencyCode(currencyId);
-            object entry = getValue(response, currencyId);
-            object rawNetworks = this.safeList(entry, "networks", new List<object>() {});
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
-            {
-                object rawNetwork = getValue(rawNetworks, j);
-                object networkId = this.safeString2(rawNetwork, "protocol", "network");
-                object networkCode = this.networkIdToCode(networkId);
-                networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", rawNetwork },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "fee", this.safeNumber(rawNetwork, "payout_fee") },
-                    { "deposit", this.safeBool(rawNetwork, "payin_enabled") },
-                    { "withdraw", this.safeBool(rawNetwork, "payout_enabled") },
-                    { "precision", this.safeNumber(rawNetwork, "precision_payout") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "code", code },
-                { "id", currencyId },
-                { "precision", this.safeNumber(entry, "precision_transfer") },
-                { "name", this.safeString(entry, "full_name") },
-                { "active", !isTrue(this.safeBool(entry, "delisted")) },
-                { "deposit", this.safeBool(entry, "payin_enabled") },
-                { "withdraw", this.safeBool(entry, "payout_enabled") },
-                { "networks", networks },
-                { "fee", null },
+            object rawNetwork = getValue(rawNetworks, j);
+            object networkId = this.safeString2(rawNetwork, "protocol", "network");
+            object networkCode = this.networkIdToCode(networkId);
+            networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", rawNetwork },
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", null },
+                { "fee", this.safeNumber(rawNetwork, "payout_fee") },
+                { "deposit", this.safeBool(rawNetwork, "payin_enabled") },
+                { "withdraw", this.safeBool(rawNetwork, "payout_enabled") },
+                { "precision", this.safeNumber(rawNetwork, "precision_payout") },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                 } },
-                { "type", null },
-            });
+            };
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", entry },
+            { "code", code },
+            { "id", currencyId },
+            { "precision", this.safeNumber(entry, "precision_transfer") },
+            { "name", this.safeString(entry, "full_name") },
+            { "active", !isTrue(this.safeBool(entry, "delisted")) },
+            { "deposit", this.safeBool(entry, "payin_enabled") },
+            { "withdraw", this.safeBool(entry, "payout_enabled") },
+            { "networks", networks },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", null },
+        });
+    }
+
+    public virtual object addKeyInArrayItems(object obj, object keyName)
+    {
+        object result = new List<object>() {};
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object item = getValue(obj, key);
+            ((IDictionary<string,object>)item)[(string)keyName] = key;
+            ((IList<object>)result).Add(item);
         }
         return result;
     }
@@ -1007,7 +1022,7 @@ public partial class hitbtc : Exchange
         //         "open": "0.020913",
         //         "volume": "138444.3666",
         //         "volume_quote": "2853.6874972480",
-        //         "timestamp": "2021-06-02T17:52:36.731Z"
+        //         "timestamp": "2021-06-02T17:52:36.732Z"
         //     }
         //
         return this.parseTicker(response, market);
@@ -3515,8 +3530,9 @@ public partial class hitbtc : Exchange
         //         "positions": null
         //     }
         //
+        object parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amount) },
+            { "amount", parsedAmount },
             { "type", type },
         });
     }

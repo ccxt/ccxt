@@ -9,7 +9,7 @@ var rsa = require('./base/functions/rsa.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bigone
@@ -69,6 +69,9 @@ class bigone extends bigone$1["default"] {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -518,88 +521,86 @@ class bigone extends bigone$1["default"] {
         // }
         //
         const currenciesData = this.safeList(data, 'data', []);
-        const result = {};
-        for (let i = 0; i < currenciesData.length; i++) {
-            const currency = currenciesData[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'name');
-            const networks = {};
-            const chains = this.safeList(currency, 'binding_gateways', []);
-            const currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'gateway_name');
-                const networkCode = this.networkIdToCode(networkId);
-                const deposit = this.safeBool(chain, 'is_deposit_enabled');
-                const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
-                const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
-                const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
-                const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
-                const precision = this.parsePrecision(this.safeString2(chain, 'withdrawal_scale', 'scale'));
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'margin': undefined,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': undefined,
-                    'fee': this.parseNumber(withdrawalFee),
-                    'precision': this.parseNumber(precision),
-                    'limits': {
-                        'deposit': {
-                            'min': minDepositAmount,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': minWithdrawalAmount,
-                            'max': undefined,
-                        },
-                    },
-                    'info': chain,
-                };
-            }
-            const chainLength = chains.length;
-            let type = undefined;
-            if (this.safeBool(currency, 'is_fiat')) {
-                type = 'fiat';
-            }
-            else if (chainLength === 0) {
-                if (this.isLeveragedCurrency(id)) {
-                    type = 'leveraged';
-                }
-                else {
-                    type = 'other';
-                }
-            }
-            else {
-                type = 'crypto';
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'type': type,
+        return this.parseCurrencies(currenciesData);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const name = this.safeString(rawCurrency, 'name');
+        const networks = {};
+        const chains = this.safeList(rawCurrency, 'binding_gateways', []);
+        const currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, 'withdrawal_scale', 'scale'));
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'gateway_name');
+            const networkCode = this.networkIdToCode(networkId);
+            const deposit = this.safeBool(chain, 'is_deposit_enabled');
+            const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
+            const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
+            const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
+            const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
+            const precision = this.parsePrecision(this.safeString2(chain, 'withdrawal_scale', 'scale'));
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(currencyMaxPrecision),
+                'fee': this.parseNumber(withdrawalFee),
+                'precision': this.parseNumber(precision),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
+                    'deposit': {
+                        'min': minDepositAmount,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': minWithdrawalAmount,
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+                'info': chain,
+            };
         }
-        return result;
+        const chainLength = chains.length;
+        let type = undefined;
+        if (this.safeBool(rawCurrency, 'is_fiat')) {
+            type = 'fiat';
+        }
+        else if (chainLength === 0) {
+            if (this.isLeveragedCurrency(id)) {
+                type = 'leveraged';
+            }
+            else {
+                type = 'other';
+            }
+        }
+        else {
+            type = 'crypto';
+        }
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'type': type,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber(currencyMaxPrecision),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -1243,18 +1244,21 @@ class bigone extends bigone$1["default"] {
         const makerFeeCost = this.safeString(trade, 'maker_fee');
         const takerFeeCost = this.safeString(trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
+            const makerCode = makerCurrencyCode;
             if (takerFeeCost !== undefined) {
+                const takerCode = takerCurrencyCode;
                 result['fees'] = [
-                    { 'cost': makerFeeCost, 'currency': makerCurrencyCode },
-                    { 'cost': takerFeeCost, 'currency': takerCurrencyCode },
+                    { 'cost': makerFeeCost, 'currency': makerCode },
+                    { 'cost': takerFeeCost, 'currency': takerCode },
                 ];
             }
             else {
-                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCurrencyCode };
+                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCode };
             }
         }
         else if (takerFeeCost !== undefined) {
-            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCurrencyCode };
+            const takerCode2 = takerCurrencyCode;
+            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCode2 };
         }
         else {
             result['fee'] = undefined;

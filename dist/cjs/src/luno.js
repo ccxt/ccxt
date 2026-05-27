@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class luno
@@ -303,6 +303,7 @@ class luno extends luno$1["default"] {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
     /**
@@ -1275,7 +1276,7 @@ class luno extends luno$1["default"] {
         const firstWord = this.safeString(words, 0);
         const thirdWord = this.safeString(words, 2);
         const fourthWord = this.safeString(words, 3);
-        let type = this.safeString(types, firstWord, undefined);
+        let type = this.safeString(types, firstWord);
         if ((type === undefined) && (thirdWord === 'fee')) {
             type = 'fee';
         }

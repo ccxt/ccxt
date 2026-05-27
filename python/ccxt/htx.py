@@ -131,7 +131,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
-                'fetchStatus': True,
+                'fetchStatus': False,  # none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -1416,6 +1416,7 @@ class htx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         })
 
     def fetch_status(self, params={}):
@@ -3265,7 +3266,7 @@ class htx(Exchange, ImplicitAPI):
         for i in range(0, len(accounts)):
             account = accounts[i]
             info = self.safe_value(account, 'info')
-            subtype = self.safe_string(info, 'subtype', None)
+            subtype = self.safe_string(info, 'subtype')
             typeFromAccount = self.safe_string(account, 'type')
             if type == 'margin':
                 if subtype == marketId:
@@ -3674,7 +3675,8 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1770293281344
         #     }
         #
-        result: dict = {'info': response}
+        finalResponse = response
+        result: dict = {'info': finalResponse}
         data = self.safe_value(response, 'data')
         if isMultiAssetMode:
             details = self.safe_list(data, 'details', [])
@@ -4071,7 +4073,7 @@ class htx(Exchange, ImplicitAPI):
             # POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             # POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'trade_type': 0,  # 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-            'status': '0',  # support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
+            'status': '0',  # support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
         }
         response = None
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
@@ -7024,7 +7026,8 @@ class htx(Exchange, ImplicitAPI):
                 sortedRequest = self.keysort(request)
                 auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
-                payload = "\n".join([method, self.hostname, url, auth])  # eslint-disable-line quotes
+                content = [method, self.hostname, url, auth]
+                payload = "\n".join(content)  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
@@ -7090,7 +7093,8 @@ class htx(Exchange, ImplicitAPI):
                     request = self.extend(request, sortedQuery)
                 auth = self.urlencode(request, True).replace('%2c', '%2C')  # in c# it manually needs to be uppercased
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
-                payload = "\n".join([method, hostname, url, auth])  # eslint-disable-line quotes
+                content2 = [method, hostname, url, auth]
+                payload = "\n".join(content2)  # eslint-disable-line quotes
                 signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
                 auth += '&' + self.urlencode({'Signature': signature})
                 url += '?' + auth
@@ -7105,8 +7109,9 @@ class htx(Exchange, ImplicitAPI):
                     headers = {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     }
+            finalHostname = hostname  # java req
             url = self.implode_params(self.urls['api'][type], {
-                'hostname': hostname,
+                'hostname': finalHostname,
             }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

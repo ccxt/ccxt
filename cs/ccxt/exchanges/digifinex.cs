@@ -595,6 +595,7 @@ public partial class digifinex : Exchange
                     isAllowed = 1;
                 }
             }
+            object isActive = ((bool) isTrue(isAllowed)) ? true : false;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -610,7 +611,7 @@ public partial class digifinex : Exchange
                 { "swap", swap },
                 { "future", false },
                 { "option", false },
-                { "active", ((bool) isTrue(isAllowed)) ? true : false },
+                { "active", isActive },
                 { "contract", swap },
                 { "linear", isLinear },
                 { "inverse", isInverse },

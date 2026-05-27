@@ -1084,50 +1084,49 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_value(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_value(currency, 'name')
-            code = self.safe_currency_code(id)
-            depositEnabled = self.safe_value(currency, 'deposit-enabled')
-            withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
-            countryDisabled = self.safe_value(currency, 'country-disabled')
-            visible = self.safe_bool(currency, 'visible', False)
-            state = self.safe_string(currency, 'state')
-            active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
-            name = self.safe_string(currency, 'display-name')
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
-            result[code] = {
-                'id': id,
-                'code': code,
-                'type': 'crypto',
-                # 'payin': currency['deposit-enabled'],
-                # 'payout': currency['withdraw-enabled'],
-                # 'transfer': None,
-                'name': name,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': None,  # todo need to fetch from fee endpoint
-                'precision': precision,
-                'networks': None,
-                'limits': {
-                    'amount': {
-                        'min': precision,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': self.safe_number(currency, 'deposit-min-amount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(currency, 'withdraw-min-amount'),
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        id = self.safe_value(currency, 'name')
+        code = self.safe_currency_code(id)
+        depositEnabled = self.safe_value(currency, 'deposit-enabled')
+        withdrawEnabled = self.safe_value(currency, 'withdraw-enabled')
+        countryDisabled = self.safe_value(currency, 'country-disabled')
+        visible = self.safe_bool(currency, 'visible', False)
+        state = self.safe_string(currency, 'state')
+        active = visible and depositEnabled and withdrawEnabled and (state == 'online') and not countryDisabled
+        name = self.safe_string(currency, 'display-name')
+        precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'type': 'crypto',
+            # 'payin': currency['deposit-enabled'],
+            # 'payout': currency['withdraw-enabled'],
+            # 'transfer': None,
+            'name': name,
+            'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': None,  # todo need to fetch from fee endpoint
+            'precision': precision,
+            'networks': None,
+            'limits': {
+                'amount': {
+                    'min': precision,
+                    'max': None,
                 },
-                'info': currency,
-            }
-        return result
+                'deposit': {
+                    'min': self.safe_number(currency, 'deposit-min-amount'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(currency, 'withdraw-min-amount'),
+                    'max': None,
+                },
+            },
+            'info': currency,
+        })
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response['data'], 'list', [])
@@ -1176,7 +1175,7 @@ class bittrade(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {"status":   "ok",
-        #         "data": [{                 id:  13997833014,
+        #         "data": [{                 id:  13997833016,
         #                                "symbol": "ethbtc",
         #                          "account-id":  3398321,
         #                                "amount": "0.045000000000000000",
@@ -1888,8 +1887,9 @@ class bittrade(Exchange, ImplicitAPI):
             requestSorted = self.keysort(request)
             auth = self.urlencode(requestSorted)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
+            content = [method, self.hostname, url, auth]
             # eslint-disable-next-line quotes
-            payload = "\n".join([method, self.hostname, url, auth])
+            payload = "\n".join(content)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth

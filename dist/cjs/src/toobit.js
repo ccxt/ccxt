@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class toobit
@@ -2518,7 +2518,7 @@ class toobit extends toobit$1["default"] {
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchDepositsOrWithdrawalsHelper('withdrawals', code, since, limit, params);
     }
-    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params) {
+    async fetchDepositsOrWithdrawalsHelper(type, code, since, limit, params = {}) {
         await this.loadMarkets();
         let currency = undefined;
         let request = {};
@@ -2999,6 +2999,7 @@ class toobit extends toobit$1["default"] {
             headers = {
                 'Referrer': 'CCXT',
                 'X-BB-APIKEY': this.apiKey,
+                'X-BB-API-PLATFORM': this.safeString(this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }

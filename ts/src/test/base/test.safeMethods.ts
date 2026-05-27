@@ -38,6 +38,7 @@ function testSafeMethods () {
         'emptyString': '',
         'floatNumeric': 0.123,
         'floatString': '0.123',
+        'longInt': 123456789012345,
     };
 
     const inputList = [ 'Hi', 2 ];
@@ -218,6 +219,8 @@ function testSafeMethods () {
     assert (exchange.safeIntegerProduct (inputDict, 'f', factor) === 1); // NB the result is 1
     assert (exchange.safeIntegerProduct (inputDict, 'strNumber', factor) === 30);
     assert (exchange.safeIntegerProduct (inputList, 1, factor) === 20);
+    assert (exchange.safeIntegerProduct (inputDict, 'longInt', 0.000001) === 123456789);
+    assert (exchange.safeIntegerProduct (inputDict, 'inexistent', 0.000001, 123456789) === 123456789);
 
     // safeIntegerProduct2
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'i', factor) === 10);
@@ -319,7 +322,7 @@ function testSafeMethods () {
     assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
-
+    // init array cache tests
     // Test cache types - ArrayCache
     const arrayCache = new ArrayCache (100);
     arrayCache.append ({ 'symbol': 'BTC/USDT', 'id': 'order1', 'price': 50000 });

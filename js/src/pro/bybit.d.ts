@@ -3,6 +3,7 @@ import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
+    describeData(): any;
     requestId(): any;
     getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): Promise<any>;
     cleanParams(params: any): any;

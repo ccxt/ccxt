@@ -497,6 +497,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': InvalidOrder,  # {"id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format"}
                     '219': InvalidOrder,
                     '306': InsufficientFunds,  # {"id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : {"client_oid" : "1753xxx", "order_id" : "6530xxx"}}
                     '314': InvalidOrder,  # {"id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : {"client_oid" : "1700xxx", "order_id" : "6530xxx"}}
@@ -816,6 +817,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
                 contract = True
+            isLinear = True if (contract) else None
+            isInverse = False if (contract) else None
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
@@ -833,8 +836,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'option': option,
                 'active': self.safe_bool(market, 'tradable'),
                 'contract': contract,
-                'linear': True if (contract) else None,
-                'inverse': False if (contract) else None,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': self.safe_number(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -2009,9 +2012,8 @@ class cryptocom(Exchange, ImplicitAPI):
         depositAddresses = await self.fetch_deposit_addresses_by_network(code, params)
         if network in depositAddresses:
             return depositAddresses[network]
-        else:
-            keys = list(depositAddresses.keys())
-            return depositAddresses[keys[0]]
+        keys = list(depositAddresses.keys())
+        return depositAddresses[keys[0]]
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """

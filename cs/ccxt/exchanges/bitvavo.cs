@@ -169,8 +169,8 @@ public partial class bitvavo : Exchange
                         { "order", 1 },
                         { "orders", 5 },
                         { "ordersOpen", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                            { "noMarket", 25 },
+                            { "cost", 5 },
+                            { "noMarket", 100 },
                         } },
                         { "trades", 5 },
                         { "balance", 5 },
@@ -198,9 +198,15 @@ public partial class bitvavo : Exchange
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "order", 1 },
-                        { "orders", 1 },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                            { "noMarket", 100 },
+                        } },
                         { "institutional/subaccounts/order", 1 },
-                        { "institutional/subaccounts/orders", 1 },
+                        { "institutional/subaccounts/orders", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                            { "noMarket", 100 },
+                        } },
                     } },
                 } },
             } },
@@ -300,7 +306,7 @@ public partial class bitvavo : Exchange
                     { "102", typeof(BadRequest) },
                     { "103", typeof(RateLimitExceeded) },
                     { "104", typeof(RateLimitExceeded) },
-                    { "105", typeof(PermissionDenied) },
+                    { "105", typeof(RateLimitExceeded) },
                     { "107", typeof(ExchangeNotAvailable) },
                     { "108", typeof(ExchangeNotAvailable) },
                     { "109", typeof(ExchangeNotAvailable) },
@@ -380,6 +386,7 @@ public partial class bitvavo : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "MIOTA", "IOTA" },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 
@@ -548,10 +555,10 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrenciesCustom(response);
+        return this.parseCurrencies(response);
     }
 
-    public virtual object parseCurrenciesCustom(object currencies)
+    public override object parseCurrency(object rawCurrency)
     {
         //
         //     [
@@ -587,72 +594,66 @@ public partial class bitvavo : Exchange
         //     ]
         //
         object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object isFiat = this.inArray(code, fiatCurrencies);
+        object networks = new Dictionary<string, object>() {};
+        object networksArray = this.safeList(rawCurrency, "networks", new List<object>() {});
+        object deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
+        object withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        object active = isTrue(deposit) && isTrue(withdrawal);
+        object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
+        object precision = this.safeString(rawCurrency, "decimals", "8");
+        object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
+        // btw, absolutely all of them have 1 network atm
+        for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
         {
-            object currency = getValue(currencies, i);
-            object id = this.safeString(currency, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object isFiat = this.inArray(code, fiatCurrencies);
-            object networks = new Dictionary<string, object>() {};
-            object networksArray = this.safeList(currency, "networks", new List<object>() {});
-            object deposit = isEqual(this.safeString(currency, "depositStatus"), "OK");
-            object withdrawal = isEqual(this.safeString(currency, "withdrawalStatus"), "OK");
-            object active = isTrue(deposit) && isTrue(withdrawal);
-            object withdrawFee = this.safeNumber(currency, "withdrawalFee");
-            object precision = this.safeString(currency, "decimals", "8");
-            object minWithdraw = this.safeNumber(currency, "withdrawalMinAmount");
-            // btw, absolutely all of them have 1 network atm
-            for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
-            {
-                object networkId = getValue(networksArray, j);
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", currency },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", active },
-                    { "deposit", deposit },
-                    { "withdraw", withdrawal },
-                    { "fee", withdrawFee },
-                    { "precision", this.parseNumber(this.parsePrecision(precision)) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdraw },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "name") },
+            object networkId = getValue(networksArray, j);
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", rawCurrency },
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", active },
                 { "deposit", deposit },
                 { "withdraw", withdrawal },
-                { "networks", networks },
                 { "fee", withdrawFee },
-                { "precision", null },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+                { "precision", this.parseNumber(this.parsePrecision(precision)) },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
                         { "min", minWithdraw },
                         { "max", null },
                     } },
                 } },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "active", active },
+            { "deposit", deposit },
+            { "withdraw", withdrawal },
+            { "networks", networks },
+            { "fee", withdrawFee },
+            { "precision", null },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", minWithdraw },
+                    { "max", null },
+                } },
+            } },
+        });
     }
 
     /**

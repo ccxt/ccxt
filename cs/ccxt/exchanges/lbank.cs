@@ -1075,9 +1075,10 @@ public partial class lbank : Exchange
         object feeCost = this.safeString(trade, "tradeFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
+            object feeCurr = ((bool) isTrue((isEqual(side, "buy")))) ? getValue(market, "base") : getValue(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", ((bool) isTrue((isEqual(side, "buy")))) ? getValue(market, "base") : getValue(market, "quote") },
+                { "currency", feeCurr },
                 { "rate", this.safeString(trade, "tradeFeeRate") },
             };
         }
@@ -1207,11 +1208,13 @@ public partial class lbank : Exchange
             object duration = this.parseTimeframe(timeframe);
             since = subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limit)));
         }
+        object parsedSince = this.parseToInt(divide(since, 1000));
+        object parsedLimit = mathMin(add(limit, 1), 2000); // max 2000;
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", this.safeString(this.timeframes, timeframe, timeframe) },
-            { "time", this.parseToInt(divide(since, 1000)) },
-            { "size", mathMin(add(limit, 1), 2000) },
+            { "time", parsedSince },
+            { "size", parsedLimit },
         };
         object response = await this.spotPublicGetKline(this.extend(request, parameters));
         object ohlcvs = this.safeList(response, "data", new List<object>() {});
@@ -2308,7 +2311,7 @@ public partial class lbank : Exchange
         //              },
         //          ],
         //          "error_code":0,
-        //          "ts":1648506641469
+        //          "ts":1648506641468
         //      }
         //
         object data = this.safeList(response, "data", new List<object>() {});
@@ -2485,7 +2488,7 @@ public partial class lbank : Exchange
         //          "result":true,
         //          "data": {
         //              "fee":10.00000000000000000000,
-        //              "withdrawId":1900376
+        //              "withdrawId":1900377
         //              },
         //          "error_code":0,
         //          "ts":1648992501414
@@ -3161,9 +3164,10 @@ public partial class lbank : Exchange
             {
                 signatureMethod = "HmacSHA256";
             }
+            object finalSig = signatureMethod; // java req
             object auth = this.rawencode(this.keysort(this.extend(new Dictionary<string, object>() {
                 { "echostr", echostr },
-                { "signature_method", signatureMethod },
+                { "signature_method", finalSig },
                 { "timestamp", timestamp },
             }, query)));
             object encoded = this.encode(auth);

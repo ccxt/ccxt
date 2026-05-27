@@ -308,18 +308,26 @@ public class CountedOrderBook : OrderBook, IOrderBook
             this.asks._index.Clear();
             this.asks.Clear();
 
-            var snapshotAsks = Exchange.SafeValue(snapshot as dict, "asks") as List<object>;
-            for (var i = 0; i < snapshotAsks.Count; i++)
+            var snapshotAsksRaw = Exchange.SafeValue(snapshot as dict, "asks");
+            if (snapshotAsksRaw != null)
             {
-                this.asks.storeArray(snapshotAsks[i] as List<object>);
+                var snapshotAsks = snapshotAsksRaw as List<object>;
+                for (var i = 0; i < snapshotAsks.Count; i++)
+                {
+                    this.asks.storeArray(snapshotAsks[i] as List<object>);
+                }
             }
 
             this.bids._index.Clear();
             this.bids.Clear();
-            var snapshotBids = Exchange.SafeValue(snapshot as dict, "bids") as List<object>;
-            for (var i = 0; i < snapshotBids.Count; i++)
+            var snapshotBidsRaw = Exchange.SafeValue(snapshot as dict, "bids");
+            if (snapshotBidsRaw != null)
             {
-                this.bids.storeArray(snapshotBids[i] as List<object>);
+                var snapshotBids = snapshotBidsRaw as List<object>;
+                for (var i = 0; i < snapshotBids.Count; i++)
+                {
+                    this.bids.storeArray(snapshotBids[i] as List<object>);
+                }
             }
             this["nonce"] = Exchange.SafeValue(snapshot as dict, "nonce", this["nonce"]);
             this["timestamp"] = Exchange.SafeValue(snapshot as dict, "timestamp", this["timestamp"]);

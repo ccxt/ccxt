@@ -516,6 +516,8 @@ class deepcoin(Exchange, ImplicitAPI):
         maxLimitSize = self.safe_string(market, 'maxLmtSz')
         maxAmount = self.parse_number(Precise.string_max(maxMarketSize, maxLimitSize))
         state = self.safe_string(market, 'state')
+        isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
+        isInverse = (not isLinear) if swap else None
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
@@ -527,14 +529,14 @@ class deepcoin(Exchange, ImplicitAPI):
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': False,
             'option': False,
             'active': state == 'live',
             'contract': swap,
             'linear': isLinear,
-            'inverse': (not isLinear) if swap else None,
+            'inverse': isInverse,
             'contractSize': self.safe_number(market, 'ctVal') if swap else None,
             'expiry': None,
             'expiryDatetime': None,
@@ -804,7 +806,7 @@ class deepcoin(Exchange, ImplicitAPI):
             'instId': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # default 100, max 500
+            request['limit'] = min(limit, 2000)
         productGroup = self.get_product_group_from_market(market)
         request['productGroup'] = productGroup
         response = await self.publicGetDeepcoinMarketTrades(self.extend(request, params))
@@ -900,7 +902,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
-        marketType = 'spot'
+        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params, marketType)
         request: dict = {
             'instType': self.convert_to_instrument_type(marketType),
@@ -2085,11 +2087,12 @@ class deepcoin(Exchange, ImplicitAPI):
                 encodedMarginMode = 0
         merged = True
         merged, params = self.handle_option_and_params(params, 'cancelAllOrders', 'merged', merged)
+        isMergedMode = 1 if merged else 0
         request: dict = {
             'InstrumentID': market['id'],
             'ProductGroup': productGroup,
             'IsCrossMargin': encodedMarginMode,
-            'IsMergeMode': 1 if merged else 0,
+            'IsMergeMode': isMergedMode,
         }
         response = await self.privatePostDeepcoinTradeSwapCancelAll(self.extend(request, params))
         data = self.safe_list(response, 'data', [])

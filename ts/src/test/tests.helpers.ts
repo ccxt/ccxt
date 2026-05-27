@@ -221,6 +221,18 @@ function getExt () {
     return EXT;
 }
 
+function isWindows () {
+    return process.platform === "win32";
+}
+
+function isLinux () {
+    return process.platform === "linux";
+}
+
+function isAmd64 () {
+    return process.arch === "x64";
+}
+
 
 export {
     // errors
@@ -268,7 +280,10 @@ export {
     EXT,
     getEnvVars,
     getLang,
-    getExt
+    getExt,
+    isWindows,
+    isLinux,
+    isAmd64,
 };
 
 export default {};

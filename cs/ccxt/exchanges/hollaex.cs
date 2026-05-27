@@ -647,7 +647,7 @@ public partial class hollaex : Exchange
         //         "low": 8607,
         //         "last": 8841.05,
         //         "volume": 20.2802,
-        //         "timestamp": "2020-03-03T03:11:18.964Z"
+        //         "timestamp": "2020-03-03T03:11:18.965Z"
         //     }
         //
         return this.parseTicker(response, market);
@@ -957,14 +957,11 @@ public partial class hollaex : Exchange
         object timeDelta = multiply(multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
         object start = since;
         object now = this.milliseconds();
-        if (isTrue(isTrue(isEqual(until, null)) && isTrue(isEqual(start, null))))
-        {
-            until = now;
-            start = subtract(until, timeDelta);
-        } else if (isTrue(isEqual(until, null)))
+        if (isTrue(isEqual(until, null)))
         {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-        } else if (isTrue(isEqual(start, null)))
+        }
+        if (isTrue(isEqual(start, null)))
         {
             start = subtract(until, timeDelta);
         }

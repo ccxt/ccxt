@@ -27,6 +27,7 @@
 * [transfer](#transfer)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
+* [fetchPositionsHistory](#fetchpositionshistory)
 * [fetchLeverages](#fetchleverages)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
@@ -418,6 +419,8 @@ fetch all trades made by the user
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | Timestamp in ms of the latest time to retrieve trades for |
+| params.type | <code>string</code> | No | 'swap' or 'spot' (defaults to 'swap'), required to fetch spot trade history |
+| params.instId | <code>string</code> | No | *spot markets only* the market id of the spot market to fetch the trade history for (e.g. 'BTC-USDT') |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
@@ -590,6 +593,32 @@ fetch data on a single open contract trade position
 
 ```javascript
 blofin.fetchPositions ([symbols, params])
+```
+
+
+<a name="fetchPositionsHistory" id="fetchpositionshistory"></a>
+
+### fetchPositionsHistory{docsify-ignore}
+fetches historical positions
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+
+**See**: https://docs.blofin.com/index.html#get-positions-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified contract symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months |
+| limit | <code>int</code> | No | the maximum amount of records to fetch, default=20, max=100 |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months |
+| params.productType | <code>string</code> | No | USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+
+
+```javascript
+blofin.fetchPositionsHistory ([symbols, since, limit, params])
 ```
 
 

@@ -680,9 +680,15 @@ class backpack(ccxt.async_support.backpack):
         id = self.safe_string(trade, 't')
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
-        isMaker = self.safe_bool(trade, 'm')
-        side = 'sell' if isMaker else 'buy'
-        takerOrMaker = 'maker' if isMaker else 'taker'
+        isBuyerMaker = self.safe_bool(trade, 'm')
+        side: Str = None
+        takerOrMaker: Str = None
+        if isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            if isBuyerMaker:
+                side = 'sell'
+            else:
+                side = 'buy'
         price = self.safe_string(trade, 'p')
         amount = self.safe_string(trade, 'q')
         orderId = None

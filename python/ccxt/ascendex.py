@@ -87,8 +87,9 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMySettlementHistory': False,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': 'emulated',
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -533,51 +534,23 @@ class ascendex(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            currency = data[i]
-            id = self.safe_string(currency, 'assetCode')
-            code = self.safe_currency_code(id)
-            chains = self.safe_list(currency, 'blockChain', [])
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'nativeScale')))
-            networks = {}
-            for j in range(0, len(chains)):
-                networkEtnry = chains[j]
-                networkId = self.safe_string(networkEtnry, 'chainName')
-                networkCode = self.network_code_to_id(networkId)
-                networks[networkCode] = {
-                    'fee': self.safe_number(networkEtnry, 'withdrawFee'),
-                    'active': None,
-                    'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
-                    'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(networkEtnry, 'minWithdrawal'),
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkEtnry, 'minDepositAmt'),
-                            'max': None,
-                        },
-                    },
-                }
-            # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'type': None,
-                'margin': None,
-                'name': self.safe_string(currency, 'assetName'),
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'assetCode')
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(rawCurrency, 'blockChain', [])
+        precision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'nativeScale')))
+        networks = {}
+        for j in range(0, len(chains)):
+            networkEtnry = chains[j]
+            networkId = self.safe_string(networkEtnry, 'chainName')
+            networkCode = self.network_code_to_id(networkId)
+            networks[networkCode] = {
+                'fee': self.safe_number(networkEtnry, 'withdrawFee'),
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'withdraw': self.safe_bool(networkEtnry, 'allowWithdraw'),
+                'deposit': self.safe_bool(networkEtnry, 'allowDeposit'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -585,13 +558,40 @@ class ascendex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'minWithdrawalAmt'),
+                        'min': self.safe_number(networkEtnry, 'minWithdrawal'),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_number(networkEtnry, 'minDepositAmt'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-            })
-        return result
+            }
+        # todo type: if chainsLength == 0 and (assetName.endswith(' Staking') or assetName.find(' Reward ') >= 0 or assetName.find('Slot Auction') >= 0 or assetName.find(' Freeze Asset') >= 0):
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'type': None,
+            'margin': None,
+            'name': self.safe_string(rawCurrency, 'assetName'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'minWithdrawalAmt'),
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -902,12 +902,14 @@ class ascendex(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             accountGroup = self.safe_string(data, 'accountGroup')
             self.options['account-group'] = accountGroup
+        finalResponse = response  # java req
+        finalAccountGroup = accountGroup
         return [
             {
-                'id': accountGroup,
+                'id': finalAccountGroup,
                 'type': None,
                 'code': None,
-                'info': response,
+                'info': finalResponse,
             },
         ]
 
@@ -2917,8 +2919,9 @@ class ascendex(Exchange, ImplicitAPI):
         #
         if type == 'reduce':
             amount = Precise.string_abs(amount)
+        parsedAmount = self.parse_number(amount)
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.parse_number(amount),
+            'amount': parsedAmount,
             'type': type,
         })
 
@@ -3446,6 +3449,77 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         leverages = self.safe_list(data, 'contracts', [])
         return self.parse_leverages(leverages, symbols, 'symbol')
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        self.load_markets()
+        request: dict = {}
+        response = None
+        response = self.v2PublicGetFuturesPricingData(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: {
+        #            contracts: [
+        #                {
+        #                    time: '1772138885616',
+        #                    symbol: 'ZIL-PERP',
+        #                    markPrice: '0.004167783',
+        #                    indexPrice: '0.004168',
+        #                    lastPrice: '0.00416',
+        #                    openInterest: '7685003',
+        #                    fundingRate: '0.0003',
+        #                    nextFundingTime: '1772139600000'
+        #                },
+        #            ]
+        #            collaterals: [
+        #                {asset: 'TAO', referencePrice: '182.15'},
+        #                ...
+        #            ]
+        #        }
+        #    }
+        #
+        symbols = self.market_symbols(symbols)
+        data = self.safe_dict(response, 'data', {})
+        contracts = self.safe_list(data, 'contracts', [])
+        return self.parse_open_interests(contracts, symbols)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        # fetchOpenInterests
+        #
+        #    {
+        #        time: '1772138885616',
+        #        symbol: 'ZIL-PERP',
+        #        markPrice: '0.004167783',
+        #        indexPrice: '0.004168',
+        #        lastPrice: '0.00416',
+        #        openInterest: '7685003',
+        #        fundingRate: '0.0003',
+        #        nextFundingTime: '1772139600000'
+        #    }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        timestamp = self.safe_integer(interest, 'time')
+        openInterest = self.safe_number(interest, 'openInterest')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'baseVolume': openInterest,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': openInterest,
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')

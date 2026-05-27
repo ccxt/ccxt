@@ -276,14 +276,6 @@ class bithumb(Exchange, ImplicitAPI):
                             },
                         },
                     },
-                    'USDT': {
-                        'limits': {
-                            'cost': {
-                                'min': None,
-                                'max': None,
-                            },
-                        },
-                    },
                 },
             },
             'commonCurrencies': {

@@ -55,6 +55,7 @@
 * [fetchPositions](#fetchpositions)
 * [fetchPosition](#fetchposition)
 * [fetchCrossBorrowRate](#fetchcrossborrowrate)
+* [fetchFundingRateHistory](#fetchfundingratehistory)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
 * [watchTicker](#watchticker)
@@ -277,7 +278,8 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures |
+| params.method | <code>string</code> | No | either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap |
 
 
 ```javascript
@@ -1220,6 +1222,30 @@ fetch the rate of interest to borrow a currency for margin trading
 
 ```javascript
 whitebit.fetchCrossBorrowRate (code[, params])
+```
+
+
+<a name="fetchFundingRateHistory" id="fetchfundingratehistory"></a>
+
+### fetchFundingRateHistory{docsify-ignore}
+fetches historical funding rate prices
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
+
+**See**: https://docs.whitebit.com/api-reference/market-data/funding-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch (default 100, max 100) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
+
+
+```javascript
+whitebit.fetchFundingRateHistory (symbol[, since, limit, params])
 ```
 
 

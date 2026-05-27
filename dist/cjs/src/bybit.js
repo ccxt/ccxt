@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bybit
@@ -1130,8 +1130,12 @@ class bybit extends bybit$1["default"] {
                     'FUND': 'fund',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
@@ -1180,6 +1184,7 @@ class bybit extends bybit$1["default"] {
                     'OASIS': 'ROSE',
                     'OMNI': 'OMNI',
                     'ONE': 'ONE',
+                    'OP': 'OP',
                     'OPTIMISM': 'OP',
                     'POKT': 'POKT',
                     'QTUM': 'QTUM',
@@ -1210,8 +1215,7 @@ class bybit extends bybit$1["default"] {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
-                    'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'OP': 'OP',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1351,6 +1355,7 @@ class bybit extends bybit$1["default"] {
                     'deposit': {},
                 },
             },
+            'rollingWindowSize': 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         });
     }
     /**
@@ -1541,8 +1546,9 @@ class bybit extends bybit$1["default"] {
             amountPrecision = this.parseNumber('1');
             pricePrecision = this.parseNumber('0.01');
         }
+        const convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return {
-            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
+            'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
@@ -1706,68 +1712,66 @@ class bybit extends bybit$1["default"] {
         //
         const data = this.safeDict(response, 'result', {});
         const rows = this.safeList(data, 'rows', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const chains = this.safeList(currency, 'chains', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chain');
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
-                    'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
-                    'fee': this.safeNumber(chain, 'withdrawFee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(chain, 'withdrawMin'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(chain, 'depositMin'),
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
+        return this.parseCurrencies(rows);
+    }
+    parseCurrency(currency) {
+        const currencyId = this.safeString(currency, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(currency, 'name');
+        const chains = this.safeList(currency, 'chains', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chain');
+            const networkCode = this.networkIdToCode(networkId, code);
+            networks[networkCode] = {
+                'info': chain,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
+                'deposit': this.safeInteger(chain, 'chainDeposit') === 1,
+                'withdraw': this.safeInteger(chain, 'chainWithdraw') === 1,
+                'fee': this.safeNumber(chain, 'withdrawFee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'minAccuracy'))),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'withdrawMin'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber(chain, 'depositMin'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
     /**
      * @method
@@ -1951,8 +1955,8 @@ class bybit extends bybit$1["default"] {
         }
         return result;
     }
-    async fetchFutureMarkets(params) {
-        params = this.extend(params);
+    async fetchFutureMarkets(params = {}) {
+        params = this.extend(params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [];
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
@@ -2095,7 +2099,7 @@ class bybit extends bybit$1["default"] {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
-            result.push(this.safeMarketStructure({
+            const parsedMarket = this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -2145,7 +2149,8 @@ class bybit extends bybit$1["default"] {
                 },
                 'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
-            }));
+            });
+            result.push(parsedMarket);
         }
         return result;
     }
@@ -4951,7 +4956,7 @@ class bybit extends bybit$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const row = this.safeList(result, 'list', []);
-        return this.parseOrders(row, undefined);
+        return this.parseOrders(row);
     }
     /**
      * @method
@@ -5788,7 +5793,7 @@ class bybit extends bybit$1["default"] {
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
         await this.loadMarkets();
-        let currency = this.currency(code);
+        const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
         };
@@ -5820,9 +5825,9 @@ class bybit extends bybit$1["default"] {
         const result = this.safeDict(response, 'result', {});
         const chains = this.safeList(result, 'chains', []);
         const coin = this.safeString(result, 'coin');
-        currency = this.currency(coin);
-        const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
-            'currency': currency['code'],
+        const currencyFromResponse = this.currency(coin);
+        const parsed = this.parseDepositAddresses(chains, [currencyFromResponse['code']], false, {
+            'currency': currencyFromResponse['code'],
         });
         return this.indexBy(parsed, 'network');
     }
@@ -6076,7 +6081,7 @@ class bybit extends bybit$1["default"] {
             'txid': this.safeString(transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'chain'), code),
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
@@ -6413,7 +6418,7 @@ class bybit extends bybit$1["default"] {
             request['tag'] = tag;
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase();
         }
@@ -7096,7 +7101,7 @@ class bybit extends bybit$1["default"] {
     }
     async fetchDerivativesOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let market = this.market(symbol);
+        const market = this.market(symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
         const category = this.safeString(params, 'category', subType);
         const intervals = this.safeDict(this.options, 'intervals');
@@ -7147,8 +7152,8 @@ class bybit extends bybit$1["default"] {
         const result = this.safeDict(response, 'result', {});
         const data = this.addPaginationCursorToResult(response);
         const id = this.safeString(result, 'symbol');
-        market = this.safeMarket(id, market, undefined, 'contract');
-        return this.parseOpenInterestsHistory(data, market, since, limit);
+        const safeMarketObj = this.safeMarket(id, market, undefined, 'contract');
+        return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
     }
     /**
      * @method
@@ -7163,7 +7168,7 @@ class bybit extends bybit$1["default"] {
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
-        let market = this.market(symbol);
+        const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
@@ -7206,9 +7211,9 @@ class bybit extends bybit$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const id = this.safeString(result, 'symbol');
-        market = this.safeMarket(id, market, undefined, 'contract');
+        const safeMarketObj = this.safeMarket(id, market, undefined, 'contract');
         const data = this.addPaginationCursorToResult(response);
-        return this.parseOpenInterest(data[0], market);
+        return this.parseOpenInterest(data[0], safeMarketObj);
     }
     /**
      * @method
@@ -7373,7 +7378,7 @@ class bybit extends bybit$1["default"] {
         //
         const data = this.safeDict(response, 'result', {});
         const rows = this.safeList(data, 'loanAccountList', []);
-        const interest = this.parseBorrowInterests(rows, undefined);
+        const interest = this.parseBorrowInterests(rows);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
     /**

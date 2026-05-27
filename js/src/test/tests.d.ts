@@ -24,7 +24,7 @@ declare class testMainClass {
     lang: string;
     proxyTestFileName: string;
     parseCliArgsAndProps(): void;
-    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<void>;
+    init(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<boolean>;
     initInner(exchangeId: any, symbolArgv: any, methodArgv: any): Promise<boolean>;
     checkIfSpecificTestIsChosen(methodArgv: any): void;
     importFiles(exchange: Exchange): Promise<boolean>;
@@ -34,7 +34,7 @@ declare class testMainClass {
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<boolean>;
     getSkips(exchange: Exchange, methodName: string): any;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
-    runPublicTests(exchange: any, symbol: any): Promise<boolean>;
+    runPublicTests(exchange: any, symbols: any): Promise<boolean>;
     runTests(exchange: any, tests: any, isPublicTest: boolean): Promise<boolean>;
     loadExchange(exchange: any): Promise<boolean>;
     getTestSymbol(exchange: any, isSpot: any, symbols: any): any;
@@ -46,7 +46,7 @@ declare class testMainClass {
     testProxies(exchange: any): Promise<boolean>;
     checkConstructor(exchange: Exchange): void;
     testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
-    startTest(exchange: any, symbol: any): Promise<boolean>;
+    startTest(exchange: any, symbolArgv: any): Promise<boolean>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
@@ -92,11 +92,11 @@ declare class testMainClass {
     testXT(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
-    testCoincatch(): Promise<boolean>;
-    testDefx(): Promise<boolean>;
     testCryptomus(): Promise<boolean>;
     testDerive(): Promise<boolean>;
     testModeTrade(): Promise<boolean>;
     testBackpack(): Promise<boolean>;
+    testToobit(): Promise<boolean>;
+    testWeex(): Promise<void>;
 }
 export default testMainClass;

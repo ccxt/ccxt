@@ -526,7 +526,6 @@ class bitstamp extends Exchange {
                     'Your account is frozen' => '\\ccxt\\PermissionDenied',
                     'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
                     'Order not found.' => '\\ccxt\\OrderNotFound',
-                    'Price is more than 20% below market price.' => '\\ccxt\\InvalidOrder',
                     "Bitstamp.net is under scheduled maintenance. We'll be back soon." => '\\ccxt\\OnMaintenance', // array( "error" => "Bitstamp.net is under scheduled maintenance. We'll be back soon." )
                     'Order could not be placed.' => '\\ccxt\\ExchangeNotAvailable', // Order could not be placed (perhaps due to internal error or trade halt). Please retry placing order.
                     'Invalid offset.' => '\\ccxt\\BadRequest',
@@ -534,6 +533,7 @@ class bitstamp extends Exchange {
                 ),
                 'broad' => array(
                     'Minimum order size is' => '\\ccxt\\InvalidOrder', // Minimum order size is 5.0 EUR.
+                    'Price is more than' => '\\ccxt\\InvalidOrder',
                     'Check your account balance for details.' => '\\ccxt\\InsufficientFunds', // You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure this value has at least' => '\\ccxt\\InvalidAddress', // Ensure this value has at least 25 characters (it has 4).
                     'Ensure that there are no more than' => '\\ccxt\\InvalidOrder', // array("status" => "error", "reason" => array("amount" => ["Ensure that there are no more than 0 decimal places."], "__all__" => [""]))
@@ -684,12 +684,13 @@ class bitstamp extends Exchange {
                     }
                 }
                 $isSpot = ($type === 'spot');
+                $settle = $settleId ? $this->safe_currency_code($settleId) : null;
                 $result[] = array(
                     'id' => $this->safe_string($market, 'market_symbol'),
                     'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
-                    'settle' => $settleId ? $this->safe_currency_code($settleId) : null,
+                    'settle' => $settle,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
@@ -840,28 +841,34 @@ class bitstamp extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $market = $response[$i];
-                list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $description = $this->safe_string($market, 'description');
-                list($baseDescription, $quoteDescription) = explode(' / ', $description);
-                $minimumOrder = $this->safe_string($market, 'minimum_order_value');
-                $parts = explode(' ', $minimumOrder);
-                $cost = $parts[0];
-                if (!(is_array($result) && array_key_exists($base, $result))) {
-                    $baseDecimals = $this->safe_integer($market, 'base_decimals');
-                    $result[$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
-                }
-                if (!(is_array($result) && array_key_exists($quote, $result))) {
-                    $counterDecimals = $this->safe_integer($market, 'counter_decimals');
-                    $result[$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
-                }
-            }
-            return $result;
+            $this->options['_temp_currencies_result'] = array();
+            $result = $this->parse_currencies($response);
+            $finalResult = $this->deep_extend($result, $this->options['_temp_currencies_result']);
+            unset($this->options['_temp_currencies_result']);
+            return $finalResult;
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $market = $rawCurrency;
+        $existing = $this->safe_dict($this->options, '_temp_currencies_result', array());
+        list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $description = $this->safe_string($market, 'description');
+        list($baseDescription, $quoteDescription) = explode(' / ', $description);
+        $minimumOrder = $this->safe_string($market, 'minimum_order_value');
+        $parts = explode(' ', $minimumOrder);
+        $cost = $parts[0];
+        if (!(is_array($existing) && array_key_exists($base, $existing))) {
+            $baseDecimals = $this->safe_integer($market, 'base_decimals');
+            $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
+        }
+        if (!(is_array($existing) && array_key_exists($quote, $existing))) {
+            $counterDecimals = $this->safe_integer($market, 'counter_decimals');
+            $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
+        }
+        return $this->options['_temp_currencies_result'][$quote];
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -924,7 +931,7 @@ class bitstamp extends Exchange {
         // }
         //
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market, null);
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
@@ -1160,6 +1167,19 @@ class bitstamp extends Exchange {
         $priceString = $this->safe_string($trade, $priceId, $priceString);
         $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
         $costString = $this->safe_string($trade, $market['quoteId'], $costString);
+        // this endpoint is not aligned with "markets" endpoint
+        $baseIdLower = strtolower($market['baseId']);
+        $quoteIdLower = strtolower($market['quoteId']);
+        $dashedIdLower = $baseIdLower . '_' . $quoteIdLower;
+        if ($priceString === null) {
+            $priceString = $this->safe_string($trade, $dashedIdLower);
+        }
+        if ($amountString === null) {
+            $amountString = $this->safe_string($trade, $baseIdLower);
+        }
+        if ($costString === null) {
+            $costString = $this->safe_string($trade, $quoteIdLower);
+        }
         $symbol = $market['symbol'];
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
@@ -1343,8 +1363,9 @@ class bitstamp extends Exchange {
     }
 
     public function parse_balance($response): array {
+        $finalResponse = $response; // java req
         $result = array(
-            'info' => $response,
+            'info' => $finalResponse,
             'timestamp' => null,
             'datetime' => null,
         );
@@ -2398,7 +2419,7 @@ class bitstamp extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

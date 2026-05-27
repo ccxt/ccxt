@@ -159,53 +159,63 @@ class kraken extends Exchange {
                 'public' => array(
                     'get' => array(
                         // rate-limits explained in comment in the top of this file
+                        'Time' => 1,
+                        'SystemStatus' => 1,
                         'Assets' => 1,
                         'AssetPairs' => 1,
-                        'Depth' => 1.2,
-                        'OHLC' => 1.2, // 1.2 because 1 triggers too many requests immediately
-                        'Spread' => 1,
-                        'SystemStatus' => 1,
                         'Ticker' => 1,
-                        'Time' => 1,
+                        'OHLC' => 1.2, // 1.2 because 1 triggers too many requests immediately
+                        'Depth' => 1.2,
+                        'Level3' => 1.2,
+                        'GroupedBook' => 1.2,
                         'Trades' => 1.2,
+                        'Spread' => 1,
+                        'PreTrade' => 1,
+                        'PostTrade' => 1,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'AddOrder' => 0,
-                        'AddOrderBatch' => 0,
-                        'AddExport' => 3,
-                        'AmendOrder' => 0,
+                        // account
                         'Balance' => 3,
-                        'CancelAll' => 3,
-                        'CancelAllOrdersAfter' => 3,
-                        'CancelOrder' => 0,
-                        'CancelOrderBatch' => 0,
-                        'ClosedOrders' => 3,
-                        'DepositAddresses' => 3,
-                        'DepositMethods' => 3,
-                        'DepositStatus' => 3,
-                        'EditOrder' => 0,
-                        'ExportStatus' => 3,
-                        'GetWebSocketsToken' => 3,
-                        'Ledgers' => 6,
+                        'BalanceEx' => 3,
+                        'CreditLines' => 3,
+                        'TradeBalance' => 3,
                         'OpenOrders' => 3,
-                        'OpenPositions' => 3,
-                        'QueryLedgers' => 3,
+                        'ClosedOrders' => 3,
                         'QueryOrders' => 3,
+                        'OrderAmends' => 3,
+                        'TradesHistory' => 6,
                         'QueryTrades' => 3,
+                        'OpenPositions' => 3,
+                        'Ledgers' => 6,
+                        'QueryLedgers' => 3,
+                        'TradeVolume' => 3,
+                        'AddExport' => 3,
+                        'ExportStatus' => 3,
                         'RetrieveExport' => 3,
                         'RemoveExport' => 3,
-                        'BalanceEx' => 3,
-                        'TradeBalance' => 3,
-                        'TradesHistory' => 6,
-                        'TradeVolume' => 3,
-                        'Withdraw' => 3,
-                        'WithdrawCancel' => 3,
-                        'WithdrawInfo' => 3,
+                        'GetApiKeyInfo' => 3,
+                        // trading
+                        'AddOrder' => 0,
+                        'AmendOrder' => 0,
+                        'CancelOrder' => 0,
+                        'CancelAll' => 3,
+                        'CancelAllOrdersAfter' => 3,
+                        'GetWebSocketsToken' => 3,
+                        'AddOrderBatch' => 0,
+                        'CancelOrderBatch' => 0,
+                        'EditOrder' => 0,
+                        // funding
+                        'DepositMethods' => 3,
+                        'DepositAddresses' => 3,
+                        'DepositStatus' => 3,
                         'WithdrawMethods' => 3,
                         'WithdrawAddresses' => 3,
+                        'WithdrawInfo' => 3,
+                        'Withdraw' => 3,
                         'WithdrawStatus' => 3,
+                        'WithdrawCancel' => 3,
                         'WalletTransfer' => 3,
                         // sub accounts
                         'CreateSubaccount' => 3,
@@ -517,6 +527,7 @@ class kraken extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'rollingWindowSize' => 10000.0,  // https://docs.kraken.com/api/docs/guides/custody-rest-ratelimits
             'exceptions' => array(
                 'exact' => array(
                     'EQuery:Invalid asset pair' => '\\ccxt\\BadSymbol', // array("error":["EQuery:Invalid asset pair"])
@@ -543,6 +554,7 @@ class kraken extends Exchange {
                     'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
                     'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
                     'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
+                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(cancel_only mode"]) && array_key_exists("error":["EService:Market, cancel_only mode"]))
                     'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
                     'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
                 ),
@@ -632,6 +644,10 @@ class kraken extends Exchange {
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
+            $isSynthetic = false;
+            if (mb_strpos($id, ':BTNL') !== false) {
+                $isSynthetic = true;
+            }
             $market = $markets[$id];
             $baseIdRaw = $this->safe_string($market, 'base');
             $quoteIdRaw = $this->safe_string($market, 'quote');
@@ -669,10 +685,11 @@ class kraken extends Exchange {
             }
             $status = $this->safe_string($market, 'status');
             $isActive = $status === 'online';
+            $symbol = (!$isSynthetic) ? ($base . '/' . $quote) : $id;
             $result[] = array(
                 'id' => $id,
                 'wsId' => $this->safe_string($market, 'wsname'),
-                'symbol' => $base . '/' . $quote,
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
@@ -1690,7 +1707,7 @@ class kraken extends Exchange {
         $result = $this->safe_dict($response, 'result');
         $result['usingCost'] = $isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // becuase kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
+        // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
         // this usingCost flag is used to help the parsing but omited from the order
         return $this->parse_order($result);
     }
@@ -1727,10 +1744,11 @@ class kraken extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
+            $parsedAmount = $this->amount_to_precision($market['symbol'], $amount);
             $req = array(
                 'type' => $side,
                 'ordertype' => $type,
-                'volume' => $this->amount_to_precision($market['symbol'], $amount),
+                'volume' => $parsedAmount,
             );
             $orderRequest = $this->order_request('createOrders', $marketId, $type, $req, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest[0];
@@ -2061,12 +2079,12 @@ class kraken extends Exchange {
                 $stopLossPrice = $triggerPrice;
             }
         }
-        $finalType = $this->parse_order_type($rawType);
+        $typeParsed = $this->parse_order_type($rawType);
         // unlike from endpoints which provide eg => "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg => `stop loss > limit 123`, so we need to parse them manually
-        if ($this->in_array($finalType, array( 'stop loss', 'take profit' ))) {
-            $finalType = ($price === null) ? 'market' : 'limit';
+        if ($this->in_array($typeParsed, array( 'stop loss', 'take profit' ))) {
+            $typeParsed = ($price === null) ? 'market' : 'limit';
         }
         $amendId = $this->safe_string($order, 'amend_id');
         if ($amendId !== null) {
@@ -2081,7 +2099,7 @@ class kraken extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $finalType,
+            'type' => $typeParsed,
             'timeInForce' => null,
             'postOnly' => $isPostOnly,
             'side' => $side,
@@ -3498,16 +3516,16 @@ class kraken extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromAccount = $this->parse_account_type($fromAccount);
-        $toAccount = $this->parse_account_type($toAccount);
+        $fromAccountParsed = $this->parse_account_type($fromAccount);
+        $toAccountParsed = $this->parse_account_type($toAccount);
         $request = array(
             'amount' => $this->currency_to_precision($code, $amount),
-            'from' => $fromAccount,
-            'to' => $toAccount,
+            'from' => $fromAccountParsed,
+            'to' => $toAccountParsed,
             'asset' => $currency['id'],
         );
-        if ($fromAccount !== 'Spot Wallet') {
-            throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount . '. Use krakenfutures instead to $transfer from the futures account.');
+        if ($fromAccountParsed !== 'Spot Wallet') {
+            throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccountParsed . ' to ' . $toAccountParsed . '. Use krakenfutures instead to $transfer from the futures account.');
         }
         $response = $this->privatePostWalletTransfer ($this->extend($request, $params));
         //
@@ -3522,8 +3540,8 @@ class kraken extends Exchange {
         $transfer = $this->parse_transfer($response, $currency);
         return $this->extend($transfer, array(
             'amount' => $amount,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
+            'fromAccount' => $fromAccountParsed,
+            'toAccount' => $toAccountParsed,
         ));
     }
 
@@ -3558,7 +3576,7 @@ class kraken extends Exchange {
         $url = '/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {
-                // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $url .= '?' . $this->urlencode_nested($params);
             }
         } elseif ($api === 'private') {
@@ -3571,10 +3589,10 @@ class kraken extends Exchange {
             $isBatchOrder = ($path === 'AddOrderBatch');
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
             if ($isCancelOrderBatch || $isTriggerPercent || $isBatchOrder) {
                 $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
             } else {
+                // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 $body = $this->urlencode_nested($this->extend(array( 'nonce' => $nonce ), $params));
             }
             $auth = $this->encode($nonce . $body);

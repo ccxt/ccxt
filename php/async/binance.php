@@ -1205,6 +1205,7 @@ class binance extends Exchange {
                         'asset-collection' => 6,
                         'margin/repay-debt' => 3000,
                         'um/feeBurn' => 1,
+                        'um/stock/contract' => 1,
                     ),
                     'put' => array(
                         'listenKey' => 0.2,
@@ -1389,16 +1390,74 @@ class binance extends Exchange {
                 ),
                 'networks' => array(
                     'ERC20' => 'ETH',
+                    'ETH' => 'ETH',
                     'TRC20' => 'TRX',
+                    'TRX' => 'TRX',
                     'BEP2' => 'BNB',
+                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
-                    'OMNI' => 'OMNI',
                     'EOS' => 'EOS',
                     'SPL' => 'SOL', // temporarily keep support for SPL (old name)
                     'SOL' => 'SOL', // we shouldn't rename SOL
+                    // 'FIAT' => 'FIAT_MONEY', // not unified atm
+                    // 'LEVERAGE_TOKEN' => 'ETF', // not unified atm
+                    // 'STAKING' => 'STAKING', // not unified atm
+                    'ARBONE' => 'ARBITRUM',
+                    'AVAXC' => 'AVAXC',
+                    'MATIC' => 'MATIC',
+                    'BASE' => 'BASE',
+                    'SUI' => 'SUI',
+                    'OP' => 'OPTIMISM',
+                    'OPTIMISM' => 'OPTIMISM',
+                    'NEAR' => 'NEAR',
+                    'APT' => 'APT',
+                    'SCROLL' => 'SCROLL',
+                    'KAVA' => 'KAVA',
+                    'XLM' => 'XLM',
+                    // BLAST - not supported
+                    // LINEA - not supported
+                    // CRO - not supported
+                    // TAIKO - not supported
+                    'RSK' => 'RSK', // RBTC
+                    'SEI' => 'SEI',
+                    // MNT - not supported
+                    'TON' => 'TON',
+                    'ADA' => 'ADA',
+                    // HYPE - not supported
+                    // CORE - not supported
+                    'ALGO' => 'ALGO',
+                    'RUNE' => 'RUNE',
+                    'OSMO' => 'OSMO',
+                    // XIN - not supported
+                    'CELO' => 'CELO',
+                    'HBAR' => 'HBAR',
+                    // FTM - renamed
+                    // WEMIX - not supported
+                    'ZKSYNCERA' => 'ZKSYNCERA',
+                    'KLAY' => 'KLAY',
+                    // HECO - not supported
+                    // FSN - not supported
+                    'ACA' => 'ACA',
+                    'STX' => 'STX', // STACKS
+                    'XTZ' => 'XTZ',
+                    // 'NEO' => 'NEO', // tbd NEO3
+                    'METIS' => 'METIS',
+                    // TLOS - not supported
+                    'EGLD' => 'EGLD',
+                    'ASTR' => 'ASTR',
+                    'CFX' => 'CFX',
+                    // 'GLMR' => 'GLMR', GLIMMER vs MOONBEAM
+                    // CANTO - not supported
+                    'SCRT' => 'SCRT',
+                    // AUR - not supported
+                    'ONT' => 'ONT', // ontology
                 ),
                 'networksById' => array(
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                    'ETH' => 'ERC20',
                     'SOL' => 'SOL', // temporary fix for SPL definition
+                    'OPTIMISM' => 'OP',
                 ),
                 'impliedNetworks' => array(
                     'ETH' => array( 'ERC20' => 'ETH' ),
@@ -1442,6 +1501,7 @@ class binance extends Exchange {
                     'BUSD' => 'USD',
                 ),
                 'defaultWithdrawPrecision' => 0.00000001,
+                'defaultFiatWithdrawPrecision' => 0.01,
             ),
             'features' => array(
                 'spot' => array(
@@ -2809,10 +2869,6 @@ class binance extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function cost_to_precision($symbol, $cost) {
-        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
-    }
-
     public function nonce() {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
@@ -3010,29 +3066,33 @@ class binance extends Exchange {
                 //        ]
                 //    }
                 //
+                //     some coins (e.g. ETH, BIGTIME, SONIC, etc) return extra fields under $network $entry
+                //
+                //                "specialTips" => "",
+                //                "specialWithdrawTips" => "",
+                //                "withdrawInternalMin" => "0",
+                //                "contractAddressUrl" => "https://etherscan.io/address/",
+                //                "contractAddress" => "0x64bc2ca1be492be7185faa2c8835d9b824c8a194"
+                //
                 $entry = $responseCurrencies[$i];
                 $id = $this->safe_string($entry, 'coin');
                 $name = $this->safe_string($entry, 'name');
                 $code = $this->safe_currency_code($id);
                 $isFiat = $this->safe_bool($entry, 'isLegalMoney');
-                $minPrecision = null;
-                $isWithdrawEnabled = true;
-                $isDepositEnabled = true;
                 $networkList = $this->safe_list($entry, 'networkList', array());
                 $fees = array();
                 $fee = null;
                 $networks = array();
+                $isETF = false;
                 for ($j = 0; $j < count($networkList); $j++) {
                     $networkItem = $networkList[$j];
                     $network = $this->safe_string($networkItem, 'network');
-                    $networkCode = $this->network_id_to_code($network);
-                    $isETF = ($network === 'ETF'); // e.g. BTCUP, ETHDOWN
+                    $networkCode = $this->network_id_to_code($network, $code);
+                    $isETF = ($network === 'ETF'); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" $entry and are deterministic to set
                     // $name = $this->safe_string($networkItem, 'name');
                     $withdrawFee = $this->safe_number($networkItem, 'withdrawFee');
                     $depositEnable = $this->safe_bool($networkItem, 'depositEnable');
                     $withdrawEnable = $this->safe_bool($networkItem, 'withdrawEnable');
-                    $isDepositEnabled = $isDepositEnabled || $depositEnable;
-                    $isWithdrawEnabled = $isWithdrawEnabled || $withdrawEnable;
                     $fees[$network] = $withdrawFee;
                     $isDefault = $this->safe_bool($networkItem, 'isDefault');
                     if ($isDefault || ($fee === null)) {
@@ -3042,26 +3102,16 @@ class binance extends Exchange {
                     // if ($isDefault) {
                     //     $this->options['defaultNetworkCodesForCurrencies'][$code] = $networkCode;
                     // }
-                    $precisionTick = $this->safe_string($networkItem, 'withdrawIntegerMultiple');
-                    $withdrawPrecision = $precisionTick;
-                    // avoid zero values, which are mostly from fiat or leveraged tokens or some abandoned coins : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    if (!Precise::string_eq($precisionTick, '0')) {
-                        $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
-                    } else {
-                        if (!$isFiat && !$isETF) {
-                            // non-fiat and non-ETF currency, there are many cases when precision is set to zero (probably bug, we've reported to binance already)
-                            // in such cases, we can set default precision of 8 (which is in UI for such coins)
-                            $withdrawPrecision = $this->omit_zero($this->safe_string($networkItem, 'withdrawInternalMin'));
-                            if ($withdrawPrecision === null) {
-                                $withdrawPrecision = $this->safe_string($this->options, 'defaultWithdrawPrecision');
-                            }
-                        }
+                    $withdrawPrecision = $this->omit_zero($this->safe_string_2($networkItem, 'withdrawIntegerMultiple', 'withdrawInternalMin'));
+                    // zero values happen only on fiat or leveraged(ETF) tokens => https://t.me/binance_api_english/393075
+                    if ($withdrawPrecision === null && $isFiat) {
+                        $withdrawPrecision = $this->safe_string($this->options, 'defaultFiatWithdrawPrecision');
                     }
                     $networks[$networkCode] = array(
                         'info' => $networkItem,
                         'id' => $network,
                         'network' => $networkCode,
-                        'active' => $depositEnable && $withdrawEnable,
+                        'active' => null,
                         'deposit' => $depositEnable,
                         'withdraw' => $withdrawEnable,
                         'fee' => $withdrawFee,
@@ -3078,8 +3128,15 @@ class binance extends Exchange {
                         ),
                     );
                 }
+                $type = null;
+                if ($isETF) {
+                    $type = 'other';
+                } elseif ($isFiat) {
+                    $type = 'fiat';
+                } else {
+                    $type = 'crypto';
+                }
                 $trading = $this->safe_bool($entry, 'trading');
-                $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
                 $marginEntry = $this->safe_dict($marginablesById, $id, array());
                 //
                 //     {
@@ -3091,22 +3148,22 @@ class binance extends Exchange {
                 //         userMinRepay => "0",
                 //     }
                 //
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
-                    'type' => $isFiat ? 'fiat' : 'crypto',
-                    'precision' => $this->parse_number($minPrecision),
+                    'type' => $type,
+                    'precision' => null,
                     'info' => $entry,
-                    'active' => $active,
-                    'deposit' => $isDepositEnabled,
-                    'withdraw' => $isWithdrawEnabled,
+                    'active' => $trading,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'networks' => $networks,
-                    'fee' => $fee,
+                    'fee' => null,
                     'fees' => $fees,
-                    'limits' => $this->limits,
+                    'limits' => null,
                     'margin' => $this->safe_bool($marginEntry, 'isBorrowable'),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -5662,15 +5719,26 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
-        $types = array(
-            'limit_maker' => 'limit',
-            'stop' => 'limit',
-            'stop_market' => 'market',
-            'take_profit' => 'limit',
-            'take_profit_market' => 'market',
-            'trailing_stop_market' => 'market',
-        );
+    public function parse_order_type_by_market(?string $type, ?string $marketType) {
+        $types = array();
+        if (($marketType !== null) && $marketType === 'spot') {
+            $types = array(
+                'limit_maker' => 'limit',
+                'stop_loss_limit' => 'limit',
+                'stop_loss' => 'market',
+                'take_profit_limit' => 'limit',
+                'take_profit' => 'market',
+            );
+        } else {
+            $types = array(
+                'limit_maker' => 'limit',
+                'stop' => 'limit',
+                'stop_market' => 'market',
+                'take_profit' => 'limit',
+                'take_profit_market' => 'market',
+                'trailing_stop_market' => 'market',
+            );
+        }
         return $this->safe_string($types, $type, $type);
     }
 
@@ -6258,7 +6326,7 @@ class binance extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type),
+            'type' => $this->parse_order_type_by_market($type, $marketType),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
@@ -6399,6 +6467,7 @@ class binance extends Exchange {
              * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
              * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+             * @param {string} [$params->clientOrderId] the clientOrderId of the order
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -6492,9 +6561,10 @@ class binance extends Exchange {
         $initialUppercaseType = strtoupper($type);
         $isMarketOrder = $initialUppercaseType === 'MARKET';
         $isLimitOrder = $initialUppercaseType === 'LIMIT';
+        $upperCaseSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
-            'side' => strtoupper($side),
+            'side' => $upperCaseSide,
         );
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
@@ -7780,7 +7850,7 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
              * @param {boolean} [$params->trigger] set to true if you would like to cancel portfolio margin account conditional orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -7813,7 +7883,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => "200",
-                        //        "msg" => "The operation of cancel all conditional open order is done."
+                        //        "msg" => "The operation of cancel all conditional open $order is done."
                         //    }
                         //
                     } else {
@@ -7821,7 +7891,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => 200,
-                        //        "msg" => "The operation of cancel all open order is done."
+                        //        "msg" => "The operation of cancel all open $order is done."
                         //    }
                         //
                     }
@@ -7831,7 +7901,7 @@ class binance extends Exchange {
                         //
                         //     {
                         //         "code" => 200,
-                        //         "msg" => "The operation of cancel all open order is done."
+                        //         "msg" => "The operation of cancel all open $order is done."
                         //     }
                         //
                     } else {
@@ -7839,7 +7909,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => 200,
-                        //        "msg" => "The operation of cancel all open order is done."
+                        //        "msg" => "The operation of cancel all open $order is done."
                         //    }
                         //
                     }
@@ -7851,7 +7921,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => "200",
-                        //        "msg" => "The operation of cancel all conditional open order is done."
+                        //        "msg" => "The operation of cancel all conditional open $order is done."
                         //    }
                         //
                     } else {
@@ -7859,7 +7929,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => 200,
-                        //        "msg" => "The operation of cancel all open order is done."
+                        //        "msg" => "The operation of cancel all open $order is done."
                         //    }
                         //
                     }
@@ -7868,7 +7938,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => 200,
-                    //        "msg" => "The operation of cancel all open order is done."
+                    //        "msg" => "The operation of cancel all open $order is done."
                     //    }
                     //
                 }
@@ -7930,10 +8000,9 @@ class binance extends Exchange {
             if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 return $this->parse_orders($response, $market);
             } else {
+                $order = $this->safe_order(array( 'info' => $response ));
                 return array(
-                    $this->safe_order(array(
-                        'info' => $response,
-                    )),
+                    $order,
                 );
             }
         }) ();
@@ -8830,7 +8899,8 @@ class binance extends Exchange {
         if ($internalInteger !== null) {
             $internal = ($internalInteger !== 0) ? true : false;
         }
-        $network = $this->safe_string($transaction, 'network');
+        $networkId = $this->safe_string($transaction, 'network');
+        $network = $this->network_id_to_code($networkId, $code);
         return array(
             'info' => $transaction,
             'id' => $id,
@@ -9253,21 +9323,19 @@ class binance extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->network] $network for fetch deposit address
+             * @param {string} [$params->network] network for fetch deposit address
              * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
-                // 'network' => 'ETH', // 'BSC', 'XMR', you can get $network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
+                // 'network' => 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the $response of sapiGetCapitalConfigDetail
             );
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['network'] = $network;
-                $params = $this->omit($params, 'network');
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
             // has support for the 'network' parameter
             $response = Async\await($this->sapiGetCapitalDepositAddress ($this->extend($request, $params)));
@@ -9536,12 +9604,13 @@ class binance extends Exchange {
         //        ]
         //    }
         //
+        $code = $this->safe_string($currency, 'code');
         $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
-            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = $this->network_id_to_code($networkId, $code);
             $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
             $isDefault = $this->safe_bool($networkEntry, 'isDefault');
             if ($isDefault === true) {
@@ -9585,20 +9654,18 @@ class binance extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
-                // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
+                // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
                 // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
             );
             if ($tag !== null) {
                 $request['addressTag'] = $tag;
             }
-            $networks = $this->safe_dict($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
-            if ($network !== null) {
-                $request['network'] = $network;
-                $params = $this->omit($params, 'network');
+            $networkCode = null;
+            list($networkCode, $params) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
             }
-            $request['amount'] = $this->currency_to_precision($code, $amount, $network);
+            $request['amount'] = $this->currency_to_precision($currency['code'], $amount, $networkCode);
             $response = Async\await($this->sapiPostCapitalWithdrawApply ($this->extend($request, $params)));
             //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
             return $this->parse_transaction($response, $currency);

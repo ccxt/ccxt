@@ -82,8 +82,9 @@ class ascendex extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMySettlementHistory' => false,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
+                'fetchOpenInterest' => 'emulated',
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
@@ -531,68 +532,67 @@ class ascendex extends Exchange {
             //    }
             //
             $data = $this->safe_list($response, 'data', array());
-            $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $currency = $data[$i];
-                $id = $this->safe_string($currency, 'assetCode');
-                $code = $this->safe_currency_code($id);
-                $chains = $this->safe_list($currency, 'blockChain', array());
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'nativeScale')));
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $networkEtnry = $chains[$j];
-                    $networkId = $this->safe_string($networkEtnry, 'chainName');
-                    $networkCode = $this->network_code_to_id($networkId);
-                    $networks[$networkCode] = array(
-                        'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
-                        'active' => null,
-                        'withdraw' => $this->safe_bool($networkEtnry, 'allowWithdraw'),
-                        'deposit' => $this->safe_bool($networkEtnry, 'allowDeposit'),
-                        'precision' => $precision,
-                        'limits' => array(
-                            'amount' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEtnry, 'minWithdrawal'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkEtnry, 'minDepositAmt'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                // todo type => if (chainsLength === 0 && (str_ends_with(assetName, ' Staking') || mb_strpos(assetName, ' Reward ') !== false || mb_strpos(assetName, 'Slot Auction') !== false || mb_strpos(assetName, ' Freeze Asset') !== false))
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'info' => $currency,
-                    'type' => null,
-                    'margin' => null,
-                    'name' => $this->safe_string($currency, 'assetName'),
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => $precision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'minWithdrawalAmt'),
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($data);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'assetCode');
+        $code = $this->safe_currency_code($id);
+        $chains = $this->safe_list($rawCurrency, 'blockChain', array());
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'nativeScale')));
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $networkEtnry = $chains[$j];
+            $networkId = $this->safe_string($networkEtnry, 'chainName');
+            $networkCode = $this->network_code_to_id($networkId);
+            $networks[$networkCode] = array(
+                'fee' => $this->safe_number($networkEtnry, 'withdrawFee'),
+                'active' => null,
+                'withdraw' => $this->safe_bool($networkEtnry, 'allowWithdraw'),
+                'deposit' => $this->safe_bool($networkEtnry, 'allowDeposit'),
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEtnry, 'minWithdrawal'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEtnry, 'minDepositAmt'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        // todo type => if (chainsLength === 0 && (str_ends_with(assetName, ' Staking') || mb_strpos(assetName, ' Reward ') !== false || mb_strpos(assetName, 'Slot Auction') !== false || mb_strpos(assetName, ' Freeze Asset') !== false))
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => $rawCurrency,
+            'type' => null,
+            'margin' => null,
+            'name' => $this->safe_string($rawCurrency, 'assetName'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'minWithdrawalAmt'),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -922,12 +922,14 @@ class ascendex extends Exchange {
                 $accountGroup = $this->safe_string($data, 'accountGroup');
                 $this->options['account-group'] = $accountGroup;
             }
+            $finalResponse = $response; // java req
+            $finalAccountGroup = $accountGroup;
             return array(
                 array(
-                    'id' => $accountGroup,
+                    'id' => $finalAccountGroup,
                     'type' => null,
                     'code' => null,
-                    'info' => $response,
+                    'info' => $finalResponse,
                 ),
             );
         }) ();
@@ -3089,8 +3091,9 @@ class ascendex extends Exchange {
             if ($type === 'reduce') {
                 $amount = Precise::string_abs($amount);
             }
+            $parsedAmount = $this->parse_number($amount);
             return $this->extend($this->parse_margin_modification($response, $market), array(
-                'amount' => $this->parse_number($amount),
+                'amount' => $parsedAmount,
                 'type' => $type,
             ));
         }) ();
@@ -3672,6 +3675,81 @@ class ascendex extends Exchange {
             $leverages = $this->safe_list($data, 'contracts', array());
             return $this->parse_leverages($leverages, $symbols, 'symbol');
         }) ();
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * Retrieves the open interest for a list of $symbols
+             *
+             * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-$data
+             *
+             * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+             * @param {array} [$params] exchange specific parameters
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $response = null;
+            $response = Async\await($this->v2PublicGetFuturesPricingData ($this->extend($request, $params)));
+            //
+            //    {
+            //        code => '0',
+            //        $data => {
+            //            $contracts => array(
+            //                array(
+            //                    time => '1772138885616',
+            //                    symbol => 'ZIL-PERP',
+            //                    markPrice => '0.004167783',
+            //                    indexPrice => '0.004168',
+            //                    lastPrice => '0.00416',
+            //                    openInterest => '7685003',
+            //                    fundingRate => '0.0003',
+            //                    nextFundingTime => '1772139600000'
+            //                ),
+            //            )
+            //            collaterals => array(
+            //                array( asset => 'TAO', referencePrice => '182.15' ),
+            //                ...
+            //            )
+            //        }
+            //    }
+            //
+            $symbols = $this->market_symbols($symbols);
+            $data = $this->safe_dict($response, 'data', array());
+            $contracts = $this->safe_list($data, 'contracts', array());
+            return $this->parse_open_interests($contracts, $symbols);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        // fetchOpenInterests
+        //
+        //    {
+        //        time => '1772138885616',
+        //        symbol => 'ZIL-PERP',
+        //        markPrice => '0.004167783',
+        //        indexPrice => '0.004168',
+        //        lastPrice => '0.00416',
+        //        $openInterest => '7685003',
+        //        fundingRate => '0.0003',
+        //        nextFundingTime => '1772139600000'
+        //    }
+        //
+        $marketId = $this->safe_string($interest, 'symbol');
+        $timestamp = $this->safe_integer($interest, 'time');
+        $openInterest = $this->safe_number($interest, 'openInterest');
+        return $this->safe_open_interest(array(
+            'info' => $interest,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'baseVolume' => $openInterest,  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => $openInterest,
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ), $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {

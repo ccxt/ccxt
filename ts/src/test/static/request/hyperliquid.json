@@ -2,7 +2,8 @@
     "exchange": "hyperliquid",
     "options": {
         "approvedBuilderFee": true,
-        "refSet": true
+        "refSet": true,
+        "enableUnifiedMargin": false
     },
     "skipKeys": [
         "startTime",
@@ -15,6 +16,21 @@
     ],
     "outputType": "json",
     "methods": {
+        "isUnifiedEnabled": [
+            {
+                "disabled": true,
+                "reason": "this test writes in options contaminating the other tests",
+                "description": "is unified account enabled",
+                "method": "isUnifiedEnabled",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "test",
+                    null,
+                    true
+                ],
+                "output": "{\"type\":\"userAbstraction\",\"user\":\"0x193bD350ec838B1e22d6F302Da5343b920aA1c2B\"}"
+            }
+        ],
         "createSubAccount": [
             {
                 "description": "create subAccount using expiresAfter",
@@ -755,6 +771,7 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
+                        "enableUnifiedMargin": false,
                         "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
                     }
                 ],
@@ -766,6 +783,7 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
+                        "enableUnifiedMargin": false,
                         "type": "spot",
                         "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
                     }
@@ -779,10 +797,23 @@
                 "input": [
                     {
                         "type": "spot",
+                        "enableUnifiedMargin": false,
                         "subAccountAddress": "0x3B3741c0EFf9C6b556Ec813e70589161F416661B"
                     }
                 ],
                 "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416661B\"}"
+            },
+            {
+                "description": "fetch unified margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    {
+                        "enableUnifiedMargin": true,
+                        "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                    }
+                ],
+                "output": "{\"type\":\"spotClearinghouseState\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             }
         ],
         "fetchOrderBook": [
@@ -1201,6 +1232,16 @@
             }
         ],
         "setLeverage": [
+            {
+                "description": "set leverage hip3 market",
+                "method": "setLeverage",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    5,
+                    "XYZ-AAPL/USDC:USDC"
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":110009,\"isCross\":true,\"leverage\":5},\"nonce\":1772355531476,\"signature\":{\"r\":\"0x8a7b78bfe2b19078fea19563d029559e3714856ce4567ce40767dceb63145302\",\"s\":\"0x36e9200c81c29deab01facbfba10ae0cdccc16f611f0fb32f57da01f540d9187\",\"v\":28}}"
+            },
             {
                 "description": "set leverage",
                 "method": "setLeverage",

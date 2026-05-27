@@ -154,7 +154,17 @@ class bingx(Exchange, ImplicitAPI):
                     'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
-                    'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                    'fund': 'https://open-api-vst.{hostname}/openApi',
+                    'spot': 'https://open-api-vst.{hostname}/openApi',
+                    'swap': 'https://open-api-vst.{hostname}/openApi',
+                    'contract': 'https://open-api-vst.{hostname}/openApi',
+                    'wallets': 'https://open-api-vst.{hostname}/openApi',
+                    'user': 'https://open-api-vst.{hostname}/openApi',
+                    'subAccount': 'https://open-api-vst.{hostname}/openApi',
+                    'account': 'https://open-api-vst.{hostname}/openApi',
+                    'copyTrading': 'https://open-api-vst.{hostname}/openApi',
+                    'cswap': 'https://open-api-vst.{hostname}/openApi',
+                    'api': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -783,6 +793,7 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for self
         })
 
     async def fetch_time(self, params={}) -> Int:
@@ -824,107 +835,100 @@ class bingx(Exchange, ImplicitAPI):
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
-        #      "code": 0,
-        #      "timestamp": 1702623271476,
-        #      "data": [
-        #        {
-        #          "coin": "BTC",
-        #          "name": "BTC",
-        #          "networkList": [
+        #        "code": "0",
+        #        "timestamp": "1779364918914",
+        #        "data": [
         #            {
-        #              "name": "BTC",
-        #              "network": "BTC",
-        #              "isDefault": True,
-        #              "minConfirm": 2,
-        #              "withdrawEnable": True,
-        #              "depositEnable": True,
-        #              "withdrawFee": "0.0006",
-        #              "withdrawMax": "1.17522",
-        #              "withdrawMin": "0.0005",
-        #              "depositMin": "0.0002"
+        #                "coin": "BTC",
+        #                "name": "BTC",
+        #                "networkList": [
+        #                    {
+        #                        "name": "BTC",
+        #                        "network": "BTC",
+        #                        "isDefault": True,
+        #                        "minConfirm": "2",
+        #                        "withdrawEnable": True,
+        #                        "depositEnable": True,
+        #                        "withdrawFee": "0.00004",
+        #                        "withdrawMax": "64.77131128",
+        #                        "withdrawMin": "0.000046",
+        #                        "depositMin": "0.00009",
+        #                        "withdrawPrecision": "8",
+        #                        "depositPrecision": "8",
+        #                        "contractAddress": "",
+        #                        "needTagOrMemo": "false",
+        #                        "displayName": "BTC"
+        #                    },
+        #                    {
+        #                        "name": "BTC",
+        #                        "network": "BEP20",
+        #                        "isDefault": True,
+        #                        "minConfirm": "10",
+        #                        "withdrawEnable": True,
+        #                        "depositEnable": True,
+        #                        "withdrawFee": "0.000001",
+        #                        "withdrawMax": "64.77131128",
+        #                        "withdrawMin": "0.000065",
+        #                        "depositMin": "0.000012",
+        #                        "withdrawPrecision": "8",
+        #                        "depositPrecision": "18",
+        #                        "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+        #                        "needTagOrMemo": "false",
+        #                        "displayName": "BTCBEP20"
+        #                    }
+        #                ]
         #            },
-        #            {
-        #              "name": "BTC",
-        #              "network": "BEP20",
-        #              "isDefault": False,
-        #              "minConfirm": 15,
-        #              "withdrawEnable": True,
-        #              "depositEnable": True,
-        #              "withdrawFee": "0.0000066",
-        #              "withdrawMax": "1.17522",
-        #              "withdrawMin": "0.0000066",
-        #              "depositMin": "0.0002"
-        #            }
-        #          ]
-        #        }
-        #      ]
-        #    }
+        #            ...
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            entry = data[i]
-            currencyId = self.safe_string(entry, 'coin')
-            code = self.safe_currency_code(currencyId)
-            name = self.safe_string(entry, 'name')
-            networkList = self.safe_list(entry, 'networkList')
-            networks: dict = {}
-            for j in range(0, len(networkList)):
-                rawNetwork = networkList[j]
-                network = self.safe_string(rawNetwork, 'network')
-                networkCode = self.network_id_to_code(network)
-                limits: dict = {
-                    'withdraw': {
-                        'min': self.safe_number(rawNetwork, 'withdrawMin'),
-                        'max': self.safe_number(rawNetwork, 'withdrawMax'),
-                    },
-                    'deposit': {
-                        'min': self.safe_number(rawNetwork, 'depositMin'),
-                        'max': None,
-                    },
-                }
-                precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': network,
-                    'network': networkCode,
-                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
-                    'active': None,
-                    'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
-                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
-                    'precision': precision,
-                    'limits': limits,
-                }
-            if not (code in result):  # the exchange could return the same currency with different networks
-                result[code] = {
-                    'info': entry,
-                    'code': code,
-                    'id': currencyId,
-                    'precision': None,
-                    'name': name,
-                    'active': None,
-                    'deposit': None,
-                    'withdraw': None,
-                    'networks': networks,
-                    'fee': None,
-                    'limits': None,
-                    'type': 'crypto',  # only cryptos now
-                }
-            else:
-                existing = result[code]
-                existingNetworks = self.safe_dict(existing, 'networks', {})
-                newNetworkCodes = list(networks.keys())
-                for j in range(0, len(newNetworkCodes)):
-                    newNetworkCode = newNetworkCodes[j]
-                    if not (newNetworkCode in existingNetworks):
-                        existingNetworks[newNetworkCode] = networks[newNetworkCode]
-                result[code]['networks'] = existingNetworks
-        codes = list(result.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = result[code]
-            result[code] = self.safe_currency_structure(currency)
-        return result
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        currencyId = self.safe_string(rawCurrency, 'coin')
+        code = self.safe_currency_code(currencyId)
+        name = self.safe_string(rawCurrency, 'name')
+        networkList = self.safe_list(rawCurrency, 'networkList')
+        networks: dict = {}
+        for j in range(0, len(networkList)):
+            rawNetwork = networkList[j]
+            network = self.safe_string(rawNetwork, 'network')
+            networkCode = self.network_id_to_code(network)
+            limits: dict = {
+                'withdraw': {
+                    'min': self.safe_number(rawNetwork, 'withdrawMin'),
+                    'max': self.safe_number(rawNetwork, 'withdrawMax'),
+                },
+                'deposit': {
+                    'min': self.safe_number(rawNetwork, 'depositMin'),
+                    'max': None,
+                },
+            }
+            precision = self.parse_number(self.parse_precision(self.safe_string(rawNetwork, 'withdrawPrecision')))
+            networks[networkCode] = {
+                'info': rawNetwork,
+                'id': network,
+                'network': networkCode,
+                'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                'active': None,
+                'deposit': self.safe_bool(rawNetwork, 'depositEnable'),
+                'withdraw': self.safe_bool(rawNetwork, 'withdrawEnable'),
+                'precision': precision,
+                'limits': limits,
+            }
+        return self.safe_currency_structure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'precision': None,
+            'name': name,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'networks': networks,
+            'fee': None,
+            'limits': None,
+            'type': 'crypto',  # only cryptos now
+        })
 
     async def fetch_spot_markets(self, params) -> List[Market]:
         response = await self.spotV1PublicGetCommonSymbols(params)
@@ -1672,9 +1676,9 @@ class bingx(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchFundingRates', firstMarket, params, subType)
         response = None
         if subType == 'inverse':
-            response = await self.cswapV1PublicGetMarketPremiumIndex(self.extend(params))
+            response = await self.cswapV1PublicGetMarketPremiumIndex(params)
         else:
-            response = await self.swapV2PublicGetQuotePremiumIndex(self.extend(params))
+            response = await self.swapV2PublicGetQuotePremiumIndex(params)
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbols)
 
@@ -5012,7 +5016,7 @@ class bingx(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
-        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        recvWindow = self.safe_integer(params, 'recvWindow', defaultRecvWindow)
         request: dict = {
             'coin': currency['id'],
             'offset': 0,
@@ -6028,7 +6032,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
-        recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
+        recvWindow = self.safe_integer(params, 'recvWindow', defaultRecvWindow)
         marketType = None
         marketType, params = self.handle_market_type_and_params('closeAllPositions', None, params)
         subType = None
@@ -6514,9 +6518,9 @@ class bingx(Exchange, ImplicitAPI):
         version = section[1]
         access = section[2]
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
-        if isSandbox and (type != 'swap'):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
+        if isSandbox and url is None:
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         path = self.implode_params(path, params)
         versionIsTransfer = (version == 'transfer')
         versionIsAsset = (version == 'asset')

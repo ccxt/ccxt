@@ -231,6 +231,7 @@ class coinbaseinternational extends Exchange {
                     'is a required field' => '\\ccxt\\BadRequest',
                     'Not Found' => '\\ccxt\\BadRequest',
                     'ip not allowed' => '\\ccxt\\AuthenticationError',
+                    'cbe spot routing instrument not supported' => '\\ccxt\\NotSupported',
                 ),
             ),
             'timeframes' => array(
@@ -356,7 +357,7 @@ class coinbaseinternational extends Exchange {
         }) ();
     }
 
-    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params) {
+    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array ()) {
         return Async\async(function () use ($currencyCode, $methodName, $params) {
             $networkId = null;
             list($networkId, $params) = $this->handle_option_and_params($params, $methodName, 'network_arn_id');
@@ -542,9 +543,10 @@ class coinbaseinternational extends Exchange {
             }
             $market = $this->market($symbol);
             $page = $this->safe_integer($params, $pageKey, 1) - 1;
+            $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
             $request = array(
                 'instrument' => $market['id'],
-                'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+                'result_offset' => $offSet,
             );
             if ($limit !== null) {
                 $request['result_limit'] = $limit;
@@ -988,8 +990,9 @@ class coinbaseinternational extends Exchange {
                 return Async\await($this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
             }
             $page = $this->safe_integer($params, $pageKey, 1) - 1;
+            $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
             $request = array(
-                'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+                'result_offset' => $offSet,
             );
             if ($since !== null) {
                 $request['time_from'] = $this->iso8601($since);
@@ -1443,16 +1446,18 @@ class coinbaseinternational extends Exchange {
             $settleId = $quoteId;
             $symbol .= ':' . $quoteId;
         }
+        $isLinear = $isSpot ? null : ($settleId === $quoteId);
+        $isInverse = $isSpot ? null : ($settleId !== $quoteId);
         return array(
             'id' => $marketId,
             'lowercaseId' => strtolower($marketId),
             'symbol' => $symbol,
             'base' => $baseId,
             'quote' => $quoteId,
-            'settle' => $settleId ? $settleId : null,
+            'settle' => $settleId,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => $settleId ? $settleId : null,
+            'settleId' => $settleId,
             'type' => $isSpot ? 'spot' : 'swap',
             'spot' => $isSpot,
             'margin' => false,
@@ -1461,8 +1466,8 @@ class coinbaseinternational extends Exchange {
             'option' => false,
             'active' => $this->safe_string($market, 'trading_state') === 'TRADING',
             'contract' => !$isSpot,
-            'linear' => $isSpot ? null : ($settleId === $quoteId),
-            'inverse' => $isSpot ? null : ($settleId !== $quoteId),
+            'linear' => $isLinear,
+            'inverse' => $isInverse,
             'taker' => $fees['trading']['taker'],
             'maker' => $fees['trading']['maker'],
             'contractSize' => $isSpot ? null : 1,
@@ -2145,9 +2150,10 @@ class coinbaseinternational extends Exchange {
                 return Async\await($this->fetch_paginated_call_incremental('fetchOpenOrders', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest));
             }
             $page = $this->safe_integer($params, $pageKey, 1) - 1;
+            $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
             $request = array(
                 'portfolio' => $portfolio,
-                'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+                'result_offset' => $offSet,
             );
             $market = null;
             if ($symbol) {
@@ -2232,8 +2238,9 @@ class coinbaseinternational extends Exchange {
                 $market = $this->market($symbol);
             }
             $page = $this->safe_integer($params, $pageKey, 1) - 1;
+            $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
             $request = array(
-                'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+                'result_offset' => $offSet,
             );
             if ($limit !== null) {
                 if ($limit > 100) {
@@ -2341,45 +2348,6 @@ class coinbaseinternational extends Exchange {
             //
             return $this->parse_transaction($response, $currency);
         }) ();
-    }
-
-    public function safe_network($network) {
-        $withdrawEnabled = $this->safe_bool($network, 'withdraw');
-        $depositEnabled = $this->safe_bool($network, 'deposit');
-        $limits = $this->safe_dict($network, 'limits');
-        $withdraw = $this->safe_dict($limits, 'withdraw');
-        $withdrawMax = $this->safe_number($withdraw, 'max');
-        $deposit = $this->safe_dict($limits, 'deposit');
-        $depositMax = $this->safe_number($deposit, 'max');
-        if ($withdrawEnabled === null && $withdrawMax !== null) {
-            $withdrawEnabled = ($withdrawMax > 0);
-        }
-        if ($depositEnabled === null && $depositMax !== null) {
-            $depositEnabled = ($depositMax > 0);
-        }
-        $networkId = $this->safe_string($network, 'id');
-        $isEnabled = ($withdrawEnabled && $depositEnabled);
-        return array(
-            'info' => $network['info'],
-            'id' => $networkId,
-            'name' => $this->safe_string($network, 'name'),
-            'network' => $this->safe_string($network, 'network'),
-            'active' => $this->safe_bool($network, 'active', $isEnabled),
-            'deposit' => $depositEnabled,
-            'withdraw' => $withdrawEnabled,
-            'fee' => $this->safe_number($network, 'fee'),
-            'precision' => $this->safe_number($network, 'precision'),
-            'limits' => array(
-                'withdraw' => array(
-                    'min' => $this->safe_number($withdraw, 'min'),
-                    'max' => $withdrawMax,
-                ),
-                'deposit' => array(
-                    'min' => $this->safe_number($deposit, 'min'),
-                    'max' => $depositMax,
-                ),
-            ),
-        );
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

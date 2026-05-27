@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bingx
@@ -140,7 +140,17 @@ class bingx extends bingx$1["default"] {
                     'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
-                    'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                    'fund': 'https://open-api-vst.{hostname}/openApi',
+                    'spot': 'https://open-api-vst.{hostname}/openApi',
+                    'swap': 'https://open-api-vst.{hostname}/openApi',
+                    'contract': 'https://open-api-vst.{hostname}/openApi',
+                    'wallets': 'https://open-api-vst.{hostname}/openApi',
+                    'user': 'https://open-api-vst.{hostname}/openApi',
+                    'subAccount': 'https://open-api-vst.{hostname}/openApi',
+                    'account': 'https://open-api-vst.{hostname}/openApi',
+                    'copyTrading': 'https://open-api-vst.{hostname}/openApi',
+                    'cswap': 'https://open-api-vst.{hostname}/openApi',
+                    'api': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -769,6 +779,7 @@ class bingx extends bingx$1["default"] {
                     },
                 },
             },
+            'rollingWindowSize': 2000.0, // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for this
         });
     }
     /**
@@ -812,114 +823,101 @@ class bingx extends bingx$1["default"] {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
         //
         //    {
-        //      "code": 0,
-        //      "timestamp": 1702623271476,
-        //      "data": [
-        //        {
-        //          "coin": "BTC",
-        //          "name": "BTC",
-        //          "networkList": [
+        //        "code": "0",
+        //        "timestamp": "1779364918914",
+        //        "data": [
         //            {
-        //              "name": "BTC",
-        //              "network": "BTC",
-        //              "isDefault": true,
-        //              "minConfirm": 2,
-        //              "withdrawEnable": true,
-        //              "depositEnable": true,
-        //              "withdrawFee": "0.0006",
-        //              "withdrawMax": "1.17522",
-        //              "withdrawMin": "0.0005",
-        //              "depositMin": "0.0002"
+        //                "coin": "BTC",
+        //                "name": "BTC",
+        //                "networkList": [
+        //                    {
+        //                        "name": "BTC",
+        //                        "network": "BTC",
+        //                        "isDefault": true,
+        //                        "minConfirm": "2",
+        //                        "withdrawEnable": true,
+        //                        "depositEnable": true,
+        //                        "withdrawFee": "0.00004",
+        //                        "withdrawMax": "64.77131128",
+        //                        "withdrawMin": "0.000046",
+        //                        "depositMin": "0.00009",
+        //                        "withdrawPrecision": "8",
+        //                        "depositPrecision": "8",
+        //                        "contractAddress": "",
+        //                        "needTagOrMemo": "false",
+        //                        "displayName": "BTC"
+        //                    },
+        //                    {
+        //                        "name": "BTC",
+        //                        "network": "BEP20",
+        //                        "isDefault": true,
+        //                        "minConfirm": "10",
+        //                        "withdrawEnable": true,
+        //                        "depositEnable": true,
+        //                        "withdrawFee": "0.000001",
+        //                        "withdrawMax": "64.77131128",
+        //                        "withdrawMin": "0.000065",
+        //                        "depositMin": "0.000012",
+        //                        "withdrawPrecision": "8",
+        //                        "depositPrecision": "18",
+        //                        "contractAddress": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+        //                        "needTagOrMemo": "false",
+        //                        "displayName": "BTCBEP20"
+        //                    }
+        //                ]
         //            },
-        //            {
-        //              "name": "BTC",
-        //              "network": "BEP20",
-        //              "isDefault": false,
-        //              "minConfirm": 15,
-        //              "withdrawEnable": true,
-        //              "depositEnable": true,
-        //              "withdrawFee": "0.0000066",
-        //              "withdrawMax": "1.17522",
-        //              "withdrawMin": "0.0000066",
-        //              "depositMin": "0.0002"
-        //            }
-        //          ]
-        //        }
-        //      ]
-        //    }
+        //            ...
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const currencyId = this.safeString(entry, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(entry, 'name');
-            const networkList = this.safeList(entry, 'networkList');
-            const networks = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const rawNetwork = networkList[j];
-                const network = this.safeString(rawNetwork, 'network');
-                const networkCode = this.networkIdToCode(network);
-                const limits = {
-                    'withdraw': {
-                        'min': this.safeNumber(rawNetwork, 'withdrawMin'),
-                        'max': this.safeNumber(rawNetwork, 'withdrawMax'),
-                    },
-                    'deposit': {
-                        'min': this.safeNumber(rawNetwork, 'depositMin'),
-                        'max': undefined,
-                    },
-                };
-                const precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, 'withdrawPrecision')));
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': network,
-                    'network': networkCode,
-                    'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
-                    'active': undefined,
-                    'deposit': this.safeBool(rawNetwork, 'depositEnable'),
-                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnable'),
-                    'precision': precision,
-                    'limits': limits,
-                };
-            }
-            if (!(code in result)) { // the exchange could return the same currency with different networks
-                result[code] = {
-                    'info': entry,
-                    'code': code,
-                    'id': currencyId,
-                    'precision': undefined,
-                    'name': name,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'networks': networks,
-                    'fee': undefined,
-                    'limits': undefined,
-                    'type': 'crypto', // only cryptos now
-                };
-            }
-            else {
-                const existing = result[code];
-                const existingNetworks = this.safeDict(existing, 'networks', {});
-                const newNetworkCodes = Object.keys(networks);
-                for (let j = 0; j < newNetworkCodes.length; j++) {
-                    const newNetworkCode = newNetworkCodes[j];
-                    if (!(newNetworkCode in existingNetworks)) {
-                        existingNetworks[newNetworkCode] = networks[newNetworkCode];
-                    }
-                }
-                result[code]['networks'] = existingNetworks;
-            }
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(rawCurrency, 'name');
+        const networkList = this.safeList(rawCurrency, 'networkList');
+        const networks = {};
+        for (let j = 0; j < networkList.length; j++) {
+            const rawNetwork = networkList[j];
+            const network = this.safeString(rawNetwork, 'network');
+            const networkCode = this.networkIdToCode(network);
+            const limits = {
+                'withdraw': {
+                    'min': this.safeNumber(rawNetwork, 'withdrawMin'),
+                    'max': this.safeNumber(rawNetwork, 'withdrawMax'),
+                },
+                'deposit': {
+                    'min': this.safeNumber(rawNetwork, 'depositMin'),
+                    'max': undefined,
+                },
+            };
+            const precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, 'withdrawPrecision')));
+            networks[networkCode] = {
+                'info': rawNetwork,
+                'id': network,
+                'network': networkCode,
+                'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
+                'active': undefined,
+                'deposit': this.safeBool(rawNetwork, 'depositEnable'),
+                'withdraw': this.safeBool(rawNetwork, 'withdrawEnable'),
+                'precision': precision,
+                'limits': limits,
+            };
         }
-        const codes = Object.keys(result);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = result[code];
-            result[code] = this.safeCurrencyStructure(currency);
-        }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'precision': undefined,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': networks,
+            'fee': undefined,
+            'limits': undefined,
+            'type': 'crypto', // only cryptos now
+        });
     }
     async fetchSpotMarkets(params) {
         const response = await this.spotV1PublicGetCommonSymbols(params);
@@ -1706,10 +1704,10 @@ class bingx extends bingx$1["default"] {
         [subType, params] = this.handleSubTypeAndParams('fetchFundingRates', firstMarket, params, subType);
         let response = undefined;
         if (subType === 'inverse') {
-            response = await this.cswapV1PublicGetMarketPremiumIndex(this.extend(params));
+            response = await this.cswapV1PublicGetMarketPremiumIndex(params);
         }
         else {
-            response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(params));
+            response = await this.swapV2PublicGetQuotePremiumIndex(params);
         }
         const data = this.safeList(response, 'data', []);
         return this.parseFundingRates(data, symbols);
@@ -5256,7 +5254,7 @@ class bingx extends bingx$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         const request = {
             'coin': currency['id'],
             'offset': 0,
@@ -6327,7 +6325,7 @@ class bingx extends bingx$1["default"] {
     async closeAllPositions(params = {}) {
         await this.loadMarkets();
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
-        const recvWindow = this.safeInteger(this.parseParams, 'recvWindow', defaultRecvWindow);
+        const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('closeAllPositions', undefined, params);
         let subType = undefined;
@@ -6840,10 +6838,10 @@ class bingx extends bingx$1["default"] {
         let version = section[1];
         let access = section[2];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
-        if (isSandbox && (type !== 'swap')) {
+        let url = this.implodeHostname(this.urls['api'][type]);
+        if (isSandbox && url === undefined) {
             throw new errors.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
-        let url = this.implodeHostname(this.urls['api'][type]);
         path = this.implodeParams(path, params);
         const versionIsTransfer = (version === 'transfer');
         const versionIsAsset = (version === 'asset');

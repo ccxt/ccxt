@@ -14,7 +14,6 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.errors import ChecksumError
 
 
 class okx(ccxt.async_support.okx):
@@ -1255,34 +1254,17 @@ class okx(ccxt.async_support.okx):
         self.handle_deltas(storedBids, bids)
         marketId = self.safe_string(message, 'instId')
         symbol = self.safe_symbol(marketId, market)
-        checksum = self.handle_option('watchOrderBook', 'checksum', True)
         seqId = self.safe_integer(message, 'seqId')
-        if checksum:
-            prevSeqId = self.safe_integer(message, 'prevSeqId')
-            nonce = orderbook['nonce']
-            asksLength = len(storedAsks)
-            bidsLength = len(storedBids)
-            payloadArray = []
-            for i in range(0, 25):
-                if i < bidsLength:
-                    payloadArray.append(self.number_to_string(storedBids[i][0]))
-                    payloadArray.append(self.number_to_string(storedBids[i][1]))
-                if i < asksLength:
-                    payloadArray.append(self.number_to_string(storedAsks[i][0]))
-                    payloadArray.append(self.number_to_string(storedAsks[i][1]))
-            payload = ':'.join(payloadArray)
-            responseChecksum = self.safe_integer(message, 'checksum')
-            localChecksum = self.crc32(payload, True)
-            error = None
-            if prevSeqId != -1 and nonce != prevSeqId:
-                error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
-            if responseChecksum != localChecksum:
-                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-            if error is not None:
-                del client.subscriptions[messageHash]
-                if symbol is not None:
-                    del self.orderbooks[symbol]
-                client.reject(error, messageHash)
+        prevSeqId = self.safe_integer(message, 'prevSeqId')
+        nonce = orderbook['nonce']
+        error = None
+        if prevSeqId is not None and prevSeqId != -1 and nonce != prevSeqId:
+            error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
+        if error is not None:
+            del client.subscriptions[messageHash]
+            if symbol is not None:
+                del self.orderbooks[symbol]
+            client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['nonce'] = seqId
         orderbook['timestamp'] = timestamp
@@ -1453,6 +1435,9 @@ class okx(ccxt.async_support.okx):
 
     async def watch_balance(self, params={}) -> Balances:
         """
+
+        https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -1467,55 +1452,99 @@ class okx(ccxt.async_support.okx):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         "arg": {channel: "account"},
-        #         "data": [
+        #         arg: {
+        #             channel: 'account',
+        #             uid: '158635852459810816'
+        #         },
+        #         eventType: 'snapshot',
+        #         curPage: 1,
+        #         lastPage: True,
+        #         data: [
         #             {
-        #                 "adjEq": '',
-        #                 "details": [
+        #                 adjEq: '100942.13298468884',
+        #                 availEq: '98461.99074635761',
+        #                 borrowFroz: '409.3702076072169',
+        #                 delta: '',
+        #                 deltaLever: '',
+        #                 deltaNeutralStatus: '',
+        #                 details: [
         #                     {
-        #                         "availBal": '',
-        #                         "availEq": "8.21009913",
-        #                         "cashBal": "8.21009913",
-        #                         "ccy": "USDT",
-        #                         "coinUsdPrice": "0.99994",
-        #                         "crossLiab": '',
-        #                         "disEq": "8.2096065240522",
-        #                         "eq": "8.21009913",
-        #                         "eqUsd": "8.2096065240522",
-        #                         "frozenBal": "0",
-        #                         "interest": '',
-        #                         "isoEq": "0",
-        #                         "isoLiab": '',
-        #                         "liab": '',
-        #                         "maxLoan": '',
-        #                         "mgnRatio": '',
-        #                         "notionalLever": "0",
-        #                         "ordFrozen": "0",
-        #                         "twap": "0",
-        #                         "uTime": "1621927314996",
-        #                         "upl": "0"
-        #                     },
+        #                         accAvgPx: '',
+        #                         autoLendAmt: '0',
+        #                         autoLendMtAmt: '0',
+        #                         autoLendStatus: 'unsupported',
+        #                         autoStakingStatus: 'unsupported',
+        #                         availBal: '2900',
+        #                         availEq: '2900',
+        #                         borrowFroz: '0',
+        #                         cashBal: '2900',
+        #                         ccy: 'TUSD',
+        #                         clSpotInUseAmt: '',
+        #                         coinUsdPrice: '200.026',
+        #                         colBorrAutoConversion: '0',
+        #                         colRes: '0',
+        #                         collateralEnabled: False,
+        #                         collateralRestrict: False,
+        #                         crossLiab: '0',
+        #                         disEq: '0',
+        #                         eq: '2900',
+        #                         eqUsd: '580075.4',
+        #                         fixedBal: '0',
+        #                         frozenBal: '0',
+        #                         frpType: '0',
+        #                         imr: '',
+        #                         interest: '0',
+        #                         isoEq: '0',
+        #                         isoLiab: '0',
+        #                         isoUpl: '0',
+        #                         liab: '0',
+        #                         maxLoan: '0',
+        #                         maxSpotInUseAmt: '',
+        #                         mgnRatio: '',
+        #                         mmr: '',
+        #                         notionalLever: '',
+        #                         openAvgPx: '',
+        #                         ordFrozen: '0',
+        #                         rewardBal: '',
+        #                         smtSyncEq: '0',
+        #                         spotBal: '',
+        #                         spotCopyTradingEq: '0',
+        #                         spotInUseAmt: '',
+        #                         spotIsoBal: '0',
+        #                         spotUpl: '',
+        #                         spotUplRatio: '',
+        #                         stgyEq: '0',
+        #                         totalPnl: '',
+        #                         totalPnlRatio: '',
+        #                         twap: '0',
+        #                         uTime: '1752243427083',
+        #                         upl: '0',
+        #                         uplLiab: '0'
+        #                     }
         #                 ],
-        #                 "imr": '',
-        #                 "isoEq": "0",
-        #                 "mgnRatio": '',
-        #                 "mmr": '',
-        #                 "notionalUsd": '',
-        #                 "ordFroz": '',
-        #                 "totalEq": "22.1930992296832",
-        #                 "uTime": "1626692120916"
+        #                 imr: '2480.1422383312265',
+        #                 isoEq: '0',
+        #                 mgnRatio: '1814.5924297007082',
+        #                 mmr: '52.196024182958055',
+        #                 notionalUsd: '4634.0971302081125',
+        #                 notionalUsdForBorrow: '2046.8510380360844',
+        #                 notionalUsdForFutures: '101.11322817202809',
+        #                 notionalUsdForOption: '0',
+        #                 notionalUsdForSwap: '2486.1328640000006',
+        #                 ordFroz: '1208.3566666666668',
+        #                 totalEq: '711018.8951315446',
+        #                 uTime: '1773837554158',
+        #                 upl: '9.244336372701904'
         #             }
         #         ]
         #     }
         #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
-        type = 'spot'
         balance = self.parseTradingBalance(message)
-        oldBalance = self.safe_value(self.balance, type, {})
-        newBalance = self.deep_extend(oldBalance, balance)
-        self.balance[type] = self.safe_balance(newBalance)
-        client.resolve(self.balance[type], channel)
+        newBalance = self.deep_extend(self.balance, balance)
+        self.balance = self.safe_balance(newBalance)
+        client.resolve(self.balance, channel)
 
     def order_to_trade(self, order, market=None):
         info = self.safe_value(order, 'info', {})
@@ -1593,10 +1622,10 @@ class okx(ccxt.async_support.okx):
         https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -2207,7 +2236,7 @@ class okx(ccxt.async_support.okx):
                         errorCode = self.safe_string(d, 'sCode')
                         if errorCode is not None:
                             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-                        messageString = self.safe_value(message, 'sMsg')
+                        messageString = self.safe_value(d, 'sMsg')
                         if messageString is not None:
                             self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
                 raise ExchangeError(feedback)

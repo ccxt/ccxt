@@ -18,9 +18,9 @@ func NewCoinoneCore() *CoinoneCore {
     return p
 }
 
-func  (this *CoinoneCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *CoinoneCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "watchOrderBook": true,
             "watchOrders": false,
@@ -30,28 +30,28 @@ func  (this *CoinoneCore) Describe() interface{}  {
             "watchTicker": true,
             "watchTickers": false,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "ws": "wss://stream.coinone.co.kr",
             },
         },
-        "options": map[string]interface{} {
+        "options": map[string]any {
             "expiresIn": "",
             "userId": "",
             "wsSessionToken": "",
-            "watchOrderBook": map[string]interface{} {
+            "watchOrderBook": map[string]any {
                 "snapshotDelay": 6,
                 "snapshotMaxRetries": 3,
             },
             "tradesLimit": 1000,
             "OHLCVLimit": 1000,
         },
-        "exceptions": map[string]interface{} {
-            "exact": map[string]interface{} {
+        "exceptions": map[string]any {
+            "exact": map[string]any {
                 "4009": ccxt.AuthenticationError,
             },
         },
-        "streaming": map[string]interface{} {
+        "streaming": map[string]any {
             "ping": this.Ping,
             "keepAlive": 20000,
         },
@@ -67,30 +67,30 @@ func  (this *CoinoneCore) Describe() interface{}  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func  (this *CoinoneCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinoneCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes638 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes638)
-            var market interface{} = this.Market(symbol)
-            var messageHash interface{} = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var request interface{} = map[string]interface{} {
+            var market any = this.Market(symbol)
+            var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var request any = map[string]any {
                 "request_type": "SUBSCRIBE",
                 "channel": "ORDERBOOK",
-                "topic": map[string]interface{} {
+                "topic": map[string]any {
                     "quote_currency": ccxt.GetValue(market, "quote"),
                     "target_currency": ccxt.GetValue(market, "base"),
                 },
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
             orderbook:= (<-this.Watch(url, messageHash, message, messageHash))
             ccxt.PanicOnError(orderbook)
@@ -101,7 +101,7 @@ func  (this *CoinoneCore) WatchOrderBook(symbol interface{}, optionalArgs ...int
             }()
             return ch
         }
-func  (this *CoinoneCore) HandleOrderBook(client interface{}, message interface{})  {
+func  (this *CoinoneCore) HandleOrderBook(client any, message any)  {
     //
     //     {
     //         "response_type": "DATA",
@@ -126,32 +126,32 @@ func  (this *CoinoneCore) HandleOrderBook(client interface{}, message interface{
     //         }
     //     }
     //
-    var data interface{} = this.SafeValue(message, "data", map[string]interface{} {})
-    var baseId interface{} = this.SafeStringUpper(data, "target_currency")
-    var quoteId interface{} = this.SafeStringUpper(data, "quote_currency")
-    var base interface{} = this.SafeCurrencyCode(baseId)
-    var quote interface{} = this.SafeCurrencyCode(quoteId)
-    var symbol interface{} = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
-    var timestamp interface{} = this.SafeInteger(data, "timestamp")
-    var orderbook interface{} = this.SafeValue(this.Orderbooks, symbol)
+    var data any = this.SafeValue(message, "data", map[string]any {})
+    var baseId any = this.SafeStringUpper(data, "target_currency")
+    var quoteId any = this.SafeStringUpper(data, "quote_currency")
+    var base any = this.SafeCurrencyCode(baseId)
+    var quote any = this.SafeCurrencyCode(quoteId)
+    var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
+    var timestamp any = this.SafeInteger(data, "timestamp")
+    var orderbook any = this.SafeValue(this.Orderbooks, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
         orderbook = this.OrderBook()
     } else {
         orderbook.(ccxt.OrderBookInterface).Reset()
     }
     ccxt.AddElementToObject(orderbook, "symbol", symbol)
-    var asks interface{} = this.SafeValue(data, "asks", []interface{}{})
-    var bids interface{} = this.SafeValue(data, "bids", []interface{}{})
+    var asks any = this.SafeValue(data, "asks", []any{})
+    var bids any = this.SafeValue(data, "bids", []any{})
     this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
     this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
     ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
     ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-    var messageHash interface{} = ccxt.Add("orderbook:", symbol)
+    var messageHash any = ccxt.Add("orderbook:", symbol)
     ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func  (this *CoinoneCore) HandleDelta(bookside interface{}, delta interface{})  {
-    var bidAsk interface{} = this.ParseBidAsk(delta, "price", "qty")
+func  (this *CoinoneCore) HandleDelta(bookside any, delta any)  {
+    var bidAsk any = this.ParseBidAsk(delta, "price", "qty")
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 /**
@@ -163,28 +163,28 @@ func  (this *CoinoneCore) HandleDelta(bookside interface{}, delta interface{})  
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func  (this *CoinoneCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinoneCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
-                    params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
+                    params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
             retRes1458 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1458)
-            var market interface{} = this.Market(symbol)
-            var messageHash interface{} = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var request interface{} = map[string]interface{} {
+            var market any = this.Market(symbol)
+            var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var request any = map[string]any {
                 "request_type": "SUBSCRIBE",
                 "channel": "TICKER",
-                "topic": map[string]interface{} {
+                "topic": map[string]any {
                     "quote_currency": ccxt.GetValue(market, "quote"),
                     "target_currency": ccxt.GetValue(market, "base"),
                 },
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
                 retRes15815 :=  (<-this.Watch(url, messageHash, message, messageHash))
                 ccxt.PanicOnError(retRes15815)
@@ -194,7 +194,7 @@ func  (this *CoinoneCore) WatchTicker(symbol interface{}, optionalArgs ...interf
             }()
             return ch
         }
-func  (this *CoinoneCore) HandleTicker(client interface{}, message interface{})  {
+func  (this *CoinoneCore) HandleTicker(client any, message any)  {
     //
     //     {
     //         "response_type": "DATA",
@@ -224,14 +224,14 @@ func  (this *CoinoneCore) HandleTicker(client interface{}, message interface{}) 
     //         }
     //     }
     //
-    var data interface{} = this.SafeValue(message, "data", map[string]interface{} {})
-    var ticker interface{} = this.ParseWsTicker(data)
-    var symbol interface{} = ccxt.GetValue(ticker, "symbol")
+    var data any = this.SafeValue(message, "data", map[string]any {})
+    var ticker any = this.ParseWsTicker(data)
+    var symbol any = ccxt.GetValue(ticker, "symbol")
     ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-    var messageHash interface{} = ccxt.Add("ticker:", symbol)
+    var messageHash any = ccxt.Add("ticker:", symbol)
     client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
 }
-func  (this *CoinoneCore) ParseWsTicker(ticker interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoinoneCore) ParseWsTicker(ticker any, optionalArgs ...any) any  {
     //
     //     {
     //         "quote_currency": "KRW",
@@ -259,14 +259,14 @@ func  (this *CoinoneCore) ParseWsTicker(ticker interface{}, optionalArgs ...inte
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var timestamp interface{} = this.SafeInteger(ticker, "timestamp")
-    var last interface{} = this.SafeString(ticker, "last")
-    var baseId interface{} = this.SafeString(ticker, "target_currency")
-    var quoteId interface{} = this.SafeString(ticker, "quote_currency")
-    var base interface{} = this.SafeCurrencyCode(baseId)
-    var quote interface{} = this.SafeCurrencyCode(quoteId)
-    var symbol interface{} = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
-    return this.SafeTicker(map[string]interface{} {
+    var timestamp any = this.SafeInteger(ticker, "timestamp")
+    var last any = this.SafeString(ticker, "last")
+    var baseId any = this.SafeString(ticker, "target_currency")
+    var quoteId any = this.SafeString(ticker, "quote_currency")
+    var base any = this.SafeCurrencyCode(baseId)
+    var quote any = this.SafeCurrencyCode(quoteId)
+    var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
+    return this.SafeTicker(map[string]any {
         "symbol": symbol,
         "timestamp": timestamp,
         "datetime": this.Iso8601(timestamp),
@@ -300,32 +300,32 @@ func  (this *CoinoneCore) ParseWsTicker(ticker interface{}, optionalArgs ...inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *CoinoneCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoinoneCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
             retRes2688 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2688)
-            var market interface{} = this.Market(symbol)
-            var messageHash interface{} = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var request interface{} = map[string]interface{} {
+            var market any = this.Market(symbol)
+            var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var request any = map[string]any {
                 "request_type": "SUBSCRIBE",
                 "channel": "TRADE",
-                "topic": map[string]interface{} {
+                "topic": map[string]any {
                     "quote_currency": ccxt.GetValue(market, "quote"),
                     "target_currency": ccxt.GetValue(market, "base"),
                 },
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
             trades:= (<-this.Watch(url, messageHash, message, messageHash))
             ccxt.PanicOnError(trades)
@@ -339,7 +339,7 @@ func  (this *CoinoneCore) WatchTrades(symbol interface{}, optionalArgs ...interf
             }()
             return ch
         }
-func  (this *CoinoneCore) HandleTrades(client interface{}, message interface{})  {
+func  (this *CoinoneCore) HandleTrades(client any, message any)  {
     //
     //     {
     //         "response_type": "DATA",
@@ -355,20 +355,20 @@ func  (this *CoinoneCore) HandleTrades(client interface{}, message interface{}) 
     //         }
     //     }
     //
-    var data interface{} = this.SafeValue(message, "data", map[string]interface{} {})
-    var trade interface{} = this.ParseWsTrade(data)
-    var symbol interface{} = ccxt.GetValue(trade, "symbol")
-    var stored interface{} = this.SafeValue(this.Trades, symbol)
+    var data any = this.SafeValue(message, "data", map[string]any {})
+    var trade any = this.ParseWsTrade(data)
+    var symbol any = ccxt.GetValue(trade, "symbol")
+    var stored any = this.SafeValue(this.Trades, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
         stored = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
     stored.(ccxt.Appender).Append(trade)
-    var messageHash interface{} = ccxt.Add("trade:", symbol)
+    var messageHash any = ccxt.Add("trade:", symbol)
     client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func  (this *CoinoneCore) ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoinoneCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     //
     //     {
     //         "quote_currency": "KRW",
@@ -382,21 +382,21 @@ func  (this *CoinoneCore) ParseWsTrade(trade interface{}, optionalArgs ...interf
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var baseId interface{} = this.SafeStringUpper(trade, "target_currency")
-    var quoteId interface{} = this.SafeStringUpper(trade, "quote_currency")
-    var base interface{} = this.SafeCurrencyCode(baseId)
-    var quote interface{} = this.SafeCurrencyCode(quoteId)
-    var symbol interface{} = ccxt.Add(ccxt.Add(base, "/"), quote)
-    var timestamp interface{} = this.SafeInteger(trade, "timestamp")
+    var baseId any = this.SafeStringUpper(trade, "target_currency")
+    var quoteId any = this.SafeStringUpper(trade, "quote_currency")
+    var base any = this.SafeCurrencyCode(baseId)
+    var quote any = this.SafeCurrencyCode(quoteId)
+    var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
+    var timestamp any = this.SafeInteger(trade, "timestamp")
     market = this.SafeMarket(symbol, market)
-    var isSellerMaker interface{} = this.SafeValue(trade, "is_seller_maker")
-    var side interface{} = nil
+    var isSellerMaker any = this.SafeValue(trade, "is_seller_maker")
+    var side any = nil
     if ccxt.IsTrue(!ccxt.IsEqual(isSellerMaker, nil)) {
         side = ccxt.Ternary(ccxt.IsTrue(isSellerMaker), "sell", "buy")
     }
-    var priceString interface{} = this.SafeString(trade, "price")
-    var amountString interface{} = this.SafeString(trade, "qty")
-    return this.SafeTrade(map[string]interface{} {
+    var priceString any = this.SafeString(trade, "price")
+    var amountString any = this.SafeString(trade, "qty")
+    return this.SafeTrade(map[string]any {
         "id": this.SafeString(trade, "id"),
         "info": trade,
         "timestamp": timestamp,
@@ -412,7 +412,7 @@ func  (this *CoinoneCore) ParseWsTrade(trade interface{}, optionalArgs ...interf
         "fee": nil,
     }, market)
 }
-func  (this *CoinoneCore) HandleErrorMessage(client interface{}, message interface{}) interface{}  {
+func  (this *CoinoneCore) HandleErrorMessage(client any, message any) any  {
     //
     //     {
     //         "response_type": "ERROR",
@@ -420,50 +420,50 @@ func  (this *CoinoneCore) HandleErrorMessage(client interface{}, message interfa
     //         "message": "Invalid Topic"
     //     }
     //
-    var typeVar interface{} = this.SafeString(message, "response_type", "")
+    var typeVar any = this.SafeString(message, "response_type", "")
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "ERROR")) {
         return true
     }
     return false
 }
-func  (this *CoinoneCore) HandleMessage(client interface{}, message interface{})  {
+func  (this *CoinoneCore) HandleMessage(client any, message any)  {
     if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
         return
     }
-    var typeVar interface{} = this.SafeString(message, "response_type")
+    var typeVar any = this.SafeString(message, "response_type")
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "PONG")) {
         this.HandlePong(client, message)
         return
     }
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "DATA")) {
-        var topic interface{} = this.SafeString(message, "channel", "")
-        var methods interface{} = map[string]interface{} {
+        var topic any = this.SafeString(message, "channel", "")
+        var methods any = map[string]any {
             "ORDERBOOK": this.HandleOrderBook,
             "TICKER": this.HandleTicker,
             "TRADE": this.HandleTrades,
         }
-        var exacMethod interface{} = this.SafeValue(methods, topic)
+        var exacMethod any = this.SafeValue(methods, topic)
         if ccxt.IsTrue(!ccxt.IsEqual(exacMethod, nil)) {
             ccxt.CallDynamically(exacMethod, client, message)
             return
         }
-        var keys interface{} = ccxt.ObjectKeys(methods)
+        var keys any = ccxt.ObjectKeys(methods)
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-            var key interface{} = ccxt.GetValue(keys, i)
+            var key any = ccxt.GetValue(keys, i)
             if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0)) {
-                var method interface{} = ccxt.GetValue(methods, key)
+                var method any = ccxt.GetValue(methods, key)
                 ccxt.CallDynamically(method, client, message)
                 return
             }
         }
     }
 }
-func  (this *CoinoneCore) Ping(client interface{}) interface{}  {
-    return map[string]interface{} {
+func  (this *CoinoneCore) Ping(client any) any  {
+    return map[string]any {
         "request_type": "PING",
     }
 }
-func  (this *CoinoneCore) HandlePong(client interface{}, message interface{}) interface{}  {
+func  (this *CoinoneCore) HandlePong(client any, message any) any  {
     //
     //     {
     //         "response_type":"PONG"
@@ -474,7 +474,7 @@ func  (this *CoinoneCore) HandlePong(client interface{}, message interface{}) in
 }
 
 
-func (this *CoinoneCore) Init(userConfig map[string]interface{}) {
+func (this *CoinoneCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

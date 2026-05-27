@@ -301,10 +301,10 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @name krakenfutures#watchPositions
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -409,8 +409,15 @@ public partial class krakenfutures : ccxt.krakenfutures
         //
         object marketId = this.safeString(position, "instrument");
         object hedged = "both";
-        object balance = this.safeNumber(position, "balance");
-        object side = ((bool) isTrue((isGreaterThan(balance, 0)))) ? "long" : "short";
+        object balanceString = this.safeString(position, "balance");
+        object side = null;
+        if (isTrue(Precise.stringGt(balanceString, "0")))
+        {
+            side = "long";
+        } else if (isTrue(Precise.stringLt(balanceString, "0")))
+        {
+            side = "short";
+        }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -421,7 +428,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "entryPrice", this.safeNumber(position, "entry_price") },
             { "unrealizedPnl", this.safeNumber(position, "pnl") },
             { "percentage", this.safeNumber(position, "return_on_equity") },
-            { "contracts", this.parseNumber(Precise.stringAbs(this.numberToString(balance))) },
+            { "contracts", this.parseNumber(Precise.stringAbs(balanceString)) },
             { "contractSize", null },
             { "markPrice", this.safeNumber(position, "mark_price") },
             { "side", side },
@@ -615,6 +622,21 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        "price": 34893
         //    }
         //
+        // order update
+        //     {
+        //         "instrument": "PF_DOGEUSD",
+        //         "time": 1778610421471,
+        //         "last_update_time": 1778610444402,
+        //         "qty": 0,
+        //         "filled": 10,
+        //         "limit_price": 0.10912,
+        //         "stop_price": 0,
+        //         "type": "limit",
+        //         "order_id": "a1c3803c-8f3d-4317-a085-8d06e11b1d36",
+        //         "direction": 0,
+        //         "reduce_only": false
+        //     }
+        //
         object marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(trade, "time");
@@ -628,8 +650,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "type", this.safeString(trade, "type") },
             { "side", this.safeString(trade, "side") },
             { "takerOrMaker", "taker" },
-            { "price", this.safeString(trade, "price") },
-            { "amount", this.safeString(trade, "qty") },
+            { "price", this.safeString2(trade, "price", "limit_price") },
+            { "amount", this.safeString2(trade, "filled", "qty") },
             { "cost", null },
             { "fee", new Dictionary<string, object>() {
                 { "rate", null },
@@ -681,7 +703,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "type", this.safeStringLower(trade, "type") },
             { "side", this.safeString(trade, "side") },
             { "takerOrMaker", this.safeString(trade, "matchRole") },
-            { "price", this.safeString(trade, "price") },
+            { "price", this.safeString2(trade, "price", "limit_price") },
             { "amount", this.safeString(trade, "tradeAmount") },
             { "cost", null },
             { "fee", new Dictionary<string, object>() {
@@ -808,15 +830,13 @@ public partial class krakenfutures : ccxt.krakenfutures
                     ((IDictionary<string,object>)previousOrder)["average"] = Precise.stringDiv(totalCost, totalAmount);
                 }
                 ((IDictionary<string,object>)previousOrder)["cost"] = totalCost;
-                if (isTrue(!isEqual(getValue(previousOrder, "filled"), null)))
-                {
-                    object stringOrderFilled = this.numberToString(getValue(previousOrder, "filled"));
-                    ((IDictionary<string,object>)previousOrder)["filled"] = Precise.stringAdd(stringOrderFilled, this.numberToString(getValue(trade, "amount")));
-                    if (isTrue(!isEqual(getValue(previousOrder, "amount"), null)))
-                    {
-                        ((IDictionary<string,object>)previousOrder)["remaining"] = Precise.stringSub(this.numberToString(getValue(previousOrder, "amount")), stringOrderFilled);
-                    }
-                }
+                object filledString = this.numberToString(getValue(trade, "amount"));
+                object stringOrderFilled = this.safeString(previousOrder, "filled", "0");
+                object totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
+                ((IDictionary<string,object>)previousOrder)["filled"] = totalFilled;
+                object prevAmountString = this.safeString(previousOrder, "amount");
+                object remaining = Precise.stringSub(prevAmountString, totalFilled);
+                ((IDictionary<string,object>)previousOrder)["remaining"] = remaining;
                 if (isTrue(isEqual(getValue(previousOrder, "fee"), null)))
                 {
                     ((IDictionary<string,object>)previousOrder)["fee"] = new Dictionary<string, object>() {
@@ -1005,11 +1025,11 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "price", this.safeString(unparsedOrder, "limit_price") },
             { "stopPrice", this.safeString(unparsedOrder, "stop_price") },
             { "triggerPrice", this.safeString(unparsedOrder, "stop_price") },
-            { "amount", this.safeString(unparsedOrder, "qty") },
+            { "amount", null },
             { "cost", null },
             { "average", null },
             { "filled", this.safeString(unparsedOrder, "filled") },
-            { "remaining", null },
+            { "remaining", this.safeString(unparsedOrder, "qty") },
             { "status", status },
             { "fee", new Dictionary<string, object>() {
                 { "rate", null },
@@ -1602,21 +1622,38 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object url = getValue(getValue(this.urls, "api"), "ws");
         // symbols are required
         symbols = this.marketSymbols(symbols, null, false, true, false);
         object messageHashes = new List<object>() {};
+        object rawSubs = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            ((IList<object>)messageHashes).Add(this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
+            object messageHash = this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i)));
+            ((IList<object>)messageHashes).Add(messageHash);
+            object market = this.market(getValue(symbols, i));
+            if (!isTrue(this.subscriptionExistsForHash(url, messageHash)))
+            {
+                ((IList<object>)rawSubs).Add(getValue(market, "id"));
+            }
         }
-        object marketIds = this.marketIds(symbols);
-        object request = new Dictionary<string, object>() {
-            { "event", "subscribe" },
-            { "feed", channelName },
-            { "product_ids", marketIds },
-        };
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        object request = new Dictionary<string, object>() {};
+        object length = getArrayLength(rawSubs);
+        if (isTrue(isGreaterThan(length, 0)))
+        {
+            request = new Dictionary<string, object>() {
+                { "event", "subscribe" },
+                { "feed", channelName },
+                { "product_ids", rawSubs },
+            };
+        }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscriptionArgs);
+    }
+
+    public virtual object subscriptionExistsForHash(object url, object hash)
+    {
+        var client = this.client(url);
+        return (inOp(((WebSocketClient)client).subscriptions, hash));
     }
 
     public virtual object getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
@@ -1646,8 +1683,21 @@ public partial class krakenfutures : ccxt.krakenfutures
         //        event: 'alert',
         //        message: 'Failed to subscribe to authenticated feed'
         //    }
+        //    {
+        //        event: 'alert',
+        //        message: 'Already subscribed to feed, re-requesting'
+        //    }
         //
         object errMsg = this.safeString(message, "message");
+        // Benign "already subscribed" notice: the original subscription is still
+        // active and delivering data on this socket. The generic client.reject
+        // below rejects every pending future on the connection, so a stray
+        // re-subscribe warning would kill unrelated in-flight watch* calls —
+        // mirrors the bitmart 90008 fix.
+        if (isTrue(isTrue(!isEqual(errMsg, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(errMsg, "Already subscribed"), 0))))
+        {
+            return false;
+        }
         try
         {
             throw new ExchangeError ((string)add(add(this.id, " "), errMsg)) ;

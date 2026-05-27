@@ -18,9 +18,9 @@ func NewCoincheckCore() *CoincheckCore {
     return p
 }
 
-func  (this *CoincheckCore) Describe() interface{}  {
-    return this.DeepExtend(this.base.Describe(), map[string]interface{} {
-        "has": map[string]interface{} {
+func  (this *CoincheckCore) Describe() any  {
+    return this.DeepExtend(this.base.Describe(), map[string]any {
+        "has": map[string]any {
             "ws": true,
             "watchOrderBook": true,
             "watchOrders": false,
@@ -30,24 +30,24 @@ func  (this *CoincheckCore) Describe() interface{}  {
             "watchTicker": false,
             "watchTickers": false,
         },
-        "urls": map[string]interface{} {
-            "api": map[string]interface{} {
+        "urls": map[string]any {
+            "api": map[string]any {
                 "ws": "wss://ws-api.coincheck.com/",
             },
         },
-        "options": map[string]interface{} {
+        "options": map[string]any {
             "expiresIn": "",
             "userId": "",
             "wsSessionToken": "",
-            "watchOrderBook": map[string]interface{} {
+            "watchOrderBook": map[string]any {
                 "snapshotDelay": 6,
                 "snapshotMaxRetries": 3,
             },
             "tradesLimit": 1000,
             "OHLCVLimit": 1000,
         },
-        "exceptions": map[string]interface{} {
-            "exact": map[string]interface{} {
+        "exceptions": map[string]any {
+            "exact": map[string]any {
                 "4009": ccxt.AuthenticationError,
             },
         },
@@ -63,26 +63,26 @@ func  (this *CoincheckCore) Describe() interface{}  {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
-func  (this *CoincheckCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoincheckCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     limit := ccxt.GetArg(optionalArgs, 0, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
             retRes598 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes598)
-            var market interface{} = this.Market(symbol)
-            var messageHash interface{} = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var request interface{} = map[string]interface{} {
+            var market any = this.Market(symbol)
+            var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var request any = map[string]any {
                 "type": "subscribe",
                 "channel": ccxt.Add(ccxt.GetValue(market, "id"), "-orderbook"),
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
             orderbook:= (<-this.Watch(url, messageHash, message, messageHash))
             ccxt.PanicOnError(orderbook)
@@ -93,7 +93,7 @@ func  (this *CoincheckCore) WatchOrderBook(symbol interface{}, optionalArgs ...i
             }()
             return ch
         }
-func  (this *CoincheckCore) HandleOrderBook(client interface{}, message interface{})  {
+func  (this *CoincheckCore) HandleOrderBook(client any, message any)  {
     //
     //     [
     //         "btc_jpy",
@@ -114,11 +114,11 @@ func  (this *CoincheckCore) HandleOrderBook(client interface{}, message interfac
     //         }
     //     ]
     //
-    var symbol interface{} = this.Symbol(this.SafeString(message, 0))
-    var data interface{} = this.SafeValue(message, 1, map[string]interface{} {})
-    var timestamp interface{} = this.SafeTimestamp(data, "last_update_at")
-    var snapshot interface{} = this.ParseOrderBook(data, symbol, timestamp)
-    var orderbook interface{} = this.SafeValue(this.Orderbooks, symbol)
+    var symbol any = this.Symbol(this.SafeString(message, 0))
+    var data any = this.SafeValue(message, 1, map[string]any {})
+    var timestamp any = this.SafeTimestamp(data, "last_update_at")
+    var snapshot any = this.ParseOrderBook(data, symbol, timestamp)
+    var orderbook any = this.SafeValue(this.Orderbooks, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
         orderbook = this.OrderBook(snapshot)
         ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -126,7 +126,7 @@ func  (this *CoincheckCore) HandleOrderBook(client interface{}, message interfac
         orderbook = ccxt.GetValue(this.Orderbooks, symbol)
         orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
     }
-    var messageHash interface{} = ccxt.Add("orderbook:", symbol)
+    var messageHash any = ccxt.Add("orderbook:", symbol)
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 /**
@@ -140,29 +140,29 @@ func  (this *CoincheckCore) HandleOrderBook(client interface{}, message interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func  (this *CoincheckCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
-            ch := make(chan interface{})
-            go func() interface{} {
+func  (this *CoincheckCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                     since := ccxt.GetArg(optionalArgs, 0, nil)
             _ = since
             limit := ccxt.GetArg(optionalArgs, 1, nil)
             _ = limit
-            params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
+            params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
             retRes1218 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1218)
-            var market interface{} = this.Market(symbol)
+            var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
-            var messageHash interface{} = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
-            var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var request interface{} = map[string]interface{} {
+            var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
+            var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+            var request any = map[string]any {
                 "type": "subscribe",
                 "channel": ccxt.Add(ccxt.GetValue(market, "id"), "-trades"),
             }
-            var message interface{} = this.Extend(request, params)
+            var message any = this.Extend(request, params)
         
             trades:= (<-this.Watch(url, messageHash, message, messageHash))
             ccxt.PanicOnError(trades)
@@ -176,7 +176,7 @@ func  (this *CoincheckCore) WatchTrades(symbol interface{}, optionalArgs ...inte
             }()
             return ch
         }
-func  (this *CoincheckCore) HandleTrades(client interface{}, message interface{})  {
+func  (this *CoincheckCore) HandleTrades(client any, message any)  {
     //
     //     [
     //         [
@@ -191,23 +191,23 @@ func  (this *CoincheckCore) HandleTrades(client interface{}, message interface{}
     //         ]
     //     ]
     //
-    var first interface{} = this.SafeValue(message, 0, []interface{}{})
-    var symbol interface{} = this.Symbol(this.SafeString(first, 2))
-    var stored interface{} = this.SafeValue(this.Trades, symbol)
+    var first any = this.SafeValue(message, 0, []any{})
+    var symbol any = this.Symbol(this.SafeString(first, 2))
+    var stored any = this.SafeValue(this.Trades, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-        var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
+        var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
         stored = ccxt.NewArrayCache(limit)
         ccxt.AddElementToObject(this.Trades, symbol, stored)
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
-        var data interface{} = this.SafeValue(message, i)
-        var trade interface{} = this.ParseWsTrade(data)
+        var data any = this.SafeValue(message, i)
+        var trade any = this.ParseWsTrade(data)
         stored.(ccxt.Appender).Append(trade)
     }
-    var messageHash interface{} = ccxt.Add("trade:", symbol)
+    var messageHash any = ccxt.Add("trade:", symbol)
     client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func  (this *CoincheckCore) ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *CoincheckCore) ParseWsTrade(trade any, optionalArgs ...any) any  {
     //
     //     [
     //         "1663318663", // transaction timestamp (unix time)
@@ -222,12 +222,12 @@ func  (this *CoincheckCore) ParseWsTrade(trade interface{}, optionalArgs ...inte
     //
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
-    var symbol interface{} = this.Symbol(this.SafeString(trade, 2))
-    var timestamp interface{} = this.SafeTimestamp(trade, 0)
-    var side interface{} = this.SafeString(trade, 5)
-    var priceString interface{} = this.SafeString(trade, 3)
-    var amountString interface{} = this.SafeString(trade, 4)
-    return this.SafeTrade(map[string]interface{} {
+    var symbol any = this.Symbol(this.SafeString(trade, 2))
+    var timestamp any = this.SafeTimestamp(trade, 0)
+    var side any = this.SafeString(trade, 5)
+    var priceString any = this.SafeString(trade, 3)
+    var amountString any = this.SafeString(trade, 4)
+    return this.SafeTrade(map[string]any {
         "id": this.SafeString(trade, 1),
         "info": trade,
         "timestamp": timestamp,
@@ -243,8 +243,8 @@ func  (this *CoincheckCore) ParseWsTrade(trade interface{}, optionalArgs ...inte
         "fee": nil,
     }, market)
 }
-func  (this *CoincheckCore) HandleMessage(client interface{}, message interface{})  {
-    var data interface{} = this.SafeValue(message, 0)
+func  (this *CoincheckCore) HandleMessage(client any, message any)  {
+    var data any = this.SafeValue(message, 0)
     if !ccxt.IsTrue(ccxt.IsArray(data)) {
         this.HandleOrderBook(client, message)
     } else {
@@ -253,7 +253,7 @@ func  (this *CoincheckCore) HandleMessage(client interface{}, message interface{
 }
 
 
-func (this *CoincheckCore) Init(userConfig map[string]interface{}) {
+func (this *CoincheckCore) Init(userConfig map[string]any) {
     this.base.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this

@@ -2407,9 +2407,11 @@ public partial class oxfun : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object responseType = this.safeString(parameters, "responseType", "FULL");
+        object timestamp = this.safeInteger(parameters, "timestamp", this.milliseconds());
         object request = new Dictionary<string, object>() {
-            { "responseType", this.safeString(parameters, "responseType", "FULL") },
-            { "timestamp", this.safeInteger(parameters, "timestamp", this.milliseconds()) },
+            { "responseType", responseType },
+            { "timestamp", timestamp },
         };
         parameters = this.omit(parameters, new List<object>() {"responseType", "timestamp"});
         object recvWindow = this.safeInteger(parameters, "recvWindow");
@@ -3132,7 +3134,7 @@ public partial class oxfun : Exchange
         }
         if (isTrue(!isEqual(code, 200)))
         {
-            object responseCode = this.safeString(response, "code", null);
+            object responseCode = this.safeString(response, "code");
             object feedback = add(add(this.id, " "), body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);

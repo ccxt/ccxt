@@ -66,8 +66,9 @@ public partial class ascendex : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMySettlementHistory", false },
                 { "fetchOHLCV", true },
-                { "fetchOpenInterest", false },
+                { "fetchOpenInterest", "emulated" },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
@@ -514,54 +515,26 @@ public partial class ascendex : Exchange
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "assetCode");
+        object code = this.safeCurrencyCode(id);
+        object chains = this.safeList(rawCurrency, "blockChain", new List<object>() {});
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "nativeScale")));
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(data, i);
-            object id = this.safeString(currency, "assetCode");
-            object code = this.safeCurrencyCode(id);
-            object chains = this.safeList(currency, "blockChain", new List<object>() {});
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "nativeScale")));
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object networkEtnry = getValue(chains, j);
-                object networkId = this.safeString(networkEtnry, "chainName");
-                object networkCode = this.networkCodeToId(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
-                    { "active", null },
-                    { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
-                    { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
-                    { "precision", precision },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "type", null },
-                { "margin", null },
-                { "name", this.safeString(currency, "assetName") },
+            object networkEtnry = getValue(chains, j);
+            object networkId = this.safeString(networkEtnry, "chainName");
+            object networkCode = this.networkCodeToId(networkId);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "fee", this.safeNumber(networkEtnry, "withdrawFee") },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
+                { "withdraw", this.safeBool(networkEtnry, "allowWithdraw") },
+                { "deposit", this.safeBool(networkEtnry, "allowDeposit") },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -569,14 +542,41 @@ public partial class ascendex : Exchange
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "minWithdrawalAmt") },
+                        { "min", this.safeNumber(networkEtnry, "minWithdrawal") },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(networkEtnry, "minDepositAmt") },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+            };
         }
-        return result;
+        // todo type: if (chainsLength === 0 && (assetName.endsWith (' Staking') || assetName.indexOf (' Reward ') >= 0 || assetName.indexOf ('Slot Auction') >= 0 || assetName.indexOf (' Freeze Asset') >= 0))
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "type", null },
+            { "margin", null },
+            { "name", this.safeString(rawCurrency, "assetName") },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "minWithdrawalAmt") },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -922,11 +922,13 @@ public partial class ascendex : Exchange
             accountGroup = this.safeString(data, "accountGroup");
             ((IDictionary<string,object>)this.options)["account-group"] = accountGroup;
         }
+        object finalResponse = response; // java req
+        object finalAccountGroup = accountGroup;
         return new List<object>() {new Dictionary<string, object>() {
-    { "id", accountGroup },
+    { "id", finalAccountGroup },
     { "type", null },
     { "code", null },
-    { "info", response },
+    { "info", finalResponse },
 }};
     }
 
@@ -3217,8 +3219,9 @@ public partial class ascendex : Exchange
         {
             amount = Precise.stringAbs(amount);
         }
+        object parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
-            { "amount", this.parseNumber(amount) },
+            { "amount", parsedAmount },
             { "type", type },
         });
     }
@@ -3838,6 +3841,82 @@ public partial class ascendex : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object leverages = this.safeList(data, "contracts", new List<object>() {});
         return this.parseLeverages(leverages, symbols, "symbol");
+    }
+
+    /**
+     * @method
+     * @name ascendex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        response = await this.v2PublicGetFuturesPricingData(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        data: {
+        //            contracts: [
+        //                {
+        //                    time: '1772138885616',
+        //                    symbol: 'ZIL-PERP',
+        //                    markPrice: '0.004167783',
+        //                    indexPrice: '0.004168',
+        //                    lastPrice: '0.00416',
+        //                    openInterest: '7685003',
+        //                    fundingRate: '0.0003',
+        //                    nextFundingTime: '1772139600000'
+        //                },
+        //            ]
+        //            collaterals: [
+        //                { asset: 'TAO', referencePrice: '182.15' },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        symbols = this.marketSymbols(symbols);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object contracts = this.safeList(data, "contracts", new List<object>() {});
+        return this.parseOpenInterests(contracts, symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        // fetchOpenInterests
+        //
+        //    {
+        //        time: '1772138885616',
+        //        symbol: 'ZIL-PERP',
+        //        markPrice: '0.004167783',
+        //        indexPrice: '0.004168',
+        //        lastPrice: '0.00416',
+        //        openInterest: '7685003',
+        //        fundingRate: '0.0003',
+        //        nextFundingTime: '1772139600000'
+        //    }
+        //
+        object marketId = this.safeString(interest, "symbol");
+        object timestamp = this.safeInteger(interest, "time");
+        object openInterest = this.safeNumber(interest, "openInterest");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+            { "baseVolume", openInterest },
+            { "quoteVolume", null },
+            { "openInterestAmount", openInterest },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        }, market);
     }
 
     public override object parseLeverage(object leverage, object market = null)

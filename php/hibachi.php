@@ -753,7 +753,7 @@ class hibachi extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fee
-         * @param $params extra parameters
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a map of market symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
         $this->load_markets();
@@ -1761,7 +1761,7 @@ class hibachi extends Exchange {
         //             "status" => "pending",
         //             "timestampSec" => 1752692872,
         //             "token" => "USDT",
-        //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b5e",
+        //             "transactionHash" => "0x408e48881e0ba77d8638e3fe57bc06bdec513ddaa8b672e0aefa7e22e2f18b4e",
         //             "transactionType" => "deposit"
         //         ),
         //         array(

@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from '../ccxt.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from './base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -518,6 +518,8 @@ export default class deepcoin extends Exchange {
         const maxLimitSize = this.safeString (market, 'maxLmtSz');
         const maxAmount = this.parseNumber (Precise.stringMax (maxMarketSize, maxLimitSize));
         const state = this.safeString (market, 'state');
+        const isMargin = spot && (Precise.stringGt (maxLeverage, '1'));
+        const isInverse = swap ? (!isLinear) : undefined;
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
@@ -529,14 +531,14 @@ export default class deepcoin extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': false,
             'option': false,
             'active': state === 'live',
             'contract': swap,
             'linear': isLinear,
-            'inverse': swap ? (!isLinear) : undefined,
+            'inverse': isInverse,
             'contractSize': swap ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -823,7 +825,7 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 500
+            request['limit'] = Math.min (limit, 2000);
         }
         const productGroup = this.getProductGroupFromMarket (market);
         request['productGroup'] = productGroup;
@@ -927,7 +929,7 @@ export default class deepcoin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
@@ -2219,11 +2221,12 @@ export default class deepcoin extends Exchange {
         }
         let merged = true;
         [ merged, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'merged', merged);
+        const isMergedMode = merged ? 1 : 0;
         const request: Dict = {
             'InstrumentID': market['id'],
             'ProductGroup': productGroup,
             'IsCrossMargin': encodedMarginMode,
-            'IsMergeMode': merged ? 1 : 0,
+            'IsMergeMode': isMergedMode,
         };
         const response = await this.privatePostDeepcoinTradeSwapCancelAll (this.extend (request, params));
         const data = this.safeList (response, 'data', []);

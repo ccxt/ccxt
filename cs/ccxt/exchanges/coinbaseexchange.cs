@@ -385,65 +385,64 @@ public partial class coinbaseexchange : Exchange
         //     "display_name": "USDT"
         //   }
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "id");
+        object name = this.safeString(rawCurrency, "name");
+        object code = this.safeCurrencyCode(id);
+        object details = this.safeDict(rawCurrency, "details", new Dictionary<string, object>() {});
+        object networks = new Dictionary<string, object>() {};
+        object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(supportedNetworks)); postFixIncrement(ref j))
         {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "id");
-            object name = this.safeString(currency, "name");
-            object code = this.safeCurrencyCode(id);
-            object details = this.safeDict(currency, "details", new Dictionary<string, object>() {});
-            object networks = new Dictionary<string, object>() {};
-            object supportedNetworks = this.safeList(currency, "supported_networks", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(supportedNetworks)); postFixIncrement(ref j))
-            {
-                object network = getValue(supportedNetworks, j);
-                object networkId = this.safeString(network, "id");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "name", this.safeString(network, "name") },
-                    { "network", networkCode },
-                    { "active", isEqual(this.safeString(network, "status"), "online") },
-                    { "withdraw", null },
-                    { "deposit", null },
-                    { "fee", null },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "min_withdrawal_amount") },
-                            { "max", this.safeNumber(network, "max_withdrawal_amount") },
-                        } },
-                    } },
-                    { "contract", this.safeString(network, "contract_address") },
-                    { "info", network },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "type", this.safeString(details, "type") },
-                { "name", name },
-                { "active", isEqual(this.safeString(currency, "status"), "online") },
-                { "deposit", null },
+            object network = getValue(supportedNetworks, j);
+            object networkId = this.safeString(network, "id");
+            object networkCode = this.networkIdToCode(networkId);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "name", this.safeString(network, "name") },
+                { "network", networkCode },
+                { "active", isEqual(this.safeString(network, "status"), "online") },
                 { "withdraw", null },
+                { "deposit", null },
                 { "fee", null },
-                { "precision", this.safeNumber(currency, "max_precision") },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(details, "min_size") },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(details, "min_withdrawal_amount") },
-                        { "max", this.safeNumber(details, "max_withdrawal_amount") },
+                        { "min", this.safeNumber(network, "min_withdrawal_amount") },
+                        { "max", this.safeNumber(network, "max_withdrawal_amount") },
                     } },
                 } },
-                { "networks", networks },
-            });
+                { "contract", this.safeString(network, "contract_address") },
+                { "info", network },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "type", this.safeString(details, "type") },
+            { "name", name },
+            { "active", isEqual(this.safeString(rawCurrency, "status"), "online") },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", this.safeNumber(rawCurrency, "max_precision") },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(details, "min_size") },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(details, "min_withdrawal_amount") },
+                    { "max", this.safeNumber(details, "max_withdrawal_amount") },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -947,13 +946,14 @@ public partial class coinbaseexchange : Exchange
         }
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "size");
+        object symbol = getValue(market, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", symbol },
             { "type", null },
             { "takerOrMaker", takerOrMaker },
             { "side", side },

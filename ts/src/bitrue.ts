@@ -757,7 +757,7 @@ export default class bitrue extends Exchange {
         //                 {
         //                     "chain": "BEP20",
         //                     "enableWithdraw": true,
-        //                     "enableDeposit": true,
+        //                     "enableDeposit": false,
         //                     "withdrawFee": "0.2000",
         //                     "minWithdraw": "5.0000",
         //                     "maxWithdraw": "1000000000000000.0000",
@@ -767,58 +767,57 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        const result: Dict = {};
         const coins = this.safeList (response, 'coins', []);
-        for (let i = 0; i < coins.length; i++) {
-            const currency = coins[i];
-            const id = this.safeString (currency, 'coin');
-            const name = this.safeString (currency, 'coinFulName');
-            const code = this.safeCurrencyCode (id);
-            const networkDetails = this.safeList (currency, 'chainDetail', []);
-            const networks: Dict = {};
-            for (let j = 0; j < networkDetails.length; j++) {
-                const entry = networkDetails[j];
-                const networkId = this.safeString (entry, 'chain');
-                const network = this.networkIdToCode (networkId, code);
-                networks[network] = {
-                    'info': entry,
-                    'id': networkId,
-                    'network': network,
-                    'deposit': this.safeBool (entry, 'enableDeposit'),
-                    'withdraw': this.safeBool (entry, 'enableWithdraw'),
-                    'active': undefined,
-                    'fee': this.safeNumber (entry, 'withdrawFee'),
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (entry, 'minWithdraw'),
-                            'max': this.safeNumber (entry, 'maxWithdraw'),
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': undefined,
-                'info': currency,
+        return this.parseCurrencies (coins);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'coin');
+        const name = this.safeString (rawCurrency, 'coinFulName');
+        const code = this.safeCurrencyCode (id);
+        const networkDetails = this.safeList (rawCurrency, 'chainDetail', []);
+        const networks: Dict = {};
+        for (let j = 0; j < networkDetails.length; j++) {
+            const entry = networkDetails[j];
+            const networkId = this.safeString (entry, 'chain');
+            const network = this.networkIdToCode (networkId, code);
+            networks[network] = {
+                'info': entry,
+                'id': networkId,
+                'network': network,
+                'deposit': this.safeBool (entry, 'enableDeposit'),
+                'withdraw': this.safeBool (entry, 'enableWithdraw'),
                 'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'networks': networks,
-                'fee': undefined,
-                'fees': undefined,
-                'type': 'crypto',
+                'fee': this.safeNumber (entry, 'withdrawFee'),
+                'precision': undefined,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (entry, 'minWithdraw'),
+                        'max': this.safeNumber (entry, 'maxWithdraw'),
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'name': name,
+            'code': code,
+            'precision': undefined,
+            'info': rawCurrency,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'networks': networks,
+            'fee': undefined,
+            'fees': undefined,
+            'type': 'crypto',
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        });
     }
 
     /**
@@ -985,6 +984,7 @@ export default class bitrue extends Exchange {
         if (minCost === undefined) {
             minCost = this.safeNumber (market, 'minOrderMoney');
         }
+        const isSpot = (type === 'spot');
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -996,7 +996,7 @@ export default class bitrue extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type === 'spot'),
+            'spot': isSpot,
             'margin': false,
             'swap': isContract,
             'future': false,

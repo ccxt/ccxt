@@ -10,6 +10,8 @@ To run PHP examples from any folder type in console:
 php -f path/to/example.php # substitute for actual filename here
 ```
 
+- [Apex Watch](./examples/php/apex-watch.md)
+
 - [Arbitrage Pairs](./examples/php/arbitrage-pairs.md)
 
 - [Async Await Fetch Multiple](./examples/php/async-await-fetch-multiple.md)
@@ -23,6 +25,10 @@ php -f path/to/example.php # substitute for actual filename here
 - [Binance Create Order Stop Loss Take Profit](./examples/php/binance-create-order-stop-loss-take-profit.md)
 
 - [Binance Fetch All Trades For All Traded Symbols](./examples/php/binance-fetch-all-trades-for-all-traded-symbols.md)
+
+- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/php/binance-fetch-balance-snapshot-watch-balance-updates.md)
+
+- [Binance Https Proxy](./examples/php/binance-https-proxy.md)
 
 - [Binance Oco Order](./examples/php/binance-oco-order.md)
 
@@ -149,10 +155,6 @@ php -f path/to/example.php # substitute for actual filename here
 - [Watch Trades For Symbols](./examples/php/watch-Trades-For-Symbols.md)
 
 - [Watch Tickers](./examples/php/watch-tickers.md)
-
-- [Watchohlcvforsymbols](./examples/php/watchOHLCVForSymbols.md)
-
-- [Watchorderbookforsymbols](./examples/php/watchOrderBookForSymbols.md)
 
 - [Watchpositions Many Exchanges Continuosly](./examples/php/watchPositions-many-exchanges-continuosly.md)
 

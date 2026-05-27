@@ -1134,8 +1134,12 @@ class bybit extends Exchange {
                     'FUND' => 'fund',
                 ),
                 'networks' => array(
+                    'BTC' => 'BTC',
+                    'ETH' => 'ETH',
                     'ERC20' => 'ETH',
+                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
+                    'BSC' => 'BSC',
                     'BEP20' => 'BSC',
                     'SOL' => 'SOL',
                     'ACA' => 'ACA',
@@ -1184,6 +1188,7 @@ class bybit extends Exchange {
                     'OASIS' => 'ROSE',
                     'OMNI' => 'OMNI',
                     'ONE' => 'ONE',
+                    'OP' => 'OP',
                     'OPTIMISM' => 'OP',
                     'POKT' => 'POKT',
                     'QTUM' => 'QTUM',
@@ -1214,8 +1219,7 @@ class bybit extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRC20',
                     'BSC' => 'BEP20',
-                    'OMNI' => 'OMNI',
-                    'SPL' => 'SOL',
+                    'OP' => 'OP',
                 ),
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
@@ -1355,6 +1359,7 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'rollingWindowSize' => 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         ));
     }
 
@@ -1550,8 +1555,9 @@ class bybit extends Exchange {
             $amountPrecision = $this->parse_number('1');
             $pricePrecision = $this->parse_number('0.01');
         }
+        $convertedExpireDate = $this->convert_expire_date_to_market_id_date($expiry);
         return array(
-            'id' => $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType,
+            'id' => $base . '-' . $convertedExpireDate . '-' . $strike . '-' . $optionType,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
             'base' => $base,
             'quote' => $quote,
@@ -1725,69 +1731,68 @@ class bybit extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             $rows = $this->safe_list($data, 'rows', array());
-            $result = array();
-            for ($i = 0; $i < count($rows); $i++) {
-                $currency = $rows[$i];
-                $currencyId = $this->safe_string($currency, 'coin');
-                $code = $this->safe_currency_code($currencyId);
-                $name = $this->safe_string($currency, 'name');
-                $chains = $this->safe_list($currency, 'chains', array());
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'chain');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
-                        'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
-                        'fee' => $this->safe_number($chain, 'withdrawFee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'withdrawMin'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($chain, 'depositMin'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $currency,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'type' => 'crypto', // atm exchange api provides only cryptos
-                ));
-            }
-            return $result;
+            return $this->parse_currencies($rows);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $this->safe_string($currency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($currency, 'name');
+        $chains = $this->safe_list($currency, 'chains', array());
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
+                'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'withdrawMin'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($chain, 'depositMin'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $currency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $name,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => 'crypto', // atm exchange api provides only cryptos
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1972,9 +1977,9 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_future_markets($params): PromiseInterface {
+    public function fetch_future_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
-            $params = $this->extend($params);
+            $params = $this->extend($params, array());
             $params['limit'] = 1000; // minimize number of requests
             $preLaunchMarkets = array();
             $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
@@ -2113,7 +2118,7 @@ class bybit extends Exchange {
                     $symbol = $symbol . '-' . $this->yymmdd($expiry);
                 }
                 $contractSize = $inverse ? $this->safe_number_2($lotSizeFilter, 'minTradingQty', 'minOrderQty') : $this->parse_number('1');
-                $result[] = $this->safe_market_structure(array(
+                $parsedMarket = $this->safe_market_structure(array(
                     'id' => $id,
                     'symbol' => $symbol,
                     'base' => $base,
@@ -2164,6 +2169,7 @@ class bybit extends Exchange {
                     'created' => $this->safe_integer($market, 'launchTime'),
                     'info' => $market,
                 ));
+                $result[] = $parsedMarket;
             }
             return $result;
         }) ();
@@ -4980,7 +4986,7 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $row = $this->safe_list($result, 'list', array());
-            return $this->parse_orders($row, null);
+            return $this->parse_orders($row);
         }) ();
     }
 
@@ -5889,9 +5895,9 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $chains = $this->safe_list($result, 'chains', array());
             $coin = $this->safe_string($result, 'coin');
-            $currency = $this->currency($coin);
-            $parsed = $this->parse_deposit_addresses($chains, [ $currency['code'] ], false, array(
-                'currency' => $currency['code'],
+            $currencyFromResponse = $this->currency($coin);
+            $parsed = $this->parse_deposit_addresses($chains, [ $currencyFromResponse['code'] ], false, array(
+                'currency' => $currencyFromResponse['code'],
             ));
             return $this->index_by($parsed, 'network');
         }) ();
@@ -6157,7 +6163,7 @@ class bybit extends Exchange {
             'txid' => $this->safe_string($transaction, 'txID'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain')),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'chain'), $code),
             'address' => null,
             'addressTo' => $toAddress,
             'addressFrom' => null,
@@ -6498,7 +6504,7 @@ class bybit extends Exchange {
                 $request['tag'] = $tag;
             }
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $code);
             if ($networkId !== null) {
                 $request['chain'] = strtoupper($networkId);
             }
@@ -7231,8 +7237,8 @@ class bybit extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             $data = $this->add_pagination_cursor_to_result($response);
             $id = $this->safe_string($result, 'symbol');
-            $market = $this->safe_market($id, $market, null, 'contract');
-            return $this->parse_open_interests_history($data, $market, $since, $limit);
+            $safeMarketObj = $this->safe_market($id, $market, null, 'contract');
+            return $this->parse_open_interests_history($data, $safeMarketObj, $since, $limit);
         }) ();
     }
 
@@ -7293,9 +7299,9 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $id = $this->safe_string($result, 'symbol');
-            $market = $this->safe_market($id, $market, null, 'contract');
+            $safeMarketObj = $this->safe_market($id, $market, null, 'contract');
             $data = $this->add_pagination_cursor_to_result($response);
-            return $this->parse_open_interest($data[0], $market);
+            return $this->parse_open_interest($data[0], $safeMarketObj);
         }) ();
     }
 
@@ -7474,7 +7480,7 @@ class bybit extends Exchange {
             //
             $data = $this->safe_dict($response, 'result', array());
             $rows = $this->safe_list($data, 'loanAccountList', array());
-            $interest = $this->parse_borrow_interests($rows, null);
+            $interest = $this->parse_borrow_interests($rows);
             return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
         }) ();
     }

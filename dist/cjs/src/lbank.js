@@ -10,7 +10,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class lbank
@@ -1060,9 +1060,10 @@ class lbank extends lbank$1["default"] {
         let fee = undefined;
         const feeCost = this.safeString(trade, 'tradeFee');
         if (feeCost !== undefined) {
+            const feeCurr = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': (side === 'buy') ? market['base'] : market['quote'],
+                'currency': feeCurr,
                 'rate': this.safeString(trade, 'tradeFeeRate'),
             };
         }
@@ -1185,11 +1186,13 @@ class lbank extends lbank$1["default"] {
             const duration = this.parseTimeframe(timeframe);
             since = this.milliseconds() - (duration * 1000 * limit);
         }
+        const parsedSince = this.parseToInt(since / 1000);
+        const parsedLimit = Math.min(limit + 1, 2000); // max 2000;
         const request = {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
-            'time': this.parseToInt(since / 1000),
-            'size': Math.min(limit + 1, 2000), // max 2000
+            'time': parsedSince,
+            'size': parsedLimit,
         };
         const response = await this.spotPublicGetKline(this.extend(request, params));
         const ohlcvs = this.safeList(response, 'data', []);
@@ -2202,7 +2205,7 @@ class lbank extends lbank$1["default"] {
         //              },
         //          ],
         //          "error_code":0,
-        //          "ts":1648506641469
+        //          "ts":1648506641468
         //      }
         //
         const data = this.safeList(response, 'data', []);
@@ -2364,7 +2367,7 @@ class lbank extends lbank$1["default"] {
         //          "result":true,
         //          "data": {
         //              "fee":10.00000000000000000000,
-        //              "withdrawId":1900376
+        //              "withdrawId":1900377
         //              },
         //          "error_code":0,
         //          "ts":1648992501414
@@ -2978,9 +2981,10 @@ class lbank extends lbank$1["default"] {
             else {
                 signatureMethod = 'HmacSHA256';
             }
+            const finalSig = signatureMethod; // java req
             const auth = this.rawencode(this.keysort(this.extend({
                 'echostr': echostr,
-                'signature_method': signatureMethod,
+                'signature_method': finalSig,
                 'timestamp': timestamp,
             }, query)));
             const encoded = this.encode(auth);

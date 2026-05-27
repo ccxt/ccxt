@@ -61,7 +61,7 @@ function test_sort_by_1() {
 
 
 function test_sort_by_2() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     // sort ascending by key1, then key2 (key1 values are all distinct here)

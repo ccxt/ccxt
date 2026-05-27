@@ -199,6 +199,10 @@ class coinsph(Exchange, ImplicitAPI):
                     'https://coins-docs.github.io/rest-api',
                 ],
                 'fees': 'https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees',
+                'referral': {
+                    'url': 'https://www.coins.ph/en-ph/register?invite_code=1371062463303277512&broker=9001',
+                    'discount': 0.2,
+                },
             },
             'api': {
                 'public': {
@@ -629,54 +633,53 @@ class coinsph(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            id = self.safe_string(entry, 'coin')
-            code = self.safe_currency_code(id)
-            isFiat = self.safe_bool(entry, 'isLegalMoney')
-            networkList = self.safe_list(entry, 'networkList', [])
-            networks: dict = {}
-            for j in range(0, len(networkList)):
-                networkItem = networkList[j]
-                network = self.safe_string(networkItem, 'network')
-                networkCode = self.network_id_to_code(network)
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
-                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
-                    'fee': self.safe_number(networkItem, 'withdrawFee'),
-                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkItem, 'withdrawMin'),
-                            'max': self.safe_number(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(entry, 'name'),
-                'code': code,
-                'type': 'fiat' if isFiat else 'crypto',
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'transferPrecision'))),
-                'info': entry,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        code = self.safe_currency_code(id)
+        isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
+        networkList = self.safe_list(rawCurrency, 'networkList', [])
+        networks: dict = {}
+        for j in range(0, len(networkList)):
+            networkItem = networkList[j]
+            network = self.safe_string(networkItem, 'network')
+            networkCode = self.network_id_to_code(network)
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': None,
-                'deposit': self.safe_bool(entry, 'depositAllEnable'),
-                'withdraw': self.safe_bool(entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': None,
-                'fees': None,
-                'limits': {},
-            })
-        return result
+                'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                'fee': self.safe_number(networkItem, 'withdrawFee'),
+                'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkItem, 'withdrawMin'),
+                        'max': self.safe_number(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'code': code,
+            'type': 'fiat' if isFiat else 'crypto',
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': None,
+            'deposit': self.safe_bool(rawCurrency, 'depositAllEnable'),
+            'withdraw': self.safe_bool(rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': None,
+            'fees': None,
+            'limits': {},
+        })
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
@@ -1258,11 +1261,11 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker')
         side = None
         if isBuyer is not None:
             side = 'buy' if (isBuyer is True) else 'sell'
-        isMaker = self.safe_string_2(trade, 'isMaker', None)
+        isMaker = self.safe_string(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if (isMaker == 'true') else 'taker'
@@ -1629,7 +1632,7 @@ class coinsph(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
-        trades = self.safe_value(order, 'fills', None)
+        trades = self.safe_value(order, 'fills')
         triggerPrice = self.safe_string(order, 'stopPrice')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
@@ -2142,7 +2145,7 @@ class coinsph(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
-        responseCode = self.safe_string(response, 'code', None)
+        responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

@@ -27,6 +27,7 @@ class ImplicitAPI:
     v4_public_get_assets = v4PublicGetAssets = Entry('assets', ['v4', 'public'], 'GET', {})
     v4_public_get_collateral_markets = v4PublicGetCollateralMarkets = Entry('collateral/markets', ['v4', 'public'], 'GET', {})
     v4_public_get_fee = v4PublicGetFee = Entry('fee', ['v4', 'public'], 'GET', {})
+    v4_public_get_funding_history_market = v4PublicGetFundingHistoryMarket = Entry('funding-history/{market}', ['v4', 'public'], 'GET', {})
     v4_public_get_orderbook_depth_market = v4PublicGetOrderbookDepthMarket = Entry('orderbook/depth/{market}', ['v4', 'public'], 'GET', {})
     v4_public_get_orderbook_market = v4PublicGetOrderbookMarket = Entry('orderbook/{market}', ['v4', 'public'], 'GET', {})
     v4_public_get_ticker = v4PublicGetTicker = Entry('ticker', ['v4', 'public'], 'GET', {})

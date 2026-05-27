@@ -174,7 +174,7 @@ class bitvavo extends Exchange {
                         'account' => 1,
                         'order' => 1,
                         'orders' => 5,
-                        'ordersOpen' => array( 'cost' => 1, 'noMarket' => 25 ),
+                        'ordersOpen' => array( 'cost' => 5, 'noMarket' => 100 ),
                         'trades' => 5,
                         'balance' => 5,
                         'deposit' => 1,
@@ -198,9 +198,9 @@ class bitvavo extends Exchange {
                     ),
                     'delete' => array(
                         'order' => 1,
-                        'orders' => 1,
+                        'orders' => array( 'cost' => 25, 'noMarket' => 100 ),
                         'institutional/subaccounts/order' => 1,
-                        'institutional/subaccounts/orders' => 1,
+                        'institutional/subaccounts/orders' => array( 'cost' => 25, 'noMarket' => 100 ),
                     ),
                 ),
             ),
@@ -320,7 +320,7 @@ class bitvavo extends Exchange {
                     '102' => '\\ccxt\\BadRequest', // Invalid JSON.
                     '103' => '\\ccxt\\RateLimitExceeded', // You have been rate limited. Please observe the Bitvavo-Ratelimit-AllowAt header to see when you can send requests again. Failure to respect this limit will result in an IP ban. The default value is 1000 weighted requests per minute. Please contact support if you wish to increase this limit.
                     '104' => '\\ccxt\\RateLimitExceeded', // You have been rate limited by the number of new orders. The default value is 100 new orders per second or 100.000 new orders per day. Please update existing orders instead of cancelling and creating orders. Please contact support if you wish to increase this limit.
-                    '105' => '\\ccxt\\PermissionDenied', // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
+                    '105' => '\\ccxt\\RateLimitExceeded', // Your IP or API key has been banned for not respecting the rate limit. The ban expires at ${expiryInMs}.
                     '107' => '\\ccxt\\ExchangeNotAvailable', // The matching engine is overloaded. Please wait 500ms and resubmit your order.
                     '108' => '\\ccxt\\ExchangeNotAvailable', // The matching engine could not process your order in time. Please consider increasing the access window or resubmit your order.
                     '109' => '\\ccxt\\ExchangeNotAvailable', // The matching engine did not respond in time. Operation may or may not have succeeded.
@@ -401,6 +401,7 @@ class bitvavo extends Exchange {
             'commonCurrencies' => array(
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 
@@ -564,11 +565,11 @@ class bitvavo extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_currencies_custom($response);
+            return $this->parse_currencies($response);
         }) ();
     }
 
-    public function parse_currencies_custom($currencies) {
+    public function parse_currency(array $rawCurrency): array {
         //
         //     array(
         //         {
@@ -603,70 +604,65 @@ class bitvavo extends Exchange {
         //     )
         //
         $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $isFiat = $this->in_array($code, $fiatCurrencies);
-            $networks = array();
-            $networksArray = $this->safe_list($currency, 'networks', array());
-            $deposit = $this->safe_string($currency, 'depositStatus') === 'OK';
-            $withdrawal = $this->safe_string($currency, 'withdrawalStatus') === 'OK';
-            $active = $deposit && $withdrawal;
-            $withdrawFee = $this->safe_number($currency, 'withdrawalFee');
-            $precision = $this->safe_string($currency, 'decimals', '8');
-            $minWithdraw = $this->safe_number($currency, 'withdrawalMinAmount');
-            // btw, absolutely all of them have 1 network atm
-            for ($j = 0; $j < count($networksArray); $j++) {
-                $networkId = $networksArray[$j];
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $currency,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdrawal,
-                    'fee' => $withdrawFee,
-                    'precision' => $this->parse_number($this->parse_precision($precision)),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'id' => $id,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'name'),
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($id);
+        $isFiat = $this->in_array($code, $fiatCurrencies);
+        $networks = array();
+        $networksArray = $this->safe_list($rawCurrency, 'networks', array());
+        $deposit = $this->safe_string($rawCurrency, 'depositStatus') === 'OK';
+        $withdrawal = $this->safe_string($rawCurrency, 'withdrawalStatus') === 'OK';
+        $active = $deposit && $withdrawal;
+        $withdrawFee = $this->safe_number($rawCurrency, 'withdrawalFee');
+        $precision = $this->safe_string($rawCurrency, 'decimals', '8');
+        $minWithdraw = $this->safe_number($rawCurrency, 'withdrawalMinAmount');
+        // btw, absolutely all of them have 1 network atm
+        for ($j = 0; $j < count($networksArray); $j++) {
+            $networkId = $networksArray[$j];
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'info' => $rawCurrency,
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => $active,
                 'deposit' => $deposit,
                 'withdraw' => $withdrawal,
-                'networks' => $networks,
                 'fee' => $withdrawFee,
-                'precision' => null,
-                'type' => $isFiat ? 'fiat' : 'crypto',
+                'precision' => $this->parse_number($this->parse_precision($precision)),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $minWithdraw,
                         'max' => null,
                     ),
                 ),
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdrawal,
+            'networks' => $networks,
+            'fee' => $withdrawFee,
+            'precision' => null,
+            'type' => $isFiat ? 'fiat' : 'crypto',
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $minWithdraw,
+                    'max' => null,
+                ),
+            ),
+        ));
     }
 
     public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {

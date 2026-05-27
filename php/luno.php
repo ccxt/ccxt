@@ -299,6 +299,7 @@ class luno extends Exchange {
                     'inverse' => null,
                 ),
             ),
+            'rollingWindowSize' => 60000.0,
         ));
     }
 
@@ -1282,7 +1283,7 @@ class luno extends Exchange {
         $firstWord = $this->safe_string($words, 0);
         $thirdWord = $this->safe_string($words, 2);
         $fourthWord = $this->safe_string($words, 3);
-        $type = $this->safe_string($types, $firstWord, null);
+        $type = $this->safe_string($types, $firstWord);
         if (($type === null) && ($thirdWord === 'fee')) {
             $type = 'fee';
         }

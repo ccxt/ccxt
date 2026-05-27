@@ -121,7 +121,7 @@ class htx extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
-                'fetchStatus' => true,
+                'fetchStatus' => false, // none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1406,6 +1406,7 @@ class htx extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 2000.0,
         ));
     }
 
@@ -3419,7 +3420,7 @@ class htx extends Exchange {
             for ($i = 0; $i < count($accounts); $i++) {
                 $account = $accounts[$i];
                 $info = $this->safe_value($account, 'info');
-                $subtype = $this->safe_string($info, 'subtype', null);
+                $subtype = $this->safe_string($info, 'subtype');
                 $typeFromAccount = $this->safe_string($account, 'type');
                 if ($type === 'margin') {
                     if ($subtype === $marketId) {
@@ -3850,7 +3851,8 @@ class htx extends Exchange {
             //         "ts" => 1770293281344
             //     }
             //
-            $result = array( 'info' => $response );
+            $finalResponse = $response;
+            $result = array( 'info' => $finalResponse );
             $data = $this->safe_value($response, 'data');
             if ($isMultiAssetMode) {
                 $details = $this->safe_list($data, 'details', array());
@@ -4295,7 +4297,7 @@ class htx extends Exchange {
                 // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
                 // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
                 'trade_type' => 0, // 0:All; 1 => Open long; 2 => Open short; 3 => Close short; 4 => Close long; 5 => Liquidate long positions; 6 => Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
-                'status' => '0', // support multiple query seperated by ',',such as '3,4,5', 0 => all. 3. Have sumbmitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+                'status' => '0', // support multiple query separated by ',',such as '3,4,5', 0 => all. 3. Have submitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
             );
             $response = null;
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -7512,7 +7514,8 @@ class htx extends Exchange {
                 $sortedRequest = $this->keysort($request);
                 $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $this->hostname, $url, $auth)); // eslint-disable-line quotes
+                $content = array( $method, $this->hostname, $url, $auth );
+                $payload = implode("\n", $content); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
@@ -7589,7 +7592,8 @@ class htx extends Exchange {
                 }
                 $auth = str_replace('%2c', '%2C', $this->urlencode($request, true)); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
-                $payload = implode("\n", array($method, $hostname, $url, $auth)); // eslint-disable-line quotes
+                $content2 = array( $method, $hostname, $url, $auth );
+                $payload = implode("\n", $content2); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
                 $auth .= '&' . $this->urlencode(array( 'Signature' => $signature ));
                 $url .= '?' . $auth;
@@ -7607,8 +7611,9 @@ class htx extends Exchange {
                     );
                 }
             }
+            $finalHostname = $hostname; // java req
             $url = $this->implode_params($this->urls['api'][$type], array(
-                'hostname' => $hostname,
+                'hostname' => $finalHostname,
             )) . $url;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

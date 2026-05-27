@@ -1439,6 +1439,11 @@ class xt extends Exchange {
                 $request['startTime'] = $since;
             }
             if ($limit !== null) {
+                if ($market['spot']) {
+                    $limit = min ($limit, 1000); // spot max $limit
+                } else {
+                    $limit = min ($limit, 1500); // derivatives max $limit
+                }
                 $request['limit'] = $limit;
             } else {
                 $request['limit'] = 1000;
@@ -1956,12 +1961,12 @@ class xt extends Exchange {
             $response = null;
             if ($market['spot']) {
                 if ($limit !== null) {
-                    $request['limit'] = $limit;
+                    $request['limit'] = min ($limit, 1000);
                 }
                 $response = Async\await($this->publicSpotGetTradeRecent ($this->extend($request, $params)));
             } else {
                 if ($limit !== null) {
-                    $request['num'] = $limit;
+                    $request['num'] = min ($limit, 1000);
                 }
                 if ($market['linear']) {
                     $response = Async\await($this->publicLinearGetFutureMarketV1PublicQDeal ($this->extend($request, $params)));
@@ -4431,11 +4436,12 @@ class xt extends Exchange {
             $tier = $brackets[$i];
             $marketId = $this->safe_string($info, 'symbol');
             $market = $this->safe_market($marketId, $market, '_', 'contract');
+            $minNotional = $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0);
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'bracket'),
                 'symbol' => $this->safe_symbol($marketId, $market, '_', 'contract'),
                 'currency' => $market['settle'],
-                'minNotional' => $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0),
+                'minNotional' => $minNotional,
                 'maxNotional' => $this->safe_number($tier, 'maxNominalValue'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintMarginRate'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),

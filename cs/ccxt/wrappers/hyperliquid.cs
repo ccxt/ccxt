@@ -169,6 +169,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.enableUnifiedMargin</term>
+    /// <description>
+    /// boolean : enable unified margin, CCXT tries to auto-detects this value but you can override it
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>

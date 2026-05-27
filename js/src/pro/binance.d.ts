@@ -177,6 +177,9 @@ export default class binance extends binanceRest {
     requestId(url: any): any;
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: number): string;
+    getWsUrl(type: any, category: any): any;
+    getFutureWsCategory(channel: any): "public" | "market";
+    getPrivateWsUrl(type: any, listenKey: any): string;
     /**
      * @method
      * @name binance#watchLiquidations
@@ -594,7 +597,7 @@ export default class binance extends binanceRest {
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
-     * @param marketType {string} only support on 'spot'
+     * @param {string} [marketType] only supports 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */

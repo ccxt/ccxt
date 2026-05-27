@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bithumb
@@ -264,14 +264,6 @@ class bithumb extends bithumb$1["default"] {
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
-                            },
-                        },
-                    },
-                    'USDT': {
-                        'limits': {
-                            'cost': {
-                                'min': undefined,
-                                'max': undefined,
                             },
                         },
                     },

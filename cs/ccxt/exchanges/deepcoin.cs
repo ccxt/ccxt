@@ -524,6 +524,8 @@ public partial class deepcoin : Exchange
         object maxLimitSize = this.safeString(market, "maxLmtSz");
         object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         object state = this.safeString(market, "state");
+        object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
+        object isInverse = ((bool) isTrue(swap)) ? (!isTrue(isLinear)) : null;
         return this.extend(fees, new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -535,14 +537,14 @@ public partial class deepcoin : Exchange
             { "settleId", settleId },
             { "type", type },
             { "spot", spot },
-            { "margin", isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1"))) },
+            { "margin", isMargin },
             { "swap", swap },
             { "future", false },
             { "option", false },
             { "active", isEqual(state, "live") },
             { "contract", swap },
             { "linear", isLinear },
-            { "inverse", ((bool) isTrue(swap)) ? (!isTrue(isLinear)) : null },
+            { "inverse", isInverse },
             { "contractSize", ((bool) isTrue(swap)) ? this.safeNumber(market, "ctVal") : null },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -860,7 +862,7 @@ public partial class deepcoin : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 500
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 2000);
         }
         object productGroup = this.getProductGroupFromMarket(market);
         ((IDictionary<string,object>)request)["productGroup"] = productGroup;
@@ -973,7 +975,7 @@ public partial class deepcoin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object marketType = "spot";
+        object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters, marketType);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
@@ -2424,11 +2426,12 @@ public partial class deepcoin : Exchange
         var mergedparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
         merged = ((IList<object>)mergedparametersVariable)[0];
         parameters = ((IList<object>)mergedparametersVariable)[1];
+        object isMergedMode = ((bool) isTrue(merged)) ? 1 : 0;
         object request = new Dictionary<string, object>() {
             { "InstrumentID", getValue(market, "id") },
             { "ProductGroup", productGroup },
             { "IsCrossMargin", encodedMarginMode },
-            { "IsMergeMode", ((bool) isTrue(merged)) ? 1 : 0 },
+            { "IsMergeMode", isMergedMode },
         };
         object response = await this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});

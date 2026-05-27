@@ -731,8 +731,13 @@ class coinspot extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api === 'private') {
+        $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
+        $version = $isVersionedApi ? $api[0] : null;
+        $accessType = $isVersionedApi ? $api[1] : $api;
+        $endpoint = '/' . $this->implode_params($path, $params);
+        $fullPath = ($version !== null) ? '/' . $version . $endpoint : $endpoint;
+        $url = $this->urls['api'][$accessType] . $fullPath;
+        if ($accessType === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));

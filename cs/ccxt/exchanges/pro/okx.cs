@@ -1474,49 +1474,22 @@ public partial class okx : ccxt.okx
         this.handleDeltas(storedBids, bids);
         object marketId = this.safeString(message, "instId");
         object symbol = this.safeSymbol(marketId, market);
-        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         object seqId = this.safeInteger(message, "seqId");
-        if (isTrue(checksum))
+        object prevSeqId = this.safeInteger(message, "prevSeqId");
+        object nonce = getValue(orderbook, "nonce");
+        object error = null;
+        if (isTrue(isTrue(isTrue(!isEqual(prevSeqId, null)) && isTrue(!isEqual(prevSeqId, -1))) && isTrue(!isEqual(nonce, prevSeqId))))
         {
-            object prevSeqId = this.safeInteger(message, "prevSeqId");
-            object nonce = getValue(orderbook, "nonce");
-            object asksLength = getArrayLength(storedAsks);
-            object bidsLength = getArrayLength(storedBids);
-            object payloadArray = new List<object>() {};
-            for (object i = 0; isLessThan(i, 25); postFixIncrement(ref i))
+            error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
+        }
+        if (isTrue(!isEqual(error, null)))
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            if (isTrue(!isEqual(symbol, null)))
             {
-                if (isTrue(isLessThan(i, bidsLength)))
-                {
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedBids, i), 0)));
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedBids, i), 1)));
-                }
-                if (isTrue(isLessThan(i, asksLength)))
-                {
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedAsks, i), 0)));
-                    ((IList<object>)payloadArray).Add(this.numberToString(getValue(getValue(storedAsks, i), 1)));
-                }
+                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             }
-            object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
-            object responseChecksum = this.safeInteger(message, "checksum");
-            object localChecksum = this.crc32(payload, true);
-            object error = null;
-            if (isTrue(isTrue(!isEqual(prevSeqId, -1)) && isTrue(!isEqual(nonce, prevSeqId))))
-            {
-                error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
-            }
-            if (isTrue(!isEqual(responseChecksum, localChecksum)))
-            {
-                error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-            }
-            if (isTrue(!isEqual(error, null)))
-            {
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
-                if (isTrue(!isEqual(symbol, null)))
-                {
-                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-                }
-                ((WebSocketClient)client).reject(error, messageHash);
-            }
+            ((WebSocketClient)client).reject(error, messageHash);
         }
         object timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)orderbook)["nonce"] = seqId;
@@ -1711,6 +1684,7 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#watchBalance
+     * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1732,55 +1706,99 @@ public partial class okx : ccxt.okx
     {
         //
         //     {
-        //         "arg": { channel: "account" },
-        //         "data": [
+        //         arg: {
+        //             channel: 'account',
+        //             uid: '158635852459810816'
+        //         },
+        //         eventType: 'snapshot',
+        //         curPage: 1,
+        //         lastPage: true,
+        //         data: [
         //             {
-        //                 "adjEq": '',
-        //                 "details": [
+        //                 adjEq: '100942.13298468884',
+        //                 availEq: '98461.99074635761',
+        //                 borrowFroz: '409.3702076072169',
+        //                 delta: '',
+        //                 deltaLever: '',
+        //                 deltaNeutralStatus: '',
+        //                 details: [
         //                     {
-        //                         "availBal": '',
-        //                         "availEq": "8.21009913",
-        //                         "cashBal": "8.21009913",
-        //                         "ccy": "USDT",
-        //                         "coinUsdPrice": "0.99994",
-        //                         "crossLiab": '',
-        //                         "disEq": "8.2096065240522",
-        //                         "eq": "8.21009913",
-        //                         "eqUsd": "8.2096065240522",
-        //                         "frozenBal": "0",
-        //                         "interest": '',
-        //                         "isoEq": "0",
-        //                         "isoLiab": '',
-        //                         "liab": '',
-        //                         "maxLoan": '',
-        //                         "mgnRatio": '',
-        //                         "notionalLever": "0",
-        //                         "ordFrozen": "0",
-        //                         "twap": "0",
-        //                         "uTime": "1621927314996",
-        //                         "upl": "0"
-        //                     },
+        //                         accAvgPx: '',
+        //                         autoLendAmt: '0',
+        //                         autoLendMtAmt: '0',
+        //                         autoLendStatus: 'unsupported',
+        //                         autoStakingStatus: 'unsupported',
+        //                         availBal: '2900',
+        //                         availEq: '2900',
+        //                         borrowFroz: '0',
+        //                         cashBal: '2900',
+        //                         ccy: 'TUSD',
+        //                         clSpotInUseAmt: '',
+        //                         coinUsdPrice: '200.026',
+        //                         colBorrAutoConversion: '0',
+        //                         colRes: '0',
+        //                         collateralEnabled: false,
+        //                         collateralRestrict: false,
+        //                         crossLiab: '0',
+        //                         disEq: '0',
+        //                         eq: '2900',
+        //                         eqUsd: '580075.4',
+        //                         fixedBal: '0',
+        //                         frozenBal: '0',
+        //                         frpType: '0',
+        //                         imr: '',
+        //                         interest: '0',
+        //                         isoEq: '0',
+        //                         isoLiab: '0',
+        //                         isoUpl: '0',
+        //                         liab: '0',
+        //                         maxLoan: '0',
+        //                         maxSpotInUseAmt: '',
+        //                         mgnRatio: '',
+        //                         mmr: '',
+        //                         notionalLever: '',
+        //                         openAvgPx: '',
+        //                         ordFrozen: '0',
+        //                         rewardBal: '',
+        //                         smtSyncEq: '0',
+        //                         spotBal: '',
+        //                         spotCopyTradingEq: '0',
+        //                         spotInUseAmt: '',
+        //                         spotIsoBal: '0',
+        //                         spotUpl: '',
+        //                         spotUplRatio: '',
+        //                         stgyEq: '0',
+        //                         totalPnl: '',
+        //                         totalPnlRatio: '',
+        //                         twap: '0',
+        //                         uTime: '1752243427083',
+        //                         upl: '0',
+        //                         uplLiab: '0'
+        //                     }
         //                 ],
-        //                 "imr": '',
-        //                 "isoEq": "0",
-        //                 "mgnRatio": '',
-        //                 "mmr": '',
-        //                 "notionalUsd": '',
-        //                 "ordFroz": '',
-        //                 "totalEq": "22.1930992296832",
-        //                 "uTime": "1626692120916"
+        //                 imr: '2480.1422383312265',
+        //                 isoEq: '0',
+        //                 mgnRatio: '1814.5924297007082',
+        //                 mmr: '52.196024182958055',
+        //                 notionalUsd: '4634.0971302081125',
+        //                 notionalUsdForBorrow: '2046.8510380360844',
+        //                 notionalUsdForFutures: '101.11322817202809',
+        //                 notionalUsdForOption: '0',
+        //                 notionalUsdForSwap: '2486.1328640000006',
+        //                 ordFroz: '1208.3566666666668',
+        //                 totalEq: '711018.8951315446',
+        //                 uTime: '1773837554158',
+        //                 upl: '9.244336372701904'
         //             }
         //         ]
         //     }
         //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
-        object type = "spot";
         object balance = this.parseTradingBalance(message);
-        object oldBalance = this.safeValue(this.balance, type, new Dictionary<string, object>() {});
-        object newBalance = this.deepExtend(oldBalance, balance);
-        ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(newBalance);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), channel});
+        object newBalance = this.deepExtend(this.balance, balance);
+        this.balance = this.safeBalance(newBalance);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, channel});
     }
 
     public virtual object orderToTrade(object order, object market = null)
@@ -1879,10 +1897,10 @@ public partial class okx : ccxt.okx
      * @name okx#watchPositions
      * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
@@ -2623,7 +2641,7 @@ public partial class okx : ccxt.okx
                         {
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                         }
-                        messageString = this.safeValue(message, "sMsg");
+                        messageString = this.safeValue(d, "sMsg");
                         if (isTrue(!isEqual(messageString, null)))
                         {
                             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);

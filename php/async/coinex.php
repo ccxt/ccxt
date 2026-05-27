@@ -685,6 +685,7 @@ class coinex extends Exchange {
                     'Service is not available during funding fee settlement' => '\\ccxt\\OperationFailed',
                 ),
             ),
+            'rollingWindowSize' => 1000.0,    // docs say 1000.0 => https://docs.coinex.com/api/v2/rate-limit#ip-rate-limit, tested with 60000.0 and received no errors
         ));
     }
 
@@ -1458,7 +1459,7 @@ class coinex extends Exchange {
                 // 'last_id' => 0,
             );
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             $response = null;
             if ($market['swap']) {
@@ -4555,11 +4556,13 @@ class coinex extends Exchange {
             $marketId = $this->safe_string($info, 'market');
             $market = $this->safe_market($marketId, $market, null, 'swap');
             $maxNotional = $this->safe_number($tier, 'amount');
+            $curr = $market['linear'] ? $market['base'] : $market['quote'];
+            $notional = $minNotional;
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
-                'currency' => $market['linear'] ? $market['base'] : $market['quote'],
-                'minNotional' => $minNotional,
+                'currency' => $curr,
+                'minNotional' => $notional,
                 'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenance_margin_rate'),
                 'maxLeverage' => $this->safe_integer($tier, 'leverage'),
@@ -5839,7 +5842,7 @@ class coinex extends Exchange {
              *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
              *
-             * @param $codes
+             * @param {string[]} [$codes] list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */

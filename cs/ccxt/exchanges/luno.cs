@@ -282,6 +282,7 @@ public partial class luno : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "rollingWindowSize", 60000 },
         });
     }
 
@@ -1356,7 +1357,7 @@ public partial class luno : Exchange
         object firstWord = this.safeString(words, 0);
         object thirdWord = this.safeString(words, 2);
         object fourthWord = this.safeString(words, 3);
-        object type = this.safeString(types, firstWord, null);
+        object type = this.safeString(types, firstWord);
         if (isTrue(isTrue((isEqual(type, null))) && isTrue((isEqual(thirdWord, "fee")))))
         {
             type = "fee";

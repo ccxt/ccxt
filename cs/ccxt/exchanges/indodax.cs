@@ -1471,10 +1471,11 @@ public partial class indodax : Exchange
                         network = ((string)this.networkIdToCode(networkId)).ToUpper();
                     }
                 }
+                object finalNetwork = network; // java req
                 ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                     { "info", new Dictionary<string, object>() {} },
                     { "currency", code },
-                    { "network", network },
+                    { "network", finalNetwork },
                     { "address", address },
                     { "tag", null },
                 };

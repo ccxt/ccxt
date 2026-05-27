@@ -17,11 +17,13 @@ function test_watch_liquidations_for_symbols($exchange, $skipped_properties, $sy
         // we have to skip some exchanges here due to the frequency of trading
         $skipped_exchanges = [];
         if ($exchange->in_array($exchange->id, $skipped_exchanges)) {
-            var_dump($exchange->id, $method . '() test skipped');
+            $m1 = ($exchange->id . ' ' . $method . '() test skipped');
+            var_dump($m1);
             return false;
         }
         if (!$exchange->has[$method]) {
-            var_dump($exchange->id, $method . '() is not supported');
+            $m2 = ($exchange->id . ' does not support ' . $method . '() method');
+            var_dump($m2);
             return false;
         }
         $response = null;
@@ -29,11 +31,12 @@ function test_watch_liquidations_for_symbols($exchange, $skipped_properties, $sy
         $ends = $now + 10000;
         while ($now < $ends) {
             try {
-                $response = Async\await($exchange->$method([$symbol]));
+                $response = \React\Async\await($exchange->watch_liquidations_for_symbols([$symbol]));
                 $now = round(microtime(true) * 1000);
                 $is_array = gettype($response) === 'array' && array_is_list($response);
                 assert($is_array, 'response must be an array');
-                var_dump($exchange->iso8601($now), $exchange->id, $symbol, $method, count(is_array($response) ? array_values($response) : array()), 'liquidations');
+                $m3 = ($exchange->id . ' ' . $method . '() returned ' . count($response) . ' liquidations');
+                var_dump($m3);
                 // log.noLocate (asTable (response))
                 for ($i = 0; $i < count($response); $i++) {
                     test_liquidation($exchange, $skipped_properties, $method, $response[$i], $symbol);

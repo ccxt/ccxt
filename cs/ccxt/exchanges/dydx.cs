@@ -666,7 +666,7 @@ public partial class dydx : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = await this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters));
         //

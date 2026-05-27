@@ -660,7 +660,7 @@ class xt extends \ccxt\async\xt {
 
     public function load_positions_snapshot($client, $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
-            $positions = Async\await($this->fetch_positions(null));
+            $positions = Async\await($this->fetch_positions());
             $this->positions = new ArrayCacheBySymbolBySide ();
             $cache = $this->positions;
             for ($i = 0; $i < count($positions); $i++) {
