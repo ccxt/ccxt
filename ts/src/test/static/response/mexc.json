@@ -6,6 +6,9 @@
             {
                 "description": "swap open orders",
                 "method": "fetchOpenOrders",
+                "options": {
+                    "defaultType": "swap"
+                },
                 "input": [],
                 "httpResponse": {
                     "success": true,
