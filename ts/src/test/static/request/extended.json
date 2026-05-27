@@ -386,7 +386,7 @@
             {
                 "description": "fetch accounts",
                 "method": "fetchAccounts",
-                "url": "https://api.starknet.extended.exchange/api/v1/user/account/info",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/accounts",
                 "input": []
             }
         ],
