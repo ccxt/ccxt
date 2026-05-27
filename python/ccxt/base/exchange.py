@@ -1578,6 +1578,15 @@ class Exchange(object):
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
+    def starknet_get_selector_from_name (name):
+        return get_selector_from_name("initialize")
+
+    @staticmethod
+    def starknet_compute_poseidon_hash_on_elements (data):
+        # return Starknet.hash.computePoseidonHashOnElements (data)
+        return nil
+
+    @staticmethod
     def packb(o):
         return packb(o)
 
