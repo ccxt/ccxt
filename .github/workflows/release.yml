@@ -56,6 +56,11 @@ jobs:
           dotnet-quality: 'preview'
           run: |
             sudo mkdir -p /usr/share/dotnet
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'   # or '20' – but match what :lib is targeting
       - name: Install NPM dependencies
         run: npm ci
       - name: Composer install
