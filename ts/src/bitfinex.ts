@@ -891,9 +891,9 @@ export default class bitfinex extends Exchange {
         const undl = this.safeList (indexed['undl'], id, []);
         const precision = this.safeString (this.options, 'defaultCurrencyPrecision', '8');
         const networks: Dict = {};
-        const netwokIds = this.safeList (indexedNetworks, id, []);
-        for (let j = 0; j < netwokIds.length; j++) {
-            const networkId = netwokIds[j];
+        const networkIds = this.safeList (indexedNetworks, id, []);
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
             const network = this.networkIdToCode (networkId, code);
             const dwStatuses = this.safeList (indexed['statuses'], networkId, []);
             networks[network] = {
