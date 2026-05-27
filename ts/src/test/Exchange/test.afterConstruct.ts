@@ -54,4 +54,4 @@ function testOptionsNetwoks (exchange, skippedProperties, method, entry) {
     }
 }
 
-export default testAfterConstructor;
+export default testAfterConstruct;
