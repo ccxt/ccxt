@@ -416,6 +416,8 @@ type IDerivedExchange interface {
 	FetchPositionsADLRank(optionalArgs ...any) <-chan any
 	ParseADLRank(info any, optionalArgs ...any) any
 	FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <-chan any
+	NetworkCodeToId(networkCode any, optionalArgs ...any) any
+	NetworkIdToCode(optionalArgs ...any) any
 	FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any
 	FetchOpenInterests(optionalArgs ...any) <-chan any
 }
