@@ -1390,6 +1390,9 @@ class Exchange extends \ccxt\Exchange {
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
             $parsed = $this->parse_currency($arr[$i]);
+            if ($parsed === null) {
+                continue;
+            }
             $code = $parsed['code'];
             $result[$code] = $parsed;
         }
