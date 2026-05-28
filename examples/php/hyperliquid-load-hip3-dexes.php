@@ -29,7 +29,7 @@ function example() {
                 ),
             ),
         ));
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $markets = is_array($exchange->markets) ? array_values($exchange->markets) : array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -41,4 +41,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

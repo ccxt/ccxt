@@ -2719,6 +2719,9 @@ class Exchange {
         const arr = this.toArray(rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrency(arr[i]);
+            if (parsed === undefined) {
+                continue;
+            }
             const code = parsed['code'];
             result[code] = parsed;
         }

@@ -1188,6 +1188,10 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
             object parsed = this.parseCurrency(getValue(arr, i));
+            if (isTrue(isEqual(parsed, null)))
+            {
+                continue;
+            }
             object code = getValue(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }

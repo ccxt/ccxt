@@ -1545,6 +1545,7 @@ public partial class blofin : Exchange
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1555,7 +1556,11 @@ public partial class blofin : Exchange
         object isStopLossPriceDefined = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
         object isTakeProfitPriceDefined = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
         object isTriggerOrder = !isEqual(this.safeString(parameters, "triggerPrice"), null);
-        object isCombinedSlTp = (isTrue(isStopLossPriceDefined) && isTrue(isTakeProfitPriceDefined));
+        object isTpslEndpoint = false;
+        var isTpslEndpointparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
+        isTpslEndpoint = ((IList<object>)isTpslEndpointparametersVariable)[0];
+        parameters = ((IList<object>)isTpslEndpointparametersVariable)[1];
+        object isCombinedSlTp = isTrue((isTrue(isStopLossPriceDefined) && isTrue(isTakeProfitPriceDefined))) || isTrue(isTpslEndpoint);
         object isSlOrTp = isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined);
         object response = null;
         object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -1620,12 +1625,36 @@ public partial class blofin : Exchange
         if (isTrue(!isEqual(stopLossPrice, null)))
         {
             ((IDictionary<string,object>)request)["slTriggerPrice"] = this.priceToPrecision(symbol, stopLossPrice);
-            ((IDictionary<string,object>)request)["slOrderPrice"] = ((bool) isTrue((isEqual(type, "market")))) ? "-1" : this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(type, "market")))
+            {
+                ((IDictionary<string,object>)request)["slOrderPrice"] = "-1";
+            } else
+            {
+                object slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
+                if (isTrue(isEqual(slLimitPrice, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
+                }
+                ((IDictionary<string,object>)request)["slOrderPrice"] = this.priceToPrecision(symbol, slLimitPrice);
+                parameters = this.omit(parameters, "stopLossLimitPrice");
+            }
         }
         if (isTrue(!isEqual(takeProfitPrice, null)))
         {
             ((IDictionary<string,object>)request)["tpTriggerPrice"] = this.priceToPrecision(symbol, takeProfitPrice);
-            ((IDictionary<string,object>)request)["tpOrderPrice"] = ((bool) isTrue((isEqual(type, "market")))) ? "-1" : this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(type, "market")))
+            {
+                ((IDictionary<string,object>)request)["tpOrderPrice"] = "-1";
+            } else
+            {
+                object tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
+                if (isTrue(isEqual(tpLimitPrice, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
+                }
+                ((IDictionary<string,object>)request)["tpOrderPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
+                parameters = this.omit(parameters, "takeProfitLimitPrice");
+            }
         }
         ((IDictionary<string,object>)request)["marginMode"] = marginMode;
         parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"});

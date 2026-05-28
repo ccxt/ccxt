@@ -3190,7 +3190,7 @@ public class MexcCore extends MexcApi
                 {
                     Helpers.addElementToObject(request, "page_size", 100); // max
                 }
-                Object swapResponse = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "contractPrivateGetOrderListOpenOrders", new Object[] { this.extend(request, parameters) })).join();
+                Object swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters))).join();
                 Object data = this.safeList(swapResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(data, market, since, limit, parameters);
             }
