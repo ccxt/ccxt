@@ -3386,6 +3386,8 @@ class Exchange(object):
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
             parsed = self.parse_currency(arr[i])
+            if parsed is None:
+                continue
             code = parsed['code']
             result[code] = parsed
         return result
