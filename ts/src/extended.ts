@@ -2575,9 +2575,18 @@ export default class extended extends Exchange {
         const fee = this.safeString (params, 'fee', '0.0005');
         let builderFee = undefined;
         let builderId = undefined;
-        [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFee', '0.00025');
-        [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId', '257624');
-        const totalFee = Precise.stringAdd (fee, builderFee);
+        if (this.isSandboxModeEnabled) {
+            builderFee = this.safeString2 (params, 'builderFee', 'defaultBuilderFee');
+            builderId = this.safeString2 (params, 'builderId', 'defaultBuilderId');
+            params = this.omit (params, [ 'builderFee', 'defaultBuilderFee', 'builderId', 'defaultBuilderId' ]);
+        } else {
+            [ builderFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderFee', '0.00025');
+            [ builderId, params ] = this.handleOptionAndParams (params, 'createOrder', 'builderId');
+        }
+        let totalFee = fee;
+        if (builderFee !== undefined) {
+            totalFee = Precise.stringAdd (fee, builderFee);
+        }
         const now = this.milliseconds ();
         const expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis', now + 3600000);
         const settlementExpiration = this.safeInteger (params, 'settlementExpiration', this.parseToInt ((expiryEpochMillis + 999) / 1000) + 1209600);
@@ -2621,9 +2630,13 @@ export default class extended extends Exchange {
             'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'selfTradeProtectionLevel': 'ACCOUNT',
-            'builderFee': builderFee,
-            'builderId': builderId,
         };
+        if (builderFee !== undefined) {
+            request['builderFee'] = builderFee;
+        }
+        if (builderId !== undefined) {
+            request['builderId'] = builderId;
+        }
         const cancelId = this.safeString2 (params, 'cancelId', 'previousOrderId');
         if (cancelId !== undefined) {
             request['cancelId'] = cancelId;
