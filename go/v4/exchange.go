@@ -98,6 +98,7 @@ type Exchange struct {
 	LastRequestBody          any
 	Last_request_body        any
 	Last_request_url         any
+	Recent_requests_data     []any
 	LastRequestUrl           string
 	Headers                  any
 	ReturnResponseHeaders    bool

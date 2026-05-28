@@ -303,6 +303,7 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
+    public $recent_requests_data = [];
 
     public $requiresEddsa = false;
     public $rateLimit = 2000;

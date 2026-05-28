@@ -310,6 +310,7 @@ export default class Exchange {
     last_request_body: any = undefined;
     last_request_url: string = undefined;
     last_request_path: string = undefined;
+    recent_requests_data: Dictionary<any>[] = [];
 
     id: string = 'Exchange';
 

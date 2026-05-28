@@ -131,6 +131,9 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+
+    public readonly System.Collections.Concurrent.ConcurrentBag<Dictionary<string, object>> recent_requests_data = new System.Collections.Concurrent.ConcurrentBag<Dictionary<string, object>>()
+
     public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }

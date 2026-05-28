@@ -33,7 +33,7 @@ import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
 import java.util.Random;
 import java.lang.reflect.Constructor;
-
+import java.util.Collections;
 
 
 public class Exchange {
@@ -159,6 +159,7 @@ public class Exchange {
     public volatile Object last_http_response;
     public volatile Object last_request_body;
     public volatile Object last_request_url;
+    public final List<Map<String, Object>> recent_requests_data = Collections.synchronizedList(new ArrayList<>());
     public boolean returnResponseHeaders = false;
     public Map<String, Object> headers = new HashMap<>();
     public Object httpExceptions;
