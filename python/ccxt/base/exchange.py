@@ -497,8 +497,6 @@ class Exchange(object):
 
     def set_rate_limit(self, rateLimit: float):
         self.rateLimit = rateLimit
-        if self.throttler is not None:
-            self.throttler.set_rate_limit(rateLimit)
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
