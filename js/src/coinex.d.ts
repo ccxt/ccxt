@@ -15,6 +15,7 @@ export default class coinex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(coin: any): Currency;
     /**
      * @method
      * @name coinex#fetchMarkets
