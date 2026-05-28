@@ -767,23 +767,20 @@ class upbit extends Exchange {
          * @see https://global-docs.upbit.com/reference/list-tickers
          *
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $ids = null;
-        if ($symbols === null) {
-            $ids = implode(',', $this->ids);
-        } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode(',', $ids);
+        $ids = ($symbols !== null) ? $this->market_ids($symbols) : $this->ids;
+        $promises = array();
+        $queries = $this->ids_query_strings($ids, 6400); // seems upbit server limitations
+        for ($i = 0; $i < count($queries); $i++) {
+            $idsQuery = $queries[$i];
+            $promises[] = $this->publicGetTicker (array( 'markets' => $idsQuery ));
         }
-        $request = array(
-            'markets' => $ids,
-        );
-        $response = $this->publicGetTicker ($this->extend($request, $params));
+        $responses = $promises;
         //
         //     array( {                market => "BTC-ETH",
         //                    "trade_date" => "20181122",
@@ -812,13 +809,28 @@ class upbit extends Exchange {
         //           "lowest_52_week_date" => "2017-12-08",
         //                     "timestamp" =>  1542883543813  } )
         //
-        $result = array();
-        for ($t = 0; $t < count($response); $t++) {
-            $ticker = $this->parse_ticker($response[$t]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
+        $concated = $this->arrays_concat($responses);
+        return $this->parse_tickers($concated, $symbols);
+    }
+
+    public function ids_query_strings(array $ids, float $maxQueryLength) {
+        $idsString = '';
+        $queries = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            if ($idsString !== '') {
+                $idsString = $idsString . ',';
+            }
+            $idsString = $idsString . $id;
+            if (strlen($idsString) >= $maxQueryLength) {
+                $queries[] = $idsString;
+                $idsString = '';
+            }
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        if ($idsString !== '') {
+            $queries[] = $idsString;
+        }
+        return $queries;
     }
 
     public function fetch_ticker(string $symbol, $params = array ()): array {

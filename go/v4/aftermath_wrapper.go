@@ -65,7 +65,7 @@ func (this *Aftermath) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @description fetch the trading fees for a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Aftermath) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -93,7 +93,7 @@ func (this *Aftermath) FetchTradingFee(symbol string, options ...FetchTradingFee
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Aftermath) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -122,7 +122,7 @@ func (this *Aftermath) FetchTicker(symbol string, options ...FetchTickerOptions)
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Aftermath) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -158,7 +158,7 @@ func (this *Aftermath) FetchOrderBook(symbol string, options ...FetchOrderBookOp
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Aftermath) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -242,7 +242,7 @@ func (this *Aftermath) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) (
  * @description query for balance and get the amount of funds available for trading or funds locked in positions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] account object ID, required
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Aftermath) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -278,7 +278,7 @@ func (this *Aftermath) FetchAccounts(params ...any) ([]Account, error) {
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.accountNumber] account number to query orders for, required
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aftermath) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -322,7 +322,7 @@ func (this *Aftermath) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.accountNumber] account number to query positions for, required
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Aftermath) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -351,7 +351,7 @@ func (this *Aftermath) FetchPosition(symbol string, options ...FetchPositionOpti
  * @param {string[]} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.accountNumber] account number to query positions for, required
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Aftermath) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -391,7 +391,7 @@ func (this *Aftermath) FetchPositions(options ...FetchPositionsOptions) ([]Posit
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {Account} [params.account] account id to use, required
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aftermath) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -426,7 +426,7 @@ func (this *Aftermath) CreateOrder(symbol string, typeVar string, side string, a
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account id to use, required
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aftermath) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -456,7 +456,7 @@ func (this *Aftermath) CreateOrders(orders []OrderRequest, options ...CreateOrde
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aftermath) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -492,7 +492,7 @@ func (this *Aftermath) CancelOrder(id string, options ...CancelOrderOptions) (Or
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account to cancel orders for, required
- * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Aftermath) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -547,7 +547,7 @@ func (this *Aftermath) CreateAccount(symbol string, options ...CreateAccountOpti
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Aftermath) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -580,7 +580,7 @@ func (this *Aftermath) Transfer(code string, amount float64, fromAccount string,
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account id to use, required
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Aftermath) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 

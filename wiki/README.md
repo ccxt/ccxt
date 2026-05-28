@@ -13,6 +13,9 @@ Welcome to the ccxt wiki!
   - [Node.js](https://github.com/ccxt/ccxt/wiki/Install#nodejs)
   - [Python](https://github.com/ccxt/ccxt/wiki/Install#python)
   - [PHP](https://github.com/ccxt/ccxt/wiki/Install#php)
+  - [C#](https://github.com/ccxt/ccxt/wiki/Install#netc)
+  - [Go](https://github.com/ccxt/ccxt/wiki/Install#go)
+  - [Java](https://github.com/ccxt/ccxt/wiki/Install#java)
   - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
   - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
@@ -85,7 +88,7 @@ Welcome to the ccxt wiki!
 
 ## Examples
 
-- [Usage Examples](https://docs.ccxt.com/#/Examples)
+- [Usage Examples](https://docs.ccxt.com/Examples)
 
 ## New Exchanges
 
@@ -94,4 +97,4 @@ Welcome to the ccxt wiki!
 
 ## API Reference
 
-- [API Reference](https://docs.ccxt.com/#/spec)
+- [API Reference](https://docs.ccxt.com/spec)

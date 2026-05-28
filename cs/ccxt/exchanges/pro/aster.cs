@@ -104,7 +104,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -130,7 +130,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
@@ -149,7 +149,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -202,7 +202,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-market-tickers-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
@@ -247,7 +247,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchMarkPrice(object symbol, object parameters = null)
     {
@@ -268,7 +268,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
@@ -286,7 +286,7 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -340,7 +340,7 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -424,13 +424,11 @@ public partial class aster : ccxt.aster
     public virtual object parseWsTicker(object message, object marketType)
     {
         object eventVar = this.safeString(message, "e");
-        object part = ((string)eventVar).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-        object channel = this.safeString(part, 1);
         object marketId = this.safeString(message, "s");
         object timestamp = this.safeInteger(message, "E");
         object market = this.safeMarket(marketId, null, null, marketType);
         object last = this.safeString(message, "c");
-        if (isTrue(isEqual(channel, "markPriceUpdate")))
+        if (isTrue(isEqual(eventVar, "markPriceUpdate")))
         {
             return this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", getValue(market, "symbol") },
@@ -475,7 +473,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -523,7 +521,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#all-book-tickers-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -606,7 +604,7 @@ public partial class aster : ccxt.aster
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -624,7 +622,7 @@ public partial class aster : ccxt.aster
      * @see https://asterdex.github.io/aster-api-website/futures-v3/websocket-market-streams/#aggregate-trade-streams
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -644,7 +642,7 @@ public partial class aster : ccxt.aster
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -697,7 +695,7 @@ public partial class aster : ccxt.aster
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
@@ -933,7 +931,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -953,7 +951,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -973,7 +971,7 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1025,7 +1023,7 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -1361,7 +1359,13 @@ public partial class aster : ccxt.aster
         }
         try
         {
-            await this.sapiPrivatePutV3ListenKey(); // extend the expiry
+            if (isTrue(isEqual(type, "spot")))
+            {
+                await this.sapiPrivatePutV3ListenKey(); // extend the expiry
+            } else
+            {
+                await this.fapiPrivatePutV3ListenKey(); // extend the expiry
+            }
         } catch(Exception error)
         {
             object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
@@ -2136,13 +2140,11 @@ public partial class aster : ccxt.aster
         object messageInner = this.safeDict(message, "data", message); // can be either wrapped in 'data' or full object itself
         object eventVar = this.safeString(messageInner, "e");
         object methods = new Dictionary<string, object>() {
-            { "ticker", this.handleTicker },
+            { "24hrTicker", this.handleTicker },
             { "aggTrade", this.handleTrade },
-            { "depth5", this.handleOrderBook },
-            { "depth10", this.handleOrderBook },
-            { "depth20", this.handleOrderBook },
+            { "depthUpdate", this.handleOrderBook },
             { "kline", this.handleOHLCV },
-            { "markPrice", this.handleTicker },
+            { "markPriceUpdate", this.handleTicker },
             { "bookTicker", this.handleBidAsk },
             { "outboundAccountPosition", this.handleBalance },
             { "ACCOUNT_UPDATE", this.handleBalanceAndPosition },

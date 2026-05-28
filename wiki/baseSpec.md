@@ -5,7 +5,7 @@
 add margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -341,7 +341,7 @@ helper method for cancelling contract orders
 cancels an open order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -448,7 +448,6 @@ cancels an open order
 * [yobit](/exchanges/yobit.md#cancelorder)
 * [zaif](/exchanges/zaif.md#cancelorder)
 * [zebpay](/exchanges/zebpay.md#cancelorder)
-* [zonda](/exchanges/zonda.md#cancelorder)
 
 ---
 
@@ -489,7 +488,7 @@ cancel multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -534,6 +533,7 @@ cancel multiple orders
 * [onetrading](/exchanges/onetrading.md#cancelorders)
 * [oxfun](/exchanges/oxfun.md#cancelorders)
 * [pacifica](/exchanges/pacifica.md#cancelorders)
+* [paradex](/exchanges/paradex.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
@@ -1052,7 +1052,7 @@ create a market sell order by providing the symbol and cost
 create a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1166,7 +1166,6 @@ create a trade order
 * [yobit](/exchanges/yobit.md#createorder)
 * [zaif](/exchanges/zaif.md#createorder)
 * [zebpay](/exchanges/zebpay.md#createorder)
-* [zonda](/exchanges/zonda.md#createorder)
 
 ---
 
@@ -1210,7 +1209,7 @@ create a trade order
 create a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -1249,6 +1248,7 @@ create a list of trade orders
 * [okx](/exchanges/okx.md#createorders)
 * [oxfun](/exchanges/oxfun.md#createorders)
 * [pacifica](/exchanges/pacifica.md#createorders)
+* [paradex](/exchanges/paradex.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---
@@ -1633,6 +1633,7 @@ edit a trade order
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
+* [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
@@ -1730,8 +1731,8 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| enabled |  | Yes |  |
-| params |  | Yes |  |
+| enabled | <code>boolean</code> | Yes | whether to enable user dex abstraction |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
 
 ##### Supported exchanges
@@ -1884,7 +1885,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 query for balance and get the amount of funds available for trading or funds locked in positions
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -1992,7 +1993,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [yobit](/exchanges/yobit.md#fetchbalance)
 * [zaif](/exchanges/zaif.md#fetchbalance)
 * [zebpay](/exchanges/zebpay.md#fetchbalance)
-* [zonda](/exchanges/zonda.md#fetchbalance)
 
 ---
 
@@ -2811,7 +2811,6 @@ fetch the deposit address for a currency associated with this account
 * [woo](/exchanges/woo.md#fetchdepositaddress)
 * [xt](/exchanges/xt.md#fetchdepositaddress)
 * [yobit](/exchanges/yobit.md#fetchdepositaddress)
-* [zonda](/exchanges/zonda.md#fetchdepositaddress)
 
 ---
 
@@ -2821,7 +2820,7 @@ fetch the deposit address for a currency associated with this account
 fetch deposit addresses for multiple currencies (when available)
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by currency code
 
 
 | Param | Type | Required | Description |
@@ -2838,7 +2837,6 @@ fetch deposit addresses for multiple currencies (when available)
 * [indodax](/exchanges/indodax.md#fetchdepositaddresses)
 * [paymium](/exchanges/paymium.md#fetchdepositaddresses)
 * [upbit](/exchanges/upbit.md#fetchdepositaddresses)
-* [zonda](/exchanges/zonda.md#fetchdepositaddresses)
 
 ---
 
@@ -3063,6 +3061,7 @@ fetch all deposits made to an account
 * [novadax](/exchanges/novadax.md#fetchdeposits)
 * [okx](/exchanges/okx.md#fetchdeposits)
 * [oxfun](/exchanges/oxfun.md#fetchdeposits)
+* [paradex](/exchanges/paradex.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdeposits)
@@ -3184,6 +3183,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [okx](/exchanges/okx.md#fetchfundinghistory)
 * [oxfun](/exchanges/oxfun.md#fetchfundinghistory)
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
+* [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
@@ -3227,7 +3227,7 @@ fetch the current funding rate interval
 fetch the funding rate interval for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -3267,7 +3267,7 @@ fetch the deposit and withdrawal limits for a currency
 fetch the current funding rate
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
@@ -3562,7 +3562,7 @@ fetches the last price for multiple markets
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 
 | Param | Type | Required | Description |
@@ -3611,7 +3611,6 @@ fetch the history of changes, actions done by the user or operations that altere
 * [woo](/exchanges/woo.md#fetchledger)
 * [woofipro](/exchanges/woofipro.md#fetchledger)
 * [xt](/exchanges/xt.md#fetchledger)
-* [zonda](/exchanges/zonda.md#fetchledger)
 
 ---
 
@@ -3762,7 +3761,6 @@ retrieves the public liquidations of a trading pair
 * [deribit](/exchanges/deribit.md#fetchliquidations)
 * [gate](/exchanges/gate.md#fetchliquidations)
 * [htx](/exchanges/htx.md#fetchliquidations)
-* [paradex](/exchanges/paradex.md#fetchliquidations)
 
 ---
 
@@ -3798,7 +3796,7 @@ fetches the long short ratio history for a unified market symbol
 fetches the history of margin added or reduced from contract isolated positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/?id=margin-loan-structure)
 
 
 | Param | Type | Required | Description |
@@ -4055,7 +4053,6 @@ retrieves data on all markets for woo
 * [yobit](/exchanges/yobit.md#fetchmarkets)
 * [zaif](/exchanges/zaif.md#fetchmarkets)
 * [zebpay](/exchanges/zebpay.md#fetchmarkets)
-* [zonda](/exchanges/zonda.md#fetchmarkets)
 
 ---
 
@@ -4151,6 +4148,7 @@ retrieves the users liquidated positions
 * [bybit](/exchanges/bybit.md#fetchmyliquidations)
 * [deribit](/exchanges/deribit.md#fetchmyliquidations)
 * [gate](/exchanges/gate.md#fetchmyliquidations)
+* [paradex](/exchanges/paradex.md#fetchmyliquidations)
 
 ---
 
@@ -4309,7 +4307,6 @@ fetch all trades made by the user
 * [xt](/exchanges/xt.md#fetchmytrades)
 * [yobit](/exchanges/yobit.md#fetchmytrades)
 * [zebpay](/exchanges/zebpay.md#fetchmytrades)
-* [zonda](/exchanges/zonda.md#fetchmytrades)
 
 ---
 
@@ -4463,7 +4460,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [woofipro](/exchanges/woofipro.md#fetchohlcv)
 * [xt](/exchanges/xt.md#fetchohlcv)
 * [zebpay](/exchanges/zebpay.md#fetchohlcv)
-* [zonda](/exchanges/zonda.md#fetchohlcv)
 
 ---
 
@@ -4595,7 +4591,7 @@ Retrieves the open interest for a list of symbols
 fetch an open order by the id
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4624,7 +4620,7 @@ fetch an open order by the id
 fetch all unfilled currently open orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4733,7 +4729,6 @@ fetch all unfilled currently open orders
 * [yobit](/exchanges/yobit.md#fetchopenorders)
 * [zaif](/exchanges/zaif.md#fetchopenorders)
 * [zebpay](/exchanges/zebpay.md#fetchopenorders)
-* [zonda](/exchanges/zonda.md#fetchopenorders)
 
 ---
 
@@ -4935,7 +4930,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -5042,7 +5037,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [yobit](/exchanges/yobit.md#fetchorderbook)
 * [zaif](/exchanges/zaif.md#fetchorderbook)
 * [zebpay](/exchanges/zebpay.md#fetchorderbook)
-* [zonda](/exchanges/zonda.md#fetchorderbook)
 
 ---
 
@@ -5405,7 +5399,7 @@ fetch all the portfolios
 fetch data on an open position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -5550,7 +5544,7 @@ fetch data on an open position
 fetch all open positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 
 | Param | Type | Required | Description |
@@ -5908,7 +5902,7 @@ retrieves data on all swap markets for hyperliquid
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -6003,7 +5997,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [yobit](/exchanges/yobit.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
 * [zebpay](/exchanges/zebpay.md#fetchticker)
-* [zonda](/exchanges/zonda.md#fetchticker)
 
 ---
 
@@ -6204,7 +6197,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -6311,7 +6304,6 @@ get the list of most recent trades for a particular symbol
 * [yobit](/exchanges/yobit.md#fetchtrades)
 * [zaif](/exchanges/zaif.md#fetchtrades)
 * [zebpay](/exchanges/zebpay.md#fetchtrades)
-* [zonda](/exchanges/zonda.md#fetchtrades)
 
 ---
 
@@ -6344,7 +6336,7 @@ fetch all trades made by the user
 fetch the trading fees for a market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
@@ -6380,6 +6372,7 @@ fetch the trading fees for a market
 * [mexc](/exchanges/mexc.md#fetchtradingfee)
 * [okx](/exchanges/okx.md#fetchtradingfee)
 * [pacifica](/exchanges/pacifica.md#fetchtradingfee)
+* [paradex](/exchanges/paradex.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [weex](/exchanges/weex.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
@@ -6436,6 +6429,7 @@ fetch the trading fees for multiple markets
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
+* [paradex](/exchanges/paradex.md#fetchtradingfees)
 * [poloniex](/exchanges/poloniex.md#fetchtradingfees)
 * [toobit](/exchanges/toobit.md#fetchtradingfees)
 * [upbit](/exchanges/upbit.md#fetchtradingfees)
@@ -6968,9 +6962,9 @@ if the required credentials are available in options, it will pre-load the light
 **Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
 
 
-| Param |
-| --- |
-| params | 
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [lighter](/exchanges/lighter.md#preloadlighterlibrary)
@@ -7002,7 +6996,7 @@ redeem gift code
 remove margin from a position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -7418,7 +7412,7 @@ Helper to sign some transaction bytes and return a generic transaction execution
 transfer currency internally between wallets on the same account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -7477,7 +7471,6 @@ transfer currency internally between wallets on the same account
 * [whitebit](/exchanges/whitebit.md#transfer)
 * [woo](/exchanges/woo.md#transfer)
 * [xt](/exchanges/xt.md#transfer)
-* [zonda](/exchanges/zonda.md#transfer)
 
 ---
 
@@ -7576,7 +7569,7 @@ unWatches balance
 unWatches best bid & ask for symbols
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7618,7 +7611,7 @@ unWatches the current funding rate for a symbol
 unWatches a mark price for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7640,7 +7633,7 @@ unWatches a mark price for a specific market
 watches the mark price for all markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7751,7 +7744,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 unsubscribe from the orderbook channel
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -7792,7 +7785,7 @@ unsubscribe from the orderbook channel
 unsubscribe from the orderbook channel
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -7869,7 +7862,7 @@ unWatches from the stream channel
 unWatches a price ticker
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7905,7 +7898,7 @@ unWatches a price ticker
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -7937,7 +7930,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 unsubscribe from the trades channel
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -7977,7 +7970,7 @@ unsubscribe from the trades channel
 unsubscribe from the trades channel
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -8102,7 +8095,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 watches best bid & ask for symbols
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -8231,7 +8224,7 @@ watch the public liquidations of a trading pair
 watches a mark price for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -8254,7 +8247,7 @@ watches a mark price for a specific market
 watches the mark price for all markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -8428,6 +8421,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bitget](/exchanges/bitget.md#watchohlcv)
 * [bitmart](/exchanges/bitmart.md#watchohlcv)
 * [bitmex](/exchanges/bitmex.md#watchohlcv)
+* [bitrue](/exchanges/bitrue.md#watchohlcv)
 * [bittrade](/exchanges/bittrade.md#watchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#watchohlcv)
 * [blockchaincom](/exchanges/blockchaincom.md#watchohlcv)
@@ -8803,6 +8797,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bitmart](/exchanges/bitmart.md#watchticker)
 * [bitmex](/exchanges/bitmex.md#watchticker)
 * [bitopro](/exchanges/bitopro.md#watchticker)
+* [bitrue](/exchanges/bitrue.md#watchticker)
 * [bittrade](/exchanges/bittrade.md#watchticker)
 * [bitvavo](/exchanges/bitvavo.md#watchticker)
 * [blockchaincom](/exchanges/blockchaincom.md#watchticker)
@@ -8929,6 +8924,7 @@ watches information on multiple trades made in a market
 * [bitmart](/exchanges/bitmart.md#watchtrades)
 * [bitmex](/exchanges/bitmex.md#watchtrades)
 * [bitopro](/exchanges/bitopro.md#watchtrades)
+* [bitrue](/exchanges/bitrue.md#watchtrades)
 * [bitstamp](/exchanges/bitstamp.md#watchtrades)
 * [bittrade](/exchanges/bittrade.md#watchtrades)
 * [bitvavo](/exchanges/bitvavo.md#watchtrades)
@@ -9024,7 +9020,7 @@ get the list of most recent trades for a list of symbols
 make a withdrawal
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -9109,7 +9105,6 @@ make a withdrawal
 * [xt](/exchanges/xt.md#withdraw)
 * [yobit](/exchanges/yobit.md#withdraw)
 * [zaif](/exchanges/zaif.md#withdraw)
-* [zonda](/exchanges/zonda.md#withdraw)
 
 ---
 

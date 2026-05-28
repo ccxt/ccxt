@@ -726,6 +726,7 @@ class phemex extends Exchange {
             // "1.0"
             $contractSize = $this->parse_number($contractSizeString);
         }
+        $isLinear = !$inverse;
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote . ':' . $settle,
@@ -743,7 +744,7 @@ class phemex extends Exchange {
             'option' => false,
             'active' => $status === 'Listed',
             'contract' => true,
-            'linear' => !$inverse,
+            'linear' => $isLinear,
             'inverse' => $inverse,
             'taker' => $this->parse_number($this->from_en($takerFeeRateEr, $ratioScale)),
             'maker' => $this->parse_number($this->from_en($makerFeeRateEr, $ratioScale)),
@@ -4620,11 +4621,12 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($riskLimits); $i++) {
             $tier = $riskLimits[$i];
             $maxNotional = $this->safe_integer($tier, 'limit');
+            $minNotionalResponse = $minNotional; // java req
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
-                'minNotional' => $minNotional,
+                'minNotional' => $minNotionalResponse,
                 'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_string($tier, 'maintenanceMargin'),
                 'maxLeverage' => null,

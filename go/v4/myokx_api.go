@@ -1383,6 +1383,10 @@ func (this *MyokxCore) PrivatePostAccountSetTradingConfig(args ...any) <-chan an
 	return this.callEndpointAsync("privatePostAccountSetTradingConfig", args...)
 }
 
+func (this *MyokxCore) PrivatePostAccountDemoAdjustBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountDemoAdjustBalance", args...)
+}
+
 func (this *MyokxCore) PrivatePostAssetSubaccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetSubaccountTransfer", args...)
 }

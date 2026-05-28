@@ -442,6 +442,7 @@ public partial class cryptocom : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "213", typeof(InvalidOrder) },
                     { "219", typeof(InvalidOrder) },
                     { "306", typeof(InsufficientFunds) },
                     { "314", typeof(InvalidOrder) },
@@ -786,6 +787,8 @@ public partial class cryptocom : Exchange
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
+            object isLinear = ((bool) isTrue((contract))) ? true : null;
+            object isInverse = ((bool) isTrue((contract))) ? false : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
@@ -803,8 +806,8 @@ public partial class cryptocom : Exchange
                 { "option", option },
                 { "active", this.safeBool(market, "tradable") },
                 { "contract", contract },
-                { "linear", ((bool) isTrue((contract))) ? true : null },
-                { "inverse", ((bool) isTrue((contract))) ? false : null },
+                { "linear", isLinear },
+                { "inverse", isInverse },
                 { "contractSize", this.safeNumber(market, "contract_size") },
                 { "expiry", expiry },
                 { "expiryDatetime", this.iso8601(expiry) },
@@ -2270,11 +2273,9 @@ public partial class cryptocom : Exchange
         if (isTrue(inOp(depositAddresses, network)))
         {
             return getValue(depositAddresses, network);
-        } else
-        {
-            object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
-            return getValue(depositAddresses, getValue(keys, 0));
         }
+        object keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
+        return getValue(depositAddresses, getValue(keys, 0));
     }
 
     /**

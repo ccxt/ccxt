@@ -1018,7 +1018,7 @@ func (this *GrvtCore) ParseCurrency(rawCurrency any) any {
  * @see https://api-docs.grvt.io/market_data_api/#ticker_1
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *GrvtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1206,7 +1206,7 @@ func (this *GrvtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
  * @param {int} [limit] the maximum amount of items to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *GrvtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1471,11 +1471,11 @@ func (this *GrvtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @see https://api-docs.grvt.io/market_data_api/#funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *GrvtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1587,7 +1587,7 @@ func (this *GrvtCore) GetSubAccountId(params any) any {
  * @description query for account info
  * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *GrvtCore) FetchBalance(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1698,7 +1698,7 @@ func (this *GrvtCore) ParseBalance(response any) any {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1780,7 +1780,7 @@ func (this *GrvtCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GrvtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2040,7 +2040,7 @@ func (this *GrvtCore) ParseTransaction(transaction any, optionalArgs ...any) any
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *GrvtCore) FetchTransfers(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2157,7 +2157,7 @@ func (this *GrvtCore) FilterTransfersByType(transfers any, transferType any, opt
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *GrvtCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2300,6 +2300,7 @@ func (this *GrvtCore) LoadAccountInfos() <-chan any {
 		defer ReturnPanicError(ch)
 		if IsTrue(!IsEqual(this.SafeString(this.Options, "userMainAccountId"), nil)) {
 
+			ch <- false
 			return nil
 		}
 		var promises any = []any{}
@@ -2355,7 +2356,10 @@ func (this *GrvtCore) LoadAccountInfos() <-chan any {
 			var subAccountId any = this.SafeString(subAccountIds, 0)
 			AddElementToObject(this.Options, "accountId", subAccountId)
 		}
+
+		ch <- true
 		return nil
+
 	}()
 	return ch
 }
@@ -2371,7 +2375,7 @@ func (this *GrvtCore) LoadAccountInfos() <-chan any {
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.network the network to withdraw on (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2384,8 +2388,8 @@ func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs .
 		_ = params
 		this.CheckAddress(address)
 
-		retRes19258 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19258)
+		retRes19268 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes19268)
 		var defaultFromAccountId any = this.SafeString(this.Options, "userMainAccountId")
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2441,7 +2445,7 @@ func (this *GrvtCore) Withdraw(code any, amount any, address any, optionalArgs .
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2453,8 +2457,8 @@ func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes19758 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19758)
+		retRes19768 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes19768)
 		var market any = this.Market(symbol)
 		var orderLeg any = map[string]any{
 			"instrument": GetValue(market, "id"),
@@ -2478,8 +2482,10 @@ func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		}
 		params = this.Omit(params, []any{"clientOrderId"})
 		var isMarketOrder any = (IsEqual(typeVar, "market"))
+		var subAccountId any = this.GetSubAccountId(params)
+		var isReduceOnly any = this.SafeBool(params, "reduceOnly", false)
 		var orderRequest any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
+			"sub_account_id": subAccountId,
 			"time_in_force":  nil,
 			"legs":           []any{orderLeg},
 			"signature":      this.DefaultSignature(),
@@ -2488,7 +2494,7 @@ func (this *GrvtCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 			},
 			"is_market":   isMarketOrder,
 			"post_only":   false,
-			"reduce_only": this.SafeBool(params, "reduceOnly", false),
+			"reduce_only": isReduceOnly,
 		}
 		var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
 		var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
@@ -2716,7 +2722,7 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2732,17 +2738,17 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes22338 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22338)
+		retRes22368 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes22368)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes223719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes223719)
-			ch <- retRes223719
+			retRes224019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes224019)
+			ch <- retRes224019
 			return nil
 		}
 		var request any = map[string]any{
@@ -2752,11 +2758,11 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes224612 := GetValue(request, "base")
-			AppendToArray(&retRes224612, GetValue(market, "baseId"))
+			retRes224912 := GetValue(request, "base")
+			AppendToArray(&retRes224912, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes224812 := GetValue(request, "quote")
-			AppendToArray(&retRes224812, GetValue(market, "quoteId"))
+			retRes225112 := GetValue(request, "quote")
+			AppendToArray(&retRes225112, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -2817,7 +2823,7 @@ func (this *GrvtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @see https://api-docs.grvt.io/trading_api/#positions-request
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2829,8 +2835,8 @@ func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23038 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes23038)
+		retRes23068 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes23068)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -2844,10 +2850,10 @@ func (this *GrvtCore) FetchPositions(optionalArgs ...any) <-chan any {
 				if IsTrue(!IsEqual(GetValue(market, "contract"), true)) {
 					panic(BadRequest(Add(this.Id, " fetchPositions() supports contract markets only")))
 				}
-				retRes231716 := GetValue(request, "base")
-				AppendToArray(&retRes231716, GetValue(market, "baseId"))
-				retRes231816 := GetValue(request, "quote")
-				AppendToArray(&retRes231816, GetValue(market, "quoteId"))
+				retRes232016 := GetValue(request, "base")
+				AppendToArray(&retRes232016, GetValue(market, "baseId"))
+				retRes232116 := GetValue(request, "quote")
+				AppendToArray(&retRes232116, GetValue(market, "quoteId"))
 			}
 		}
 
@@ -2965,8 +2971,8 @@ func (this *GrvtCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24198 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24198)
+		retRes24228 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24228)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -3016,8 +3022,8 @@ func (this *GrvtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes24538 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24538)
+		retRes24568 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24568)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
@@ -3090,8 +3096,8 @@ func (this *GrvtCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25098 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25098)
+		retRes25128 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25128)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -3150,7 +3156,7 @@ func (this *GrvtCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3166,17 +3172,17 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25638 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25638)
+		retRes25668 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25668)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes256719 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
-			PanicOnError(retRes256719)
-			ch <- retRes256719
+			retRes257019 := (<-this.FetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, params, 1000))
+			PanicOnError(retRes257019)
+			ch <- retRes257019
 			return nil
 		}
 		var request any = map[string]any{
@@ -3186,11 +3192,11 @@ func (this *GrvtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes257612 := GetValue(request, "base")
-			AppendToArray(&retRes257612, GetValue(market, "baseId"))
+			retRes257912 := GetValue(request, "base")
+			AppendToArray(&retRes257912, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes257812 := GetValue(request, "quote")
-			AppendToArray(&retRes257812, GetValue(market, "quoteId"))
+			retRes258112 := GetValue(request, "quote")
+			AppendToArray(&retRes258112, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3265,7 +3271,7 @@ func (this *GrvtCore) ParseIncome(income any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3281,20 +3287,21 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes26468 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes26468)
+		retRes26498 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26498)
+		var subAccountId any = this.GetSubAccountId(params)
 		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
+			"sub_account_id": subAccountId,
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes265412 := GetValue(request, "base")
-			AppendToArray(&retRes265412, GetValue(market, "baseId"))
+			retRes265812 := GetValue(request, "base")
+			AppendToArray(&retRes265812, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes265612 := GetValue(request, "quote")
-			AppendToArray(&retRes265612, GetValue(market, "quoteId"))
+			retRes266012 := GetValue(request, "quote")
+			AppendToArray(&retRes266012, GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
@@ -3388,7 +3395,7 @@ func (this *GrvtCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3404,8 +3411,8 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes27448 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes27448)
+		retRes27488 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes27488)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
@@ -3490,7 +3497,7 @@ func (this *GrvtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3502,10 +3509,11 @@ func (this *GrvtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes28258 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes28258)
+		retRes28298 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes28298)
+		var subAccountId any = this.GetSubAccountId(params)
 		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
+			"sub_account_id": subAccountId,
 		}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -3753,7 +3761,7 @@ func (this *GrvtCore) ParseOrderStatus(status any) any {
  * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
  * @param {string} symbol cancel alls open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3765,19 +3773,19 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30748 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30748)
+		retRes30798 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30798)
 		var request any = map[string]any{
 			"sub_account_id": this.GetSubAccountId(params),
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market any = this.Market(symbol)
 			AddElementToObject(request, "base", []any{})
-			retRes308112 := GetValue(request, "base")
-			AppendToArray(&retRes308112, GetValue(market, "baseId"))
+			retRes308612 := GetValue(request, "base")
+			AppendToArray(&retRes308612, GetValue(market, "baseId"))
 			AddElementToObject(request, "quote", []any{})
-			retRes308312 := GetValue(request, "quote")
-			AppendToArray(&retRes308312, GetValue(market, "quoteId"))
+			retRes308812 := GetValue(request, "quote")
+			AppendToArray(&retRes308812, GetValue(market, "quoteId"))
 		}
 
 		response := (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params)))
@@ -3791,7 +3799,7 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		//
 		var result any = this.SafeDict(response, "result", map[string]any{})
 
-		ch <- this.ParseOrders([]any{result}, nil)
+		ch <- this.ParseOrders([]any{result})
 		return nil
 
 	}()
@@ -3807,7 +3815,7 @@ func (this *GrvtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GrvtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3819,10 +3827,11 @@ func (this *GrvtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes31098 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31098)
+		retRes31148 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes31148)
+		var subAccoubntId any = this.GetSubAccountId(params)
 		var request any = map[string]any{
-			"sub_account_id": this.GetSubAccountId(params),
+			"sub_account_id": subAccoubntId,
 		}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {

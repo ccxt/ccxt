@@ -342,7 +342,7 @@
                         "precision": null,
                         "type": null,
                         "name": null,
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": null,
@@ -361,7 +361,7 @@
                                         "max": 10000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -390,7 +390,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -419,7 +419,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -448,7 +448,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -477,7 +477,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -506,7 +506,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -535,7 +535,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -564,7 +564,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,

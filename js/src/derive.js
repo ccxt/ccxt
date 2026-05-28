@@ -678,6 +678,8 @@ export default class derive extends Exchange {
             linear = true;
             inverse = false;
         }
+        const contractSize = (spot) ? undefined : 1;
+        const isContract = (swap || option);
         return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
@@ -694,10 +696,10 @@ export default class derive extends Exchange {
             'future': false,
             'option': option,
             'active': this.safeBool(market, 'is_active'),
-            'contract': (swap || option),
+            'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'contractSize': (spot) ? undefined : 1,
+            'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
             'taker': this.safeNumber(market, 'taker_fee_rate'),
@@ -1823,7 +1825,7 @@ export default class derive extends Exchange {
             'gtc': 'GTC',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {

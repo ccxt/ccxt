@@ -702,6 +702,7 @@ public partial class phemex : Exchange
             // "1.0"
             contractSize = this.parseNumber(contractSizeString);
         }
+        object isLinear = !isTrue(inverse);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -719,7 +720,7 @@ public partial class phemex : Exchange
             { "option", false },
             { "active", isEqual(status, "Listed") },
             { "contract", true },
-            { "linear", !isTrue(inverse) },
+            { "linear", isLinear },
             { "inverse", inverse },
             { "taker", this.parseNumber(this.fromEn(takerFeeRateEr, ratioScale)) },
             { "maker", this.parseNumber(this.fromEn(makerFeeRateEr, ratioScale)) },
@@ -4205,7 +4206,7 @@ public partial class phemex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(200, limit);
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetApiDataGFuturesClosedPosition", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters));
         //
         //    {
         //        "code": "0",
@@ -4932,11 +4933,12 @@ public partial class phemex : Exchange
         {
             object tier = getValue(riskLimits, i);
             object maxNotional = this.safeInteger(tier, "limit");
+            object minNotionalResponse = minNotional; // java req
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
-                { "minNotional", minNotional },
+                { "minNotional", minNotionalResponse },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeString(tier, "maintenanceMargin") },
                 { "maxLeverage", null },

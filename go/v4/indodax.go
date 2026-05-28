@@ -1684,10 +1684,11 @@ func (this *IndodaxCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 						network = ToUpper(this.NetworkIdToCode(networkId))
 					}
 				}
+				var finalNetwork any = network // java req
 				AddElementToObject(result, code, map[string]any{
 					"info":     map[string]any{},
 					"currency": code,
-					"network":  network,
+					"network":  finalNetwork,
 					"address":  address,
 					"tag":      nil,
 				})

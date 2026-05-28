@@ -354,7 +354,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 return [portfolioId, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with self.options["portfolio"]')
 
-    async def handle_network_id_and_params(self, currencyCode: str, methodName: str, params):
+    async def handle_network_id_and_params(self, currencyCode: str, methodName: str, params={}):
         networkId = None
         networkId, params = self.handle_option_and_params(params, methodName, 'network_arn_id')
         if networkId is None:
@@ -520,9 +520,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
         market = self.market(symbol)
         page = self.safe_integer(params, pageKey, 1) - 1
+        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
         request: dict = {
             'instrument': market['id'],
-            'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         }
         if limit is not None:
             request['result_limit'] = limit
@@ -924,8 +925,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
         page = self.safe_integer(params, pageKey, 1) - 1
+        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
         request: dict = {
-            'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         }
         if since is not None:
             request['time_from'] = self.iso8601(since)
@@ -1351,16 +1353,18 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if not isSpot:
             settleId = quoteId
             symbol += ':' + quoteId
+        isLinear = None if isSpot else (settleId == quoteId)
+        isInverse = None if isSpot else (settleId != quoteId)
         return {
             'id': marketId,
             'lowercaseId': marketId.lower(),
             'symbol': symbol,
             'base': baseId,
             'quote': quoteId,
-            'settle': settleId if settleId else None,
+            'settle': settleId,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId if settleId else None,
+            'settleId': settleId,
             'type': 'spot' if isSpot else 'swap',
             'spot': isSpot,
             'margin': False,
@@ -1369,8 +1373,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'option': False,
             'active': self.safe_string(market, 'trading_state') == 'TRADING',
             'contract': not isSpot,
-            'linear': None if isSpot else (settleId == quoteId),
-            'inverse': None if isSpot else (settleId != quoteId),
+            'linear': isLinear,
+            'inverse': isInverse,
             'taker': fees['trading']['taker'],
             'maker': fees['trading']['maker'],
             'contractSize': None if isSpot else 1,
@@ -1994,9 +1998,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
         page = self.safe_integer(params, pageKey, 1) - 1
+        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
         request: dict = {
             'portfolio': portfolio,
-            'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         }
         market = None
         if symbol:
@@ -2072,8 +2077,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         page = self.safe_integer(params, pageKey, 1) - 1
+        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
         request: dict = {
-            'result_offset': self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest),
+            'result_offset': offSet,
         }
         if limit is not None:
             if limit > 100:
@@ -2173,42 +2179,6 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #    }
         #
         return self.parse_transaction(response, currency)
-
-    def safe_network(self, network):
-        withdrawEnabled = self.safe_bool(network, 'withdraw')
-        depositEnabled = self.safe_bool(network, 'deposit')
-        limits = self.safe_dict(network, 'limits')
-        withdraw = self.safe_dict(limits, 'withdraw')
-        withdrawMax = self.safe_number(withdraw, 'max')
-        deposit = self.safe_dict(limits, 'deposit')
-        depositMax = self.safe_number(deposit, 'max')
-        if withdrawEnabled is None and withdrawMax is not None:
-            withdrawEnabled = (withdrawMax > 0)
-        if depositEnabled is None and depositMax is not None:
-            depositEnabled = (depositMax > 0)
-        networkId = self.safe_string(network, 'id')
-        isEnabled = (withdrawEnabled and depositEnabled)
-        return {
-            'info': network['info'],
-            'id': networkId,
-            'name': self.safe_string(network, 'name'),
-            'network': self.safe_string(network, 'network'),
-            'active': self.safe_bool(network, 'active', isEnabled),
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
-            'fee': self.safe_number(network, 'fee'),
-            'precision': self.safe_number(network, 'precision'),
-            'limits': {
-                'withdraw': {
-                    'min': self.safe_number(withdraw, 'min'),
-                    'max': withdrawMax,
-                },
-                'deposit': {
-                    'min': self.safe_number(deposit, 'min'),
-                    'max': depositMax,
-                },
-            },
-        }
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

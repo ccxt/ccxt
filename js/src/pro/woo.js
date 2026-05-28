@@ -975,7 +975,7 @@ export default class woo extends wooRest {
         //         "orderTag": "default",
         //         "totalFee": 0,
         //         "visible": 0.01,
-        //         "timestamp": 1657515556799,
+        //         "timestamp": 1657515556798,
         //         "reduceOnly": false,
         //         "maker": false
         //     }
@@ -1203,10 +1203,10 @@ export default class woo extends wooRest {
      * @name woo#watchPositions
      * @see https://docs.woox.io/#position-push
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1542,8 +1542,11 @@ export default class woo extends wooRest {
     ping(client) {
         return { 'event': 'ping' };
     }
+    async pong(client, message) {
+        await client.send({ 'event': 'pong' });
+    }
     handlePing(client, message) {
-        return { 'event': 'pong' };
+        this.spawn(this.pong, client, message);
     }
     handlePong(client, message) {
         //

@@ -253,41 +253,40 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object result = new Dictionary<string, object>() {};
         object currencies = this.safeList(response, "currencies", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object entry = getValue(currencies, i);
-            object id = this.safeString(entry, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object isWithdrawEnabled = isEqual(this.safeString(entry, "withdraw_status", ""), "normal");
-            object isDepositEnabled = isEqual(this.safeString(entry, "deposit_status", ""), "normal");
-            object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", entry },
-                { "name", this.safeString(entry, "name") },
-                { "active", null },
-                { "deposit", isDepositEnabled },
-                { "withdraw", isWithdrawEnabled },
-                { "fee", this.safeNumber(entry, "withdrawal_fee") },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "max_precision"))) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(entry, "withdrawal_min_amount") },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object isWithdrawEnabled = isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
+        object isDepositEnabled = isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
+        object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "active", null },
+            { "deposit", isDepositEnabled },
+            { "withdraw", isWithdrawEnabled },
+            { "fee", this.safeNumber(rawCurrency, "withdrawal_fee") },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "max_precision"))) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "type", type },
-            });
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(rawCurrency, "withdrawal_min_amount") },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+            { "type", type },
+        });
     }
 
     /**

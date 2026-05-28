@@ -805,6 +805,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         //     }
         //
         object entry = this.safeList(message, "data", new List<object>() {});
+        object entryLength = getArrayLength(entry);
+        if (isTrue(isEqual(entryLength, 0)))
+        {
+            return;
+        }
         object first = this.safeDict(entry, 0, new Dictionary<string, object>() {});
         object coin = this.safeString(first, "coin");
         object marketId = this.coinToMarketId(coin);
@@ -1463,7 +1468,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {

@@ -175,7 +175,7 @@ export default class bitvavo extends Exchange {
                         'account': 1,
                         'order': 1,
                         'orders': 5,
-                        'ordersOpen': { 'cost': 1, 'noMarket': 25 },
+                        'ordersOpen': { 'cost': 5, 'noMarket': 100 },
                         'trades': 5,
                         'balance': 5,
                         'deposit': 1,
@@ -199,9 +199,9 @@ export default class bitvavo extends Exchange {
                     },
                     'delete': {
                         'order': 1,
-                        'orders': 1,
+                        'orders': { 'cost': 25, 'noMarket': 100 },
                         'institutional/subaccounts/order': 1,
-                        'institutional/subaccounts/orders': 1,
+                        'institutional/subaccounts/orders': { 'cost': 25, 'noMarket': 100 },
                     },
                 },
             },
@@ -321,7 +321,7 @@ export default class bitvavo extends Exchange {
                     '102': BadRequest,
                     '103': RateLimitExceeded,
                     '104': RateLimitExceeded,
-                    '105': PermissionDenied,
+                    '105': RateLimitExceeded,
                     '107': ExchangeNotAvailable,
                     '108': ExchangeNotAvailable,
                     '109': ExchangeNotAvailable,
@@ -559,9 +559,9 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        return this.parseCurrenciesCustom(response);
+        return this.parseCurrencies(response);
     }
-    parseCurrenciesCustom(currencies) {
+    parseCurrency(rawCurrency) {
         //
         //     [
         //         {
@@ -596,70 +596,65 @@ export default class bitvavo extends Exchange {
         //     ]
         //
         const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'symbol');
-            const code = this.safeCurrencyCode(id);
-            const isFiat = this.inArray(code, fiatCurrencies);
-            const networks = {};
-            const networksArray = this.safeList(currency, 'networks', []);
-            const deposit = this.safeString(currency, 'depositStatus') === 'OK';
-            const withdrawal = this.safeString(currency, 'withdrawalStatus') === 'OK';
-            const active = deposit && withdrawal;
-            const withdrawFee = this.safeNumber(currency, 'withdrawalFee');
-            const precision = this.safeString(currency, 'decimals', '8');
-            const minWithdraw = this.safeNumber(currency, 'withdrawalMinAmount');
-            // btw, absolutely all of them have 1 network atm
-            for (let j = 0; j < networksArray.length; j++) {
-                const networkId = networksArray[j];
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': active,
-                    'deposit': deposit,
-                    'withdraw': withdrawal,
-                    'fee': withdrawFee,
-                    'precision': this.parseNumber(this.parsePrecision(precision)),
-                    'limits': {
-                        'withdraw': {
-                            'min': minWithdraw,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 'name'),
+        const id = this.safeString(rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode(id);
+        const isFiat = this.inArray(code, fiatCurrencies);
+        const networks = {};
+        const networksArray = this.safeList(rawCurrency, 'networks', []);
+        const deposit = this.safeString(rawCurrency, 'depositStatus') === 'OK';
+        const withdrawal = this.safeString(rawCurrency, 'withdrawalStatus') === 'OK';
+        const active = deposit && withdrawal;
+        const withdrawFee = this.safeNumber(rawCurrency, 'withdrawalFee');
+        const precision = this.safeString(rawCurrency, 'decimals', '8');
+        const minWithdraw = this.safeNumber(rawCurrency, 'withdrawalMinAmount');
+        // btw, absolutely all of them have 1 network atm
+        for (let j = 0; j < networksArray.length; j++) {
+            const networkId = networksArray[j];
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': active,
                 'deposit': deposit,
                 'withdraw': withdrawal,
-                'networks': networks,
                 'fee': withdrawFee,
-                'precision': undefined,
-                'type': isFiat ? 'fiat' : 'crypto',
+                'precision': this.parseNumber(this.parsePrecision(precision)),
                 'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': minWithdraw,
                         'max': undefined,
                     },
                 },
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 'name'),
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdrawal,
+            'networks': networks,
+            'fee': withdrawFee,
+            'precision': undefined,
+            'type': isFiat ? 'fiat' : 'crypto',
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': minWithdraw,
+                    'max': undefined,
+                },
+            },
+        });
     }
     /**
      * @method

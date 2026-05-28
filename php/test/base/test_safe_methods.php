@@ -193,6 +193,7 @@ function test_safe_methods() {
     assert($exchange->safe_integer_product($input_dict, 'strNumber', $factor) === 30);
     assert($exchange->safe_integer_product($input_list, 1, $factor) === 20);
     assert($exchange->safe_integer_product($input_dict, 'longInt', 0.000001) === 123456789);
+    assert($exchange->safe_integer_product($input_dict, 'inexistent', 0.000001, 123456789) === 123456789);
     // safeIntegerProduct2
     assert($exchange->safe_integer_product_2($input_dict, 'a', 'i', $factor) === 10);
     assert($exchange->safe_integer_product_2($input_dict, 'a', 'f', $factor) === 1); // NB the result is 1
@@ -279,6 +280,7 @@ function test_safe_methods() {
     assert($exchange->safe_number_omit_zero($input_dict, 'floatString') !== null);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+    // init array cache tests
     // Test cache types - ArrayCache
     $array_cache = new ArrayCache(100);
     $array_cache->append(array(

@@ -922,12 +922,12 @@ class hitbtc extends Exchange {
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches all available $currencies on an exchange
+             * fetches all available currencies on an exchange
              *
-             * @see https://api.hitbtc.com/#$currencies
+             * @see https://api.hitbtc.com/#currencies
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of $currencies
+             * @return {array} an associative dictionary of currencies
              */
             $response = Async\await($this->publicGetPublicCurrency ($params));
             //
@@ -972,58 +972,70 @@ class hitbtc extends Exchange {
             //        ),
             //    }
             //
-            $result = array();
-            $currencies = is_array($response) ? array_keys($response) : array();
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currencyId = $currencies[$i];
-                $code = $this->safe_currency_code($currencyId);
-                $entry = $response[$currencyId];
-                $rawNetworks = $this->safe_list($entry, 'networks', array());
-                $networks = array();
-                for ($j = 0; $j < count($rawNetworks); $j++) {
-                    $rawNetwork = $rawNetworks[$j];
-                    $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
-                    $networks[$networkCode] = array(
-                        'info' => $rawNetwork,
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'active' => null,
-                        'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
-                        'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
-                        'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
-                        'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => $entry,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'precision' => $this->safe_number($entry, 'precision_transfer'),
-                    'name' => $this->safe_string($entry, 'full_name'),
-                    'active' => !$this->safe_bool($entry, 'delisted'),
-                    'deposit' => $this->safe_bool($entry, 'payin_enabled'),
-                    'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
-                    'networks' => $networks,
-                    'fee' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'type' => null, // 'crypto' field emits incorrect values
-                ));
-            }
-            return $result;
+            $enhancedArray = $this->add_key_in_array_items($response, '_coin_id');
+            return $this->parse_currencies($enhancedArray);
         }) ();
+    }
+
+    public function parse_currency(array $currency): array {
+        $currencyId = $currency['_coin_id'];
+        $code = $this->safe_currency_code($currencyId);
+        $entry = $currency;
+        $rawNetworks = $this->safe_list($entry, 'networks', array());
+        $networks = array();
+        for ($j = 0; $j < count($rawNetworks); $j++) {
+            $rawNetwork = $rawNetworks[$j];
+            $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
+            $networks[$networkCode] = array(
+                'info' => $rawNetwork,
+                'id' => $networkId,
+                'network' => $networkCode,
+                'active' => null,
+                'fee' => $this->safe_number($rawNetwork, 'payout_fee'),
+                'deposit' => $this->safe_bool($rawNetwork, 'payin_enabled'),
+                'withdraw' => $this->safe_bool($rawNetwork, 'payout_enabled'),
+                'precision' => $this->safe_number($rawNetwork, 'precision_payout'),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'info' => $entry,
+            'code' => $code,
+            'id' => $currencyId,
+            'precision' => $this->safe_number($entry, 'precision_transfer'),
+            'name' => $this->safe_string($entry, 'full_name'),
+            'active' => !$this->safe_bool($entry, 'delisted'),
+            'deposit' => $this->safe_bool($entry, 'payin_enabled'),
+            'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
+            'networks' => $networks,
+            'fee' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'type' => null, // 'crypto' field emits incorrect values
+        ));
+    }
+
+    public function add_key_in_array_items($obj, $keyName) {
+        $result = array();
+        $keys = is_array($obj) ? array_keys($obj) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $item = $obj[$key];
+            $item[$keyName] = $key;
+            $result[] = $item;
+        }
+        return $result;
     }
 
     public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
@@ -1193,7 +1205,7 @@ class hitbtc extends Exchange {
             //         "open" => "0.020913",
             //         "volume" => "138444.3666",
             //         "volume_quote" => "2853.6874972480",
-            //         "timestamp" => "2021-06-02T17:52:36.731Z"
+            //         "timestamp" => "2021-06-02T17:52:36.732Z"
             //     }
             //
             return $this->parse_ticker($response, $market);
@@ -3509,8 +3521,9 @@ class hitbtc extends Exchange {
             //         "positions" => null
             //     }
             //
+            $parsedAmount = $this->parse_number($amount);
             return $this->extend($this->parse_margin_modification($response, $market), array(
-                'amount' => $this->parse_number($amount),
+                'amount' => $parsedAmount,
                 'type' => $type,
             ));
         }) ();

@@ -2957,7 +2957,7 @@ class hashkey(Exchange, ImplicitAPI):
         marketType, params = self.handle_market_type_and_params(methodName, market, params, marketType)
         response = None
         if marketType == 'spot':
-            response = self.privateDeleteApiV1SpotCancelOrderByIds(self.extend(request))
+            response = self.privateDeleteApiV1SpotCancelOrderByIds(request)
             #
             #     {
             #         "code": "0000",
@@ -2965,7 +2965,7 @@ class hashkey(Exchange, ImplicitAPI):
             #     }
             #
         elif marketType == 'swap':
-            response = self.privateDeleteApiV1FuturesCancelOrderByIds(self.extend(request))
+            response = self.privateDeleteApiV1FuturesCancelOrderByIds(request)
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
         order = self.safe_order(response)
@@ -4175,8 +4175,8 @@ class hashkey(Exchange, ImplicitAPI):
         if response is None:
             return None
         errorInArray = False
-        responseCodeString = self.safe_string(response, 'code', None)
-        responseCodeInteger = self.safe_integer(response, 'code', None)  # some codes in response are returned as '0000' others
+        responseCodeString = self.safe_string(response, 'code')
+        responseCodeInteger = self.safe_integer(response, 'code')  # some codes in response are returned as '0000' others
         if responseCodeInteger == 0:
             result = self.safe_list(response, 'result', [])  # for batch methods
             for i in range(0, len(result)):

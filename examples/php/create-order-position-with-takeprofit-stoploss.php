@@ -33,9 +33,9 @@ function example() {
         $side = 'buy'; // 'buy' | 'sell'
         $order_type = 'limit'; // 'market' | 'limit'
         $amount = 1; // how many contracts (see `market(symbol).contractSize` to find out coin portion per one contract)
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $market = $exchange->market($symbol);
-        $ticker = Async\await($exchange->fetch_ticker($symbol));
+        $ticker = \React\Async\await($exchange->fetch_ticker($symbol));
         $last_price = $ticker['last'];
         $ask_price = $ticker['ask'];
         $bid_price = $ticker['bid'];
@@ -67,12 +67,12 @@ function example() {
         var_dump($params);
         var_dump('-----------------------------------------------------------------------');
         try {
-            $created_order = Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
+            $created_order = \React\Async\await($exchange->create_order($symbol, $order_type, $side, $amount, $price, $params));
             var_dump('Created an order', $created_order);
             // Fetch all your open orders for this symbol
             // - use 'fetchOpenOrders' or 'fetchOrders' and filter with 'open' status
             // - note, that some exchanges might return one order object with embedded stoploss/takeprofit fields, while other exchanges might have separate stoploss/takeprofit order objects
-            $all_open_orders = Async\await($exchange->fetch_open_orders($symbol));
+            $all_open_orders = \React\Async\await($exchange->fetch_open_orders($symbol));
             var_dump('Fetched all your orders for this symbol', $all_open_orders);
         } catch(Exception $e) {
             var_dump(((string) $e));
@@ -81,4 +81,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

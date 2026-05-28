@@ -971,54 +971,64 @@ class hitbtc(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        result: dict = {}
-        currencies = list(response.keys())
-        for i in range(0, len(currencies)):
-            currencyId = currencies[i]
-            code = self.safe_currency_code(currencyId)
-            entry = response[currencyId]
-            rawNetworks = self.safe_list(entry, 'networks', [])
-            networks: dict = {}
-            for j in range(0, len(rawNetworks)):
-                rawNetwork = rawNetworks[j]
-                networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
-                networkCode = self.network_id_to_code(networkId)
-                networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': None,
-                    'fee': self.safe_number(rawNetwork, 'payout_fee'),
-                    'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
-                    'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
-                    'precision': self.safe_number(rawNetwork, 'precision_payout'),
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'precision': self.safe_number(entry, 'precision_transfer'),
-                'name': self.safe_string(entry, 'full_name'),
-                'active': not self.safe_bool(entry, 'delisted'),
-                'deposit': self.safe_bool(entry, 'payin_enabled'),
-                'withdraw': self.safe_bool(entry, 'payout_enabled'),
-                'networks': networks,
-                'fee': None,
+        enhancedArray = self.add_key_in_array_items(response, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        currencyId = currency['_coin_id']
+        code = self.safe_currency_code(currencyId)
+        entry = currency
+        rawNetworks = self.safe_list(entry, 'networks', [])
+        networks: dict = {}
+        for j in range(0, len(rawNetworks)):
+            rawNetwork = rawNetworks[j]
+            networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
+            networkCode = self.network_id_to_code(networkId)
+            networkCode = networkCode.upper() if (networkCode is not None) else code  # is white label, ensure we safeguard from possible bugs
+            networks[networkCode] = {
+                'info': rawNetwork,
+                'id': networkId,
+                'network': networkCode,
+                'active': None,
+                'fee': self.safe_number(rawNetwork, 'payout_fee'),
+                'deposit': self.safe_bool(rawNetwork, 'payin_enabled'),
+                'withdraw': self.safe_bool(rawNetwork, 'payout_enabled'),
+                'precision': self.safe_number(rawNetwork, 'precision_payout'),
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': None,
                         'max': None,
                     },
                 },
-                'type': None,  # 'crypto' field emits incorrect values
-            })
+            }
+        return self.safe_currency_structure({
+            'info': entry,
+            'code': code,
+            'id': currencyId,
+            'precision': self.safe_number(entry, 'precision_transfer'),
+            'name': self.safe_string(entry, 'full_name'),
+            'active': not self.safe_bool(entry, 'delisted'),
+            'deposit': self.safe_bool(entry, 'payin_enabled'),
+            'withdraw': self.safe_bool(entry, 'payout_enabled'),
+            'networks': networks,
+            'fee': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'type': None,  # 'crypto' field emits incorrect values
+        })
+
+    def add_key_in_array_items(self, obj, keyName):
+        result = []
+        keys = list(obj.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            item = obj[key]
+            item[keyName] = key
+            result.append(item)
         return result
 
     def create_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -1171,7 +1181,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "open": "0.020913",
         #         "volume": "138444.3666",
         #         "volume_quote": "2853.6874972480",
-        #         "timestamp": "2021-06-02T17:52:36.731Z"
+        #         "timestamp": "2021-06-02T17:52:36.732Z"
         #     }
         #
         return self.parse_ticker(response, market)
@@ -3266,8 +3276,9 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "positions": null
         #     }
         #
+        parsedAmount = self.parse_number(amount)
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.parse_number(amount),
+            'amount': parsedAmount,
             'type': type,
         })
 

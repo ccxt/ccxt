@@ -570,6 +570,7 @@ export default class okx extends Exchange {
                         'account/set-auto-earn': 10,
                         'account/set-settle-currency': 1,
                         'account/set-trading-config': 20,
+                        'account/demo-adjust-balance': 20, // 3 requests per day but we don't use that weight for now, set to 20 to be safe
                         // subaccount
                         'asset/subaccount/transfer': 10,
                         'account/subaccount/set-loan-allocation': 4, // not documented
@@ -1826,6 +1827,9 @@ export default class okx extends Exchange {
         let maxLeverage = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const maxSpotCost = this.safeNumber (market, 'maxMktSz');
+        const leverageAboveOne = Precise.stringGt (maxLeverage, '1');
+        const quoteEqualSettle = (quoteId === settleId);
+        const baseEqualSettle = (baseId === settleId);
         const status = this.safeString (market, 'state');
         const instIdCode = this.safeInteger (market, 'instIdCode');
         return this.extend (fees, {
@@ -1840,14 +1844,14 @@ export default class okx extends Exchange {
             'settleId': settleId,
             'type': type,
             'spot': spot,
-            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'margin': spot && leverageAboveOne,
             'swap': swap,
             'future': future,
             'option': option,
             'active': status === 'live',
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? quoteEqualSettle : undefined,
+            'inverse': contract ? baseEqualSettle : undefined,
             'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -2178,9 +2182,14 @@ export default class okx extends Exchange {
         //          ts: '1728467346900'
         //     },
         //
+        const instType = this.safeString (ticker, 'instType');
+        let marketType = undefined;
+        if (instType !== undefined) {
+            marketType = (instType === 'SPOT') ? 'spot' : 'swap';
+        }
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
-        market = this.safeMarket (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-', marketType);
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');

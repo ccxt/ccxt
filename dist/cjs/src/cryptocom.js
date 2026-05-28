@@ -480,6 +480,7 @@ class cryptocom extends cryptocom$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': errors.InvalidOrder,
                     '219': errors.InvalidOrder,
                     '306': errors.InsufficientFunds,
                     '314': errors.InvalidOrder,
@@ -810,6 +811,8 @@ class cryptocom extends cryptocom$1["default"] {
                 symbol = symbol + ':' + quote + '-' + this.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType;
                 contract = true;
             }
+            const isLinear = (contract) ? true : undefined;
+            const isInverse = (contract) ? false : undefined;
             result.push({
                 'id': this.safeString(market, 'symbol'),
                 'symbol': symbol,
@@ -827,8 +830,8 @@ class cryptocom extends cryptocom$1["default"] {
                 'option': option,
                 'active': this.safeBool(market, 'tradable'),
                 'contract': contract,
-                'linear': (contract) ? true : undefined,
-                'inverse': (contract) ? false : undefined,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': this.safeNumber(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601(expiry),
@@ -2119,10 +2122,8 @@ class cryptocom extends cryptocom$1["default"] {
         if (network in depositAddresses) {
             return depositAddresses[network];
         }
-        else {
-            const keys = Object.keys(depositAddresses);
-            return depositAddresses[keys[0]];
-        }
+        const keys = Object.keys(depositAddresses);
+        return depositAddresses[keys[0]];
     }
     /**
      * @method

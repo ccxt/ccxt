@@ -648,77 +648,53 @@ export default class bitteam extends Exchange {
         //     }
         //
         statusesResponse = this.indexBy(statusesResponse, 'unified_cryptoasset_id');
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'symbol');
-            const numericId = this.safeInteger(currency, 'id');
-            const code = this.safeCurrencyCode(id);
-            const active = this.safeBool(currency, 'active', false);
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
-            const txLimits = this.safeValue(currency, 'txLimits', {});
-            const minWithdraw = this.safeString(txLimits, 'minWithdraw');
-            const maxWithdraw = this.safeString(txLimits, 'maxWithdraw');
-            const minDeposit = this.safeString(txLimits, 'minDeposit');
-            let fee = undefined;
-            const withdrawCommissionFixed = this.safeValue(txLimits, 'withdrawCommissionFixed', {});
-            let feesByNetworkId = {};
-            const blockChain = this.safeString(currency, 'blockChain');
-            // if only one blockChain
-            if ((blockChain !== undefined) && (blockChain !== '')) {
-                fee = this.parseNumber(withdrawCommissionFixed);
-                feesByNetworkId[blockChain] = fee;
-            }
-            else {
-                feesByNetworkId = withdrawCommissionFixed;
-            }
-            const statuses = this.safeValue(statusesResponse, numericId, {});
-            const deposit = this.safeValue(statuses, 'depositStatus');
-            const withdraw = this.safeValue(statuses, 'withdrawStatus');
-            const networkIds = Object.keys(feesByNetworkId);
-            const networks = {};
-            const networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
-            const typeRaw = this.safeString(currency, 'type');
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const networkCode = this.networkIdToCode(networkId, code);
-                const networkFee = this.safeNumber(feesByNetworkId, networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': active,
-                    'fee': networkFee,
-                    'precision': networkPrecision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.parseNumber(minWithdraw),
-                            'max': this.parseNumber(maxWithdraw),
-                        },
-                        'deposit': {
-                            'min': this.parseNumber(minDeposit),
-                            'max': undefined,
-                        },
-                    },
-                    'info': currency,
-                };
-            }
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': code,
-                'info': currency,
-                'active': active,
+        this.options['_temp_currencies_statuses'] = statusesResponse;
+        const result = this.parseCurrencies(currencies);
+        delete this.options['_temp_currencies_statuses'];
+        return result;
+    }
+    parseCurrency(currency) {
+        const statusesResponse = this.safeValue(this.options, '_temp_currencies_statuses', {});
+        const id = this.safeString(currency, 'symbol');
+        const numericId = this.safeInteger(currency, 'id');
+        const code = this.safeCurrencyCode(id);
+        const active = this.safeBool(currency, 'active', false);
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
+        const txLimits = this.safeValue(currency, 'txLimits', {});
+        const minWithdraw = this.safeString(txLimits, 'minWithdraw');
+        const maxWithdraw = this.safeString(txLimits, 'maxWithdraw');
+        const minDeposit = this.safeString(txLimits, 'minDeposit');
+        let fee = undefined;
+        const withdrawCommissionFixed = this.safeValue(txLimits, 'withdrawCommissionFixed', {});
+        let feesByNetworkId = {};
+        const blockChain = this.safeString(currency, 'blockChain');
+        // if only one blockChain
+        if ((blockChain !== undefined) && (blockChain !== '')) {
+            fee = this.parseNumber(withdrawCommissionFixed);
+            feesByNetworkId[blockChain] = fee;
+        }
+        else {
+            feesByNetworkId = withdrawCommissionFixed;
+        }
+        const statuses = this.safeValue(statusesResponse, numericId, {});
+        const deposit = this.safeValue(statuses, 'depositStatus');
+        const withdraw = this.safeValue(statuses, 'withdrawStatus');
+        const networkIds = Object.keys(feesByNetworkId);
+        const networks = {};
+        const networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
+        const typeRaw = this.safeString(currency, 'type');
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const networkCode = this.networkIdToCode(networkId, code);
+            const networkFee = this.safeNumber(feesByNetworkId, networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'deposit': deposit,
                 'withdraw': withdraw,
-                'fee': fee,
-                'precision': precision,
+                'active': active,
+                'fee': networkFee,
+                'precision': networkPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -733,11 +709,37 @@ export default class bitteam extends Exchange {
                         'max': undefined,
                     },
                 },
-                'type': typeRaw,
-                'networks': networks,
+                'info': currency,
             };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': code,
+            'info': currency,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': fee,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.parseNumber(minWithdraw),
+                    'max': this.parseNumber(maxWithdraw),
+                },
+                'deposit': {
+                    'min': this.parseNumber(minDeposit),
+                    'max': undefined,
+                },
+            },
+            'type': typeRaw,
+            'networks': networks,
+        });
     }
     /**
      * @method

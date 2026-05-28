@@ -718,6 +718,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         //
         const entry = this.safeList(message, 'data', []);
+        const entryLength = entry.length;
+        if (entryLength === 0) {
+            return;
+        }
         const first = this.safeDict(entry, 0, {});
         const coin = this.safeString(first, 'coin');
         const marketId = this.coinToMarketId(coin);
@@ -1288,7 +1292,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();

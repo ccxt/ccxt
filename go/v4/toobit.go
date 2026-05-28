@@ -2844,11 +2844,13 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 	}()
 	return ch
 }
-func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, params any) <-chan any {
+func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
 
 		retRes25448 := (<-this.LoadMarkets())
 		PanicOnError(retRes25448)

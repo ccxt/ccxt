@@ -1070,7 +1070,7 @@ coinbase.fetchPortfolioDetails (portfolioUuid[, params])
 fetch deposit addresses for multiple currencies (when available)
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by currency code
 
 **See**: https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses  
 

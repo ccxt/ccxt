@@ -700,7 +700,7 @@ public partial class xt : ccxt.xt
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        object positions = await this.fetchPositions(null);
+        object positions = await this.fetchPositions();
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))

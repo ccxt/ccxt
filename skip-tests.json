@@ -1,7 +1,12 @@
 {
     "aftermath": {
         "skip": "exchange doesn't function for some reasons during last few days",
-        "until": "2026-06-07"
+        "until": "2026-06-07",
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "/currencies endpoint reports BTC with deposit=false, withdraw=false; aftermath is a Sui DEX, BTC is not natively bridgeable there"
+            }
+        }
     },
     "alp": {
         "skipMethods": {
@@ -321,6 +326,7 @@
         }
     },
     "bitflyer": {
+        "preferredSpotSymbol": "BTC/JPY",
         "skipMethods": {
             "loadMarkets": {
                 "contractSize": "not defined when contract",
@@ -353,10 +359,14 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips exchange flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         }
     },
     "bithumb": {
+        "preferredSpotSymbol": "BTC/KRW",
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
@@ -640,6 +650,46 @@
         }
     },
     "bybit": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "fetchCurrencies": {
+                "currencyIdAndCode": "temp skip"
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "incorrect calcs: https://app.travis-ci.com/github/ccxt/ccxt/builds/273708837#L4452"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "fetchPositions": "currently returns a lot of default/non open positions",
+            "fetchLedger": {
+                "account": "account is not provided",
+                "status": "status is not provided",
+                "fee": "undefined"
+            },
+            "fetchOpenInterestHistory": {
+                "openInterestAmount": "openInterestAmount is not provided"
+            },
+            "fetchBorrowRate": "does not work with unified account",
+            "orderBook": {
+                "compareToNextItem": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3794"
+            },
+            "watchOrderBook": {
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:623"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips bybit flood-detection / connection-close (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
+        }
+    },
+    "bybiteu": {
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
@@ -1218,6 +1268,7 @@
         "until": "2025-08-31",
         "skipPhpAsync": "tmp",
         "skipCSharp": "tmp",
+        "preferredSpotSymbol": "BTC/USD",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -1505,7 +1556,10 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
+            },
+            "watchTradesForSymbols.java": "flaky on Java: tight overlap with watchTrades trips krakenfutures 'Already subscribed to feed' (engine watchMultiple race window only Java's ForkJoinPool exposes deterministically)",
+            "watchOrderBookForSymbols.java": "same as watchTradesForSymbols.java",
+            "watchOHLCVForSymbols.java": "same as watchTradesForSymbols.java"
         },
         "timeout": 120000
     },
@@ -1668,6 +1722,7 @@
         }
     },
     "mexc": {
+        "skipJava": "tmp until we fix protobuf",
         "skipMethods": {
             "loadMarkets":{
                 "currencyIdAndCode": "messed"
@@ -1698,6 +1753,8 @@
         }
     },
     "modetrade": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "active": "undefined",
@@ -1907,12 +1964,9 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269956260#L4357",
-                "withdraw": "undefined",
-                "deposit": "undefined",
-                "networks": "networks key is missing",
-                "precision": "not provided",
                 "type": "todo",
-                "maxInactiveCurrenciesPercentage": 70
+                "maxInactiveCurrenciesPercentage": 70,
+                "limits":"tmp"
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
@@ -2091,6 +2145,8 @@
         }
     },
 	"woo": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "//skipWs": "requires auth",
         "skipMethods":{
             "loadMarkets":{
@@ -2121,6 +2177,8 @@
         }
 	},
     "woofipro": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods":{
             "loadMarkets":{
                 "active": "undefined",
@@ -2270,7 +2328,8 @@
     "lighter": {
         "skipMethods":{
             "loadMarkets": {
-                "currencyIdAndCode": "messed"
+                "currencyIdAndCode": "messed",
+                "contractSize": "not provided"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",

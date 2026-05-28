@@ -1405,7 +1405,7 @@ class modetrade extends modetrade$1["default"] {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -1643,7 +1643,7 @@ class modetrade extends modetrade$1["default"] {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "rows": [{
         //                 "order_id": 13,

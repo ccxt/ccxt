@@ -1029,8 +1029,9 @@ class bitso(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
+            marker = int(params['marker'])
             params = self.extend(params, {
-                'marker': int(params['marker']),
+                'marker': marker,
             })
         request: dict = {
             'book': market['id'],
@@ -1239,8 +1240,9 @@ class bitso(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
+            marker = int(params['marker'])
             params = self.extend(params, {
-                'marker': int(params['marker']),
+                'marker': marker,
             })
         request: dict = {
             'book': market['id'],
@@ -1779,7 +1781,8 @@ class bitso(Exchange, ImplicitAPI):
             self.check_required_credentials()
             nonce = str(self.nonce())
             endpoint = '/api' + endpoint
-            request = ''.join([nonce, method, endpoint])
+            content = [nonce, method, endpoint]
+            request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
                 if query:
                     body = self.json(query)

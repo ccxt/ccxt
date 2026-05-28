@@ -1465,7 +1465,7 @@ async function runMain () {
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        await parallelizeTranspiling (exchangeIds)
     } else {
         await transpiler.transpileEverything (force, child, baseOnly, examples)
     }

@@ -961,7 +961,7 @@ class weex extends \ccxt\async\weex {
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true);
@@ -998,7 +998,7 @@ class weex extends \ccxt\async\weex {
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true);
@@ -1320,7 +1320,7 @@ class weex extends \ccxt\async\weex {
              *
              * @param {string} [$symbol] not used by the exchange
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol !== null) {
                 throw new NotSupported($this->id . ' unWatchOrders does not support a $symbol argument. Unsubscribing from orders is global for all symbols.');
@@ -1397,12 +1397,10 @@ class weex extends \ccxt\async\weex {
             $this->orders = new ArrayCacheBySymbolById ($limit);
         }
         $orders = $this->orders;
-        $newOrders = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawOrder = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_order($rawOrder);
             $orders->append ($parsed);
-            $newOrders[] = $parsed;
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
         }
@@ -1415,9 +1413,9 @@ class weex extends \ccxt\async\weex {
         for ($i = 0; $i < count($symbolKeys); $i++) {
             $symbol = $symbolKeys[$i];
             $symbolMessageHash = $messageHash . '::' . $symbol;
-            $client->resolve ($newOrders, $symbolMessageHash);
+            $client->resolve ($orders, $symbolMessageHash);
         }
-        $client->resolve ($newOrders, $messageHash);
+        $client->resolve ($this->orders, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1866,7 +1864,7 @@ class weex extends \ccxt\async\weex {
         $data = $this->safe_list($message, 'd', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $this->safe_dict($data, $i, array());
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_ws_position($rawPosition);
             $cache->append ($position);
             $newPositions[] = $position;
         }
@@ -1882,6 +1880,11 @@ class weex extends \ccxt\async\weex {
             }
         }
         $client->resolve ($newPositions, 'positions');
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        // same api
+        return $this->parse_position($position, $market);
     }
 
     public function get_market_from_client_and_message(Client $client, $message) {

@@ -25,6 +25,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Apex Example](./examples/js/apex-example.md)
 
+- [Apex Watch](./examples/js/apex-watch.md)
+
 - [Arbitrage Pairs](./examples/js/arbitrage-pairs.md)
 
 - [Basic Chart](./examples/js/basic-chart.md)
@@ -37,6 +39,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Binance Fetch All Deposits](./examples/js/binance-fetch-all-deposits.md)
 
+- [Binance Fetch Balance Snapshot Watch Balance Updates](./examples/js/binance-fetch-balance-snapshot-watch-balance-updates.md)
+
 - [Binance Fetch Ohlcv Many Symbols Async Await](./examples/js/binance-fetch-ohlcv-many-symbols-async-await.md)
 
 - [Binance Fetch Ohlcv Many Symbols Promise Then Callbacks](./examples/js/binance-fetch-ohlcv-many-symbols-promise-then-callbacks.md)
@@ -45,11 +49,19 @@ node path/to/example.js # substitute for actual filename here
 
 - [Binance Futures Transfer From Sub Account To Master](./examples/js/binance-futures-transfer-from-sub-account-to-master.md)
 
+- [Binance Https Proxy](./examples/js/binance-https-proxy.md)
+
 - [Binance Margin Stop Order](./examples/js/binance-margin-stop-order.md)
 
 - [Binance Server Time](./examples/js/binance-server-time.md)
 
 - [Binance Universal Transfer](./examples/js/binance-universal-transfer.md)
+
+- [Binance Watch Ohlcv Many Symbols Continuously](./examples/js/binance-watch-ohlcv-many-symbols-continuously.md)
+
+- [Binance Watch Ohlcv Many Symbols](./examples/js/binance-watch-ohlcv-many-symbols.md)
+
+- [Binance Watch Ticker Many Symbols](./examples/js/binance-watch-ticker-many-symbols.md)
 
 - [Bitfinex Fetch Trades](./examples/js/bitfinex-fetch-trades.md)
 
@@ -73,11 +85,17 @@ node path/to/example.js # substitute for actual filename here
 
 - [Build Ohlcv Bars](./examples/js/build-ohlcv-bars.md)
 
+- [Build Ohlcv Many Symbols](./examples/js/build-ohlcv-many-symbols.md)
+
 - [Builtin Rate Limiting Rest Poller](./examples/js/builtin-rate-limiting-rest-poller.md)
 
 - [Bybit Trailing](./examples/js/bybit-trailing.md)
 
 - [Bybit Updated](./examples/js/bybit-updated.md)
+
+- [Calculate Ohlcvs From Trades Warmup](./examples/js/calculate-ohlcvs-from-trades-warmup.md)
+
+- [Calculate Ohlcvs From Trades](./examples/js/calculate-ohlcvs-from-trades.md)
 
 - [Coinbase Fetch All Balances](./examples/js/coinbase-fetch-all-balances.md)
 
@@ -120,6 +138,10 @@ node path/to/example.js # substitute for actual filename here
 - [Error Handling](./examples/js/error-handling.md)
 
 - [Exchange Capabilities](./examples/js/exchange-capabilities.md)
+
+- [Exchange Capabitities](./examples/js/exchange-capabitities.md)
+
+- [Exchange Close](./examples/js/exchange-close.md)
 
 - [Exchange Rate Limiter Rollingwindow](./examples/js/exchange-rate-limiter-rollingWindow.md)
 
@@ -169,9 +191,17 @@ node path/to/example.js # substitute for actual filename here
 
 - [Gateio Open Close Contract](./examples/js/gateio-open-close-contract.md)
 
+- [Gateio Swap Watch Many Orderbooks](./examples/js/gateio-swap-watch-many-orderbooks.md)
+
 - [Gateio Swaps](./examples/js/gateio-swaps.md)
 
+- [Gateio Watch Balance](./examples/js/gateio-watch-balance.md)
+
+- [Gateio Watch Order Book](./examples/js/gateio-watch-order-book.md)
+
 - [Gdax Fetch Trades Pagination](./examples/js/gdax-fetch-trades-pagination.md)
+
+- [Graceful Shutdown](./examples/js/graceful-shutdown.md)
 
 - [Hibachi Example](./examples/js/hibachi-example.md)
 
@@ -227,6 +257,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Looping Over Specific Symbols Of All Exchanges](./examples/js/looping-over-specific-symbols-of-all-exchanges.md)
 
+- [Many Exchanges Many Streams](./examples/js/many-exchanges-many-streams.md)
+
 - [Margin Loan Borrow Buy Sell Repay](./examples/js/margin-loan-borrow-buy-sell-repay.md)
 
 - [Market Status And Currency Status](./examples/js/market-status-and-currency-status.md)
@@ -237,9 +269,21 @@ node path/to/example.js # substitute for actual filename here
 
 - [Okex Transfer](./examples/js/okex-transfer.md)
 
+- [Okex Watch Balance And Create Order](./examples/js/okex-watch-balance-and-create-order.md)
+
+- [Okx Create Futures Order](./examples/js/okx-create-futures-order.md)
+
 - [Okx Poll Fetch My Trades](./examples/js/okx-poll-fetch-my-trades.md)
 
 - [Okx Poll Rate Limit](./examples/js/okx-poll-rate-limit.md)
+
+- [Okx Watch Tickers](./examples/js/okx-watch-tickers.md)
+
+- [One Exchange Many Different Streams](./examples/js/one-exchange-many-different-streams.md)
+
+- [One Exchange Many Streams 2](./examples/js/one-exchange-many-streams-2.md)
+
+- [One Exchange Many Streams](./examples/js/one-exchange-many-streams.md)
 
 - [Order Book Extra Level Depth Param](./examples/js/order-book-extra-level-depth-param.md)
 
@@ -279,7 +323,23 @@ node path/to/example.js # substitute for actual filename here
 
 - [Watch Trades For Symbols](./examples/js/watch-Trades-For-Symbols.md)
 
+- [Watch Fetch Many Exchanges Many Ordersbooks](./examples/js/watch-fetch-many-exchanges-many-ordersbooks.md)
+
+- [Watch Many Exchanges Many Ordersbooks](./examples/js/watch-many-exchanges-many-ordersbooks.md)
+
+- [Watch Many Exchanges Many Symbols](./examples/js/watch-many-exchanges-many-symbols.md)
+
+- [Watch Many Orderbooks](./examples/js/watch-many-orderbooks.md)
+
+- [Watch New Trades Only](./examples/js/watch-new-trades-only.md)
+
+- [Watch New Trades](./examples/js/watch-new-trades.md)
+
 - [Watch Tickers](./examples/js/watch-tickers.md)
+
+- [Watch Trades Many Symbols](./examples/js/watch-trades-many-symbols.md)
+
+- [Watch Vs Fetch](./examples/js/watch-vs-fetch.md)
 
 - [Watchpositions Many Exchanges Continuosly.d](./examples/js/watchPositions-many-exchanges-continuosly.d.md)
 

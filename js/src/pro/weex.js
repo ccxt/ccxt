@@ -893,7 +893,7 @@ export default class weex extends weexRest {
      * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -927,7 +927,7 @@ export default class weex extends weexRest {
      * @see https://www.weex.com/api-doc/spot/Websocket/public/BookTicker-Channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1234,7 +1234,7 @@ export default class weex extends weexRest {
      * @see https://www.weex.com/api-doc/contract/Websocket/private/Order-Channel
      * @param {string} [symbol] not used by the exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
         if (symbol !== undefined) {
@@ -1310,12 +1310,10 @@ export default class weex extends weexRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const orders = this.orders;
-        const newOrders = [];
         for (let i = 0; i < data.length; i++) {
             const rawOrder = this.safeDict(data, i, {});
             const parsed = this.parseWsOrder(rawOrder);
             orders.append(parsed);
-            newOrders.push(parsed);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
         }
@@ -1328,9 +1326,9 @@ export default class weex extends weexRest {
         for (let i = 0; i < symbolKeys.length; i++) {
             const symbol = symbolKeys[i];
             const symbolMessageHash = messageHash + '::' + symbol;
-            client.resolve(newOrders, symbolMessageHash);
+            client.resolve(orders, symbolMessageHash);
         }
-        client.resolve(newOrders, messageHash);
+        client.resolve(this.orders, messageHash);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -1763,7 +1761,7 @@ export default class weex extends weexRest {
         const data = this.safeList(message, 'd', []);
         for (let i = 0; i < data.length; i++) {
             const rawPosition = this.safeDict(data, i, {});
-            const position = this.parsePosition(rawPosition);
+            const position = this.parseWsPosition(rawPosition);
             cache.append(position);
             newPositions.push(position);
         }
@@ -1779,6 +1777,10 @@ export default class weex extends weexRest {
             }
         }
         client.resolve(newPositions, 'positions');
+    }
+    parseWsPosition(position, market = undefined) {
+        // same as REST api
+        return this.parsePosition(position, market);
     }
     getMarketFromClientAndMessage(client, message) {
         const url = client.url;

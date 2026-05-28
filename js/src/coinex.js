@@ -731,90 +731,88 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const coin = data[i];
-            const asset = this.safeDict(coin, 'asset', {});
-            const chains = this.safeList(coin, 'chains', []);
-            const currencyId = this.safeString(asset, 'ccy');
-            if (currencyId === undefined) {
-                continue; // coinex returns empty structures for some reason
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(coin) {
+        const asset = this.safeDict(coin, 'asset', {});
+        const chains = this.safeList(coin, 'chains', []);
+        const currencyId = this.safeString(asset, 'ccy');
+        if (currencyId === undefined) {
+            return undefined; // coinex returns empty structures for some reason
+        }
+        const code = this.safeCurrencyCode(currencyId);
+        const canDeposit = this.safeBool(asset, 'deposit_enabled');
+        const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
+        const firstChain = this.safeDict(chains, 0, {});
+        const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chain');
+            const networkCode = this.networkIdToCode(networkId, code);
+            if (networkId === undefined) {
+                continue;
             }
-            const code = this.safeCurrencyCode(currencyId);
-            const canDeposit = this.safeBool(asset, 'deposit_enabled');
-            const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
-            const firstChain = this.safeDict(chains, 0, {});
-            const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chain');
-                const networkCode = this.networkIdToCode(networkId, code);
-                if (networkId === undefined) {
-                    continue;
-                }
-                const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
-                const feeString = this.safeString(chain, 'withdrawal_fee');
-                const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
-                const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
-                const canDepositChain = this.safeBool(chain, 'deposit_enabled');
-                const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
-                const network = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': canDepositChain && canWithdrawChain,
-                    'deposit': canDepositChain,
-                    'withdraw': canWithdrawChain,
-                    'fee': this.parseNumber(feeString),
-                    'precision': this.parseNumber(precisionString),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.parseNumber(minNetworkDepositString),
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.parseNumber(minNetworkWithdrawString),
-                            'max': undefined,
-                        },
-                    },
-                    'info': chain,
-                };
-                networks[networkCode] = network;
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': currencyId,
-                'code': code,
+            const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
+            const feeString = this.safeString(chain, 'withdrawal_fee');
+            const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
+            const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
+            const canDepositChain = this.safeBool(chain, 'deposit_enabled');
+            const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
+            const network = {
+                'id': networkId,
+                'network': networkCode,
                 'name': undefined,
-                'active': canDeposit && canWithdraw,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
-                'fee': undefined,
-                'precision': this.parseNumber(firstPrecisionString),
+                'active': canDepositChain && canWithdrawChain,
+                'deposit': canDepositChain,
+                'withdraw': canWithdrawChain,
+                'fee': this.parseNumber(feeString),
+                'precision': this.parseNumber(precisionString),
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.parseNumber(minNetworkDepositString),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.parseNumber(minNetworkWithdrawString),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-                'info': coin,
-            });
+                'info': chain,
+            };
+            networks[networkCode] = network;
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': currencyId,
+            'code': code,
+            'name': undefined,
+            'active': canDeposit && canWithdraw,
+            'deposit': canDeposit,
+            'withdraw': canWithdraw,
+            'fee': undefined,
+            'precision': this.parseNumber(firstPrecisionString),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+            'info': coin,
+        });
     }
     /**
      * @method
@@ -1431,7 +1429,7 @@ export default class coinex extends Exchange {
             // 'last_id': 0,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
         if (market['swap']) {
@@ -4504,11 +4502,13 @@ export default class coinex extends Exchange {
             const marketId = this.safeString(info, 'market');
             market = this.safeMarket(marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber(tier, 'amount');
+            const curr = market['linear'] ? market['base'] : market['quote'];
+            const notional = minNotional;
             tiers.push({
                 'tier': this.sum(i, 1),
                 'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
-                'currency': market['linear'] ? market['base'] : market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintenance_margin_rate'),
                 'maxLeverage': this.safeInteger(tier, 'leverage'),
@@ -5723,7 +5723,7 @@ export default class coinex extends Exchange {
      * @name coinex#fetchDepositWithdrawFees
      * @description fetch the fees for deposits and withdrawals
      * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
-     * @param codes
+     * @param {string[]} [codes] list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */

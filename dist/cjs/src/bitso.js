@@ -1051,8 +1051,9 @@ class bitso extends bitso$1["default"] {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt(params['marker']);
             params = this.extend(params, {
-                'marker': parseInt(params['marker']),
+                'marker': marker,
             });
         }
         const request = {
@@ -1271,8 +1272,9 @@ class bitso extends bitso$1["default"] {
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
+            const marker = parseInt(params['marker']);
             params = this.extend(params, {
-                'marker': parseInt(params['marker']),
+                'marker': marker,
             });
         }
         const request = {
@@ -1832,7 +1834,8 @@ class bitso extends bitso$1["default"] {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             endpoint = '/api' + endpoint;
-            let request = [nonce, method, endpoint].join('');
+            const content = [nonce, method, endpoint];
+            let request = content.join('');
             if (method !== 'GET' && method !== 'DELETE') {
                 if (Object.keys(query).length) {
                     body = this.json(query);

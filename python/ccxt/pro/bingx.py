@@ -673,7 +673,9 @@ class bingx(ccxt.async_support.bingx):
             # limit = [5, 10, 20, 50, 100]
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
-            limit = self.safe_integer(subscription, 'limit')
+            # see handleOHLCV — subscription.limit may be missing for non-orderbook callers
+            # default to a reasonable depth instead of throwing NPE in the Java port.
+            limit = self.safe_integer(subscription, 'limit', 100)
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         snapshot = None
@@ -810,7 +812,10 @@ class bingx(ccxt.async_support.bingx):
         if self.safe_value(self.ohlcvs[symbol], rawTimeframe) is None:
             subscriptionHash = dataType
             subscription = client.subscriptions[subscriptionHash]
-            limit = self.safe_integer(subscription, 'limit')
+            # subscription.limit is only set when watchOHLCV registers the subscription
+            # when handleMessage routes a non-OHLCV-originated subscription here(or the
+            # subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
+            limit = self.safe_integer(subscription, 'limit', self.safe_integer(self.options, 'OHLCVLimit', 1000))
             self.ohlcvs[symbol][unifiedTimeframe] = ArrayCacheByTimestamp(limit)
         stored = self.ohlcvs[symbol][unifiedTimeframe]
         for i in range(0, len(candles)):

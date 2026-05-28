@@ -769,9 +769,17 @@ class backpack extends \ccxt\async\backpack {
         $id = $this->safe_string($trade, 't');
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, $market);
-        $isMaker = $this->safe_bool($trade, 'm');
-        $side = $isMaker ? 'sell' : 'buy';
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $isBuyerMaker = $this->safe_bool($trade, 'm');
+        $side = null;
+        $takerOrMaker = null;
+        if ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            if ($isBuyerMaker) {
+                $side = 'sell';
+            } else {
+                $side = 'buy';
+            }
+        }
         $price = $this->safe_string($trade, 'p');
         $amount = $this->safe_string($trade, 'q');
         $orderId = null;

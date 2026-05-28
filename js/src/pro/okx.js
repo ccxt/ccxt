@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -1320,41 +1320,19 @@ export default class okx extends okxRest {
         this.handleDeltas(storedBids, bids);
         const marketId = this.safeString(message, 'instId');
         const symbol = this.safeSymbol(marketId, market);
-        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
         const seqId = this.safeInteger(message, 'seqId');
-        if (checksum) {
-            const prevSeqId = this.safeInteger(message, 'prevSeqId');
-            const nonce = orderbook['nonce'];
-            const asksLength = storedAsks.length;
-            const bidsLength = storedBids.length;
-            const payloadArray = [];
-            for (let i = 0; i < 25; i++) {
-                if (i < bidsLength) {
-                    payloadArray.push(this.numberToString(storedBids[i][0]));
-                    payloadArray.push(this.numberToString(storedBids[i][1]));
-                }
-                if (i < asksLength) {
-                    payloadArray.push(this.numberToString(storedAsks[i][0]));
-                    payloadArray.push(this.numberToString(storedAsks[i][1]));
-                }
+        const prevSeqId = this.safeInteger(message, 'prevSeqId');
+        const nonce = orderbook['nonce'];
+        let error = undefined;
+        if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
+            error = new InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
+        }
+        if (error !== undefined) {
+            delete client.subscriptions[messageHash];
+            if (symbol !== undefined) {
+                delete this.orderbooks[symbol];
             }
-            const payload = payloadArray.join(':');
-            const responseChecksum = this.safeInteger(message, 'checksum');
-            const localChecksum = this.crc32(payload, true);
-            let error = undefined;
-            if (prevSeqId !== -1 && nonce !== prevSeqId) {
-                error = new InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
-            }
-            if (responseChecksum !== localChecksum) {
-                error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
-            }
-            if (error !== undefined) {
-                delete client.subscriptions[messageHash];
-                if (symbol !== undefined) {
-                    delete this.orderbooks[symbol];
-                }
-                client.reject(error, messageHash);
-            }
+            client.reject(error, messageHash);
         }
         const timestamp = this.safeInteger(message, 'ts');
         orderbook['nonce'] = seqId;
@@ -1727,10 +1705,10 @@ export default class okx extends okxRest {
      * @name okx#watchPositions
      * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {

@@ -6508,9 +6508,10 @@ class binance extends Exchange {
         $initialUppercaseType = strtoupper($type);
         $isMarketOrder = $initialUppercaseType === 'MARKET';
         $isLimitOrder = $initialUppercaseType === 'LIMIT';
+        $upperCaseSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
-            'side' => strtoupper($side),
+            'side' => $upperCaseSide,
         );
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
@@ -7773,7 +7774,7 @@ class binance extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
          * @param {boolean} [$params->trigger] set to true if you would like to cancel portfolio margin account conditional orders
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -7806,7 +7807,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => "200",
-                    //        "msg" => "The operation of cancel all conditional open order is done."
+                    //        "msg" => "The operation of cancel all conditional open $order is done."
                     //    }
                     //
                 } else {
@@ -7814,7 +7815,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => 200,
-                    //        "msg" => "The operation of cancel all open order is done."
+                    //        "msg" => "The operation of cancel all open $order is done."
                     //    }
                     //
                 }
@@ -7824,7 +7825,7 @@ class binance extends Exchange {
                     //
                     //     {
                     //         "code" => 200,
-                    //         "msg" => "The operation of cancel all open order is done."
+                    //         "msg" => "The operation of cancel all open $order is done."
                     //     }
                     //
                 } else {
@@ -7832,7 +7833,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => 200,
-                    //        "msg" => "The operation of cancel all open order is done."
+                    //        "msg" => "The operation of cancel all open $order is done."
                     //    }
                     //
                 }
@@ -7844,7 +7845,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => "200",
-                    //        "msg" => "The operation of cancel all conditional open order is done."
+                    //        "msg" => "The operation of cancel all conditional open $order is done."
                     //    }
                     //
                 } else {
@@ -7852,7 +7853,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => 200,
-                    //        "msg" => "The operation of cancel all open order is done."
+                    //        "msg" => "The operation of cancel all open $order is done."
                     //    }
                     //
                 }
@@ -7861,7 +7862,7 @@ class binance extends Exchange {
                 //
                 //    {
                 //        "code" => 200,
-                //        "msg" => "The operation of cancel all open order is done."
+                //        "msg" => "The operation of cancel all open $order is done."
                 //    }
                 //
             }
@@ -7923,10 +7924,9 @@ class binance extends Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             return $this->parse_orders($response, $market);
         } else {
+            $order = $this->safe_order(array( 'info' => $response ));
             return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
+                $order,
             );
         }
     }

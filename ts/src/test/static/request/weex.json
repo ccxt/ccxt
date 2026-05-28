@@ -187,6 +187,13 @@
         ],
         "closeAllPositions": [
             {
+                "description": "default",
+                "method": "closeAllPositions",
+                "url": "https://api-contract.weex.com/capi/v3/closePositions",
+                "input": [],
+                "output": "{}"
+            },
+            {
                 "description": "close all positions",
                 "method": "closeAllPositions",
                 "url": "https://api-contract.weex.com/capi/v3/closePositions",
@@ -206,6 +213,28 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "default",
+                "method": "fetchPositions",
+                "url": "https://api-contract.weex.com/capi/v3/account/position/allPosition",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "default",
+                "method": "fetchPositions",
+                "url": "https://api-contract.weex.com/capi/v3/account/position/allPosition",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
             {
                 "description": "fetch positions",
                 "method": "fetchPositions",

@@ -1831,7 +1831,7 @@ class woo(Exchange, ImplicitAPI):
             'fok': 'FOK',
             'post_only': 'PO',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -2449,7 +2449,7 @@ class woo(Exchange, ImplicitAPI):
         #                 {
         #                     "createdTime": "1734964440.523",
         #                     "updatedTime": "1734964614.081",
-        #                     "id": "24122314340000585",
+        #                     "id": "24122314340000586",
         #                     "externalId": "241223143600621",
         #                     "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
         #                     "token": "ARB_USDCNATIVE",

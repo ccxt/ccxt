@@ -62,7 +62,7 @@ class testMainClass {
                 dump('[TEST_FAILURE]'); // tell run-tests.js this is failure
                 throw $e;
             }
-
+            return true;
         }) ();
     }
 
@@ -588,7 +588,7 @@ class testMainClass {
         $current_type_markets = $this->get_markets_from_exchange($exchange, $spot);
         $codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BNB', 'DASH', 'DOGE', 'ETC', 'TRX', 'USDT', 'USDC', 'USD', 'GUSD', 'EUR', 'TUSD', 'CNY', 'JPY', 'BRL'];
         $spot_symbols = ['BTC/USDT', 'BTC/USDC', 'BTC/USD', 'BTC/CNY', 'BTC/EUR', 'BTC/AUD', 'BTC/BRL', 'BTC/JPY', 'ETH/USDT', 'ETH/USDC', 'ETH/USD', 'ETH/CNY', 'ETH/EUR', 'ETH/AUD', 'ETH/BRL', 'ETH/JPY', 'EUR/USDT', 'EUR/USD', 'EUR/USDC', 'USDT/EUR', 'USD/EUR', 'USDC/EUR', 'BTC/ETH', 'ETH/BTC'];
-        $swap_symbols = ['BTC/USDT:USDT', 'BTC/USDC:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USDC:USDC', 'ETH/USD:USD', 'BTC/USD:BTC', 'ETH/USD:ETH'];
+        $swap_symbols = ['BTC/USDT:USDT', 'BTC/USD:USDT', 'BTC/USDC:USDC', 'BTC/USD:USDC', 'BTC/USD:USD', 'ETH/USDT:USDT', 'ETH/USD:USDT', 'ETH/USDC:USDC', 'ETH/USD:USDC', 'ETH/USD:USD', 'BTC/USD:BTC', 'ETH/USD:ETH'];
         $target_symbols = $spot ? $spot_symbols : $swap_symbols;
         $symbol = $this->get_test_symbol($exchange, $spot, $target_symbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -641,13 +641,22 @@ class testMainClass {
             } else {
                 if ($exchange->has['spot']) {
                     $primary_symbol = $this->get_valid_symbol($exchange, true);
-                    $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
-                    $spot_symbols = [$primary_symbol, $secondary_symbol];
+                    if ($primary_symbol !== null) {
+                        $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                        $spot_symbols = [$primary_symbol, $secondary_symbol];
+                    }
                 }
                 if ($exchange->has['swap']) {
                     $primary_symbol = $this->get_valid_symbol($exchange, false);
-                    $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
-                    $swap_symbols = [$primary_symbol, $secondary_symbol];
+                    // some exchanges advertise has['swap']=true via describe() but
+                    // the live market list contains no swap entries (e.g. bequant
+                    // inherits hitbtc swap support but exposes only spot pairs).
+                    // getValidSymbol returns undefined in that case — skip swap
+                    // tests rather than crashing on `undefined.replace(...)`.
+                    if ($primary_symbol !== null) {
+                        $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
+                        $swap_symbols = [$primary_symbol, $secondary_symbol];
+                    }
                 }
             }
             if ($spot_symbols !== null) {
@@ -987,7 +996,7 @@ class testMainClass {
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
+        } elseif (($stored_output !== null) && gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
@@ -1345,6 +1354,10 @@ class testMainClass {
                     if ($is_disabled_go && ($this->lang === 'GO')) {
                         continue;
                     }
+                    $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
+                    if ($is_disabled_java && ($this->lang === 'java')) {
+                        continue;
+                    }
                     $type = $exchange->safe_string($exchange_data, 'outputType');
                     $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                     \React\Async\await($this->test_request_statically($exchange, $method, $result, $type, $skip_keys));
@@ -1413,6 +1426,10 @@ class testMainClass {
                     if ($is_disabled_go && ($this->lang === 'GO')) {
                         continue;
                     }
+                    $is_disabled_java = $exchange->safe_bool($result, 'disabledJava', false);
+                    if ($is_disabled_java && ($this->lang === 'java')) {
+                        continue;
+                    }
                     $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                     \React\Async\await($this->test_response_statically($exchange, $method, $skip_keys, $result));
                     // reset options
@@ -1463,6 +1480,11 @@ class testMainClass {
         $is_disabled_go = $exchange->safe_bool($exchange_data, 'disabledGO', false);
         if ($is_disabled_go && ($this->lang === 'GO')) {
             dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in go');
+            return true;
+        }
+        $is_disabled_java = $exchange->safe_bool($exchange_data, 'disabledJava', false);
+        if ($is_disabled_java && ($this->lang === 'java')) {
+            dump('[TEST_WARNING] Exchange ' . $exchange_name . ' is disabled in java');
             return true;
         }
         return false;
@@ -2054,6 +2076,9 @@ class testMainClass {
 
     public function test_woofi_pro() {
         return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
             $exchange = $this->init_offline_exchange('woofipro');
             $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
             $id = 'CCXT';
@@ -2122,6 +2147,9 @@ class testMainClass {
 
     public function test_paradex() {
         return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
             $exchange = $this->init_offline_exchange('paradex');
             $exchange->walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
             $exchange->privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
@@ -2206,6 +2234,9 @@ class testMainClass {
 
     public function test_derive() {
         return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
             $exchange = $this->init_offline_exchange('derive');
             $id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
             assert($exchange->options['id'] === $id, 'derive - id: ' . $id . ' not in options');
@@ -2232,6 +2263,9 @@ class testMainClass {
 
     public function test_mode_trade() {
         return Async\async(function () {
+            if ($this->lang === 'java') {
+                return false;
+            }
             $exchange = $this->init_offline_exchange('modetrade');
             $exchange->secret = 'secretsecretsecretsecretsecretsecretsecrets';
             $id = 'CCXTMODE';

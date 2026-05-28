@@ -1165,7 +1165,8 @@ class bitflyer(Exchange, ImplicitAPI):
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
-            auth = ''.join([nonce, method, request])
+            content = [nonce, method, request]
+            auth = ''.join(content)
             if params:
                 if method != 'GET':
                     body = self.json(params)

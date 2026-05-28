@@ -825,6 +825,7 @@ class gemini extends gemini$1["default"] {
             inverse = false;
         }
         const type = swap ? 'swap' : 'spot';
+        const isSpot = !swap;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -835,7 +836,7 @@ class gemini extends gemini$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': false,
             'swap': swap,
             'future': false,
@@ -1929,8 +1930,9 @@ class gemini extends gemini$1["default"] {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             const nonce = this.nonce().toString();
+            const finalUrl = url;
             const request = this.extend({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query);
             let payload = this.json(request);

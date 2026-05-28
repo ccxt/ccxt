@@ -1662,7 +1662,7 @@ func (this *WoofiproCore) ParseTimeInForce(timeInForce any) any {
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *WoofiproCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
@@ -2435,7 +2435,7 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
 		//
 		//     {
 		//         "success": true,
-		//         "timestamp": 1702989203989,
+		//         "timestamp": 1702989203988,
 		//         "data": {
 		//             "meta": {
 		//                 "total": 9,

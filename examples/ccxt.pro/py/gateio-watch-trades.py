@@ -3,10 +3,10 @@
 import asyncio
 import ccxt.pro
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 async def loop(exchange, symbol):
-    since = datetime.utcnow()
+    since = datetime.now(timezone.utc)
     timestamp = int(since.timestamp() * 1000)
     while True:
         trades = await exchange.watch_trades(symbol, since=timestamp)

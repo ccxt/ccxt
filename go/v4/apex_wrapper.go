@@ -479,7 +479,7 @@ func (this *Apex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
  * @description cancels an open order
  * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
  * @param {string} id order id
- * @param symbol
+ * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

@@ -522,75 +522,74 @@ public partial class backpack : Exchange
         //         ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(currencyId);
+        object networks = this.safeList(rawCurrency, "tokens", new List<object>() {});
+        object parsedNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
-            object currecy = getValue(response, i);
-            object currencyId = this.safeString(currecy, "symbol");
-            object code = this.safeCurrencyCode(currencyId);
-            object networks = this.safeList(currecy, "tokens", new List<object>() {});
-            object parsedNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
-            {
-                object network = getValue(networks, j);
-                object networkId = this.safeString(network, "blockchain");
-                object networkIdLowerCase = this.safeStringLower(network, "blockchain");
-                object networkCode = this.networkIdToCode(networkIdLowerCase);
-                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "minimumWithdrawal") },
-                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "minimumDeposit") },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", this.safeBool(network, "depositEnabled") },
-                    { "withdraw", this.safeBool(network, "withdrawEnabled") },
-                    { "fee", this.safeNumber(network, "withdrawalFee") },
-                    { "precision", null },
-                    { "info", network },
-                };
-            }
-            object active = null;
-            object deposit = null;
-            object withdraw = null;
-            if (isTrue(this.isEmpty(parsedNetworks)))
-            {
-                active = false;
-                deposit = false;
-                withdraw = false;
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "precision", null },
-                { "type", "crypto" },
-                { "name", this.safeString(currecy, "displayName") },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", null },
+            object network = getValue(networks, j);
+            object networkId = this.safeString(network, "blockchain");
+            object networkIdLowerCase = this.safeStringLower(network, "blockchain");
+            object networkCode = this.networkIdToCode(networkIdLowerCase);
+            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(network, "minimumWithdrawal") },
+                        { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(network, "minimumDeposit") },
                         { "max", null },
                     } },
                 } },
-                { "networks", parsedNetworks },
-                { "info", currecy },
-            });
+                { "active", null },
+                { "deposit", this.safeBool(network, "depositEnabled") },
+                { "withdraw", this.safeBool(network, "withdrawEnabled") },
+                { "fee", this.safeNumber(network, "withdrawalFee") },
+                { "precision", null },
+                { "info", network },
+            };
         }
-        return result;
+        object active = null;
+        object deposit = null;
+        object withdraw = null;
+        if (isTrue(this.isEmpty(parsedNetworks)))
+        {
+            active = false;
+            deposit = false;
+            withdraw = false;
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "precision", null },
+            { "type", "crypto" },
+            { "name", this.safeString(rawCurrency, "displayName") },
+            { "active", active },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", parsedNetworks },
+            { "info", rawCurrency },
+        });
     }
 
     /**

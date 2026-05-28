@@ -108,6 +108,7 @@ type ICoreExchange interface {
 	ParseToNumeric(value any) any
 	LoadMarkets(params ...any) <-chan any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
+	IsDictionary(dictionary any) any
 	InArray(needle any, haystack any) bool
 	DeepExtend(objs ...any) map[string]any
 	ParseToInt(value any) any
@@ -239,7 +240,7 @@ type ICoreExchange interface {
 	WarmUpCache()
 	GetItf() any
 	ConvertToSafeDictionary(data any) any
-	CreateSafeDictionary() *sync.Map
+	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
 	CreateOrders(orders any, optionalArgs ...any) <-chan any
 	Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any

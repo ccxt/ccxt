@@ -941,7 +941,7 @@ public partial class grvt : Exchange
      * @see https://api-docs.grvt.io/market_data_api/#ticker_1
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -1103,7 +1103,7 @@ public partial class grvt : Exchange
      * @param {int} [limit] the maximum amount of items to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -1337,11 +1337,11 @@ public partial class grvt : Exchange
      * @see https://api-docs.grvt.io/market_data_api/#funding-rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest item
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1437,7 +1437,7 @@ public partial class grvt : Exchange
      * @description query for account info
      * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1538,7 +1538,7 @@ public partial class grvt : Exchange
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest item
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1602,7 +1602,7 @@ public partial class grvt : Exchange
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest item
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1834,7 +1834,7 @@ public partial class grvt : Exchange
      * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1937,7 +1937,7 @@ public partial class grvt : Exchange
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -2050,11 +2050,11 @@ public partial class grvt : Exchange
         };
     }
 
-    public async virtual Task loadAccountInfos()
+    public async virtual Task<object> loadAccountInfos()
     {
         if (isTrue(!isEqual(this.safeString(this.options, "userMainAccountId"), null)))
         {
-            return;
+            return false;
         }
         object promises = new List<object>() {};
         ((IList<object>)promises).Add(this.privateTradingPostFullV1AggregatedAccountSummary());
@@ -2111,6 +2111,7 @@ public partial class grvt : Exchange
             object subAccountId = this.safeString(subAccountIds, 0);
             ((IDictionary<string,object>)this.options)["accountId"] = subAccountId;
         }
+        return true;
     }
 
     /**
@@ -2124,7 +2125,7 @@ public partial class grvt : Exchange
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.network the network to withdraw on (mandatory)
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -2180,7 +2181,7 @@ public partial class grvt : Exchange
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2215,8 +2216,10 @@ public partial class grvt : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         object isMarketOrder = (isEqual(type, "market"));
+        object subAccountId = this.getSubAccountId(parameters);
+        object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object orderRequest = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
             { "time_in_force", null },
             { "legs", new List<object>() {orderLeg} },
             { "signature", this.defaultSignature() },
@@ -2225,7 +2228,7 @@ public partial class grvt : Exchange
             } },
             { "is_market", isMarketOrder },
             { "post_only", false },
-            { "reduce_only", this.safeBool(parameters, "reduceOnly", false) },
+            { "reduce_only", isReduceOnly },
         };
         object timeInForce = this.safeStringUpper(parameters, "timeInForce", "GOOD_TILL_TIME");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
@@ -2472,7 +2475,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest item
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2552,7 +2555,7 @@ public partial class grvt : Exchange
      * @see https://api-docs.grvt.io/trading_api/#positions-request
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -2827,7 +2830,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest item
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2921,14 +2924,15 @@ public partial class grvt : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest item
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccountId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
         };
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -3026,7 +3030,7 @@ public partial class grvt : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3109,14 +3113,15 @@ public partial class grvt : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccountId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccountId },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -3367,7 +3372,7 @@ public partial class grvt : Exchange
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
      * @param {string} symbol cancel alls open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -3393,7 +3398,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrders(new List<object>() {result}, null);
+        return this.parseOrders(new List<object>() {result});
     }
 
     /**
@@ -3405,14 +3410,15 @@ public partial class grvt : Exchange
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
+        object subAccoubntId = this.getSubAccountId(parameters);
         object request = new Dictionary<string, object>() {
-            { "sub_account_id", this.getSubAccountId(parameters) },
+            { "sub_account_id", subAccoubntId },
         };
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         if (isTrue(!isEqual(clientOrderId, null)))

@@ -24,6 +24,7 @@ export default class bullish extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bullish#fetchMarkets

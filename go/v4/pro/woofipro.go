@@ -941,7 +941,7 @@ func  (this *WoofiproCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //         "orderTag": "default",
     //         "totalFee": 0,
     //         "visible": 0.01,
-    //         "timestamp": 1657515556799,
+    //         "timestamp": 1657515556798,
     //         "reduceOnly": false,
     //         "maker": false
     //     }
@@ -1174,9 +1174,9 @@ func  (this *WoofiproCore) HandleMyTrade(client any, message any)  {
  * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
- * @param since timestamp in ms of the earliest position to fetch
- * @param limit the maximum number of positions to fetch
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func  (this *WoofiproCore) WatchPositions(optionalArgs ...any) <- chan any {
@@ -1597,10 +1597,22 @@ func  (this *WoofiproCore) Ping(client any) any  {
         "event": "ping",
     }
 }
-func  (this *WoofiproCore) HandlePing(client any, message any) any  {
-    return map[string]any {
-        "event": "pong",
-    }
+func  (this *WoofiproCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                
+            retRes13468 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                "event": "pong",
+            }))
+            ccxt.PanicOnError(retRes13468)
+                return nil
+            }()
+            return ch
+        }
+func  (this *WoofiproCore) HandlePing(client any, message any)  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *WoofiproCore) HandlePong(client any, message any) any  {
     //

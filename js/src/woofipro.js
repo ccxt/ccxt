@@ -1435,7 +1435,7 @@ export default class woofipro extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -2076,7 +2076,7 @@ export default class woofipro extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "meta": {
         //                 "total": 9,

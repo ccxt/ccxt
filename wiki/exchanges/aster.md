@@ -184,7 +184,7 @@ aster.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -213,7 +213,7 @@ aster.fetchTrades (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -241,7 +241,7 @@ aster.fetchMyTrades ([symbol, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -267,7 +267,7 @@ aster.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -292,7 +292,7 @@ aster.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - an array of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - an array of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -371,7 +371,7 @@ aster.fetchBidsAsks (symbols[, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker  
 
@@ -392,7 +392,7 @@ aster.fetchFundingRate (symbol[, params])
 fetch the current funding rate for multiple symbols
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#symbol-price-ticker  
 
@@ -413,7 +413,7 @@ aster.fetchFundingRates ([symbols, params])
 fetch the funding rate interval for multiple markets
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-config  
 
@@ -434,7 +434,7 @@ aster.fetchFundingIntervals ([symbols, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/market-data/#get-funding-rate-history  
 
@@ -442,7 +442,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 
@@ -458,7 +458,7 @@ aster.fetchFundingRateHistory (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -549,7 +549,7 @@ aster.setPositionMode (hedged, symbol[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
@@ -574,7 +574,7 @@ aster.fetchTradingFee (symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -601,7 +601,7 @@ aster.fetchOrder (id, symbol[, params])
 fetch an open order by the id
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -627,7 +627,7 @@ aster.fetchOpenOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -655,7 +655,7 @@ aster.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -684,7 +684,7 @@ aster.fetchOpenOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -721,7 +721,7 @@ aster.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#new-order-trade  
 
@@ -742,7 +742,7 @@ aster.createOrders (orders[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -767,7 +767,7 @@ aster.cancelAllOrders (symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -793,7 +793,7 @@ aster.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -843,7 +843,7 @@ aster.setLeverage (leverage, symbol[, params])
 fetch the set leverage for all markets
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data  
 
@@ -864,7 +864,7 @@ aster.fetchLeverages ([symbols, params])
 fetches margin mode of the user
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data  
 
@@ -885,7 +885,7 @@ aster.fetchMarginModes (symbols[, params])
 fetches the history of margin added or reduced from contract isolated positions
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [margin structures](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-position-margin-change-history-trade  
 
@@ -910,7 +910,7 @@ aster.fetchMarginAdjustmentHistory (symbol[, type, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade  
 
@@ -932,7 +932,7 @@ aster.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#modify-isolated-position-margin-trade  
 
@@ -954,7 +954,7 @@ aster.addMargin (symbol, amount[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data  
 
@@ -980,7 +980,7 @@ aster.fetchFundingHistory (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#get-income-historyuser_data  
 
@@ -1025,7 +1025,7 @@ aster.fetchPositionsRisk (symbols[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data  
 
@@ -1047,7 +1047,7 @@ aster.fetchPositions ([symbols, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**
 
@@ -1076,7 +1076,7 @@ aster.withdraw (code, amount, address, tag[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**
 
@@ -1124,7 +1124,7 @@ aster.signIn ([params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1155,7 +1155,7 @@ aster.watchTicker (symbol[, params])
 unWatches a price ticker
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1186,7 +1186,7 @@ aster.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1213,7 +1213,7 @@ aster.watchTickers (symbols[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1240,7 +1240,7 @@ aster.unWatchTickers (symbols[, params])
 watches a mark price for a specific market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1266,7 +1266,7 @@ aster.watchMarkPrice (symbol[, params])
 unWatches a mark price for a specific market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1292,7 +1292,7 @@ aster.unWatchMarkPrice (symbol[, params])
 watches the mark price for all markets
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1318,7 +1318,7 @@ aster.watchMarkPrices (symbols[, params])
 watches the mark price for all markets
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1344,7 +1344,7 @@ aster.unWatchMarkPrices (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1371,7 +1371,7 @@ aster.watchBidsAsks (symbols[, params])
 unWatches best bid & ask for symbols
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1398,7 +1398,7 @@ aster.unWatchBidsAsks (symbols[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1426,7 +1426,7 @@ aster.watchTrades (symbol[, since, limit, params])
 unsubscribe from the trades channel
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1452,7 +1452,7 @@ aster.unWatchTrades (symbol[, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1480,7 +1480,7 @@ aster.watchTradesForSymbols (symbols[, since, limit, params])
 unsubscribe from the trades channel
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1505,7 +1505,7 @@ aster.unWatchTradesForSymbols (symbols[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1533,7 +1533,7 @@ aster.watchOrderBook (symbol[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1561,7 +1561,7 @@ aster.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1589,7 +1589,7 @@ aster.watchOrderBookForSymbols (symbols[, limit, params])
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>aster</code>](#aster)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 

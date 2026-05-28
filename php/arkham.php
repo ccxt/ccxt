@@ -1296,7 +1296,7 @@ class arkham extends Exchange {
         //
         // array()  returns an empty array, even when successfully cancels orders
         //
-        return $this->parse_orders($response, null);
+        return $this->parse_orders($response);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -1839,7 +1839,8 @@ class arkham extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'addresses');
-        $parsed = $this->parse_deposit_addresses($data, null, false, array( 'network' => $networkCode ));
+        $networkCodeUnified = $networkCode; // java req
+        $parsed = $this->parse_deposit_addresses($data, null, false, array( 'network' => $networkCodeUnified ));
         return $this->index_by($parsed, 'network');
     }
 
@@ -2412,11 +2413,13 @@ class arkham extends Exchange {
             $marketId = $this->safe_string($info, 'market');
             $market = $this->safe_market($marketId, $market, null, 'swap');
             $maxNotional = $this->safe_number($tier, 'positionLimit');
+            $curr = $market['linear'] ? $market['base'] : $market['quote'];
+            $notional = $minNotional;
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
                 'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
-                'currency' => $market['linear'] ? $market['base'] : $market['quote'],
-                'minNotional' => $minNotional,
+                'currency' => $curr,
+                'minNotional' => $notional,
                 'maxNotional' => $maxNotional,
                 'maintenanceMarginRate' => $this->safe_number($tier, 'marginRate'),
                 'maxLeverage' => $this->safe_integer($tier, 'leverageRate'),

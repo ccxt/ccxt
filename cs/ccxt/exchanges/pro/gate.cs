@@ -81,16 +81,16 @@ public partial class gate : ccxt.gate
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "swap", new Dictionary<string, object>() {
-                        { "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt" },
+                        { "usdt", "wss://ws-testnet.gate.com/v4/ws/futures/usdt" },
                         { "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/btc" },
                     } },
                     { "future", new Dictionary<string, object>() {
-                        { "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/usdt" },
-                        { "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/btc" },
+                        { "usdt", "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/usdt" },
+                        { "btc", "wss://fx-ws-testnet.gateio.ws/v4/ws/delivery/btc" },
                     } },
                     { "option", new Dictionary<string, object>() {
-                        { "usdt", "wss://op-ws-testnet.gateio.live/v4/ws/usdt" },
-                        { "btc", "wss://op-ws-testnet.gateio.live/v4/ws/btc" },
+                        { "usdt", "wss://ws-testnet.gate.com/v4/ws/options/usdt" },
+                        { "btc", "wss://ws-testnet.gate.com/v4/ws/options/btc" },
                     } },
                 } },
             } },

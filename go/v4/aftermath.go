@@ -405,7 +405,7 @@ func (this *AftermathCore) ParseMarket(market any) any {
  * @description fetch the trading fees for a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *AftermathCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -446,7 +446,7 @@ func (this *AftermathCore) ParseTradingFee(optionalArgs ...any) any {
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *AftermathCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -534,7 +534,7 @@ func (this *AftermathCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *AftermathCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -590,7 +590,7 @@ func (this *AftermathCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *AftermathCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -723,7 +723,7 @@ func (this *AftermathCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan an
  * @description query for balance and get the amount of funds available for trading or funds locked in positions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] account object ID, required
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *AftermathCore) FetchBalance(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -845,7 +845,7 @@ func (this *AftermathCore) ParseAccount(account any) any {
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.accountNumber] account number to query orders for, required
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AftermathCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -914,7 +914,7 @@ func (this *AftermathCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.accountNumber] account number to query positions for, required
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *AftermathCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -942,7 +942,7 @@ func (this *AftermathCore) FetchPosition(symbol any, optionalArgs ...any) <-chan
  * @param {string[]} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.accountNumber] account number to query positions for, required
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *AftermathCore) FetchPositions(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1041,7 +1041,7 @@ func (this *AftermathCore) ParseCreateEditOrderArgs(id any, symbol any, typeVar 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {Account} [params.account] account id to use, required
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AftermathCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1060,10 +1060,11 @@ func (this *AftermathCore) CreateOrder(symbol any, typeVar any, side any, amount
 		account = GetValue(accountparamsVariable, 0)
 		params = GetValue(accountparamsVariable, 1)
 		var order any = this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
-
-		orders := (<-this.CreateOrders([]any{order}, map[string]any{
+		var accountObj any = map[string]any{
 			"account": account,
-		}))
+		}
+
+		orders := (<-this.CreateOrders([]any{order}, accountObj))
 		PanicOnError(orders)
 
 		ch <- GetValue(orders, 0)
@@ -1082,7 +1083,7 @@ func (this *AftermathCore) CreateOrder(symbol any, typeVar any, side any, amount
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account id to use, required
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AftermathCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1092,8 +1093,8 @@ func (this *AftermathCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8588 := (<-this.LoadMarkets())
-		PanicOnError(retRes8588)
+		retRes8598 := (<-this.LoadMarkets())
+		PanicOnError(retRes8598)
 		var ordersRequest any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var order any = this.Clone(GetValue(orders, i))
@@ -1172,7 +1173,7 @@ func (this *AftermathCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AftermathCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1204,7 +1205,7 @@ func (this *AftermathCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account to cancel orders for, required
- * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AftermathCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1216,8 +1217,8 @@ func (this *AftermathCore) CancelOrders(ids any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9468 := (<-this.LoadMarkets())
-		PanicOnError(retRes9468)
+		retRes9478 := (<-this.LoadMarkets())
+		PanicOnError(retRes9478)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams(params, "cancelOrders", "account")
@@ -1273,8 +1274,8 @@ func (this *AftermathCore) CreateAccount(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9858 := (<-this.LoadMarkets())
-		PanicOnError(retRes9858)
+		retRes9868 := (<-this.LoadMarkets())
+		PanicOnError(retRes9868)
 		var market any = this.Market(symbol)
 		var settleId any = GetValue(market, "settleId")
 		var txRequest any = map[string]any{
@@ -1324,7 +1325,7 @@ func (this *AftermathCore) CreateAccount(symbol any, optionalArgs ...any) <-chan
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account id to use, required
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
  */
 func (this *AftermathCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1334,8 +1335,8 @@ func (this *AftermathCore) AddMargin(symbol any, amount any, optionalArgs ...any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10298 := (<-this.LoadMarkets())
-		PanicOnError(retRes10298)
+		retRes10308 := (<-this.LoadMarkets())
+		PanicOnError(retRes10308)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams2(params, "addMargin", "account", "accountId")
@@ -1391,7 +1392,7 @@ func (this *AftermathCore) AddMargin(symbol any, amount any, optionalArgs ...any
  * @param {float} amount amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account id to use, required
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
  */
 func (this *AftermathCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1401,8 +1402,8 @@ func (this *AftermathCore) ReduceMargin(symbol any, amount any, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10778 := (<-this.LoadMarkets())
-		PanicOnError(retRes10778)
+		retRes10788 := (<-this.LoadMarkets())
+		PanicOnError(retRes10788)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams2(params, "reduceMargin", "account", "accountId")
@@ -1459,7 +1460,7 @@ func (this *AftermathCore) ReduceMargin(symbol any, amount any, optionalArgs ...
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *AftermathCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1469,8 +1470,8 @@ func (this *AftermathCore) Transfer(code any, amount any, fromAccount any, toAcc
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11268 := (<-this.LoadMarkets())
-		PanicOnError(retRes11268)
+		retRes11278 := (<-this.LoadMarkets())
+		PanicOnError(retRes11278)
 		var currency any = this.Currency(code)
 		var txRequest any = map[string]any{
 			"metadata": map[string]any{
@@ -1535,7 +1536,7 @@ func (this *AftermathCore) ParseTransfer(transfer any, optionalArgs ...any) any 
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {Account} [params.account] account id to use, required
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1547,8 +1548,8 @@ func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalA
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11848 := (<-this.LoadMarkets())
-		PanicOnError(retRes11848)
+		retRes11858 := (<-this.LoadMarkets())
+		PanicOnError(retRes11858)
 		var currency any = this.Currency(code)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams(params, "withdraw", "account")
@@ -1571,7 +1572,6 @@ func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalA
 
 		response := (<-this.PrivatePostSubmitWithdraw(request))
 		PanicOnError(response)
-
 		//
 		// {
 		//     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
@@ -1581,10 +1581,11 @@ func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalA
 		//     "collateral": 39.0
 		// }
 		//
-		ch <- this.Extend(this.ParseTransaction(response, currency), map[string]any{
-			"addressFrom": account,
-			"amount":      amount,
-		})
+		var parsedTx any = this.ParseTransaction(response, currency)
+		AddElementToObject(parsedTx, "addressFrom ", account)
+		AddElementToObject(parsedTx, "amount", amount)
+
+		ch <- parsedTx
 		return nil
 
 	}()
@@ -1642,8 +1643,8 @@ func (this *AftermathCore) SetLeverage(leverage any, optionalArgs ...any) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes12578 := (<-this.LoadMarkets())
-		PanicOnError(retRes12578)
+		retRes12628 := (<-this.LoadMarkets())
+		PanicOnError(retRes12628)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams2(params, "setLeverage", "account", "accountId")

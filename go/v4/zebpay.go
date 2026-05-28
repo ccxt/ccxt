@@ -2293,11 +2293,11 @@ func (this *ZebpayCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeInteger2(ticker, "timestamp", "ts", nil)
+	var timestamp any = this.SafeInteger2(ticker, "timestamp", "ts")
 	var marketId any = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId)
-	var close any = this.SafeString(ticker, "close", nil)
-	var last any = this.SafeString(ticker, "last", nil)
+	var close any = this.SafeString(ticker, "close")
+	var last any = this.SafeString(ticker, "last")
 	var percentage any = this.SafeString(ticker, "percentage")
 	var bidVolume any = this.SafeString(ticker, "bidVolume")
 	var askVolume any = this.SafeString(ticker, "askVolume")

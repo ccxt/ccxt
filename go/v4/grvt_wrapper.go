@@ -65,7 +65,7 @@ func (this *Grvt) FetchCurrencies(params ...any) (Currencies, error) {
  * @see https://api-docs.grvt.io/market_data_api/#ticker_1
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Grvt) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -131,7 +131,7 @@ func (this *Grvt) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
  * @param {int} [limit] the maximum amount of items to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Grvt) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -217,11 +217,11 @@ func (this *Grvt) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
  * @see https://api-docs.grvt.io/market_data_api/#funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Grvt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -263,7 +263,7 @@ func (this *Grvt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @description query for account info
  * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Grvt) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -283,7 +283,7 @@ func (this *Grvt) FetchBalance(params ...any) (Balances, error) {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Grvt) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -362,7 +362,7 @@ func (this *Grvt) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Grvt) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -408,7 +408,7 @@ func (this *Grvt) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Grvt) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -440,7 +440,7 @@ func (this *Grvt) Transfer(code string, amount float64, fromAccount string, toAc
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.network the network to withdraw on (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Grvt) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -484,7 +484,7 @@ func (this *Grvt) Withdraw(code string, amount float64, address string, options 
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -521,7 +521,7 @@ func (this *Grvt) CreateOrder(symbol string, typeVar string, side string, amount
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Grvt) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -564,7 +564,7 @@ func (this *Grvt) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
  * @see https://api-docs.grvt.io/trading_api/#positions-request
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Grvt) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -701,7 +701,7 @@ func (this *Grvt) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Grvt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -747,7 +747,7 @@ func (this *Grvt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -792,7 +792,7 @@ func (this *Grvt) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -837,7 +837,7 @@ func (this *Grvt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -870,7 +870,7 @@ func (this *Grvt) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
  * @param {string} symbol cancel alls open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -905,7 +905,7 @@ func (this *Grvt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
