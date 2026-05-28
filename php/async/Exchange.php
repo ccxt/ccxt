@@ -1958,7 +1958,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_currency_structure(array $currency) {
-        // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        // derive data from $networks => $deposit, $withdraw, active, $fee, $limits, $precision
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -1975,20 +1975,6 @@ class Exchange extends \ccxt\Exchange {
                 $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
                 if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
-                }
-                // set $network 'active' to false if D or W is disabled
-                $active = $this->safe_bool($network, 'active');
-                if ($active === null) {
-                    if ($deposit && $withdraw) {
-                        $currency['networks'][$key]['active'] = true;
-                    } elseif ($deposit !== null && $withdraw !== null) {
-                        $currency['networks'][$key]['active'] = false;
-                    }
-                }
-                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
-                $currencyActive = $this->safe_bool($currency, 'active');
-                if ($currencyActive === null || $active) {
-                    $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
