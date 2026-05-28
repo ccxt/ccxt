@@ -2788,7 +2788,7 @@ export default class extended extends Exchange {
      * @name extended#editOrder
      * @description edit a trade order
      * @see https://api.docs.extended.exchange/#create-or-edit-order
-     * @param {string} id the external order id to replace
+     * @param {string} id order id assigned by Extended
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -2804,10 +2804,10 @@ export default class extended extends Exchange {
         let expiryEpochMillis = this.safeInteger (params, 'expiryEpochMillis');
         let postOnly = this.safeBool (params, 'postOnly');
         let reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
-        if ((amount === undefined) || (price === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined)) {
-            const response = await this.v1PrivateGetUserOrdersExternalExternalId ({ 'externalId': id });
-            const data = this.safeList (response, 'data', []);
-            const order = this.safeDict (data, 0, {});
+        let cancelId = this.safeString2 (params, 'cancelId', 'previousOrderId');
+        if ((amount === undefined) || (price === undefined) || (expiryEpochMillis === undefined) || (postOnly === undefined) || (reduceOnly === undefined) || (cancelId === undefined)) {
+            const response = await this.v1PrivateGetUserOrdersId ({ 'id': id });
+            const order = this.safeDict (response, 'data', {});
             if (amount === undefined) {
                 amount = this.safeNumber (order, 'qty');
             }
@@ -2823,6 +2823,9 @@ export default class extended extends Exchange {
             if (reduceOnly === undefined) {
                 reduceOnly = this.safeBool (order, 'reduceOnly', false);
             }
+            if (cancelId === undefined) {
+                cancelId = this.safeString (order, 'externalId');
+            }
         }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument or an existing order with qty');
@@ -2835,7 +2838,7 @@ export default class extended extends Exchange {
             'reduceOnly': reduceOnly,
         }, params);
         const requestParams = this.extend (params, {
-            'cancelId': id,
+            'cancelId': cancelId,
             'expiryEpochMillis': expiryEpochMillis,
         });
         const extendedOrderRequest = await this.createExtendedOrderRequest (symbol, type, side, amount, price, requestParams);
@@ -2853,21 +2856,9 @@ export default class extended extends Exchange {
         const responseData = this.safeDict (editResponse, 'data', {});
         const market = extendedOrderRequest['market'] as Market;
         const now = this.safeInteger (extendedOrderRequest, 'timestamp');
-        const priceString = this.safeString (extendedOrderRequest, 'price');
-        const amountString = this.safeString (extendedOrderRequest, 'amount');
-        return this.safeOrder ({
-            'info': editResponse,
-            'id': this.safeString (responseData, 'externalId'),
-            'clientOrderId': this.safeString (responseData, 'id'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'status': 'open',
-        }, market);
+        responseData['timestamp'] = now;
+        responseData['status'] = 'NEW';
+        return this.parseOrder (this.extend (request, responseData), market);
     }
 
     /**
