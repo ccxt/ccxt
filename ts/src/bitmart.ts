@@ -1330,14 +1330,27 @@ export default class bitmart extends Exchange {
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
         }
-        const networkEntry = this.safeDict (networks, networkCode);
+        let networkEntry = this.safeDict (networks, networkCode);
         // if still undefined, then check if it has only one network (otherwise throw an exception bcz of uncertainty)
         if (networkEntry === undefined) {
             const keys = Object.keys (networks);
-            if (keys.length === 1) {
-                networkCode = keys[0];
+            const keysLength = keys.length;
+            if (keysLength === 1) {
+                networkEntry = this.safeDict (networks, keys[0]); // select only available network
             } else {
-                throw new ArgumentsRequired (this.id + ' method requires a "network" parameter for the currency ' + currencyCode + ', one of: ' + this.json (keys));
+                // now try to find if "exactly same networkCode like currencyCode" exists
+                // (eg. for ETH coin select ETH network among ['ARB', 'SOL', 'ETH', 'TRX'] networks)
+                for (let i = 0; i < keysLength; i++) {
+                    const key = keys[i];
+                    if (key === currencyCode) {
+                        networkEntry = this.safeDict (networks, key);
+                        break;
+                    }
+                }
+                // if still undefined, throw an error
+                if (networkEntry === undefined) {
+                    throw new ArgumentsRequired (this.id + ' method requires a "network" parameter for the currency ' + currencyCode + ', one of: ' + this.json (keys));
+                }
             }
         }
         return this.safeString (networkEntry, 'idWithCurrency', currency['id']);
