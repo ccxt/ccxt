@@ -1331,10 +1331,14 @@ export default class bitmart extends Exchange {
             networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
         }
         const networkEntry = this.safeDict (networks, networkCode);
-        // if still undefined, then throw an error, because we shouldn't "guess" it
+        // if still undefined, then check if it has only one network (otherwise throw an exception bcz of uncertainty)
         if (networkEntry === undefined) {
             const keys = Object.keys (networks);
-            throw new ArgumentsRequired (this.id + ' method requires a "network" parameter for the currency ' + currencyCode + ', one of: ' + this.json (keys));
+            if (keys.length === 1) {
+                networkCode = keys[0];
+            } else {
+                throw new ArgumentsRequired (this.id + ' method requires a "network" parameter for the currency ' + currencyCode + ', one of: ' + this.json (keys));
+            }
         }
         return this.safeString (networkEntry, 'idWithCurrency', currency['id']);
     }
