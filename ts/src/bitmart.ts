@@ -1323,7 +1323,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    getJointFromCurrencyAndCode (currencyCode: Str, networkCode: Str): Str {
+    getJointFromCurrencyAndCode (currencyCode: Str, networkCode: Str = undefined): Str {
         const currency = this.currency (currencyCode);
         const networks = this.safeDict (currency, 'networks', {});
         // if network is undefined, return "default" (only if it's set) network
