@@ -1310,7 +1310,7 @@ export default class bitmart extends Exchange {
             };
         }
         return this.safeCurrencyStructure ({
-            'info': currencyObj,
+            'info': spotEntry,
             'id': spotCurrencyId,
             'code': code,
             'precision': undefined,
