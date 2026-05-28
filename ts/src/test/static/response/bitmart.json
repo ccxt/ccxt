@@ -5,7 +5,8 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "default",
+                "disabled": true,
+                "description": "default (disabled bcz of multi endpoint)",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
