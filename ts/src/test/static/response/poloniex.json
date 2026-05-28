@@ -612,25 +612,25 @@
         ],
         "withdraw": [
             {
-                "description": "withdraw USDT on ETH",
+                "description": "ethereum",
                 "method": "withdraw",
                 "input": [
                     "USDT",
                     5,
-                    "0x2a1cd2a93eac9403203ab118a4e7d90916ae3356",
+                    "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
                     null,
                     {
-                        "network": "ETH"
+                        "network": "ERC20"
                     }
                 ],
                 "httpResponse": {
-                    "withdrawalRequestsId": 18514179
+                    "withdrawalRequestsId": 19165155
                 },
                 "parsedResponse": {
                     "info": {
-                        "withdrawalRequestsId": 18514179
+                        "withdrawalRequestsId": 19165155
                     },
-                    "id": "18514179",
+                    "id": "19165155",
                     "currency": null,
                     "amount": null,
                     "network": null,
