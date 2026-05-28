@@ -1267,6 +1267,7 @@ export default class bitmart extends Exchange {
                     networkItems.push (entry);
                 }
             }
+            // will be parsed in parseCurrency
             tempCurrencies.push ({
                 '_spotEntry': spotEntry,
                 '_networkEntries': networkItems,
@@ -1322,7 +1323,7 @@ export default class bitmart extends Exchange {
         });
     }
 
-    getCurrencyIdFromCodeAndNetwork (currencyCode: Str, networkCode: Str): Str {
+    getJointFromCurrencyAndCode (currencyCode: Str, networkCode: Str): Str {
         const currency = this.currency (currencyCode);
         const networks = this.safeDict (currency, 'networks', {});
         // if network is undefined, return "default" (only if it's set) network
@@ -1336,6 +1337,44 @@ export default class bitmart extends Exchange {
             throw new ArgumentsRequired (this.id + ' method requires a "network" parameter for the currency ' + currencyCode + ', one of: ' + this.json (keys));
         }
         return this.safeString (networkEntry, 'idWithCurrency', currency['id']);
+    }
+
+    getNetworkAndCurrencyFromJoint (jointCurrencyId: Str) {
+        let currency = undefined;
+        if (jointCurrencyId in this.currencies) {
+            currency = this.currencies[jointCurrencyId];
+        } else if (jointCurrencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[jointCurrencyId];
+        } else {
+            const values = Object.values (this.currencies);
+            for (let i = 0; i < values.length; i++) {
+                const currencyEntry = values[i];
+                const networksEntries = this.safeDict (currencyEntry, 'networks', {});
+                const networksCodes = Object.keys (networksEntries);
+                for (let j = 0; j < networksCodes.length; j++) {
+                    const networkCode = networksCodes[j];
+                    const networkEntry = this.safeDict (networksEntries, networkCode);
+                    if (this.safeString (networkEntry, 'idWithCurrency') === jointCurrencyId || this.safeString (networkEntry, 'id') === jointCurrencyId) {
+                        return [ currencyEntry, networkCode ];
+                    }
+                }
+            }
+        }
+        const networks = this.safeDict (currency, 'networks', {});
+        const networkCodes = Object.keys (networks);
+        for (let i = 0; i < networkCodes.length; i++) {
+            const networkCode = networkCodes[i];
+            const networkEntry = this.safeDict (networks, networkCode, {});
+            const idWithCurrency = this.safeString (networkEntry, 'idWithCurrency');
+            if (idWithCurrency === jointCurrencyId || networkEntry['id'] === jointCurrencyId) {
+                return [ currency, networkCode ];
+            }
+        }
+        // if something unexpected happens, return default currency
+        if (currency === undefined) {
+            currency = this.currency (jointCurrencyId);
+        }
+        return [ currency, jointCurrencyId ];
     }
 
     /**
@@ -1354,7 +1393,7 @@ export default class bitmart extends Exchange {
         let network: Str = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': this.getCurrencyIdFromCodeAndNetwork (currency['code'], network),
+            'currency': this.getJointFromCurrencyAndCode (currency['code'], network),
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
@@ -1418,7 +1457,7 @@ export default class bitmart extends Exchange {
         let network: Str = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
+            'currency': this.getJointFromCurrencyAndCode (code, network),
         };
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
@@ -3837,7 +3876,7 @@ export default class bitmart extends Exchange {
         let network: Str = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
+            'currency': this.getJointFromCurrencyAndCode (code, network),
         };
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
@@ -3867,6 +3906,13 @@ export default class bitmart extends Exchange {
         //        address_memo: ''
         //    }
         //
+        //    {
+        //        currency: 'USDT-ETH',
+        //        chain: 'Ethereum',
+        //        address: '0x99B5EEc2C520f86F0F62F05820d28D05D36EccCf',
+        //        address_memo: ''
+        //    }
+        //
         // fetchWithdrawAddress
         //     {
         //         "currency": "ETH",
@@ -3878,15 +3924,15 @@ export default class bitmart extends Exchange {
         //         "verifyStatus": 0
         //     }
         //
-        let currencyId = this.safeString (depositAddress, 'currency');
-        let network = this.safeString2 (depositAddress, 'chain', 'network');
+        const currencyId = this.safeString (depositAddress, 'currency');
         const address = this.safeString (depositAddress, 'address');
         currency = this.safeCurrency (currencyId, currency);
+        const networkId = this.safeString2 (depositAddress, 'chain', 'network');
         this.checkAddress (address);
         return {
             'info': depositAddress,
             'currency': this.safeString (currency, 'code'),
-            'network': this.networkIdToCode (network),
+            'network': this.networkIdToCode (networkId, currency['code']),
             'address': address,
             'tag': this.safeString2 (depositAddress, 'address_memo', 'memo'),
         } as DepositAddress;
@@ -3913,7 +3959,7 @@ export default class bitmart extends Exchange {
         let network: Str = undefined;
         [ network, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
-            'currency': this.getCurrencyIdFromCodeAndNetwork (code, network),
+            'currency': this.getJointFromCurrencyAndCode (code, network),
             'amount': amount,
             'destination': 'To Digital Address', // To Digital Address, To Binance, To OKEX
             'address': address,
@@ -4157,17 +4203,19 @@ export default class bitmart extends Exchange {
             id = depositId;
         }
         const amount = this.safeNumber (transaction, 'arrival_amount');
-        const timestamp = this.safeInteger (transaction, 'apply_time');
-        let currencyId = this.safeString (transaction, 'currency');
-        let networkId: Str = undefined;
-        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeIntegerOmitZero (transaction, 'apply_time');
+        const jointCurrencyNetworkId = this.safeString (transaction, 'currency');
+        const [ currencyObj, networkCode ] = this.getNetworkAndCurrencyFromJoint (jointCurrencyNetworkId);
+        if (currency === undefined) {
+            currency = currencyObj;
+        }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': code,
+                'currency': currency['code'],
             };
         }
         const txid = this.safeString (transaction, 'tx_id');
@@ -4176,9 +4224,9 @@ export default class bitmart extends Exchange {
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
-            'network': this.networkIdToCode (networkId),
+            'network': networkCode,
             'address': address,
             'addressFrom': undefined,
             'addressTo': undefined,
@@ -4191,8 +4239,8 @@ export default class bitmart extends Exchange {
             'txid': txid,
             'internal': undefined,
             'comment': undefined,
-            'timestamp': (timestamp !== 0) ? timestamp : undefined,
-            'datetime': (timestamp !== 0) ? this.iso8601 (timestamp) : undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fee': fee,
         } as Transaction;
     }

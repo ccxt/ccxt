@@ -3,6 +3,16 @@
     "skipKeys": ["start_time", "end_time"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "disabled": true,
+                "description": "default (disabled bcz of multi endpoint)",
+                "method": "fetchCurrencies",
+                "url": "https://api-cloud.bitmart.com/account/v1/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchPositionMode": [
             {
                 "description": "fetchPositionMode",
