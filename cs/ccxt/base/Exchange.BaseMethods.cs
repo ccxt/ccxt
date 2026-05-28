@@ -1932,24 +1932,6 @@ public partial class Exchange
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
                 }
-                // set network 'active' to false if D or W is disabled
-                object active = this.safeBool(network, "active");
-                if (isTrue(isEqual(active, null)))
-                {
-                    if (isTrue(isTrue(deposit) && isTrue(withdraw)))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = true;
-                    } else if (isTrue(isTrue(!isEqual(deposit, null)) && isTrue(!isEqual(withdraw, null))))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
-                    }
-                }
-                active = this.safeBool(getValue(getValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
-                object currencyActive = this.safeBool(currency, "active");
-                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
-                {
-                    ((IDictionary<string,object>)currency)["active"] = active;
-                }
                 // find lowest fee (which is more desired)
                 object fee = this.safeString(network, "fee");
                 object feeMain = this.safeString(currency, "fee");
