@@ -9,7 +9,10 @@ cs/ccxt/exchanges/pro/*.cs linguist-generated=true
 java/lib/src/main/java/io/github/ccxt/exchanges/pro/*.java linguist-generated=true
 java/tests/src/main/java/tests/exchange/*.java linguist-generated=true
 java/tests/src/main/java/tests/exchange/ws/*.java linguist-generated=true
-*.png binary
+java/lib/src/main/java/io/github/ccxt/api/*.java linguist-generated=true
+java/lib/src/main/java/io/github/ccxt/exceptions/*.java linguist-generated=true
+java/lib/src/main/java/io/github/ccxt/interfaces/*.java linguist-generated=true
+java/lib/src/main/java/io/github/ccxt/types/*.java linguist-generated=true
 *.so  binary
 *.wasm binary
 *.o   binary
