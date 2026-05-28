@@ -1339,7 +1339,7 @@ export default class bitmart extends Exchange {
                 networkEntry = this.safeDict (networks, keys[0]); // select only available network
             } else {
                 // now try to find if "exactly same networkCode like currencyCode" exists
-                // (eg. for ETH coin select ETH network among [ARB|ETH|SOL] networks)
+                // eg. for ETH coin select ETH network among [ARB|ETH|SOL] networks
                 for (let i = 0; i < keysLength; i++) {
                     const key = keys[i];
                     if (key === currencyCode) {
