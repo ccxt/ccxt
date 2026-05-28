@@ -5600,24 +5600,6 @@ public Object describe()
                 {
                     Helpers.addElementToObject(currency, "withdraw", withdraw);
                 }
-                // set network 'active' to false if D or W is disabled
-                Object active = this.safeBool(network, "active");
-                if (Helpers.isTrue(Helpers.isEqual(active, null)))
-                {
-                    if (Helpers.isTrue(Helpers.isTrue(deposit) && Helpers.isTrue(withdraw)))
-                    {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "networks"), key), "active", true);
-                    } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(deposit, null)) && Helpers.isTrue(!Helpers.isEqual(withdraw, null))))
-                    {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(currency, "networks"), key), "active", false);
-                    }
-                }
-                active = this.safeBool(Helpers.GetValue(Helpers.GetValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
-                Object currencyActive = this.safeBool(currency, "active");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currencyActive, null)) || Helpers.isTrue(active)))
-                {
-                    Helpers.addElementToObject(currency, "active", active);
-                }
                 // find lowest fee (which is more desired)
                 Object fee = this.safeString(network, "fee");
                 Object feeMain = this.safeString(currency, "fee");
