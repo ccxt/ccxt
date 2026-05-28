@@ -1586,6 +1586,13 @@ public class Exchange {
     public void initThrottler() {
         this.throttler = new Throttler(this.tokenBucket);
     }
+    
+    public void setRateLimit(double rateLimit) {
+        this.rateLimit = rateLimit;
+        if (this.throttler != null) {
+            this.throttler.setRateLimit(rateLimit);
+        }
+    }
 
     public java.util.concurrent.CompletableFuture<Void> throttle(Object... args) {
         if (this.throttler == null) {
