@@ -4,6 +4,7 @@
     "outputType": "json",
     "disabledGO": true,
     "disabledCS": true,
+    "disabledJava": true,
     "privateKey": "e6b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
     "options": {
         "builderFee": true,

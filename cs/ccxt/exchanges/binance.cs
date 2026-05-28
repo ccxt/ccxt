@@ -6768,9 +6768,10 @@ public partial class binance : Exchange
         object initialUppercaseType = ((string)type).ToUpper();
         object isMarketOrder = isEqual(initialUppercaseType, "MARKET");
         object isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
+        object upperCaseSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", upperCaseSide },
         };
         object isPortfolioMargin = null;
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "createOrder", "papi", "portfolioMargin", false);
@@ -8372,9 +8373,10 @@ public partial class binance : Exchange
             return this.parseOrders(response, market);
         } else
         {
-            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "info", response },
+            });
+            return new List<object>() {order};
         }
     }
 

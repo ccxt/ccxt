@@ -2267,9 +2267,11 @@ export default class oxfun extends Exchange {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
+        const responseType = this.safeString(params, 'responseType', 'FULL');
+        const timestamp = this.safeInteger(params, 'timestamp', this.milliseconds());
         const request = {
-            'responseType': this.safeString(params, 'responseType', 'FULL'),
-            'timestamp': this.safeInteger(params, 'timestamp', this.milliseconds()),
+            'responseType': responseType,
+            'timestamp': timestamp,
         };
         params = this.omit(params, ['responseType', 'timestamp']);
         const recvWindow = this.safeInteger(params, 'recvWindow');
@@ -2919,7 +2921,7 @@ export default class oxfun extends Exchange {
             return undefined;
         }
         if (code !== 200) {
-            const responseCode = this.safeString(response, 'code', undefined);
+            const responseCode = this.safeString(response, 'code');
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);

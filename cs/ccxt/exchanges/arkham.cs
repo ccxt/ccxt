@@ -1280,7 +1280,7 @@ public partial class arkham : Exchange
         //
         // []  returns an empty array, even when successfully cancels orders
         //
-        return this.parseOrders(response, null);
+        return this.parseOrders(response);
     }
 
     /**
@@ -1856,8 +1856,9 @@ public partial class arkham : Exchange
         //    }
         //
         object data = this.safeList(response, "addresses");
+        object networkCodeUnified = networkCode; // java req
         object parsed = this.parseDepositAddresses(data, null, false, new Dictionary<string, object>() {
-            { "network", networkCode },
+            { "network", networkCodeUnified },
         });
         return this.indexBy(parsed, "network");
     }
@@ -2481,11 +2482,13 @@ public partial class arkham : Exchange
             object marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             object maxNotional = this.safeNumber(tier, "positionLimit");
+            object curr = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote");
+            object notional = minNotional;
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market, null, "swap") },
-                { "currency", ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote") },
-                { "minNotional", minNotional },
+                { "currency", curr },
+                { "minNotional", notional },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeNumber(tier, "marginRate") },
                 { "maxLeverage", this.safeInteger(tier, "leverageRate") },

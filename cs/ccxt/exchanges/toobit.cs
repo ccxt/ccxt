@@ -2516,8 +2516,9 @@ public partial class toobit : Exchange
         return await this.fetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, parameters);
     }
 
-    public async virtual Task<object> fetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, object parameters)
+    public async virtual Task<object> fetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
         object request = new Dictionary<string, object>() {};

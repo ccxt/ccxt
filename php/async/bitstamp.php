@@ -684,12 +684,13 @@ class bitstamp extends Exchange {
                     }
                 }
                 $isSpot = ($type === 'spot');
+                $settle = $settleId ? $this->safe_currency_code($settleId) : null;
                 $result[] = array(
                     'id' => $this->safe_string($market, 'market_symbol'),
                     'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
-                    'settle' => $settleId ? $this->safe_currency_code($settleId) : null,
+                    'settle' => $settle,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
                     'settleId' => $settleId,
@@ -930,7 +931,7 @@ class bitstamp extends Exchange {
         // }
         //
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market, null);
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_string($ticker, 'vwap');
         $baseVolume = $this->safe_string($ticker, 'volume');
@@ -1362,8 +1363,9 @@ class bitstamp extends Exchange {
     }
 
     public function parse_balance($response): array {
+        $finalResponse = $response; // java req
         $result = array(
-            'info' => $response,
+            'info' => $finalResponse,
             'timestamp' => null,
             'datetime' => null,
         );

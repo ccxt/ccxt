@@ -80,8 +80,8 @@ func (this *Bybit) FetchSpotMarkets(params any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Bybit) FetchFutureMarkets(params any) ([]MarketInterface, error) {
-	res := <-this.Core.FetchFutureMarkets(params)
+func (this *Bybit) FetchFutureMarkets(params ...any) ([]MarketInterface, error) {
+	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

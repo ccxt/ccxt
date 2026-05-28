@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.55';
+$version = '4.5.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.55';
+    const VERSION = '4.5.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3740,6 +3740,9 @@ class Exchange {
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
             $parsed = $this->parse_currency($arr[$i]);
+            if ($parsed === null) {
+                continue;
+            }
             $code = $parsed['code'];
             $result[$code] = $parsed;
         }
@@ -4078,7 +4081,7 @@ class Exchange {
                 $this->features[$marketType] = null;
             } else {
                 if ($marketType === 'spot') {
-                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType);
                 } else {
                     $this->features[$marketType] = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
@@ -5972,7 +5975,7 @@ class Exchange {
         $positions = $this->to_array($positions);
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->extend($this->parse_position($positions[$i], null), $params);
+            $position = $this->extend($this->parse_position($positions[$i]), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -5987,7 +5990,7 @@ class Exchange {
         $ranks = $this->to_array($ranks);
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i]), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);

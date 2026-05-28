@@ -368,6 +368,7 @@ class delta extends Exchange {
         $strike = $this->safe_string($optionParts, 2);
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
+        $optionTypeUnified = ($optionType === 'C') ? 'call' : 'put';
         return array(
             'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
@@ -390,7 +391,7 @@ class delta extends Exchange {
             'contractSize' => $this->parse_number('1'),
             'expiry' => $timestamp,
             'expiryDatetime' => $datetime,
-            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'optionType' => $optionTypeUnified,
             'strike' => $this->parse_number($strike),
             'precision' => array(
                 'amount' => null,

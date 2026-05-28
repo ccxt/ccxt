@@ -1103,9 +1103,9 @@ watch all open positions
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
-| since |  | Yes | timestamp in ms of the earliest position to fetch |
-| limit |  | Yes | the maximum number of positions to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript

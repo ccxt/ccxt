@@ -983,6 +983,7 @@ class bitrue(Exchange, ImplicitAPI):
         minCost = self.safe_number(amountFilter, 'minVal')
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
+        isSpot = (type == 'spot')
         return {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -994,7 +995,7 @@ class bitrue(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': (type == 'spot'),
+            'spot': isSpot,
             'margin': False,
             'swap': isContract,
             'future': False,

@@ -678,6 +678,8 @@ class derive(Exchange, ImplicitAPI):
                 optionType = 'call'
             linear = True
             inverse = False
+        contractSize = None if (spot) else 1
+        isContract = (swap or option)
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -694,10 +696,10 @@ class derive(Exchange, ImplicitAPI):
             'future': False,
             'option': option,
             'active': self.safe_bool(market, 'is_active'),
-            'contract': (swap or option),
+            'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'contractSize': None if (spot) else 1,
+            'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'taker': self.safe_number(market, 'taker_fee_rate'),
@@ -1782,7 +1784,7 @@ class derive(Exchange, ImplicitAPI):
             'gtc': 'GTC',
             'post_only': 'PO',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order_status(self, status: Str):
         if status is not None:

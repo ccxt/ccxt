@@ -10,12 +10,12 @@ func TestFetchTickers(exchange ccxt.ICoreExchange, skippedProperties any, symbol
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		var withoutSymbol any = TestFetchTickersHelper(exchange, skippedProperties, nil)
-		var withSymbol any = TestFetchTickersHelper(exchange, skippedProperties, []any{symbol})
+		var withoutSymbol any = FetchTickersHelperTest(exchange, skippedProperties, nil)
+		var withSymbol any = FetchTickersHelperTest(exchange, skippedProperties, []any{symbol})
 
 		results := (<-promiseAll([]any{withoutSymbol, withSymbol}))
 		PanicOnError(results)
-		TestFetchTickersAmounts(exchange, skippedProperties, GetValue(results, 0))
+		FetchTickersAmountsTest(exchange, skippedProperties, GetValue(results, 0))
 
 		ch <- results
 		return nil
@@ -23,7 +23,7 @@ func TestFetchTickers(exchange ccxt.ICoreExchange, skippedProperties any, symbol
 	}()
 	return ch
 }
-func TestFetchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
+func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -53,7 +53,7 @@ func TestFetchTickersHelper(exchange ccxt.ICoreExchange, skippedProperties any, 
 	}()
 	return ch
 }
-func TestFetchTickersAmounts(exchange ccxt.ICoreExchange, skippedProperties any, tickers any) {
+func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any, tickers any) {
 	var tickersValues any = ObjectValues(tickers)
 	if !IsTrue((InOp(skippedProperties, "checkActiveSymbols"))) {
 		//

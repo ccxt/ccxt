@@ -426,6 +426,12 @@ public partial class apex
     /// See <see href="https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the order was made in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

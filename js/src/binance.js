@@ -6596,9 +6596,10 @@ export default class binance extends Exchange {
         const initialUppercaseType = type.toUpperCase();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
+        const upperCaseSide = side.toUpperCase();
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase(),
+            'side': upperCaseSide,
         };
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
@@ -8096,10 +8097,9 @@ export default class binance extends Exchange {
             return this.parseOrders(response, market);
         }
         else {
+            const order = this.safeOrder({ 'info': response });
             return [
-                this.safeOrder({
-                    'info': response,
-                }),
+                order,
             ];
         }
     }

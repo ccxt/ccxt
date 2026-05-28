@@ -2140,6 +2140,17 @@ public partial class bitmart : ccxt.bitmart
         //
         object errorCode = this.safeString(message, "errorCode");
         object error = this.safeString(message, "error");
+        // Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+        // a re-subscribe attempt on a topic that's already active on this
+        // connection, but the original subscription keeps delivering data —
+        // so treat it as benign. Without this short-circuit, the generic
+        // ((WebSocketClient)client).reject below kills every unrelated in-flight future —
+        // e.g. a watchOHLCV waiting on its kline subscription gets rejected
+        // by an orderbook 90008 raised on the same socket.
+        if (isTrue(isEqual(errorCode, "90008")))
+        {
+            return false;
+        }
         try
         {
             if (isTrue(isTrue(!isEqual(errorCode, null)) || isTrue(!isEqual(error, null))))

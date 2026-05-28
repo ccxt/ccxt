@@ -1279,12 +1279,12 @@ class coinsph extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
-        $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker', null);
+        $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker');
         $side = null;
         if ($isBuyer !== null) {
             $side = ($isBuyer === true) ? 'buy' : 'sell';
         }
-        $isMaker = $this->safe_string_2($trade, 'isMaker', null);
+        $isMaker = $this->safe_string($trade, 'isMaker');
         $takerOrMaker = null;
         if ($isMaker !== null) {
             $takerOrMaker = ($isMaker === 'true') ? 'maker' : 'taker';
@@ -1679,7 +1679,7 @@ class coinsph extends Exchange {
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'time', 'transactTime');
-        $trades = $this->safe_value($order, 'fills', null);
+        $trades = $this->safe_value($order, 'fills');
         $triggerPrice = $this->safe_string($order, 'stopPrice');
         if (Precise::string_eq($triggerPrice, '0')) {
             $triggerPrice = null;
@@ -2237,7 +2237,7 @@ class coinsph extends Exchange {
         if ($response === null) {
             return null;
         }
-        $responseCode = $this->safe_string($response, 'code', null);
+        $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== null) && ($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);

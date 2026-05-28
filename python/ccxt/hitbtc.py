@@ -3276,8 +3276,9 @@ class hitbtc(Exchange, ImplicitAPI):
         #         "positions": null
         #     }
         #
+        parsedAmount = self.parse_number(amount)
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.parse_number(amount),
+            'amount': parsedAmount,
             'type': type,
         })
 

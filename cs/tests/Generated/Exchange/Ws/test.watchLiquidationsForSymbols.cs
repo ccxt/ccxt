@@ -15,12 +15,14 @@ public partial class testMainClass : BaseTest
         object skippedExchanges = new List<object>() {};
         if (isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
-            Console.WriteLine(exchange.id, add(method, "() test skipped"));
+            object m1 = (add(add(add(exchange.id, " "), method), "() test skipped"));
+            Console.WriteLine(m1);
             return false;
         }
         if (!isTrue(getValue(exchange.has, method)))
         {
-            Console.WriteLine(exchange.id, add(method, "() is not supported"));
+            object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
+            Console.WriteLine(m2);
             return false;
         }
         object response = null;
@@ -30,11 +32,12 @@ public partial class testMainClass : BaseTest
         {
             try
             {
-                response = await ((Task<object>)callDynamically(exchange, method, new object[] { new List<object>() {symbol} }));
+                response = await exchange.watchLiquidationsForSymbols(new List<object>() {symbol});
                 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
                 object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
                 assert(isArray, "response must be an array");
-                Console.WriteLine(exchange.iso8601(now), exchange.id, symbol, method, getArrayLength(new List<object>(((IDictionary<string,object>)response).Values)), "liquidations");
+                object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
+                Console.WriteLine(m3);
                 // log.noLocate (asTable (response))
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {

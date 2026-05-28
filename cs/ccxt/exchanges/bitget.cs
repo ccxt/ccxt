@@ -1922,10 +1922,8 @@ public partial class bitget : Exchange
         if (isTrue(uta))
         {
             return await this.fetchUtaMarkets(parameters);
-        } else
-        {
-            return await this.fetchDefaultMarkets(parameters);
         }
+        return await this.fetchDefaultMarkets(parameters);
     }
 
     public async virtual Task<object> fetchDefaultMarkets(object parameters)
@@ -5593,6 +5591,13 @@ public partial class bitget : Exchange
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        // const multipleTriggers = (isTriggerOrder && (isStopLossTriggerOrder || isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        //     || (isStopLossTriggerOrder && (isTakeProfitTriggerOrder || isTrailingPercentOrder))
+        //     || (isTakeProfitTriggerOrder && isTrailingPercentOrder);
+        // if (multipleTriggers) {
+        //     throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
+        //
         if (isTrue(isGreaterThan(this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder), 1)))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
@@ -6083,6 +6088,12 @@ public partial class bitget : Exchange
         object trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice", this.numberToString(price));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "newCallbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        // const multipleTriggers = (isTriggerOrder && (isStopLossOrder || isTakeProfitOrder || isTrailingPercentOrder))
+        //     || (isStopLossOrder && (isTakeProfitOrder || isTrailingPercentOrder))
+        //     || (isTakeProfitOrder && isTrailingPercentOrder);
+        // if (multipleTriggers) {
+        //     throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent');
+        // }
         if (isTrue(isGreaterThan(this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder), 1)))
         {
             throw new ExchangeError ((string)add(this.id, " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;

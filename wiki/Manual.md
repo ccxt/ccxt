@@ -43,7 +43,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
 ```
 
-Full public and private HTTP REST APIs for all exchanges are implemented. WebSocket implementations in JavaScript, PHP, Python are available in [CCXT Pro](https://ccxt.pro), which is a professional addon to CCXT with support for WebSocket streams.
+Full public and private HTTP REST APIs for all exchanges are implemented in JavaScript, Python, PHP, C#, Go and Java. WebSocket implementations are available in [CCXT Pro](https://ccxt.pro), with support for WebSocket streams.
 
 - [**Exchanges**](#exchanges)
 - [**Markets**](#markets)
@@ -211,6 +211,11 @@ print (ccxt.exchanges)
 include 'ccxt.php';
 var_dump (\ccxt\Exchange::$exchanges);
 ```
+#### **Java**
+```java
+import io.github.ccxt.Exchange;
+// use Exchange.dynamicallyCreateInstance(id, config) to create exchanges
+```
 <!-- tabs:end -->
 
 An exchange can be instantiated like shown in the examples below:
@@ -273,6 +278,21 @@ $exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
 ));
+```
+#### **Java**
+```java
+import io.github.ccxt.exchanges.Kraken;
+import io.github.ccxt.exchanges.Binance;
+import java.util.HashMap;
+import java.util.Map;
+
+Kraken kraken = new Kraken();
+
+// with config
+Map<String, Object> config = new HashMap<>();
+config.put("apiKey", "YOUR_API_KEY");
+config.put("secret", "YOUR_SECRET");
+Binance binance = new Binance(config);
 ```
 <!-- tabs:end -->
 
@@ -426,6 +446,14 @@ $exchange = new $exchange_class(array(
 ));
 $exchange->options['adjustForTimeDifference'] = false;
 ```
+#### **Java**
+```java
+Map<String, Object> config = new HashMap<>();
+config.put("rateLimit", 10000);
+config.put("options", Map.of("adjustForTimeDifference", true));
+Exchange exchange = Exchange.dynamicallyCreateInstance("binance", config);
+((Map<String, Object>) exchange.options).put("adjustForTimeDifference", false);
+```
 <!-- tabs:end -->
 
 ### Overriding Exchange Methods
@@ -490,6 +518,11 @@ exchange.set_sandbox_mode(True)  # enable sandbox mode
 ```php
 $exchange = new \ccxt\binance($config);
 $exchange->set_sandbox_mode(true); // enable sandbox mode
+```
+#### **Java**
+```java
+Exchange exchange = Exchange.dynamicallyCreateInstance("binance", config);
+exchange.setSandboxMode(true); // enable sandbox mode
 ```
 
 <!-- tabs:end -->
@@ -737,6 +770,13 @@ $exchange = new \ccxt\bitfinex (array (
 // or switch the built-in rate-limiter on or off later after instantiation
 $exchange->enableRateLimit = true; // enable
 $exchange->enableRateLimit = false; // disable
+```
+#### **Java**
+```java
+// enabled by default
+Exchange exchange = Exchange.dynamicallyCreateInstance("bitfinex", null);
+exchange.enableRateLimit = true;  // enable
+exchange.enableRateLimit = false; // disable
 ```
 
 <!-- tabs:end -->
@@ -1128,6 +1168,12 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
 ```
 
+#### **Java**
+```java
+String formattedAmount = exchange.getExchange().amountToPrecision(symbol, amount);
+String formattedPrice = exchange.getExchange().priceToPrecision(symbol, price);
+```
+
 <!-- tabs:end -->
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
@@ -1162,6 +1208,11 @@ function amount_to_precision($symbol, $amount)
 function price_to_precision($symbol, $price)
 function cost_to_precision($symbol, $cost)
 function currency_to_precision($code, $amount)
+```
+#### **Java**
+```java
+String formattedAmount = exchange.getExchange().amountToPrecision(symbol, amount);
+String formattedPrice = exchange.getExchange().priceToPrecision(symbol, price);
 ```
 <!-- tabs:end -->
 
@@ -1205,6 +1256,16 @@ $price = 87654.321; // price in quote currency USDT
 $formatted_amount = $exchange->amount_to_precision($symbol, $amount);
 $formatted_price = $exchange->price_to_precision($symbol, $price);
 echo $formatted_amount, " ", $formatted_price, "\n";
+```
+#### **Java**
+```java
+exchange.loadMarkets();
+String symbol = "BTC/USDT";
+double amount = 1.2345678;
+double price = 87654.321;
+String formattedAmount = exchange.getExchange().amountToPrecision(symbol, amount);
+String formattedPrice = exchange.getExchange().priceToPrecision(symbol, price);
+System.out.println(formattedAmount + " " + formattedPrice);
 ```
 <!-- tabs:end -->
 
@@ -1268,6 +1329,13 @@ $exchange = '\\ccxt\\' . $id;
 $huobipro = new $exchange();
 $markets = $huobipro->load_markets();
 var_dump($huobipro->id, $markets);
+```
+
+#### **Java**
+```java
+Kraken kraken = new Kraken();
+Map<String, MarketInterface> markets = kraken.loadMarkets(false);
+System.out.println(kraken.id + " " + markets.size() + " markets");
 ```
 
 <!-- tabs:end -->
@@ -1374,6 +1442,16 @@ binance2.setMarketsFromExchange(binance1);
 
 // Now binance2 can use the shared markets without loading them
 Console.WriteLine($"Symbols loaded: {binance2.symbols?.Count ?? 0}");
+```
+
+#### **Java**
+```java
+Exchange exchange1 = Exchange.dynamicallyCreateInstance("binance", null);
+exchange1.loadMarkets().join();
+
+Exchange exchange2 = Exchange.dynamicallyCreateInstance("binance", null);
+// share markets from exchange1 to exchange2
+exchange2.setMarketsFromExchange(exchange1);
 ```
 
 <!-- tabs:end -->
@@ -1506,6 +1584,14 @@ $okcoin->markets_by_id['btc_usd'][0];              // id → market (get market 
 
 $okcoin->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
 $okcoin->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
+```
+#### **Java**
+```java
+Kraken exchange = new Kraken();
+Map<String, MarketInterface> markets = exchange.loadMarkets(false);
+
+MarketInterface btcUsd = markets.get("BTC/USD");  // symbol → market
+String marketId = btcUsd.id;                       // symbol → id
 ```
 
 <!-- tabs:end -->
@@ -1733,6 +1819,14 @@ $reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
 var_dump($bitfinex->markets['XRP/BTC']);
 ```
 
+#### **Java**
+```java
+Kraken kraken = new Kraken();
+kraken.loadMarkets(false);            // loads from exchange
+kraken.loadMarkets(false);            // returns cached version
+kraken.loadMarkets(true);             // force reload
+```
+
 <!-- tabs:end -->
 
 # Implicit API
@@ -1880,6 +1974,49 @@ while (true) {
 ```
 
 See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+
+#### **Java**
+
+In Java, each exchange has its own typed subclass. Every typed method ships
+**both** a blocking sync overload and a non-blocking `CompletableFuture`-returning
+async overload — symmetric for REST `fetch*` / `fetch*Async` and WS `watch*` /
+`watch*Async`:
+
+```java
+// Java
+
+import io.github.ccxt.exchanges.Kraken;
+import io.github.ccxt.types.Ticker;
+import java.util.concurrent.CompletableFuture;
+
+Kraken kraken = new Kraken();
+kraken.loadMarkets(false);
+
+// REST — synchronous
+Ticker ticker = kraken.fetchTicker("BTC/USDT");
+System.out.println(ticker.last);
+
+// REST — asynchronous
+CompletableFuture<Ticker> future = kraken.fetchTickerAsync("BTC/USDT", null);
+future.thenAccept(t -> System.out.println(t.last));
+```
+
+The same sync/async pair applies to the pro (WebSocket) classes — `watchTicker`
+blocks for one update; `watchTickerAsync` returns a `CompletableFuture<Ticker>`
+that completes on the next update:
+
+```java
+import io.github.ccxt.exchanges.pro.Binance;
+
+var ws = new Binance();
+ws.loadMarkets(false);
+
+// WS — synchronous (blocks for one update)
+Ticker tick = ws.watchTicker("BTC/USDT");
+
+// WS — asynchronous (composable with allOf, anyOf, thenApply, ...)
+CompletableFuture<Ticker> stream = ws.watchTickerAsync("BTC/USDT", null);
+```
 
 <!-- tabs:end -->
 
@@ -2047,6 +2184,12 @@ $params = array (
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
 ```
 
+#### **Java**
+```java
+Map<String, Object> params = Map.of("foo", "bar");
+OrderBook ob = exchange.fetchOrderBook(symbol, limit, params);
+```
+
 <!-- tabs:end -->
 
 ## Pagination
@@ -2195,6 +2338,21 @@ if ($exchange->has['fetchMyTrades']) {
 }
 ```
 
+#### **Java**
+```java
+long since = System.currentTimeMillis() - 86400000; // -1 day
+List<Trade> allTrades = new ArrayList<>();
+while (since < System.currentTimeMillis()) {
+    List<Trade> trades = exchange.fetchTrades("BTC/USDT", since, 20L, null);
+    if (!trades.isEmpty()) {
+        since = trades.get(trades.size() - 1).timestamp + 1;
+        allTrades.addAll(trades);
+    } else {
+        break;
+    }
+}
+```
+
 <!-- tabs:end -->
 
 ### id-based Pagination
@@ -2265,6 +2423,22 @@ if ($exchange->has['fetchMyTrades']) {
         } else {
             break;
         }
+    }
+}
+```
+
+#### **Java**
+```java
+String fromId = "abc123";
+List<Trade> allTrades = new ArrayList<>();
+while (true) {
+    Map<String, Object> params = Map.of("from_id", fromId);
+    List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, params);
+    if (!trades.isEmpty()) {
+        fromId = trades.get(trades.size() - 1).id;
+        allTrades.addAll(trades);
+    } else {
+        break;
     }
 }
 ```
@@ -2350,6 +2524,22 @@ if ($exchange->has['fetchMyTrades']) {
         } else {
             break;
         }
+    }
+}
+```
+
+#### **Java**
+```java
+int page = 0;
+List<Trade> allTrades = new ArrayList<>();
+while (true) {
+    Map<String, Object> params = Map.of("page", page);
+    List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, params);
+    if (!trades.isEmpty()) {
+        page++; // or extract cursor from response
+        allTrades.addAll(trades);
+    } else {
+        break;
     }
 }
 ```
@@ -2447,6 +2637,14 @@ foreach ($exchange->markets as $symbol => $market) {
 }
 ```
 
+#### **Java**
+```java
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 10L, null);
+System.out.println("bids: " + ob.bids.size() + " asks: " + ob.asks.size());
+```
+
 <!-- tabs:end -->
 
 ### Order Book Structure
@@ -2524,6 +2722,12 @@ $limit = 20;
 var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 ```
 
+#### **Java**
+```java
+OrderBook ob = exchange.fetchOrderBook("BTC/USDT", 5L, null);
+System.out.println("bids: " + ob.bids.size() + " asks: " + ob.asks.size());
+```
+
 <!-- tabs:end -->
 
 The levels of detail or levels of order book aggregation are often number-labelled like L1, L2, L3...
@@ -2569,6 +2773,14 @@ $ask = count ($orderbook['asks']) ? $orderbook['asks'][0][0] : null;
 $spread = ($bid && $ask) ? $ask - $bid : null;
 $result = array ('bid' => $bid, 'ask' => $ask, 'spread' => $spread);
 var_dump ($exchange->id, 'market price', $result);
+```
+#### **Java**
+```java
+OrderBook ob = exchange.fetchOrderBook("BTC/USDT");
+Double bid = !ob.bids.isEmpty() ? ob.bids.get(0).get(0) : null;
+Double ask = !ob.asks.isEmpty() ? ob.asks.get(0).get(0) : null;
+Double spread = (bid != null && ask != null) ? ask - bid : null;
+System.out.println("bid=" + bid + " ask=" + ask + " spread=" + spread);
 ```
 <!-- tabs:end -->
 
@@ -2700,6 +2912,11 @@ if ($exchange->has['fetchTicker']) {
     var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
 }
 ```
+#### **Java**
+```java
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " last=" + ticker.last + " bid=" + ticker.bid + " ask=" + ticker.ask);
+```
 <!-- tabs:end -->
 
 ### All At Once
@@ -2722,6 +2939,13 @@ if (exchange.has['fetchTickers']):
 ```php
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
+}
+```
+#### **Java**
+```java
+Tickers tickers = exchange.fetchTickers();
+for (var entry : tickers.tickers.entrySet()) {
+    System.out.println(entry.getKey() + " last=" + entry.getValue().last);
 }
 ```
 <!-- tabs:end -->
@@ -2748,6 +2972,10 @@ if (exchange.has['fetchTickers']):
 if ($exchange->has['fetchTickers']) {
     var_dump ($exchange->fetch_tickers (array ('ETH/BTC', 'LTC/BTC'))); // listed tickers indexed by their symbols
 }
+```
+#### **Java**
+```java
+Tickers tickers = exchange.fetchTickers(List.of("ETH/BTC", "LTC/BTC"), null);
 ```
 <!-- tabs:end -->
 
@@ -2810,6 +3038,13 @@ if ($exchange->has['fetchOHLCV']) {
         usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
+}
+```
+#### **Java**
+```java
+List<OHLCV> candles = exchange.fetchOHLCV("BTC/USDT", "1h", null, 10L, null);
+for (OHLCV c : candles) {
+    System.out.println(c.timestamp + " O=" + c.open + " H=" + c.high + " L=" + c.low + " C=" + c.close);
 }
 ```
 <!-- tabs:end -->
@@ -2971,6 +3206,10 @@ index_klines = exchange.fetch_index_ohlcv('ADA/USDT', '1h')
 pprint(mark_klines)
 pprint(index_klines)
 ```
+#### **Java**
+```java
+List<OHLCV> markKlines = exchange.fetchOHLCV("ADA/USDT", "1h", null, null, Map.of("price", "mark"));
+```
 <!-- tabs:end -->
 
 
@@ -3011,6 +3250,13 @@ if ($exchange->has['fetchTrades']) {
     foreach ($exchange->markets as $symbol => $market) {
         var_dump ($exchange->fetch_trades ($symbol));
     }
+}
+```
+#### **Java**
+```java
+List<Trade> trades = exchange.fetchTrades("BTC/USDT", null, 20L, null);
+for (Trade t : trades) {
+    System.out.println(t.datetime + " " + t.side + " " + t.amount + " @ " + t.price);
 }
 ```
 <!-- tabs:end -->
@@ -3946,6 +4192,11 @@ $exchange = new \ccxt\bittrex ();
 var_dump($exchange->requiredCredentials); // prints required credentials
 $exchange->check_required_credentials(); // throws AuthenticationError
 ```
+#### **Java**
+```java
+Exchange exchange = Exchange.dynamicallyCreateInstance("binance", null);
+exchange.checkRequiredCredentials(); // throws AuthenticationError
+```
 <!-- tabs:end -->
 
 #### Configuring API Keys
@@ -4021,6 +4272,18 @@ $exchange = new $exchange_class (array (
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
 ));
+```
+#### **Java**
+```java
+// upon instantiation
+Map<String, Object> config = new HashMap<>();
+config.put("apiKey", "YOUR_API_KEY");
+config.put("secret", "YOUR_SECRET");
+Exchange exchange = Exchange.dynamicallyCreateInstance("binance", config);
+
+// or set later
+exchange.apiKey = "YOUR_API_KEY";
+exchange.secret = "YOUR_SECRET";
 ```
 <!-- tabs:end -->
 
@@ -4258,6 +4521,12 @@ print (exchange.fetch_balance ())
 ```php
 var_dump ($exchange->fetch_balance ());
 ```
+#### **Java**
+```java
+Balances balance = exchange.fetchBalance();
+System.out.println("BTC free: " + balance.free.get("BTC"));
+System.out.println("USDT total: " + balance.total.get("USDT"));
+```
 <!-- tabs:end -->
 
 ## Orders
@@ -4309,6 +4578,11 @@ print(exchange.has)
 ```php
 $exchange = new \ccxt\bitfinex();
 print_r ($exchange->has); // or var_dump
+```
+#### **Java**
+```java
+Map<String, Object> has = (Map<String, Object>) exchange.getExchange().has;
+System.out.println(has);
 ```
 <!-- tabs:end -->
 
@@ -4432,6 +4706,11 @@ if ($exchange->has['fetchOrder']) {
     $order = $exchange->fetch_order($id);
     var_dump($order);
 }
+```
+#### **Java**
+```java
+Order order = exchange.fetchOrder(orderId, "BTC/USDT", null);
+System.out.println("Order " + order.id + " status=" + order.status + " filled=" + order.filled);
 ```
 <!-- tabs:end -->
 
@@ -4683,6 +4962,11 @@ if ($exchange->has['createMarketOrder']) {
     ...
 }
 ```
+#### **Java**
+```java
+// All order types are supported through createOrder
+Order order = exchange.createMarketBuyOrder("BTC/USDT", 0.001);
+```
 <!-- tabs:end -->
 
 #### Market Buys
@@ -4833,6 +5117,11 @@ $params = {
 }
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params)
 ```
+#### **Java**
+```java
+Map<String, Object> params = Map.of("triggerPrice", 1700);
+Order order = exchange.createOrder("ETH/USDT", "market", "buy", 0.1, null, params);
+```
 <!-- tabs:end -->
 <a name="trigger-direction" id="trigger-direction"></a>
 Typically, exchange automatically determines `triggerPrice`'s direction (whether it is "above" or "below" current price), however, some exchanges require that you provide `triggerDirection` with either `ascending` or `descending` values:
@@ -4929,6 +5218,11 @@ $params = {
 
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+#### **Java**
+```java
+Map<String, Object> params = Map.of("stopLossPrice", 55.45);
+Order order = exchange.createOrder(symbol, type, side, amount, price, params);
+```
 <!-- tabs:end -->
 
 ##### Take Profit Orders
@@ -5012,6 +5306,11 @@ $params = {
 
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+#### **Java**
+```java
+Map<String, Object> params = Map.of("takeProfitPrice", 120.45);
+Order order = exchange.createOrder(symbol, type, side, amount, price, params);
+```
 <!-- tabs:end -->
 
 #### StopLoss And TakeProfit Orders Attached To A Position
@@ -5065,6 +5364,14 @@ $params = [
     ]
 ]
 $order = $exchange->create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, $params);
+```
+#### **Java**
+```java
+Map<String, Object> params = Map.of(
+    "stopLoss", Map.of("triggerPrice", 12.34, "price", 12.00),
+    "takeProfit", Map.of("triggerPrice", 15.00, "price", 15.50)
+);
+Order order = exchange.createOrder("SOL/USDT", "limit", "buy", 0.5, 13.0, params);
 ```
 <!-- tabs:end -->
 
@@ -5140,6 +5447,11 @@ $params = {
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
+#### **Java**
+```java
+Map<String, Object> params = Map.of("trailingPercent", 1.0);
+Order order = exchange.createOrder("BTC/USDT:USDT", "market", "sell", 1.0, null, params);
+```
 <!-- tabs:end -->
 
 #### Custom Order Params
@@ -5161,6 +5473,10 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 ```php
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+#### **Java**
+```java
+Order order = exchange.createOrder("BTC/USDT", "limit", "sell", 1.0, 10.0, Map.of("type", "trailing-stop"));
 ```
 <!-- tabs:end -->
 
@@ -5192,6 +5508,11 @@ exchange.create_order(symbol, type, side, amount, price, {
 $exchange->create_order($symbol, $type, $side, $amount, $price, array(
     'clientOrderId' => 'Foobar',
 ))
+```
+#### **Java**
+```java
+Order order = exchange.createOrder("BTC/USDT", "limit", "buy", 0.001, 50000.0,
+    Map.of("clientOrderId", "Hello"));
 ```
 <!-- tabs:end -->
 
@@ -5428,6 +5749,13 @@ if ($exchange->has['fetchMyTrades']) {
     $trades = $exchange->fetch_my_trades($symbol, $since, $limit, $params);
 }
 ```
+#### **Java**
+```java
+List<Trade> myTrades = exchange.fetchMyTrades("BTC/USDT", null, 20L, null);
+for (Trade t : myTrades) {
+    System.out.println(t.datetime + " " + t.side + " " + t.amount + " @ " + t.price);
+}
+```
 <!-- tabs:end -->
 
 Returns ordered array `[]` of trades (most recent trade last).
@@ -5494,6 +5822,10 @@ if exchange.has['fetchOrderTrades']:
 if ($exchange->has['fetchOrderTrades']) {
     $trades = $exchange->fetch_order_trades($order_id, $symbol, $since, $limit, $params);
 }
+```
+#### **Java**
+```java
+Object trades = exchange.fetchOrderTrades(orderId, symbol).join();
 ```
 <!-- tabs:end -->
 
@@ -5709,6 +6041,10 @@ withdraw(code, amount, address, tag=None, params={})
 ```php
 withdraw ($code, $amount, $address, $tag = null, $params = array ())
 ```
+#### **Java**
+```java
+Transaction tx = exchange.withdraw("BTC", 0.5, "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", null, null);
+```
 <!-- tabs:end -->
 
 Parameters
@@ -5771,6 +6107,10 @@ withdraw(code, amount, address, { 'tag': tag, 'network': 'ETH' })
 #### **PHP**
 ```php
 withdraw ($code, $amount, $address, array( 'tag' => tag, 'network' -> 'ETH' ));
+```
+#### **Java**
+```java
+Transaction tx = exchange.withdraw("USDT", 100.0, "0x1234...", null, Map.of("network", "ETH"));
 ```
 <!-- tabs:end -->
 
@@ -5863,6 +6203,10 @@ if ($exchange->has['fetchDeposits']) {
     throw new Exception ($exchange->id . ' does not have the fetch_deposits method');
 }
 ```
+#### **Java**
+```java
+List<Transaction> deposits = exchange.fetchDeposits("BTC", null, null, null);
+```
 <!-- tabs:end -->
 
 ### fetchWithdrawals Examples
@@ -5897,6 +6241,10 @@ if ($exchange->has['fetchWithdrawals']) {
     throw new Exception ($exchange->id . ' does not have the fetch_withdrawals method');
 }
 ```
+#### **Java**
+```java
+List<Transaction> withdrawals = exchange.fetchWithdrawals("BTC", null, null, null);
+```
 <!-- tabs:end -->
 
 ### fetchTransactions Examples
@@ -5930,6 +6278,10 @@ if ($exchange->has['fetchTransactions']) {
 } else {
     throw new Exception ($exchange->id . ' does not have the fetch_transactions method');
 }
+```
+#### **Java**
+```java
+List<Transaction> transactions = exchange.fetchTransactions("BTC", null, null, null);
 ```
 <!-- tabs:end -->
 
@@ -6570,6 +6922,11 @@ $params = {
     'marginMode': 'isolated', // or 'cross'
 }
 $order = $exchange->create_order ('ETH/USDT', 'market', 'buy', 0.1, 1500, $params);
+```
+#### **Java**
+```java
+Map<String, Object> params = Map.of("marginMode", "isolated");
+Order order = exchange.createOrder("ETH/USDT", "market", "buy", 0.1, null, params);
 ```
 <!-- tabs:end -->
 
@@ -7258,6 +7615,54 @@ try {
     echo $exchange->id . ' fetch_trades failed with: ' . $e->getMessage () . "\n";
     // retry or whatever
 }
+```
+#### **Java**
+```java
+import io.github.ccxt.errors.*;
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+// CCXT's typed sync wrappers unwrap CompletionException for you, so users
+// write idiomatic Java try/catch with multiple typed catch blocks in
+// most-specific → least-specific order — same shape as catching
+// ArrayIndexOutOfBoundsException, IOException, etc.
+Binance exchange = new Binance();
+try {
+    Ticker ticker = exchange.fetchTicker("ETH/BTC");
+    System.out.println(ticker.last());
+} catch (RateLimitExceeded e) {           // back off, retry later
+    System.out.println("Rate limited: " + e.getMessage());
+} catch (NetworkError e) {                // transient: DDoSProtection, RequestTimeout, ExchangeNotAvailable
+    System.out.println("Network error: " + e.getMessage());
+} catch (AuthenticationError e) {         // refresh creds
+    System.out.println("Auth failed: " + e.getMessage());
+} catch (ExchangeError e) {               // exchange-side issue (don't retry blindly)
+    System.out.println("Exchange error: " + e.getMessage());
+} catch (BaseError e) {                   // ccxt catch-all
+    System.out.println("CCXT error: " + e.getMessage());
+}
+```
+
+For async pipelines (`fetchTickerAsync`, etc.), `CompletableFuture` wraps
+thrown errors in `CompletionException`. Use `Helpers.unwrap()` inside
+`.exceptionally(...)` to peel the wrapper and pattern-match the underlying
+ccxt error:
+
+```java
+import io.github.ccxt.Helpers;
+
+exchange.fetchTickerAsync("ETH/BTC")
+    .thenAccept(t -> System.out.println(t.last()))
+    .exceptionally(throwable -> {
+        Throwable cause = Helpers.unwrap(throwable);
+        return switch (cause) {
+            case RateLimitExceeded e   -> { System.out.println("rate-limited"); yield null; }
+            case NetworkError e        -> { System.out.println("network"); yield null; }
+            case AuthenticationError e -> { System.out.println("auth"); yield null; }
+            case ExchangeError e       -> { System.out.println("exchange"); yield null; }
+            default -> throw new java.util.concurrent.CompletionException(cause);
+        };
+    });
 ```
 <!-- tabs:end -->
 

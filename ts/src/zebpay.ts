@@ -1807,11 +1807,11 @@ export default class zebpay extends Exchange {
         //        }
         //     ]
         //
-        const timestamp = this.safeInteger2 (ticker, 'timestamp', 'ts', undefined);
+        const timestamp = this.safeInteger2 (ticker, 'timestamp', 'ts');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId);
-        const close = this.safeString (ticker, 'close', undefined);
-        const last = this.safeString (ticker, 'last', undefined);
+        const close = this.safeString (ticker, 'close');
+        const last = this.safeString (ticker, 'last');
         const percentage = this.safeString (ticker, 'percentage');
         const bidVolume = this.safeString (ticker, 'bidVolume');
         const askVolume = this.safeString (ticker, 'askVolume');

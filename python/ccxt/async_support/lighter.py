@@ -435,7 +435,7 @@ class lighter(Exchange, ImplicitAPI):
     async def pre_load_lighter_library(self, params={}):
         """
         if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
- @param params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns boolean: True if the signer was loaded, False otherwise
         """
         apiKeyIndex = None

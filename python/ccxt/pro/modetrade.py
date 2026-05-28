@@ -932,9 +932,9 @@ class modetrade(ccxt.async_support.modetrade):
 
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
- @param since timestamp in ms of the earliest position to fetch
- @param limit the maximum number of positions to fetch
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()

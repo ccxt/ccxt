@@ -3048,7 +3048,7 @@ class hashkey extends hashkey$1["default"] {
         [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds(request);
             //
             //     {
             //         "code": "0000",
@@ -3057,7 +3057,7 @@ class hashkey extends hashkey$1["default"] {
             //
         }
         else if (marketType === 'swap') {
-            response = this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds(request);
         }
         else {
             throw new errors.NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
@@ -4338,8 +4338,8 @@ class hashkey extends hashkey$1["default"] {
             return undefined;
         }
         let errorInArray = false;
-        let responseCodeString = this.safeString(response, 'code', undefined);
-        const responseCodeInteger = this.safeInteger(response, 'code', undefined); // some codes in response are returned as '0000' others as 0
+        let responseCodeString = this.safeString(response, 'code');
+        const responseCodeInteger = this.safeInteger(response, 'code'); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger === 0) {
             const result = this.safeList(response, 'result', []); // for batch methods
             for (let i = 0; i < result.length; i++) {

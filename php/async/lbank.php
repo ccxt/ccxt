@@ -1081,9 +1081,10 @@ class lbank extends Exchange {
         $fee = null;
         $feeCost = $this->safe_string($trade, 'tradeFee');
         if ($feeCost !== null) {
+            $feeCurr = ($side === 'buy') ? $market['base'] : $market['quote'];
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => ($side === 'buy') ? $market['base'] : $market['quote'],
+                'currency' => $feeCurr,
                 'rate' => $this->safe_string($trade, 'tradeFeeRate'),
             );
         }
@@ -1209,11 +1210,13 @@ class lbank extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $since = $this->milliseconds() - ($duration * 1000 * $limit);
             }
+            $parsedSince = $this->parse_to_int($since / 1000);
+            $parsedLimit = min ($limit + 1, 2000); // max 2000;
             $request = array(
                 'symbol' => $market['id'],
                 'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                'time' => $this->parse_to_int($since / 1000),
-                'size' => min ($limit + 1, 2000), // max 2000
+                'time' => $parsedSince,
+                'size' => $parsedLimit,
             );
             $response = Async\await($this->spotPublicGetKline ($this->extend($request, $params)));
             $ohlcvs = $this->safe_list($response, 'data', array());
@@ -3070,9 +3073,10 @@ class lbank extends Exchange {
             } else {
                 $signatureMethod = 'HmacSHA256';
             }
+            $finalSig = $signatureMethod; // java req
             $auth = $this->rawencode($this->keysort($this->extend(array(
                 'echostr' => $echostr,
-                'signature_method' => $signatureMethod,
+                'signature_method' => $finalSig,
                 'timestamp' => $timestamp,
             ), $query)));
             $encoded = $this->encode($auth);

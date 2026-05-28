@@ -1021,7 +1021,7 @@ export default class bitopro extends Exchange {
             '4': 'canceled',
             '6': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status);
     }
     parseOrder(order, market = undefined) {
         //

@@ -1803,11 +1803,11 @@ class zebpay extends Exchange {
         //        }
         //     )
         //
-        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts', null);
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId);
-        $close = $this->safe_string($ticker, 'close', null);
-        $last = $this->safe_string($ticker, 'last', null);
+        $close = $this->safe_string($ticker, 'close');
+        $last = $this->safe_string($ticker, 'last');
         $percentage = $this->safe_string($ticker, 'percentage');
         $bidVolume = $this->safe_string($ticker, 'bidVolume');
         $askVolume = $this->safe_string($ticker, 'askVolume');

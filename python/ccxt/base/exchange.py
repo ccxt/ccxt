@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.55'
+__version__ = '4.5.56'
 
 # -----------------------------------------------------------------------------
 
@@ -3386,6 +3386,8 @@ class Exchange(object):
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
             parsed = self.parse_currency(arr[i])
+            if parsed is None:
+                continue
             code = parsed['code']
             result[code] = parsed
         return result
@@ -3656,7 +3658,7 @@ class Exchange(object):
                 self.features[marketType] = None
             else:
                 if marketType == 'spot':
-                    self.features[marketType] = self.features_mapper(initialFeatures, marketType, None)
+                    self.features[marketType] = self.features_mapper(initialFeatures, marketType)
                 else:
                     self.features[marketType] = {}
                     for j in range(0, len(subTypes)):
@@ -5232,7 +5234,7 @@ class Exchange(object):
         positions = self.to_array(positions)
         result = []
         for i in range(0, len(positions)):
-            position = self.extend(self.parse_position(positions[i], None), params)
+            position = self.extend(self.parse_position(positions[i]), params)
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -5244,7 +5246,7 @@ class Exchange(object):
         ranks = self.to_array(ranks)
         result = []
         for i in range(0, len(ranks)):
-            rank = self.extend(self.parse_adl_rank(ranks[i], None), params)
+            rank = self.extend(self.parse_adl_rank(ranks[i]), params)
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 

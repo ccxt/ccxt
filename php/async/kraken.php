@@ -1788,10 +1788,11 @@ class kraken extends Exchange {
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
                 $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $parsedAmount = $this->amount_to_precision($market['symbol'], $amount);
                 $req = array(
                     'type' => $side,
                     'ordertype' => $type,
-                    'volume' => $this->amount_to_precision($market['symbol'], $amount),
+                    'volume' => $parsedAmount,
                 );
                 $orderRequest = $this->order_request('createOrders', $marketId, $type, $req, $amount, $price, $orderParams);
                 $ordersRequests[] = $orderRequest[0];
@@ -2123,12 +2124,12 @@ class kraken extends Exchange {
                 $stopLossPrice = $triggerPrice;
             }
         }
-        $finalType = $this->parse_order_type($rawType);
+        $typeParsed = $this->parse_order_type($rawType);
         // unlike from endpoints which provide eg => "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg => `stop loss > limit 123`, so we need to parse them manually
-        if ($this->in_array($finalType, array( 'stop loss', 'take profit' ))) {
-            $finalType = ($price === null) ? 'market' : 'limit';
+        if ($this->in_array($typeParsed, array( 'stop loss', 'take profit' ))) {
+            $typeParsed = ($price === null) ? 'market' : 'limit';
         }
         $amendId = $this->safe_string($order, 'amend_id');
         if ($amendId !== null) {
@@ -2143,7 +2144,7 @@ class kraken extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $finalType,
+            'type' => $typeParsed,
             'timeInForce' => null,
             'postOnly' => $isPostOnly,
             'side' => $side,
@@ -3601,16 +3602,16 @@ class kraken extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $fromAccount = $this->parse_account_type($fromAccount);
-            $toAccount = $this->parse_account_type($toAccount);
+            $fromAccountParsed = $this->parse_account_type($fromAccount);
+            $toAccountParsed = $this->parse_account_type($toAccount);
             $request = array(
                 'amount' => $this->currency_to_precision($code, $amount),
-                'from' => $fromAccount,
-                'to' => $toAccount,
+                'from' => $fromAccountParsed,
+                'to' => $toAccountParsed,
                 'asset' => $currency['id'],
             );
-            if ($fromAccount !== 'Spot Wallet') {
-                throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccount . ' to ' . $toAccount . '. Use krakenfutures instead to $transfer from the futures account.');
+            if ($fromAccountParsed !== 'Spot Wallet') {
+                throw new BadRequest($this->id . ' $transfer cannot $transfer from ' . $fromAccountParsed . ' to ' . $toAccountParsed . '. Use krakenfutures instead to $transfer from the futures account.');
             }
             $response = Async\await($this->privatePostWalletTransfer ($this->extend($request, $params)));
             //
@@ -3625,8 +3626,8 @@ class kraken extends Exchange {
             $transfer = $this->parse_transfer($response, $currency);
             return $this->extend($transfer, array(
                 'amount' => $amount,
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
+                'fromAccount' => $fromAccountParsed,
+                'toAccount' => $toAccountParsed,
             ));
         }) ();
     }

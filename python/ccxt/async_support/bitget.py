@@ -1969,8 +1969,7 @@ class bitget(Exchange, ImplicitAPI):
         uta, params = self.handle_option_and_params(params, 'fetchMarkets', 'uta', False)
         if uta:
             return await self.fetch_uta_markets(params)
-        else:
-            return await self.fetch_default_markets(params)
+        return await self.fetch_default_markets(params)
 
     async def fetch_default_markets(self, params) -> List[Market]:
         types = None
@@ -5161,6 +5160,13 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        # multipleTriggers = (isTriggerOrder and (isStopLossTriggerOrder or isTakeProfitTriggerOrder or isTrailingPercentOrder))
+        #     or (isStopLossTriggerOrder and (isTakeProfitTriggerOrder or isTrailingPercentOrder))
+        #     or (isTakeProfitTriggerOrder and isTrailingPercentOrder)
+        # if multipleTriggers:
+        #     raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # }
+        #
         if self.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         if type == 'limit':
@@ -5510,6 +5516,12 @@ class bitget(Exchange, ImplicitAPI):
         trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice', self.number_to_string(price))
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'newCallbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        # multipleTriggers = (isTriggerOrder and (isStopLossOrder or isTakeProfitOrder or isTrailingPercentOrder))
+        #     or (isStopLossOrder and (isTakeProfitOrder or isTrailingPercentOrder))
+        #     or (isTakeProfitOrder and isTrailingPercentOrder)
+        # if multipleTriggers:
+        #     raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
+        # }
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder) > 1:
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent')
         params = self.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent'])

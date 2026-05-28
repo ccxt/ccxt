@@ -1225,7 +1225,7 @@ class luno(Exchange, ImplicitAPI):
         firstWord = self.safe_string(words, 0)
         thirdWord = self.safe_string(words, 2)
         fourthWord = self.safe_string(words, 3)
-        type = self.safe_string(types, firstWord, None)
+        type = self.safe_string(types, firstWord)
         if (type is None) and (thirdWord == 'fee'):
             type = 'fee'
         if (type == 'reserved') and (fourthWord == 'order'):

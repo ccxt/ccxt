@@ -1891,7 +1891,7 @@ class grvt extends Exchange {
     public function load_account_infos() {
         return Async\async(function ()  {
             if ($this->safe_string($this->options, 'userMainAccountId') !== null) {
-                return;
+                return false;
             }
             $promises = array();
             $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary ();
@@ -1944,6 +1944,7 @@ class grvt extends Exchange {
                 $subAccountId = $this->safe_string($subAccountIds, 0);
                 $this->options['accountId'] = $subAccountId;
             }
+            return true;
         }) ();
     }
 
@@ -2039,8 +2040,10 @@ class grvt extends Exchange {
             }
             $params = $this->omit($params, array( 'clientOrderId' ));
             $isMarketOrder = ($type === 'market');
+            $subAccountId = $this->get_sub_account_id($params);
+            $isReduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             $orderRequest = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
+                'sub_account_id' => $subAccountId,
                 'time_in_force' => null,
                 'legs' => array( $orderLeg ),
                 'signature' => $this->default_signature(),
@@ -2049,7 +2052,7 @@ class grvt extends Exchange {
                 ),
                 'is_market' => $isMarketOrder,
                 'post_only' => false,
-                'reduce_only' => $this->safe_bool($params, 'reduceOnly', false),
+                'reduce_only' => $isReduceOnly,
                 // 'order_id' => null,
                 // 'state' => null,
             );
@@ -2701,8 +2704,9 @@ class grvt extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets_and_sign_in());
+            $subAccountId = $this->get_sub_account_id($params);
             $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
+                'sub_account_id' => $subAccountId,
             );
             $market = null;
             if ($symbol !== null) {
@@ -2884,8 +2888,9 @@ class grvt extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets_and_sign_in());
+            $subAccountId = $this->get_sub_account_id($params);
             $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
+                'sub_account_id' => $subAccountId,
             );
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
             if ($clientOrderId !== null) {
@@ -3154,7 +3159,7 @@ class grvt extends Exchange {
             //    }
             //
             $result = $this->safe_dict($response, 'result', array());
-            return $this->parse_orders(array( $result ), null);
+            return $this->parse_orders(array( $result ));
         }) ();
     }
 
@@ -3172,8 +3177,9 @@ class grvt extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets_and_sign_in());
+            $subAccoubntId = $this->get_sub_account_id($params);
             $request = array(
-                'sub_account_id' => $this->get_sub_account_id($params),
+                'sub_account_id' => $subAccoubntId,
             );
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
             if ($clientOrderId !== null) {

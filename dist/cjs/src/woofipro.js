@@ -1434,7 +1434,7 @@ class woofipro extends woofipro$1["default"] {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {

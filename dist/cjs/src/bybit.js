@@ -1546,8 +1546,9 @@ class bybit extends bybit$1["default"] {
             amountPrecision = this.parseNumber('1');
             pricePrecision = this.parseNumber('0.01');
         }
+        const convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return {
-            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
+            'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
@@ -1954,8 +1955,8 @@ class bybit extends bybit$1["default"] {
         }
         return result;
     }
-    async fetchFutureMarkets(params) {
-        params = this.extend(params);
+    async fetchFutureMarkets(params = {}) {
+        params = this.extend(params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [];
         const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
@@ -2098,7 +2099,7 @@ class bybit extends bybit$1["default"] {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
-            result.push(this.safeMarketStructure({
+            const parsedMarket = this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -2148,7 +2149,8 @@ class bybit extends bybit$1["default"] {
                 },
                 'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
-            }));
+            });
+            result.push(parsedMarket);
         }
         return result;
     }
@@ -4954,7 +4956,7 @@ class bybit extends bybit$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const row = this.safeList(result, 'list', []);
-        return this.parseOrders(row, undefined);
+        return this.parseOrders(row);
     }
     /**
      * @method
@@ -5791,7 +5793,7 @@ class bybit extends bybit$1["default"] {
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
         await this.loadMarkets();
-        let currency = this.currency(code);
+        const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
         };
@@ -5823,9 +5825,9 @@ class bybit extends bybit$1["default"] {
         const result = this.safeDict(response, 'result', {});
         const chains = this.safeList(result, 'chains', []);
         const coin = this.safeString(result, 'coin');
-        currency = this.currency(coin);
-        const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
-            'currency': currency['code'],
+        const currencyFromResponse = this.currency(coin);
+        const parsed = this.parseDepositAddresses(chains, [currencyFromResponse['code']], false, {
+            'currency': currencyFromResponse['code'],
         });
         return this.indexBy(parsed, 'network');
     }
@@ -7099,7 +7101,7 @@ class bybit extends bybit$1["default"] {
     }
     async fetchDerivativesOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let market = this.market(symbol);
+        const market = this.market(symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
         const category = this.safeString(params, 'category', subType);
         const intervals = this.safeDict(this.options, 'intervals');
@@ -7150,8 +7152,8 @@ class bybit extends bybit$1["default"] {
         const result = this.safeDict(response, 'result', {});
         const data = this.addPaginationCursorToResult(response);
         const id = this.safeString(result, 'symbol');
-        market = this.safeMarket(id, market, undefined, 'contract');
-        return this.parseOpenInterestsHistory(data, market, since, limit);
+        const safeMarketObj = this.safeMarket(id, market, undefined, 'contract');
+        return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
     }
     /**
      * @method
@@ -7166,7 +7168,7 @@ class bybit extends bybit$1["default"] {
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
-        let market = this.market(symbol);
+        const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
@@ -7209,9 +7211,9 @@ class bybit extends bybit$1["default"] {
         //
         const result = this.safeDict(response, 'result', {});
         const id = this.safeString(result, 'symbol');
-        market = this.safeMarket(id, market, undefined, 'contract');
+        const safeMarketObj = this.safeMarket(id, market, undefined, 'contract');
         const data = this.addPaginationCursorToResult(response);
-        return this.parseOpenInterest(data[0], market);
+        return this.parseOpenInterest(data[0], safeMarketObj);
     }
     /**
      * @method
@@ -7376,7 +7378,7 @@ class bybit extends bybit$1["default"] {
         //
         const data = this.safeDict(response, 'result', {});
         const rows = this.safeList(data, 'loanAccountList', []);
-        const interest = this.parseBorrowInterests(rows, undefined);
+        const interest = this.parseBorrowInterests(rows);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
     /**
