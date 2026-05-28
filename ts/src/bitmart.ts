@@ -1330,7 +1330,7 @@ export default class bitmart extends Exchange {
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (currencyCode); // use default network code if not provided
         }
-        let networkEntry = this.safeDict (networks, networkCode);
+        let networkEntry = (networkCode !== undefined) ? this.safeDict (networks, networkCode) : undefined;
         // if still undefined, then check if it has only one network (otherwise throw an exception bcz of uncertainty)
         if (networkEntry === undefined) {
             const keys = Object.keys (networks);
