@@ -727,100 +727,99 @@ public class CoinexCore extends CoinexApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
-            {
-                Object coin = Helpers.GetValue(data, i);
-                Object asset = this.safeDict(coin, "asset", new java.util.HashMap<String, Object>() {{}});
-                Object chains = this.safeList(coin, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object currencyId = this.safeString(asset, "ccy");
-                if (Helpers.isTrue(Helpers.isEqual(currencyId, null)))
-                {
-                    continue;
-                }
-                Object code = this.safeCurrencyCode(currencyId);
-                Object canDeposit = this.safeBool(asset, "deposit_enabled");
-                Object canWithdraw = this.safeBool(asset, "withdraw_enabled");
-                Object firstChain = this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
-                Object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
-                Object networks = new java.util.HashMap<String, Object>() {{}};
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
-                {
-                    Object chain = Helpers.GetValue(chains, j);
-                    Object networkId = this.safeString(chain, "chain");
-                    Object networkCode = this.networkIdToCode(networkId, code);
-                    if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
-                    {
-                        continue;
-                    }
-                    Object precisionString = this.parsePrecision(this.safeString(chain, "withdrawal_precision"));
-                    Object feeString = this.safeString(chain, "withdrawal_fee");
-                    Object minNetworkDepositString = this.safeString(chain, "min_deposit_amount");
-                    Object minNetworkWithdrawString = this.safeString(chain, "min_withdraw_amount");
-                    Object canDepositChain = this.safeBool(chain, "deposit_enabled");
-                    Object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
-                    final Object finalNetworkId = networkId;
-                    final Object finalCanDepositChain = canDepositChain;
-                    Object network = new java.util.HashMap<String, Object>() {{
-                        put( "id", finalNetworkId );
-                        put( "network", networkCode );
-                        put( "name", null );
-                        put( "active", Helpers.isTrue(finalCanDepositChain) && Helpers.isTrue(canWithdrawChain) );
-                        put( "deposit", finalCanDepositChain );
-                        put( "withdraw", canWithdrawChain );
-                        put( "fee", CoinexCore.this.parseNumber(feeString) );
-                        put( "precision", CoinexCore.this.parseNumber(precisionString) );
-                        put( "limits", new java.util.HashMap<String, Object>() {{
-                            put( "amount", new java.util.HashMap<String, Object>() {{
-                                put( "min", null );
-                                put( "max", null );
-                            }} );
-                            put( "deposit", new java.util.HashMap<String, Object>() {{
-                                put( "min", CoinexCore.this.parseNumber(minNetworkDepositString) );
-                                put( "max", null );
-                            }} );
-                            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                                put( "min", CoinexCore.this.parseNumber(minNetworkWithdrawString) );
-                                put( "max", null );
-                            }} );
-                        }} );
-                        put( "info", chain );
-                    }};
-                    Helpers.addElementToObject(networks, networkCode, network);
-                }
-                final Object finalCurrencyId = currencyId;
-                final Object finalCanDeposit = canDeposit;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
-        put( "id", finalCurrencyId );
-        put( "code", code );
-        put( "name", null );
-        put( "active", Helpers.isTrue(finalCanDeposit) && Helpers.isTrue(canWithdraw) );
-        put( "deposit", finalCanDeposit );
-        put( "withdraw", canWithdraw );
-        put( "fee", null );
-        put( "precision", CoinexCore.this.parseNumber(firstPrecisionString) );
-        put( "limits", new java.util.HashMap<String, Object>() {{
-            put( "amount", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "deposit", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-            put( "withdraw", new java.util.HashMap<String, Object>() {{
-                put( "min", null );
-                put( "max", null );
-            }} );
-        }} );
-        put( "networks", networks );
-        put( "type", "crypto" );
-        put( "info", coin );
-    }}));
-            }
-            return result;
+            return this.parseCurrencies(data);
         });
 
+    }
+
+    public Object parseCurrency(Object coin)
+    {
+        Object asset = this.safeDict(coin, "asset", new java.util.HashMap<String, Object>() {{}});
+        Object chains = this.safeList(coin, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object currencyId = this.safeString(asset, "ccy");
+        if (Helpers.isTrue(Helpers.isEqual(currencyId, null)))
+        {
+            return null;  // coinex returns empty structures for some reason
+        }
+        Object code = this.safeCurrencyCode(currencyId);
+        Object canDeposit = this.safeBool(asset, "deposit_enabled");
+        Object canWithdraw = this.safeBool(asset, "withdraw_enabled");
+        Object firstChain = this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
+        Object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
+        Object networks = new java.util.HashMap<String, Object>() {{}};
+        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
+        {
+            Object chain = Helpers.GetValue(chains, j);
+            Object networkId = this.safeString(chain, "chain");
+            Object networkCode = this.networkIdToCode(networkId, code);
+            if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
+            {
+                continue;
+            }
+            Object precisionString = this.parsePrecision(this.safeString(chain, "withdrawal_precision"));
+            Object feeString = this.safeString(chain, "withdrawal_fee");
+            Object minNetworkDepositString = this.safeString(chain, "min_deposit_amount");
+            Object minNetworkWithdrawString = this.safeString(chain, "min_withdraw_amount");
+            Object canDepositChain = this.safeBool(chain, "deposit_enabled");
+            Object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
+            final Object finalNetworkId = networkId;
+            final Object finalCanDepositChain = canDepositChain;
+            Object network = new java.util.HashMap<String, Object>() {{
+                put( "id", finalNetworkId );
+                put( "network", networkCode );
+                put( "name", null );
+                put( "active", Helpers.isTrue(finalCanDepositChain) && Helpers.isTrue(canWithdrawChain) );
+                put( "deposit", finalCanDepositChain );
+                put( "withdraw", canWithdrawChain );
+                put( "fee", CoinexCore.this.parseNumber(feeString) );
+                put( "precision", CoinexCore.this.parseNumber(precisionString) );
+                put( "limits", new java.util.HashMap<String, Object>() {{
+                    put( "amount", new java.util.HashMap<String, Object>() {{
+                        put( "min", null );
+                        put( "max", null );
+                    }} );
+                    put( "deposit", new java.util.HashMap<String, Object>() {{
+                        put( "min", CoinexCore.this.parseNumber(minNetworkDepositString) );
+                        put( "max", null );
+                    }} );
+                    put( "withdraw", new java.util.HashMap<String, Object>() {{
+                        put( "min", CoinexCore.this.parseNumber(minNetworkWithdrawString) );
+                        put( "max", null );
+                    }} );
+                }} );
+                put( "info", chain );
+            }};
+            Helpers.addElementToObject(networks, networkCode, network);
+        }
+        final Object finalCurrencyId = currencyId;
+        final Object finalCanDeposit = canDeposit;
+        return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", finalCurrencyId );
+            put( "code", code );
+            put( "name", null );
+            put( "active", Helpers.isTrue(finalCanDeposit) && Helpers.isTrue(canWithdraw) );
+            put( "deposit", finalCanDeposit );
+            put( "withdraw", canWithdraw );
+            put( "fee", null );
+            put( "precision", CoinexCore.this.parseNumber(firstPrecisionString) );
+            put( "limits", new java.util.HashMap<String, Object>() {{
+                put( "amount", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "deposit", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+                put( "withdraw", new java.util.HashMap<String, Object>() {{
+                    put( "min", null );
+                    put( "max", null );
+                }} );
+            }} );
+            put( "networks", networks );
+            put( "type", "crypto" );
+            put( "info", coin );
+        }});
     }
 
     /**

@@ -4656,6 +4656,10 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object parsed = this.parseCurrency(Helpers.GetValue(arr, i));
+            if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
+            {
+                continue;
+            }
             Object code = Helpers.GetValue(parsed, "code");
             Helpers.addElementToObject(result, code, parsed);
         }
