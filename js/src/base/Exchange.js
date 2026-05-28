@@ -3236,21 +3236,6 @@ export default class Exchange {
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
                 }
-                // set network 'active' to false if D or W is disabled
-                let active = this.safeBool(network, 'active');
-                if (active === undefined) {
-                    if (deposit && withdraw) {
-                        currency['networks'][key]['active'] = true;
-                    }
-                    else if (deposit !== undefined && withdraw !== undefined) {
-                        currency['networks'][key]['active'] = false;
-                    }
-                }
-                active = this.safeBool(currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
-                const currencyActive = this.safeBool(currency, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
-                }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString(network, 'fee');
                 const feeMain = this.safeString(currency, 'fee');
