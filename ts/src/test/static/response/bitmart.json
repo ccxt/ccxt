@@ -264,14 +264,14 @@
             "input": [
               "USDT"
             ],
-            "httpResponse": {"message":"OK","code":1000,"trace":"619294ecef584282b26a3be322b1e01f.90.17394426105542179","data":{"records":[{"withdraw_id":"","deposit_id":"19017278","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1695978904000,"arrival_amount":"69","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"0be8fb435d874454538572e087c60946b2dda0fac1850c1a82f98a0d39d816e9"},{"withdraw_id":"","deposit_id":"14233682","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1664789416000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"},{"withdraw_id":"","deposit_id":"13632954","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1658846077000,"arrival_amount":"10","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"bb25d9259193994874bfc4b712d9965669754cd2b85022f1878e273dd2d23037"},{"withdraw_id":"","deposit_id":"12250959","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1646162180000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"5675c57e00b1adc677f01d1d894a509f8375ccc5a982635f7bee4c3d043c7681"}]}},
+            "httpResponse": {"message":"OK","code":1000,"trace":"619294ecef584282b26a3be322b1e01f.90.17394426105542179","data":{"records":[{"withdraw_id":"","deposit_id":"19017278","operation_type":"deposit","currency":"USDT-TRX","apply_time":1695978904000,"arrival_amount":"69","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"0be8fb435d874454538572e087c60946b2dda0fac1850c1a82f98a0d39d816e9"},{"withdraw_id":"","deposit_id":"14233682","operation_type":"deposit","currency":"USDT-TRX","apply_time":1664789416000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"},{"withdraw_id":"","deposit_id":"13632954","operation_type":"deposit","currency":"USDT-TRX","apply_time":1658846077000,"arrival_amount":"10","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"bb25d9259193994874bfc4b712d9965669754cd2b85022f1878e273dd2d23037"},{"withdraw_id":"","deposit_id":"12250959","operation_type":"deposit","currency":"USDT-TRX","apply_time":1646162180000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"5675c57e00b1adc677f01d1d894a509f8375ccc5a982635f7bee4c3d043c7681"}]}},
             "parsedResponse": [
               {
                 "info": {
                   "withdraw_id": "",
                   "deposit_id": "12250959",
                   "operation_type": "deposit",
-                  "currency": "USDT-TRC20",
+                  "currency": "USDT-TRX",
                   "apply_time": "1646162180000",
                   "arrival_amount": "30",
                   "fee": "0",
@@ -308,7 +308,7 @@
                   "withdraw_id": "",
                   "deposit_id": "13632954",
                   "operation_type": "deposit",
-                  "currency": "USDT-TRC20",
+                  "currency": "USDT-TRX",
                   "apply_time": "1658846077000",
                   "arrival_amount": "10",
                   "fee": "0",
@@ -345,7 +345,7 @@
                   "withdraw_id": "",
                   "deposit_id": "14233682",
                   "operation_type": "deposit",
-                  "currency": "USDT-TRC20",
+                  "currency": "USDT-TRX",
                   "apply_time": "1664789416000",
                   "arrival_amount": "30",
                   "fee": "0",
@@ -382,7 +382,7 @@
                   "withdraw_id": "",
                   "deposit_id": "19017278",
                   "operation_type": "deposit",
-                  "currency": "USDT-TRC20",
+                  "currency": "USDT-TRX",
                   "apply_time": "1695978904000",
                   "arrival_amount": "69",
                   "fee": "0",
@@ -427,14 +427,14 @@
                 "until": 1670328257154
               }
             ],
-            "httpResponse": {"message":"OK","code":1000,"trace":"6a4ee3034edf4a6db5002cbf5cddf961.73.17403125405173083","data":{"records":[{"withdraw_id":"","deposit_id":"14233682","operation_type":"deposit","currency":"USDT-TRC20","apply_time":1664789416000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"}]}},
+            "httpResponse": {"message":"OK","code":1000,"trace":"6a4ee3034edf4a6db5002cbf5cddf961.73.17403125405173083","data":{"records":[{"withdraw_id":"","deposit_id":"14233682","operation_type":"deposit","currency":"USDT-TRX","apply_time":1664789416000,"arrival_amount":"30","fee":"0","status":3,"address":"TF7HBu9JEALW8fyQTk9P5nFdk9JxAirZHN","address_memo":"","tx_id":"ec5060a2dad280a24413a872e80875ec8ee14cb3aeb4f78d15011ea589eb8e53"}]}},
             "parsedResponse": [
               {
                 "info": {
                   "withdraw_id": "",
                   "deposit_id": "14233682",
                   "operation_type": "deposit",
-                  "currency": "USDT-TRC20",
+                  "currency": "USDT-TRX",
                   "apply_time": "1664789416000",
                   "arrival_amount": "30",
                   "fee": "0",

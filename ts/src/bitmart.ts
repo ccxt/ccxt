@@ -1339,7 +1339,7 @@ export default class bitmart extends Exchange {
                 networkEntry = this.safeDict (networks, keys[0]); // select only available network
             } else {
                 // now try to find if "exactly same networkCode like currencyCode" exists
-                // (eg. for ETH coin select ETH network among ['ARB', 'SOL', 'ETH', 'TRX'] networks)
+                // (eg. for ETH coin select ETH network among [ARB|ETH|SOL] networks)
                 for (let i = 0; i < keysLength; i++) {
                     const key = keys[i];
                     if (key === currencyCode) {
@@ -1389,7 +1389,7 @@ export default class bitmart extends Exchange {
         }
         // if something unexpected happens, return default currency
         if (currency === undefined) {
-            currency = this.currency (jointCurrencyId);
+            currency = this.safeCurrency (jointCurrencyId);
         }
         return [ currency, jointCurrencyId ];
     }
@@ -3941,15 +3941,16 @@ export default class bitmart extends Exchange {
         //         "verifyStatus": 0
         //     }
         //
-        const currencyId = this.safeString (depositAddress, 'currency');
+        const networkAndCurrencyJoint = this.safeString (depositAddress, 'currency');
+        const [ currencyObj, networkCodeString ] = this.getNetworkAndCurrencyFromJoint (networkAndCurrencyJoint);
+        currency = (currency !== undefined) ? currency : currencyObj;
         const address = this.safeString (depositAddress, 'address');
-        currency = this.safeCurrency (currencyId, currency);
-        const networkId = this.safeString2 (depositAddress, 'chain', 'network');
+        const networkCodeFromId = this.networkIdToCode (this.safeString2 (depositAddress, 'chain', 'network'), currency['code']);
         this.checkAddress (address);
         return {
             'info': depositAddress,
             'currency': this.safeString (currency, 'code'),
-            'network': this.networkIdToCode (networkId, currency['code']),
+            'network': (networkCodeString !== undefined) ? networkCodeString : networkCodeFromId,
             'address': address,
             'tag': this.safeString2 (depositAddress, 'address_memo', 'memo'),
         } as DepositAddress;
@@ -4223,9 +4224,7 @@ export default class bitmart extends Exchange {
         const timestamp = this.safeIntegerOmitZero (transaction, 'apply_time');
         const jointCurrencyNetworkId = this.safeString (transaction, 'currency');
         const [ currencyObj, networkCode ] = this.getNetworkAndCurrencyFromJoint (jointCurrencyNetworkId);
-        if (currency === undefined) {
-            currency = currencyObj;
-        }
+        currency = (currency !== undefined) ? currency : currencyObj;
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
