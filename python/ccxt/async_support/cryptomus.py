@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptomus import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -81,7 +81,7 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchConvertTradeHistory': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
-                'fetchCurrencies': False,  # temporarily, until they fix the endpoint
+                'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
@@ -408,44 +408,48 @@ class cryptomus(Exchange, ImplicitAPI):
         #
         coins = self.safe_list(response, 'result')
         groupedById = self.group_by(coins, 'currency_code')
-        keys = list(groupedById.keys())
-        result: dict = {}
-        for i in range(0, len(keys)):
-            id = keys[i]
-            code = self.safe_currency_code(id)
-            networks = {}
-            networkEntries = groupedById[id]
-            for j in range(0, len(networkEntries)):
-                networkEntry = networkEntries[j]
-                networkId = self.safe_string(networkEntry, 'network_code')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkEntry, 'min_withdraw'),
-                            'max': self.safe_number(networkEntry, 'max_withdraw'),
-                        },
-                        'deposit': {
-                            'min': self.safe_number(networkEntry, 'min_deposit'),
-                            'max': self.safe_number(networkEntry, 'max_deposit'),
-                        },
+        groupedArray = list(groupedById.values())
+        return self.parse_currencies(groupedArray)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        # currency here is array of networks
+        id: Str = None  # all entried have same id, were grouped by
+        code: Str = None
+        networks = {}
+        for i in range(0, len(rawCurrency)):
+            networkEntry = rawCurrency[i]
+            # set ID on first loop
+            if id is None:
+                id = self.safe_string(networkEntry, 'currency_code')
+                code = self.safe_currency_code(id)
+            networkId = self.safe_string(networkEntry, 'network_code')
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkEntry, 'min_withdraw'),
+                        'max': self.safe_number(networkEntry, 'max_withdraw'),
                     },
-                    'active': None,
-                    'deposit': self.safe_bool(networkEntry, 'can_withdraw'),
-                    'withdraw': self.safe_bool(networkEntry, 'can_deposit'),
-                    'fee': None,
-                    'precision': None,
-                    'info': networkEntry,
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'networks': networks,
-                'info': networkEntries,
-            })
-        return result
+                    'deposit': {
+                        'min': self.safe_number(networkEntry, 'min_deposit'),
+                        'max': self.safe_number(networkEntry, 'max_deposit'),
+                    },
+                },
+                'active': None,
+                'deposit': self.safe_bool(networkEntry, 'can_deposit'),
+                'withdraw': self.safe_bool(networkEntry, 'can_withdraw'),
+                'fee': None,
+                'precision': None,
+                'info': networkEntry,
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'networks': networks,
+            'info': rawCurrency,
+        })
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
