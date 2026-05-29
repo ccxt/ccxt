@@ -891,10 +891,14 @@ public partial class Exchange
 
     public object starknetSign(object msgHash, object privateKey)
     {
-        var privateKeyString = privateKey.ToString().Replace("0x", "");
-        var msgHashStr = msgHash.ToString().Replace("0x", "");
-        var bigIntHash = BigInteger.Parse(msgHashStr, System.Globalization.NumberStyles.HexNumber);
-        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
+        var privateKeyString = privateKey.ToString();
+        var msgHashStr = msgHash.ToString();
+        var bigIntHash = msgHashStr.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? BigInteger.Parse("00" + msgHashStr[2..], System.Globalization.NumberStyles.AllowHexSpecifier)
+            : BigInteger.Parse(msgHashStr, System.Globalization.CultureInfo.InvariantCulture);
+        var bigIntKey = privateKeyString.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+            ? BigInteger.Parse("00" + privateKeyString[2..], System.Globalization.NumberStyles.AllowHexSpecifier)
+            : BigInteger.Parse(privateKeyString, System.Globalization.CultureInfo.InvariantCulture);
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }
@@ -904,9 +908,9 @@ public partial class Exchange
         return StarknetOps.CalculateFunctionSelector(name.ToString());
     }
 
-    public object starknetComputePoseidonHashOnElements(data)
+    public object starknetComputePoseidonHashOnElements(object data)
     {
-        throw new NotSupported (this.id + ' starknetComputePoseidonHashOnElements() not supported');
+        return StarknetPoseidon.HashMany(data).ToString();
     }
 
     public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)

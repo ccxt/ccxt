@@ -3319,21 +3319,31 @@ export default class extended extends Exchange {
     }
 
     getExtendedDecimalToBase16 (value) {
-        let decimalString = this.numberToString (value);
+        let decimalString = '';
+        if (typeof value === 'string') {
+            decimalString = value;
+        } else {
+            decimalString = this.numberToString (value);
+        }
         const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
         let result = '';
         while (Precise.stringGt (decimalString, '0')) {
             const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
             result = hexChars[remainder] + result;
-            const quotient = Precise.stringDiv (decimalString, '16');
-            decimalString = this.decimalToPrecision (quotient, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+            decimalString = Precise.stringDiv (decimalString, '16', 0);
         }
-        return (result === '') ? '0' : result;
+        if (result === '') {
+            return '0';
+        }
+        return result;
     }
 
     getExtendedSignatureHex (signature) {
-        if ((typeof signature === 'string') && (signature.indexOf ('0x') === 0)) {
-            return signature;
+        if (typeof signature === 'string') {
+            if (signature.indexOf ('0x') === 0) {
+                return signature;
+            }
+            return '0x' + this.getExtendedDecimalToBase16 (signature);
         }
         const signatureString = this.numberToString (signature);
         if (signatureString.indexOf ('0x') === 0) {
