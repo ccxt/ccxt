@@ -62,6 +62,7 @@ Exchange::$exchanges = array(
     'derive',
     'dydx',
     'exmo',
+    'extended',
     'gate',
     'gateio',
     'gemini',

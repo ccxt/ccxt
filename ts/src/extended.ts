@@ -2478,8 +2478,8 @@ export default class extended extends Exchange {
         };
         const msgHash = this.getExtendedOrderMsgHash (settlement);
         const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
-        const r = '0x' + this.intToBase16 (this.convertToBigInt (sig[0]));
-        const s = '0x' + this.intToBase16 (this.convertToBigInt (sig[1]));
+        const r = this.getExtendedSignatureHex (sig[0]);
+        const s = this.getExtendedSignatureHex (sig[1]);
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -2512,8 +2512,8 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedWithdrawalMsgHash (settlement, starkKey);
         const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': '0x' + this.intToBase16 (this.convertToBigInt (sig[0])),
-            's': '0x' + this.intToBase16 (this.convertToBigInt (sig[1])),
+            'r': this.getExtendedSignatureHex (sig[0]),
+            's': this.getExtendedSignatureHex (sig[1]),
         };
         return settlement;
     }
@@ -2544,8 +2544,8 @@ export default class extended extends Exchange {
         const msgHash = this.getExtendedTransferMsgHash (settlement);
         const sig = JSON.parse (this.starknetSign (msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': '0x' + this.intToBase16 (this.convertToBigInt (sig[0])),
-            's': '0x' + this.intToBase16 (this.convertToBigInt (sig[1])),
+            'r': this.getExtendedSignatureHex (sig[0]),
+            's': this.getExtendedSignatureHex (sig[1]),
         };
         return settlement;
     }
@@ -3309,13 +3309,37 @@ export default class extended extends Exchange {
     }
 
     getExtendedEncodeI64 (value) {
-        // Cairo prime for i64 negative encoding: negative n becomes PRIME + n.
-        const PRIME = this.convertToBigInt ('0x800000000000011000000000000000000000000000000000000000000000001');
-        const zero = this.convertToBigInt ('0');
-        if (value < zero) {
-            return PRIME + value;
+        // Cairo prime offset for i64 negative encoding.
+        const prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481';
+        const valueString = this.numberToString (value);
+        if (Precise.stringLt (valueString, '0')) {
+            return Precise.stringAdd (prime, valueString);
         }
         return value;
+    }
+
+    getExtendedDecimalToBase16 (value) {
+        let decimalString = this.numberToString (value);
+        const hexChars = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' ];
+        let result = '';
+        while (Precise.stringGt (decimalString, '0')) {
+            const remainder = this.parseToInt (Precise.stringMod (decimalString, '16'));
+            result = hexChars[remainder] + result;
+            const quotient = Precise.stringDiv (decimalString, '16');
+            decimalString = this.decimalToPrecision (quotient, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        }
+        return (result === '') ? '0' : result;
+    }
+
+    getExtendedSignatureHex (signature) {
+        if ((typeof signature === 'string') && (signature.indexOf ('0x') === 0)) {
+            return signature;
+        }
+        const signatureString = this.numberToString (signature);
+        if (signatureString.indexOf ('0x') === 0) {
+            return signatureString;
+        }
+        return '0x' + this.getExtendedDecimalToBase16 (signatureString);
     }
 
     getExtendedDomainHash () {
