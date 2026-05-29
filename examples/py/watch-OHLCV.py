@@ -16,7 +16,11 @@ import ccxt.pro as ccxt  # noqa: E402
 
 # AUTO-TRANSPILE #
 async def example():
-    binance = ccxt.binance({})
+    # Initialize Binance with API key and secret
+    binance = ccxt.binance({
+        'apiKey': 'YOUR_API_KEY',
+        'secret': 'YOUR_SECRET_KEY'
+    })
     symbol = 'BTC/USDT'
     timeframe = '1m'
     while True:
