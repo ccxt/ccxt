@@ -3251,6 +3251,9 @@ export default class Exchange {
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrency (arr[i]);
+            if (parsed === undefined) {
+                continue;
+            }
             const code = parsed['code'];
             result[code] = parsed;
         }
@@ -3591,7 +3594,7 @@ export default class Exchange {
                 this.features[marketType] = undefined;
             } else {
                 if (marketType === 'spot') {
-                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
                 } else {
                     this.features[marketType] = {};
                     for (let j = 0; j < subTypes.length; j++) {
@@ -3833,20 +3836,6 @@ export default class Exchange {
                 const currencyWithdraw = this.safeBool (currency, 'withdraw');
                 if (currencyWithdraw === undefined || withdraw) {
                     currency['withdraw'] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                let active = this.safeBool (network, 'active');
-                if (active === undefined) {
-                    if (deposit && withdraw) {
-                        currency['networks'][key]['active'] = true;
-                    } else if (deposit !== undefined && withdraw !== undefined) {
-                        currency['networks'][key]['active'] = false;
-                    }
-                }
-                active = this.safeBool (currency['networks'][key], 'active'); // dict might have been updated on above lines, so access directly instead of `network` variable
-                const currencyActive = this.safeBool (currency, 'active');
-                if (currencyActive === undefined || active) {
-                    currency['active'] = active;
                 }
                 // find lowest fee (which is more desired)
                 const fee = this.safeString (network, 'fee');
@@ -5496,7 +5485,7 @@ export default class Exchange {
         positions = this.toArray (positions);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.extend (this.parsePosition (positions[i], undefined), params);
+            const position = this.extend (this.parsePosition (positions[i]), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
@@ -5511,7 +5500,7 @@ export default class Exchange {
         ranks = this.toArray (ranks);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            const rank = this.extend (this.parseADLRank (ranks[i], undefined), params);
+            const rank = this.extend (this.parseADLRank (ranks[i]), params);
             result.push (rank);
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);

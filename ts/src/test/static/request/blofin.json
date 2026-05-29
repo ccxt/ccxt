@@ -44,6 +44,24 @@
         ],
         "createOrder": [
             {
+                "description": "tpsl",
+                "method": "createOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 2111,
+                        "takeProfitPrice": 2222,
+                        "tpsl": true
+                    }
+                ],
+                "output": "{\"instId\":\"ETH-USDT\",\"side\":\"sell\",\"positionSide\":\"net\",\"brokerId\":\"ec6dd3a7dd982d0b\",\"reduceOnly\":true,\"size\":\"0.1\",\"slTriggerPrice\":\"2111\",\"slOrderPrice\":\"-1\",\"tpTriggerPrice\":\"2222\",\"tpOrderPrice\":\"-1\",\"marginMode\":\"cross\"}"
+            },
+            {
                 "description": "perp, exit tp & sl combined",
                 "method": "createOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl",

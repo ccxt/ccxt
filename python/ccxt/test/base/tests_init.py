@@ -137,3 +137,4 @@ async def base_tests_init():
     test_io()
     test_is_json_encoded_object()
     test_encode_decode()
+    return True

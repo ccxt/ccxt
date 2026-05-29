@@ -1563,13 +1563,14 @@ public partial class bitmex : Exchange
         {
             status = this.parseTransactionStatus(status);
         }
+        object code = getValue(currency, "code");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "transactID") },
             { "txid", this.safeString(transaction, "tx") },
             { "type", type },
-            { "currency", getValue(currency, "code") },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network"), getValue(currency, "code")) },
+            { "currency", code },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.parseNumber(amount) },
             { "status", status },
             { "timestamp", transactTime },
@@ -2144,6 +2145,7 @@ public partial class bitmex : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object orderType = this.capitalize(type);
+        object capitalizeOrderType = orderType;
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
         {
@@ -2160,7 +2162,7 @@ public partial class bitmex : Exchange
             { "symbol", getValue(market, "id") },
             { "side", this.capitalize(side) },
             { "orderQty", qty },
-            { "ordType", orderType },
+            { "ordType", capitalizeOrderType },
             { "text", brokerId },
         };
         object execInstructions = new List<object>() {};
@@ -3077,9 +3079,10 @@ public partial class bitmex : Exchange
         }
         object currency = this.currency(code);
         parameters = this.omit(parameters, "network");
+        object parsedNetwork = this.networkCodeToId(networkCode, getValue(currency, "code"));
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
-            { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "network", parsedNetwork },
         };
         object response = await this.privateGetUserDepositAddress(this.extend(request, parameters));
         //

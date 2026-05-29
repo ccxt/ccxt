@@ -1244,18 +1244,21 @@ class bigone extends bigone$1["default"] {
         const makerFeeCost = this.safeString(trade, 'maker_fee');
         const takerFeeCost = this.safeString(trade, 'taker_fee');
         if (makerFeeCost !== undefined) {
+            const makerCode = makerCurrencyCode;
             if (takerFeeCost !== undefined) {
+                const takerCode = takerCurrencyCode;
                 result['fees'] = [
-                    { 'cost': makerFeeCost, 'currency': makerCurrencyCode },
-                    { 'cost': takerFeeCost, 'currency': takerCurrencyCode },
+                    { 'cost': makerFeeCost, 'currency': makerCode },
+                    { 'cost': takerFeeCost, 'currency': takerCode },
                 ];
             }
             else {
-                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCurrencyCode };
+                result['fee'] = { 'cost': makerFeeCost, 'currency': makerCode };
             }
         }
         else if (takerFeeCost !== undefined) {
-            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCurrencyCode };
+            const takerCode2 = takerCurrencyCode;
+            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCode2 };
         }
         else {
             result['fee'] = undefined;

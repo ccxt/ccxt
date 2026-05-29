@@ -63,13 +63,13 @@ if the required credentials are available in options, it will pre-load the light
 **Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
 
 
-| Param |
-| --- |
-| params | 
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-lighter.preLoadLighterLibrary (params, [undefined])
+lighter.preLoadLighterLibrary ([params])
 ```
 
 

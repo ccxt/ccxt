@@ -1662,7 +1662,7 @@ func (this *WoofiproCore) ParseTimeInForce(timeInForce any) any {
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *WoofiproCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {

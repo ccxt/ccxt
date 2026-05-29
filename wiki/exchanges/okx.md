@@ -2649,16 +2649,16 @@ watch all open positions
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | list of unified market symbols |
-| since |  |  |
-| limit |  |  |
-| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
+| limit | <code>int</code> | No | the maximum number of positions to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-okx.watchPositions (symbols, since, limit, params[])
+okx.watchPositions ([symbols, since, limit, params])
 ```
 
 

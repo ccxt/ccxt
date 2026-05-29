@@ -397,6 +397,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function contract_private_get_order_list_open_orders_symbol($params = array()) {
         return $this->request('order/list/open_orders/{symbol}', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function contract_private_get_order_list_open_orders($params = array()) {
+        return $this->request('order/list/open_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function contract_private_get_order_list_history_orders($params = array()) {
         return $this->request('order/list/history_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1095,6 +1098,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function contractPrivateGetOrderListOpenOrdersSymbol($params = array()) {
         return $this->request('order/list/open_orders/{symbol}', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function contractPrivateGetOrderListOpenOrders($params = array()) {
+        return $this->request('order/list/open_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function contractPrivateGetOrderListHistoryOrders($params = array()) {
         return $this->request('order/list/history_orders', array('contract', 'private'), 'GET', $params, null, null, array("cost" => 2));

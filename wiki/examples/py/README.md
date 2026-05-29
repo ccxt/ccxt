@@ -351,6 +351,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Gateio Swaps](./examples/py/gateio-swaps.md)
 
+- [Gateio Watch Balance](./examples/py/gateio-watch-balance.md)
+
 - [Gdax Fetch My Trades Pagination](./examples/py/gdax-fetch-my-trades-pagination.md)
 
 - [Hitbtc Withdraw](./examples/py/hitbtc-withdraw.md)

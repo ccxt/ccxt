@@ -741,7 +741,7 @@ class hibachi(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fee
- @param params extra parameters
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a map of market symbols to `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()

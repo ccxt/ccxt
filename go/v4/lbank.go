@@ -1164,9 +1164,10 @@ func (this *LbankCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost any = this.SafeString(trade, "tradeFee")
 	if IsTrue(!IsEqual(feeCost, nil)) {
+		var feeCurr any = Ternary(IsTrue((IsEqual(side, "buy"))), GetValue(market, "base"), GetValue(market, "quote"))
 		fee = map[string]any{
 			"cost":     feeCost,
-			"currency": Ternary(IsTrue((IsEqual(side, "buy"))), GetValue(market, "base"), GetValue(market, "quote")),
+			"currency": feeCurr,
 			"rate":     this.SafeString(trade, "tradeFeeRate"),
 		}
 	}
@@ -1211,8 +1212,8 @@ func (this *LbankCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes11048 := (<-this.LoadMarkets())
-		PanicOnError(retRes11048)
+		retRes11058 := (<-this.LoadMarkets())
+		PanicOnError(retRes11058)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1306,8 +1307,8 @@ func (this *LbankCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes11828 := (<-this.LoadMarkets())
-		PanicOnError(retRes11828)
+		retRes11838 := (<-this.LoadMarkets())
+		PanicOnError(retRes11838)
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100
@@ -1318,11 +1319,13 @@ func (this *LbankCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			var duration any = this.ParseTimeframe(timeframe)
 			since = Subtract(this.Milliseconds(), (Multiply(Multiply(duration, 1000), limit)))
 		}
+		var parsedSince any = this.ParseToInt(Divide(since, 1000))
+		var parsedLimit any = mathMin(Add(limit, 1), 2000) // max 2000;
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
-			"time":   this.ParseToInt(Divide(since, 1000)),
-			"size":   mathMin(Add(limit, 1), 2000),
+			"time":   parsedSince,
+			"size":   parsedLimit,
 		}
 
 		response := (<-this.SpotPublicGetKline(this.Extend(request, params)))
@@ -1554,8 +1557,8 @@ func (this *LbankCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14158 := (<-this.LoadMarkets())
-		PanicOnError(retRes14158)
+		retRes14188 := (<-this.LoadMarkets())
+		PanicOnError(retRes14188)
 		var market any = this.Market(symbol)
 
 		responseForSwap := (<-this.FetchFundingRates([]any{GetValue(market, "symbol")}, params))
@@ -1587,8 +1590,8 @@ func (this *LbankCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes14318 := (<-this.LoadMarkets())
-		PanicOnError(retRes14318)
+		retRes14348 := (<-this.LoadMarkets())
+		PanicOnError(retRes14348)
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
 			"productGroup": "SwapU",
@@ -1646,8 +1649,8 @@ func (this *LbankCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14758 := (<-this.LoadMarkets())
-		PanicOnError(retRes14758)
+		retRes14788 := (<-this.LoadMarkets())
+		PanicOnError(retRes14788)
 		var options any = this.SafeValue(this.Options, "fetchBalance", map[string]any{})
 		var defaultMethod any = this.SafeString(options, "method", "spotPrivatePostSupplementUserInfo")
 		var method any = this.SafeString(params, "method", defaultMethod)
@@ -1770,8 +1773,8 @@ func (this *LbankCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15648 := (<-this.LoadMarkets())
-		PanicOnError(retRes15648)
+		retRes15678 := (<-this.LoadMarkets())
+		PanicOnError(retRes15678)
 		var request any = map[string]any{}
 
 		response := (<-this.SpotPrivatePostSupplementCustomerTradeFee(this.Extend(request, params)))
@@ -1810,17 +1813,17 @@ func (this *LbankCore) CreateMarketBuyOrderWithCost(symbol any, cost any, option
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes15898 := (<-this.LoadMarkets())
-		PanicOnError(retRes15898)
+		retRes15928 := (<-this.LoadMarkets())
+		PanicOnError(retRes15928)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes159515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes159515)
-		ch <- retRes159515
+		retRes159815 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes159815)
+		ch <- retRes159815
 		return nil
 
 	}()
@@ -1851,8 +1854,8 @@ func (this *LbankCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes16138 := (<-this.LoadMarkets())
-		PanicOnError(retRes16138)
+		retRes16168 := (<-this.LoadMarkets())
+		PanicOnError(retRes16168)
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString2(params, "custom_id", "clientOrderId")
 		var postOnly any = this.SafeBool(params, "postOnly", false)
@@ -2128,8 +2131,8 @@ func (this *LbankCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes18698 := (<-this.LoadMarkets())
-		PanicOnError(retRes18698)
+		retRes18728 := (<-this.LoadMarkets())
+		PanicOnError(retRes18728)
 		var method any = this.SafeString(params, "method")
 		if IsTrue(IsEqual(method, nil)) {
 			var options any = this.SafeValue(this.Options, "fetchOrder", map[string]any{})
@@ -2137,15 +2140,15 @@ func (this *LbankCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(method, "fetchOrderSupplement")) {
 
-			retRes187619 := (<-this.FetchOrderSupplement(id, symbol, params))
-			PanicOnError(retRes187619)
-			ch <- retRes187619
+			retRes187919 := (<-this.FetchOrderSupplement(id, symbol, params))
+			PanicOnError(retRes187919)
+			ch <- retRes187919
 			return nil
 		}
 
-		retRes187815 := (<-this.FetchOrderDefault(id, symbol, params))
-		PanicOnError(retRes187815)
-		ch <- retRes187815
+		retRes188115 := (<-this.FetchOrderDefault(id, symbol, params))
+		PanicOnError(retRes188115)
+		ch <- retRes188115
 		return nil
 
 	}()
@@ -2164,8 +2167,8 @@ func (this *LbankCore) FetchOrderSupplement(id any, optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes18858 := (<-this.LoadMarkets())
-		PanicOnError(retRes18858)
+		retRes18888 := (<-this.LoadMarkets())
+		PanicOnError(retRes18888)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":  GetValue(market, "id"),
@@ -2217,8 +2220,8 @@ func (this *LbankCore) FetchOrderDefault(id any, optionalArgs ...any) <-chan any
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes19228 := (<-this.LoadMarkets())
-		PanicOnError(retRes19228)
+		retRes19258 := (<-this.LoadMarkets())
+		PanicOnError(retRes19258)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
@@ -2289,8 +2292,8 @@ func (this *LbankCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes19798 := (<-this.LoadMarkets())
-		PanicOnError(retRes19798)
+		retRes19828 := (<-this.LoadMarkets())
+		PanicOnError(retRes19828)
 		var market any = this.Market(symbol)
 		since = this.SafeValue(params, "start_date", since)
 		params = this.Omit(params, "start_date")
@@ -2366,8 +2369,8 @@ func (this *LbankCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes20418 := (<-this.LoadMarkets())
-		PanicOnError(retRes20418)
+		retRes20448 := (<-this.LoadMarkets())
+		PanicOnError(retRes20448)
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100
@@ -2445,8 +2448,8 @@ func (this *LbankCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
 
-		retRes21008 := (<-this.LoadMarkets())
-		PanicOnError(retRes21008)
+		retRes21038 := (<-this.LoadMarkets())
+		PanicOnError(retRes21038)
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 100
@@ -2519,8 +2522,8 @@ func (this *LbankCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes21578 := (<-this.LoadMarkets())
-		PanicOnError(retRes21578)
+		retRes21608 := (<-this.LoadMarkets())
+		PanicOnError(retRes21608)
 		var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 		var market any = this.Market(symbol)
@@ -2578,8 +2581,8 @@ func (this *LbankCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes21998 := (<-this.LoadMarkets())
-		PanicOnError(retRes21998)
+		retRes22028 := (<-this.LoadMarkets())
+		PanicOnError(retRes22028)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2639,8 +2642,8 @@ func (this *LbankCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22468 := (<-this.LoadMarkets())
-		PanicOnError(retRes22468)
+		retRes22498 := (<-this.LoadMarkets())
+		PanicOnError(retRes22498)
 		var options any = this.SafeValue(this.Options, "fetchDepositAddress", map[string]any{})
 		var defaultMethod any = this.SafeString(options, "method", "fetchDepositAddressDefault")
 		var method any = this.SafeString(params, "method", defaultMethod)
@@ -2670,8 +2673,8 @@ func (this *LbankCore) FetchDepositAddressDefault(code any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22618 := (<-this.LoadMarkets())
-		PanicOnError(retRes22618)
+		retRes22648 := (<-this.LoadMarkets())
+		PanicOnError(retRes22648)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"assetCode": GetValue(currency, "id"),
@@ -2722,8 +2725,8 @@ func (this *LbankCore) FetchDepositAddressSupplement(code any, optionalArgs ...a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes22998 := (<-this.LoadMarkets())
-		PanicOnError(retRes22998)
+		retRes23028 := (<-this.LoadMarkets())
+		PanicOnError(retRes23028)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coin": GetValue(currency, "id"),
@@ -2793,8 +2796,8 @@ func (this *LbankCore) Withdraw(code any, amount any, address any, optionalArgs 
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes23518 := (<-this.LoadMarkets())
-		PanicOnError(retRes23518)
+		retRes23548 := (<-this.LoadMarkets())
+		PanicOnError(retRes23548)
 		var fee any = this.SafeString(params, "fee")
 		params = this.Omit(params, "fee")
 		// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
@@ -2969,8 +2972,8 @@ func (this *LbankCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25128 := (<-this.LoadMarkets())
-		PanicOnError(retRes25128)
+		retRes25158 := (<-this.LoadMarkets())
+		PanicOnError(retRes25158)
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3041,8 +3044,8 @@ func (this *LbankCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes25668 := (<-this.LoadMarkets())
-		PanicOnError(retRes25668)
+		retRes25698 := (<-this.LoadMarkets())
+		PanicOnError(retRes25698)
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3111,8 +3114,8 @@ func (this *LbankCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes26238 := (<-this.LoadMarkets())
-		PanicOnError(retRes26238)
+		retRes26268 := (<-this.LoadMarkets())
+		PanicOnError(retRes26268)
 		var isAuthorized any = this.CheckRequiredCredentials(false)
 		var result any = nil
 		if IsTrue(IsEqual(isAuthorized, true)) {
@@ -3151,8 +3154,8 @@ func (this *LbankCore) FetchPrivateTransactionFees(optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26458 := (<-this.LoadMarkets())
-		PanicOnError(retRes26458)
+		retRes26488 := (<-this.LoadMarkets())
+		PanicOnError(retRes26488)
 
 		response := (<-this.SpotPrivatePostSupplementUserInfo())
 		PanicOnError(response)
@@ -3224,8 +3227,8 @@ func (this *LbankCore) FetchPublicTransactionFees(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes27048 := (<-this.LoadMarkets())
-		PanicOnError(retRes27048)
+		retRes27078 := (<-this.LoadMarkets())
+		PanicOnError(retRes27078)
 		var code any = this.SafeString2(params, "coin", "assetCode")
 		params = this.Omit(params, []any{"coin", "assetCode"})
 		var request any = map[string]any{}
@@ -3308,8 +3311,8 @@ func (this *LbankCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes27718 := (<-this.LoadMarkets())
-		PanicOnError(retRes27718)
+		retRes27748 := (<-this.LoadMarkets())
+		PanicOnError(retRes27748)
 		var isAuthorized any = this.CheckRequiredCredentials(false)
 		var response any = nil
 		if IsTrue(IsEqual(isAuthorized, true)) {
@@ -3350,8 +3353,8 @@ func (this *LbankCore) FetchPrivateDepositWithdrawFees(optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes27938 := (<-this.LoadMarkets())
-		PanicOnError(retRes27938)
+		retRes27968 := (<-this.LoadMarkets())
+		PanicOnError(retRes27968)
 
 		response := (<-this.SpotPrivatePostSupplementUserInfo(params))
 		PanicOnError(response)
@@ -3405,8 +3408,8 @@ func (this *LbankCore) FetchPublicDepositWithdrawFees(optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes28328 := (<-this.LoadMarkets())
-		PanicOnError(retRes28328)
+		retRes28358 := (<-this.LoadMarkets())
+		PanicOnError(retRes28358)
 		var request any = map[string]any{}
 
 		response := (<-this.SpotPublicGetWithdrawConfigs(this.Extend(request, params)))
@@ -3593,9 +3596,10 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		} else {
 			signatureMethod = "HmacSHA256"
 		}
+		var finalSig any = signatureMethod // java req
 		var auth any = this.Rawencode(this.Keysort(this.Extend(map[string]any{
 			"echostr":          echostr,
-			"signature_method": signatureMethod,
+			"signature_method": finalSig,
 			"timestamp":        timestamp,
 		}, query)))
 		var encoded any = this.Encode(auth)

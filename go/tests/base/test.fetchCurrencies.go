@@ -42,7 +42,7 @@ func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties any) <-c
 					numInactiveCurrencies = Add(numInactiveCurrencies, 1)
 				}
 				// ensure that major currencies are active and enabled for deposit and withdrawal
-				var code any = exchange.SafeString(currency, "code", nil)
+				var code any = exchange.SafeString(currency, "code")
 				var withdraw any = exchange.SafeBool(currency, "withdraw")
 				var deposit any = exchange.SafeBool(currency, "deposit")
 				if IsTrue(exchange.InArray(code, requiredActiveCurrencies)) {

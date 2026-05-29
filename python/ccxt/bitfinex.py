@@ -859,71 +859,83 @@ class bitfinex(Exchange, ImplicitAPI):
             networksList.append(networkId)
             indexedNetworks[networkName] = networksList
         ids = self.safe_list(response, 0, [])
-        result: dict = {}
+        return self.parse_currencies_custom(ids, indexed, indexedNetworks)
+
+    def parse_currencies_custom(self, ids, indexed, indexedNetworks):
+        allowedIds = []
         for i in range(0, len(ids)):
             id = ids[i]
             if id.endswith('F0'):
                 # we get a lot of F0 currencies, skip those
                 continue
-            code = self.safe_currency_code(id)
-            label = self.safe_list(indexed['label'], id, [])
-            name = self.safe_string(label, 1)
-            pool = self.safe_list(indexed['pool'], id, [])
-            rawType = self.safe_string(pool, 1)
-            isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
-            type = 'crypto' if isCryptoCoin else None
-            feeValues = self.safe_list(indexed['fees'], id, [])
-            fees = self.safe_list(feeValues, 1, [])
-            fee = self.safe_number(fees, 1)
-            undl = self.safe_list(indexed['undl'], id, [])
-            precision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')
-            networks: dict = {}
-            netwokIds = self.safe_list(indexedNetworks, id, [])
-            for j in range(0, len(netwokIds)):
-                networkId = netwokIds[j]
-                network = self.network_id_to_code(networkId)
-                dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
-                networks[network] = {
-                    'info': networkId,
-                    'id': networkId.lower(),
-                    'network': networkId,
-                    'active': None,
-                    'deposit': self.safe_integer(dwStatuses, 1) == 1,
-                    'withdraw': self.safe_integer(dwStatuses, 2) == 1,
-                    'fee': None,
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': [id, label, pool, feeValues, undl],
-                'type': type,
-                'name': name,
-                'active': True,
-                'deposit': None,
-                'withdraw': None,
-                'fee': fee,
-                'precision': self.parse_number(precision),
+            allowedIds.append(id)
+        result = {}
+        arr = self.to_array(allowedIds)
+        for i in range(0, len(arr)):
+            parsed = self.parse_currency_custom(arr[i], indexed, indexedNetworks)
+            code = parsed['code']
+            result[code] = parsed
+        return result
+
+    def parse_currency_custom(self, id, indexed, indexedNetworks) -> Currency:
+        code = self.safe_currency_code(id)
+        label = self.safe_list(indexed['label'], id, [])
+        name = self.safe_string(label, 1)
+        pool = self.safe_list(indexed['pool'], id, [])
+        rawType = self.safe_string(pool, 1)
+        isCryptoCoin = (rawType is not None) or (id in indexed['explorer'])  # "hacky" solution
+        type = 'crypto' if isCryptoCoin else None
+        feeValues = self.safe_list(indexed['fees'], id, [])
+        fees = self.safe_list(feeValues, 1, [])
+        fee = self.safe_number(fees, 1)
+        undl = self.safe_list(indexed['undl'], id, [])
+        precision = self.safe_string(self.options, 'defaultCurrencyPrecision', '8')
+        networks: dict = {}
+        networkIds = self.safe_list(indexedNetworks, id, [])
+        for j in range(0, len(networkIds)):
+            networkId = networkIds[j]
+            network = self.network_id_to_code(networkId, code)
+            dwStatuses = self.safe_list(indexed['statuses'], networkId, [])
+            networks[network] = {
+                'info': networkId,
+                'id': networkId.lower(),
+                'network': networkId,
+                'active': None,
+                'deposit': self.safe_integer(dwStatuses, 1) == 1,
+                'withdraw': self.safe_integer(dwStatuses, 2) == 1,
+                'fee': None,
+                'precision': None,
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': None,
                         'max': None,
                     },
-                    'withdraw': {
-                        'min': fee,
-                        'max': None,
-                    },
                 },
-                'networks': networks,
-                'margin': self.in_array(id, indexed['marginables']),
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': [id, label, pool, feeValues, undl],
+            'type': type,
+            'name': name,
+            'active': True,
+            'deposit': None,
+            'withdraw': None,
+            'fee': fee,
+            'precision': self.parse_number(precision),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': fee,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'margin': self.in_array(id, indexed['marginables']),
+        })
 
     def fetch_balance(self, params={}) -> Balances:
         """

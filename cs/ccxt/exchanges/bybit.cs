@@ -1489,8 +1489,9 @@ public partial class bybit : Exchange
             amountPrecision = this.parseNumber("1");
             pricePrecision = this.parseNumber("0.01");
         }
+        object convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return new Dictionary<string, object>() {
-            { "id", add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType) },
+            { "id", add(add(add(add(add(add(bs, "-"), convertedExpireDate), "-"), strike), "-"), optionType) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
             { "base", bs },
             { "quote", quote },
@@ -1949,9 +1950,10 @@ public partial class bybit : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchFutureMarkets(object parameters)
+    public async virtual Task<object> fetchFutureMarkets(object parameters = null)
     {
-        parameters = this.extend(parameters);
+        parameters ??= new Dictionary<string, object>();
+        parameters = this.extend(parameters, new Dictionary<string, object>() {});
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
         object preLaunchMarkets = ((object)new List<object>() {});
         object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
@@ -2105,7 +2107,7 @@ public partial class bybit : Exchange
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
             object contractSize = ((bool) isTrue(inverse)) ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty") : this.parseNumber("1");
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            object parsedMarket = this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -2155,7 +2157,8 @@ public partial class bybit : Exchange
                 } },
                 { "created", this.safeInteger(market, "launchTime") },
                 { "info", market },
-            }));
+            });
+            ((IList<object>)result).Add(parsedMarket);
         }
         return result;
     }
@@ -5201,7 +5204,7 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object row = this.safeList(result, "list", new List<object>() {});
-        return this.parseOrders(row, null);
+        return this.parseOrders(row);
     }
 
     /**
@@ -6192,9 +6195,9 @@ public partial class bybit : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object chains = this.safeList(result, "chains", new List<object>() {});
         object coin = this.safeString(result, "coin");
-        currency = this.currency(coin);
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "code") },
+        object currencyFromResponse = this.currency(coin);
+        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currencyFromResponse, "code")}, false, new Dictionary<string, object>() {
+            { "currency", getValue(currencyFromResponse, "code") },
         });
         return this.indexBy(parsed, "network");
     }
@@ -7635,8 +7638,8 @@ public partial class bybit : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.addPaginationCursorToResult(response);
         object id = this.safeString(result, "symbol");
-        market = this.safeMarket(id, market, null, "contract");
-        return this.parseOpenInterestsHistory(data, market, since, limit);
+        object safeMarketObj = this.safeMarket(id, market, null, "contract");
+        return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
     }
 
     /**
@@ -7699,9 +7702,9 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object id = this.safeString(result, "symbol");
-        market = this.safeMarket(id, market, null, "contract");
+        object safeMarketObj = this.safeMarket(id, market, null, "contract");
         object data = this.addPaginationCursorToResult(response);
-        return this.parseOpenInterest(getValue(data, 0), market);
+        return this.parseOpenInterest(getValue(data, 0), safeMarketObj);
     }
 
     /**
@@ -7887,7 +7890,7 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "loanAccountList", new List<object>() {});
-        object interest = this.parseBorrowInterests(rows, null);
+        object interest = this.parseBorrowInterests(rows);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
 

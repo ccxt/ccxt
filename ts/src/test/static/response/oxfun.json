@@ -310,7 +310,7 @@
                         "precision": 0.000001,
                         "type": null,
                         "name": null,
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": null,
@@ -322,7 +322,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {
@@ -352,7 +352,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 1e-18,
                                 "limits": {
@@ -382,7 +382,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {
@@ -412,7 +412,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {
@@ -442,7 +442,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {
@@ -472,7 +472,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {
@@ -502,7 +502,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {
@@ -532,7 +532,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": true,
+                                "active": null,
                                 "fee": null,
                                 "precision": 0.000001,
                                 "limits": {

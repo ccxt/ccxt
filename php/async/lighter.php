@@ -451,7 +451,7 @@ class lighter extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
-             * @param $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {boolean} true if the $signer was loaded, false otherwise
              */
             $apiKeyIndex = null;

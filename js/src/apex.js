@@ -1215,7 +1215,7 @@ export default class apex extends Exchange {
             'IMMEDIATE_OR_CANCEL': 'IMMEDIATE_OR_CANCEL',
             'POST_ONLY': 'POST_ONLY',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrderStatus(status) {
         if (status !== undefined) {
@@ -1363,14 +1363,16 @@ export default class apex extends Exchange {
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(accountId);
         }
+        const finalClientOrderId = clientOrderId; // java req
         params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice']);
+        const finalOrderPrice = orderPrice; // java req
         const orderToSign = {
             'accountId': accountId,
-            'slotId': clientOrderId,
-            'nonce': clientOrderId,
+            'slotId': finalClientOrderId,
+            'nonce': finalClientOrderId,
             'pairId': market['quoteId'],
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'direction': orderSide,
             'makerFeeRate': maker,
             'takerFeeRate': taker,
@@ -1384,11 +1386,11 @@ export default class apex extends Exchange {
             'side': orderSide,
             'type': orderType,
             'size': orderSize,
-            'price': orderPrice,
+            'price': finalOrderPrice,
             'limitFee': limitFee,
             'expiration': Math.floor(timeNow / 1000 + 30 * 24 * 60 * 60),
             'timeInForce': timeInForce,
-            'clientId': clientOrderId,
+            'clientId': finalClientOrderId,
             'brokerId': this.safeString(this.options, 'brokerId', '6956'),
         };
         if (triggerPrice !== undefined) {
@@ -1434,6 +1436,7 @@ export default class apex extends Exchange {
         if (subAccounts.length > 0) {
             nonce = this.safeString(subAccounts[0], 'nonce', '0');
         }
+        const finalNonce = nonce; // java req
         const ethAddress = this.safeString(accountData, 'ethereumAddress', '');
         const accountId = this.safeString(accountData, 'id', '');
         let currency = {};
@@ -1450,12 +1453,15 @@ export default class apex extends Exchange {
             }
         }
         const tokenId = this.safeString(currency, 'tokenId', '');
-        const amountNumber = this.parseToInt(amount * (Math.pow(10, this.safeNumber(currency, 'decimals', 0))));
+        const decimalsNum = this.safeNumber(currency, 'decimals', 0);
+        const mathPowResult = (Math.pow(10, decimalsNum));
+        const amountNumber = this.parseToInt(amount * mathPowResult);
         const timestampSeconds = this.parseToInt(this.milliseconds() / 1000);
         let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);
         if (clientOrderId === undefined) {
             clientOrderId = this.generateRandomClientIdOmni(this.safeString(this.options, 'accountId'));
         }
+        const finalClientOrderId = clientOrderId; // java req
         params = this.omit(params, ['clientId', 'clientOrderId', 'client_order_id']);
         if (fromAccount !== undefined && fromAccount.toLowerCase() === 'contract') {
             const formattedUint32 = '4294967295';
@@ -1469,7 +1475,7 @@ export default class apex extends Exchange {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString(),
                 'fee': '0',
-                'nonce': clientOrderId,
+                'nonce': finalClientOrderId,
                 'timestampSeconds': expireTime,
                 'isContract': true,
             };
@@ -1477,7 +1483,7 @@ export default class apex extends Exchange {
             const request = {
                 'amount': amount,
                 'expireTime': expireTime,
-                'clientWithdrawId': clientOrderId,
+                'clientWithdrawId': finalClientOrderId,
                 'signature': signature,
                 'token': code,
                 'ethAddress': ethAddress,
@@ -1485,10 +1491,11 @@ export default class apex extends Exchange {
             const response = await this.privatePostV3ContractTransferOut(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             const currentTime = this.milliseconds();
+            const parsedAmount = this.parseNumber(amount);
             return this.extend(this.parseTransfer(data, this.currency(code)), {
                 'timestamp': currentTime,
                 'datetime': this.iso8601(currentTime),
-                'amount': this.parseNumber(amount),
+                'amount': parsedAmount,
                 'fromAccount': 'contract',
                 'toAccount': 'spot',
             });
@@ -1502,14 +1509,16 @@ export default class apex extends Exchange {
                 'tokenId': tokenId,
                 'amount': amountNumber.toString(),
                 'fee': '0',
-                'nonce': nonce,
+                'nonce': finalNonce,
                 'timestampSeconds': timestampSeconds,
             };
             const signature = await this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign);
+            const amountStr = amount.toString();
+            const ts = timestampSeconds; // java req
             const request = {
-                'amount': amount.toString(),
-                'timestamp': timestampSeconds,
-                'clientTransferId': clientOrderId,
+                'amount': amountStr,
+                'timestamp': ts,
+                'clientTransferId': finalClientOrderId,
                 'signature': signature,
                 'zkAccountId': zkAccountId,
                 'subAccountId': subAccountId,
@@ -1520,7 +1529,7 @@ export default class apex extends Exchange {
                 'receiverZkAccountId': receiverZkAccountId,
                 'receiverSubAccountId': receiverSubAccountId,
                 'receiverAddress': receiverAddress,
-                'nonce': nonce,
+                'nonce': finalNonce,
             };
             const response = await this.privatePostV3TransferOut(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
@@ -1578,7 +1587,7 @@ export default class apex extends Exchange {
      * @description cancels an open order
      * @see https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order
      * @param {string} id order id
-     * @param symbol
+     * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.55';
+$version = '4.5.56';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.55';
+    const VERSION = '4.5.56';
 
     public $browser;
     public $marketsLoading = null;
@@ -1390,6 +1390,9 @@ class Exchange extends \ccxt\Exchange {
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
             $parsed = $this->parse_currency($arr[$i]);
+            if ($parsed === null) {
+                continue;
+            }
             $code = $parsed['code'];
             $result[$code] = $parsed;
         }
@@ -1734,7 +1737,7 @@ class Exchange extends \ccxt\Exchange {
                 $this->features[$marketType] = null;
             } else {
                 if ($marketType === 'spot') {
-                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType);
                 } else {
                     $this->features[$marketType] = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
@@ -1955,7 +1958,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_currency_structure(array $currency) {
-        // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        // derive data from $networks => $deposit, $withdraw, active, $fee, $limits, $precision
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -1972,20 +1975,6 @@ class Exchange extends \ccxt\Exchange {
                 $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
                 if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
-                }
-                // set $network 'active' to false if D or W is disabled
-                $active = $this->safe_bool($network, 'active');
-                if ($active === null) {
-                    if ($deposit && $withdraw) {
-                        $currency['networks'][$key]['active'] = true;
-                    } elseif ($deposit !== null && $withdraw !== null) {
-                        $currency['networks'][$key]['active'] = false;
-                    }
-                }
-                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
-                $currencyActive = $this->safe_bool($currency, 'active');
-                if ($currencyActive === null || $active) {
-                    $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
@@ -3634,7 +3623,7 @@ class Exchange extends \ccxt\Exchange {
         $positions = $this->to_array($positions);
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->extend($this->parse_position($positions[$i], null), $params);
+            $position = $this->extend($this->parse_position($positions[$i]), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -3649,7 +3638,7 @@ class Exchange extends \ccxt\Exchange {
         $ranks = $this->to_array($ranks);
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i]), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);

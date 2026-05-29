@@ -1306,10 +1306,10 @@ class htx(ccxt.async_support.htx):
         https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
 
         watch all open positions. Note: huobi has one channel for each marginMode and type
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()

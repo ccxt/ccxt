@@ -1232,16 +1232,19 @@ class bigone extends Exchange {
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');
         $takerFeeCost = $this->safe_string($trade, 'taker_fee');
         if ($makerFeeCost !== null) {
+            $makerCode = $makerCurrencyCode;
             if ($takerFeeCost !== null) {
+                $takerCode = $takerCurrencyCode;
                 $result['fees'] = array(
-                    array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode ),
-                    array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode ),
+                    array( 'cost' => $makerFeeCost, 'currency' => $makerCode ),
+                    array( 'cost' => $takerFeeCost, 'currency' => $takerCode ),
                 );
             } else {
-                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCurrencyCode );
+                $result['fee'] = array( 'cost' => $makerFeeCost, 'currency' => $makerCode );
             }
         } elseif ($takerFeeCost !== null) {
-            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCurrencyCode );
+            $takerCode2 = $takerCurrencyCode;
+            $result['fee'] = array( 'cost' => $takerFeeCost, 'currency' => $takerCode2 );
         } else {
             $result['fee'] = null;
         }

@@ -578,6 +578,8 @@ public partial class derive : Exchange
             linear = true;
             inverse = false;
         }
+        object contractSize = ((bool) isTrue((spot))) ? null : 1;
+        object isContract = (isTrue(swap) || isTrue(option));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -594,10 +596,10 @@ public partial class derive : Exchange
             { "future", false },
             { "option", option },
             { "active", this.safeBool(market, "is_active") },
-            { "contract", (isTrue(swap) || isTrue(option)) },
+            { "contract", isContract },
             { "linear", linear },
             { "inverse", inverse },
-            { "contractSize", ((bool) isTrue((spot))) ? null : 1 },
+            { "contractSize", contractSize },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
             { "taker", this.safeNumber(market, "taker_fee_rate") },
@@ -1801,7 +1803,7 @@ public partial class derive : Exchange
             { "gtc", "GTC" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce, null);
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public virtual object parseOrderStatus(object status)

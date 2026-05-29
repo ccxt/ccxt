@@ -1961,6 +1961,16 @@ class bitmart extends \ccxt\async\bitmart {
         //
         $errorCode = $this->safe_string($message, 'errorCode');
         $error = $this->safe_string($message, 'error');
+        // Duplicate-subscription notice $errorCode 90008 => bitmart's WS rejects
+        // a re-subscribe attempt on a topic that's already active on this
+        // connection, but the original subscription keeps delivering data —
+        // so treat it. Without this short-circuit, the generic
+        // $client->reject below kills every unrelated in-flight future —
+        // $e->g. a watchOHLCV waiting on its kline subscription gets rejected
+        // by an orderbook 90008 raised on the same socket.
+        if ($errorCode === '90008') {
+            return false;
+        }
         try {
             if ($errorCode !== null || $error !== null) {
                 $feedback = $this->id . ' ' . $this->json($message);

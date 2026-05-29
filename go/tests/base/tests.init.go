@@ -74,7 +74,10 @@ func BaseTestsInit() <-chan any {
 		TestIo()
 		TestIsJsonEncodedObject()
 		TestEncodeDecode()
+
+		ch <- true
 		return nil
+
 	}()
 	return ch
 }

@@ -1217,7 +1217,8 @@ class bitflyer extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $auth = implode('', array($nonce, $method, $request));
+            $content = array( $nonce, $method, $request );
+            $auth = implode('', $content);
             if ($params) {
                 if ($method !== 'GET') {
                     $body = $this->json($params);

@@ -1449,12 +1449,12 @@ func (this *CoinsphCore) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 		}
 	}
-	var isBuyer any = this.SafeBool2(trade, "isBuyer", "isBuyerMaker", nil)
+	var isBuyer any = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
 	var side any = nil
 	if IsTrue(!IsEqual(isBuyer, nil)) {
 		side = Ternary(IsTrue((IsEqual(isBuyer, true))), "buy", "sell")
 	}
-	var isMaker any = this.SafeString2(trade, "isMaker", nil)
+	var isMaker any = this.SafeString(trade, "isMaker")
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(isMaker, nil)) {
 		takerOrMaker = Ternary(IsTrue((IsEqual(isMaker, "true"))), "maker", "taker")
@@ -1977,7 +1977,7 @@ func (this *CoinsphCore) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var timestamp any = this.SafeInteger2(order, "time", "transactTime")
-	var trades any = this.SafeValue(order, "fills", nil)
+	var trades any = this.SafeValue(order, "fills")
 	var triggerPrice any = this.SafeString(order, "stopPrice")
 	if IsTrue(Precise.StringEq(triggerPrice, "0")) {
 		triggerPrice = nil
@@ -2651,7 +2651,7 @@ func (this *CoinsphCore) HandleErrors(code any, reason any, url any, method any,
 	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
-	var responseCode any = this.SafeString(response, "code", nil)
+	var responseCode any = this.SafeString(response, "code")
 	if IsTrue(IsTrue(IsTrue((!IsEqual(responseCode, nil))) && IsTrue((!IsEqual(responseCode, "200")))) && IsTrue((!IsEqual(responseCode, "0")))) {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)

@@ -70,7 +70,7 @@ export default class bybit extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params: any): Promise<Market[]>;
-    fetchFutureMarkets(params: any): Promise<Market[]>;
+    fetchFutureMarkets(params?: {}): Promise<Market[]>;
     fetchOptionMarkets(params: any): Promise<Market[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**

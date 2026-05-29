@@ -1448,7 +1448,7 @@ class woofipro extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
-        return $this->safe_string($timeInForces, $timeInForce, null);
+        return $this->safe_string($timeInForces, $timeInForce);
     }
 
     public function parse_order_status(?string $status) {

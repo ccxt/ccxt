@@ -1188,6 +1188,10 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
             object parsed = this.parseCurrency(getValue(arr, i));
+            if (isTrue(isEqual(parsed, null)))
+            {
+                continue;
+            }
             object code = getValue(parsed, "code");
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
@@ -1620,7 +1624,7 @@ public partial class Exchange
             {
                 if (isTrue(isEqual(marketType, "spot")))
                 {
-                    ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType, null);
+                    ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType);
                 } else
                 {
                     ((IDictionary<string,object>)this.features)[(string)marketType] = new Dictionary<string, object>() {};
@@ -1927,24 +1931,6 @@ public partial class Exchange
                 if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue(withdraw)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
-                }
-                // set network 'active' to false if D or W is disabled
-                object active = this.safeBool(network, "active");
-                if (isTrue(isEqual(active, null)))
-                {
-                    if (isTrue(isTrue(deposit) && isTrue(withdraw)))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = true;
-                    } else if (isTrue(isTrue(!isEqual(deposit, null)) && isTrue(!isEqual(withdraw, null))))
-                    {
-                        ((IDictionary<string,object>)getValue(getValue(currency, "networks"), key))["active"] = false;
-                    }
-                }
-                active = this.safeBool(getValue(getValue(currency, "networks"), key), "active"); // dict might have been updated on above lines, so access directly instead of `network` variable
-                object currencyActive = this.safeBool(currency, "active");
-                if (isTrue(isTrue(isEqual(currencyActive, null)) || isTrue(active)))
-                {
-                    ((IDictionary<string,object>)currency)["active"] = active;
                 }
                 // find lowest fee (which is more desired)
                 object fee = this.safeString(network, "fee");
@@ -3949,7 +3935,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = this.extend(this.parsePosition(getValue(positions, i), null), parameters);
+            object position = this.extend(this.parsePosition(getValue(positions, i)), parameters);
             ((IList<object>)result).Add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -3968,7 +3954,7 @@ public partial class Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
         {
-            object rank = this.extend(this.parseADLRank(getValue(ranks, i), null), parameters);
+            object rank = this.extend(this.parseADLRank(getValue(ranks, i)), parameters);
             ((IList<object>)result).Add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);

@@ -690,12 +690,13 @@ class bitstamp(Exchange, ImplicitAPI):
                 elif payoffType == 'Inverse':
                     subType = 'inverse'
             isSpot = (type == 'spot')
+            settle = self.safe_currency_code(settleId) if settleId else None
             result.append({
                 'id': self.safe_string(market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': self.safe_currency_code(settleId) if settleId else None,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -918,7 +919,7 @@ class bitstamp(Exchange, ImplicitAPI):
         # }
         #
         marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market, None)
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_string(ticker, 'vwap')
         baseVolume = self.safe_string(ticker, 'volume')
@@ -1307,8 +1308,9 @@ class bitstamp(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(ohlc, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
+        finalResponse = response  # java req
         result: dict = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': None,
             'datetime': None,
         }

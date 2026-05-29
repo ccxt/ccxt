@@ -1045,7 +1045,7 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return this.safeString(statuses, status, null);
+        return this.safeString(statuses, status);
     }
 
     public override object parseOrder(object order, object market = null)

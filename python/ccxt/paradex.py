@@ -627,6 +627,7 @@ class paradex(Exchange, ImplicitAPI):
             makerFee = self.parse_number('0.0003')
         else:
             expiry = None
+        expireDatetime = None if (expiry == 0) else self.iso8601(expiry)
         return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
@@ -650,7 +651,7 @@ class paradex(Exchange, ImplicitAPI):
             'maker': makerFee,
             'contractSize': self.parse_number('1'),
             'expiry': expiry,
-            'expiryDatetime': None if (expiry == 0) else self.iso8601(expiry),
+            'expiryDatetime': expireDatetime,
             'strike': self.parse_number(strikePrice),
             'optionType': self.safe_string_lower(market, 'option_type'),
             'precision': {
@@ -1475,7 +1476,7 @@ class paradex(Exchange, ImplicitAPI):
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
         }
-        return self.safe_string(timeInForces, timeInForce, None)
+        return self.safe_string(timeInForces, timeInForce)
 
     def parse_order_status(self, status: Str):
         if status is not None:

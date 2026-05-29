@@ -953,6 +953,7 @@ public partial class bitrue : Exchange
         {
             minCost = this.safeNumber(market, "minOrderMoney");
         }
+        object isSpot = (isEqual(type, "spot"));
         return new Dictionary<string, object>() {
             { "id", id },
             { "lowercaseId", lowercaseId },
@@ -964,7 +965,7 @@ public partial class bitrue : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", (isEqual(type, "spot")) },
+            { "spot", isSpot },
             { "margin", false },
             { "swap", isContract },
             { "future", false },

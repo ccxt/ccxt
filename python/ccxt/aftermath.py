@@ -819,7 +819,8 @@ class aftermath(Exchange, ImplicitAPI):
         account = None
         account, params = self.handle_option_and_params(params, 'createOrder', 'account')
         order = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
-        orders = self.create_orders([order], {'account': account})
+        accountObj = {'account': account}
+        orders = self.create_orders([order], accountObj)
         return orders[0]
 
     def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
@@ -1174,10 +1175,14 @@ class aftermath(Exchange, ImplicitAPI):
         #     "collateral": 39.0
         # }
         #
-        return self.extend(self.parse_transaction(response, currency), {
-            'addressFrom': account,
-            'amount': amount,
-        })
+        parsedTx = self.parse_transaction(response, currency)
+        parsedTx['addressFrom '] = account
+        parsedTx['amount'] = amount
+        return parsedTx
+        # return self.extend(, {
+        #     'addressFrom': account,
+        #     'amount': amount,
+        # })
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         return {

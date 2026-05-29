@@ -676,6 +676,7 @@ class digifinex extends Exchange {
                     $isAllowed = 1;
                 }
             }
+            $isActive = $isAllowed ? true : false;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -691,7 +692,7 @@ class digifinex extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'active' => $isAllowed ? true : false,
+                'active' => $isActive,
                 'contract' => $swap,
                 'linear' => $isLinear,
                 'inverse' => $isInverse,

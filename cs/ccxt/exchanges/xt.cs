@@ -4657,11 +4657,12 @@ public partial class xt : Exchange
             object tier = getValue(brackets, i);
             object marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
+            object minNotional = this.safeNumber(getValue(brackets, subtract(i, 1)), "maxNominalValue", 0);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "bracket") },
                 { "symbol", this.safeSymbol(marketId, market, "_", "contract") },
                 { "currency", getValue(market, "settle") },
-                { "minNotional", this.safeNumber(getValue(brackets, subtract(i, 1)), "maxNominalValue", 0) },
+                { "minNotional", minNotional },
                 { "maxNotional", this.safeNumber(tier, "maxNominalValue") },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintMarginRate") },
                 { "maxLeverage", this.safeNumber(tier, "maxLeverage") },

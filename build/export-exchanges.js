@@ -821,6 +821,16 @@ async function exportEverything () {
             regex: /var Exchanges \[\]string = \[\]string\{.+$/gm,
             replacement: `var Exchanges []string = []string{ ${wsIds.map(i=>`"${i}"`).join(', ')} }`,
         },
+        {
+            file: './java/lib/src/main/java/io/github/ccxt/MetaData.java',
+            regex: /public static final List<String> Exchanges = new java.util.ArrayList<String>\(java.util.Arrays.asList\(.+/,
+            replacement: `public static final List<String> Exchanges = new java.util.ArrayList<String>(java.util.Arrays.asList(${ids.map(i=>`"${i}"`).join(', ')}));`,
+        },
+        {
+            file: './java/lib/src/main/java/io/github/ccxt/MetaData.java',
+            regex: /public static final List<String> ProExchanges = new java.util.ArrayList<String>\(java.util.Arrays.asList\(.+/,
+            replacement: `public static final List<String> ProExchanges = new java.util.ArrayList<String>(java.util.Arrays.asList(${wsIds.map(i=>`"${i}"`).join(', ')}));`,
+        }
     ]
 
     exportExchanges (replacements, unlimitedLog)

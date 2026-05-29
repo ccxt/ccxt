@@ -2598,7 +2598,7 @@ class toobit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params) {
+    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params = array ()) {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             Async\await($this->load_markets());
             $currency = null;

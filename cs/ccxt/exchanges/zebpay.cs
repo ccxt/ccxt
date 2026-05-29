@@ -1936,11 +1936,11 @@ public partial class zebpay : Exchange
         //        }
         //     ]
         //
-        object timestamp = this.safeInteger2(ticker, "timestamp", "ts", null);
+        object timestamp = this.safeInteger2(ticker, "timestamp", "ts");
         object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId);
-        object close = this.safeString(ticker, "close", null);
-        object last = this.safeString(ticker, "last", null);
+        object close = this.safeString(ticker, "close");
+        object last = this.safeString(ticker, "last");
         object percentage = this.safeString(ticker, "percentage");
         object bidVolume = this.safeString(ticker, "bidVolume");
         object askVolume = this.safeString(ticker, "askVolume");

@@ -1401,10 +1401,10 @@ class htx extends \ccxt\async\htx {
              * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
              *
              * watch all open positions. Note => huobi has one $channel for each $marginMode and $type
-             * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param $since
-             * @param $limit
-             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch
+             * @param {int} [$limit] the maximum number of positions to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());

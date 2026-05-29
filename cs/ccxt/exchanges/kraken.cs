@@ -1798,10 +1798,11 @@ public partial class kraken : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            object parsedAmount = this.amountToPrecision(getValue(market, "symbol"), amount);
             object req = new Dictionary<string, object>() {
                 { "type", side },
                 { "ordertype", type },
-                { "volume", this.amountToPrecision(getValue(market, "symbol"), amount) },
+                { "volume", parsedAmount },
             };
             object orderRequest = this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(getValue(orderRequest, 0));
@@ -2173,13 +2174,13 @@ public partial class kraken : Exchange
                 stopLossPrice = triggerPrice;
             }
         }
-        object finalType = this.parseOrderType(rawType);
+        object typeParsed = this.parseOrderType(rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if (isTrue(this.inArray(finalType, new List<object>() {"stop loss", "take profit"})))
+        if (isTrue(this.inArray(typeParsed, new List<object>() {"stop loss", "take profit"})))
         {
-            finalType = ((bool) isTrue((isEqual(price, null)))) ? "market" : "limit";
+            typeParsed = ((bool) isTrue((isEqual(price, null)))) ? "market" : "limit";
         }
         object amendId = this.safeString(order, "amend_id");
         if (isTrue(!isEqual(amendId, null)))
@@ -2195,7 +2196,7 @@ public partial class kraken : Exchange
             { "lastTradeTimestamp", null },
             { "status", status },
             { "symbol", symbol },
-            { "type", finalType },
+            { "type", typeParsed },
             { "timeInForce", null },
             { "postOnly", isPostOnly },
             { "side", side },
@@ -3755,17 +3756,17 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        fromAccount = this.parseAccountType(fromAccount);
-        toAccount = this.parseAccountType(toAccount);
+        object fromAccountParsed = this.parseAccountType(fromAccount);
+        object toAccountParsed = this.parseAccountType(toAccount);
         object request = new Dictionary<string, object>() {
             { "amount", this.currencyToPrecision(code, amount) },
-            { "from", fromAccount },
-            { "to", toAccount },
+            { "from", fromAccountParsed },
+            { "to", toAccountParsed },
             { "asset", getValue(currency, "id") },
         };
-        if (isTrue(!isEqual(fromAccount, "Spot Wallet")))
+        if (isTrue(!isEqual(fromAccountParsed, "Spot Wallet")))
         {
-            throw new BadRequest ((string)add(add(add(add(add(this.id, " transfer cannot transfer from "), fromAccount), " to "), toAccount), ". Use krakenfutures instead to transfer from the futures account.")) ;
+            throw new BadRequest ((string)add(add(add(add(add(this.id, " transfer cannot transfer from "), fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")) ;
         }
         object response = await this.privatePostWalletTransfer(this.extend(request, parameters));
         //
@@ -3780,8 +3781,8 @@ public partial class kraken : Exchange
         object transfer = this.parseTransfer(response, currency);
         return this.extend(transfer, new Dictionary<string, object>() {
             { "amount", amount },
-            { "fromAccount", fromAccount },
-            { "toAccount", toAccount },
+            { "fromAccount", fromAccountParsed },
+            { "toAccount", toAccountParsed },
         });
     }
 

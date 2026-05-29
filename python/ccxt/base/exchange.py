@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.55'
+__version__ = '4.5.56'
 
 # -----------------------------------------------------------------------------
 
@@ -3398,6 +3398,8 @@ class Exchange(object):
         arr = self.to_array(rawCurrencies)
         for i in range(0, len(arr)):
             parsed = self.parse_currency(arr[i])
+            if parsed is None:
+                continue
             code = parsed['code']
             result[code] = parsed
         return result
@@ -3668,7 +3670,7 @@ class Exchange(object):
                 self.features[marketType] = None
             else:
                 if marketType == 'spot':
-                    self.features[marketType] = self.features_mapper(initialFeatures, marketType, None)
+                    self.features[marketType] = self.features_mapper(initialFeatures, marketType)
                 else:
                     self.features[marketType] = {}
                     for j in range(0, len(subTypes)):
@@ -3861,17 +3863,6 @@ class Exchange(object):
                 currencyWithdraw = self.safe_bool(currency, 'withdraw')
                 if currencyWithdraw is None or withdraw:
                     currency['withdraw'] = withdraw
-                # set network 'active' to False if D or W is disabled
-                active = self.safe_bool(network, 'active')
-                if active is None:
-                    if deposit and withdraw:
-                        currency['networks'][key]['active'] = True
-                    elif deposit is not None and withdraw is not None:
-                        currency['networks'][key]['active'] = False
-                active = self.safe_bool(currency['networks'][key], 'active')  # dict might have been updated on above lines, so access directly instead of `network` variable
-                currencyActive = self.safe_bool(currency, 'active')
-                if currencyActive is None or active:
-                    currency['active'] = active
                 # find lowest fee(which is more desired)
                 fee = self.safe_string(network, 'fee')
                 feeMain = self.safe_string(currency, 'fee')
@@ -5244,7 +5235,7 @@ class Exchange(object):
         positions = self.to_array(positions)
         result = []
         for i in range(0, len(positions)):
-            position = self.extend(self.parse_position(positions[i], None), params)
+            position = self.extend(self.parse_position(positions[i]), params)
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
@@ -5256,7 +5247,7 @@ class Exchange(object):
         ranks = self.to_array(ranks)
         result = []
         for i in range(0, len(ranks)):
-            rank = self.extend(self.parse_adl_rank(ranks[i], None), params)
+            rank = self.extend(self.parse_adl_rank(ranks[i]), params)
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 

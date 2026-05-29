@@ -739,6 +739,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             # "1.0"
             contractSize = self.parse_number(contractSizeString)
+        isLinear = not inverse
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
@@ -756,7 +757,7 @@ class phemex(Exchange, ImplicitAPI):
             'option': False,
             'active': status == 'Listed',
             'contract': True,
-            'linear': not inverse,
+            'linear': isLinear,
             'inverse': inverse,
             'taker': self.parse_number(self.from_en(takerFeeRateEr, ratioScale)),
             'maker': self.parse_number(self.from_en(makerFeeRateEr, ratioScale)),
@@ -4398,11 +4399,12 @@ class phemex(Exchange, ImplicitAPI):
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             maxNotional = self.safe_integer(tier, 'limit')
+            minNotionalResponse = minNotional  # java req
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
-                'minNotional': minNotional,
+                'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_string(tier, 'maintenanceMargin'),
                 'maxLeverage': None,

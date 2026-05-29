@@ -902,12 +902,14 @@ class ascendex(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             accountGroup = self.safe_string(data, 'accountGroup')
             self.options['account-group'] = accountGroup
+        finalResponse = response  # java req
+        finalAccountGroup = accountGroup
         return [
             {
-                'id': accountGroup,
+                'id': finalAccountGroup,
                 'type': None,
                 'code': None,
-                'info': response,
+                'info': finalResponse,
             },
         ]
 
@@ -2917,8 +2919,9 @@ class ascendex(Exchange, ImplicitAPI):
         #
         if type == 'reduce':
             amount = Precise.string_abs(amount)
+        parsedAmount = self.parse_number(amount)
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.parse_number(amount),
+            'amount': parsedAmount,
             'type': type,
         })
 
