@@ -370,6 +370,18 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
                 Value::Null
             }
         }
+        // JS string indexing: `s[i]` returns the i-th character as a
+        // 1-char string (e.g. bitfinex `amountString[0] === '-'` to detect
+        // a negative). Char-based so multi-byte UTF-8 is handled.
+        (Value::Str(s), Value::Int(i)) => {
+            if *i < 0 {
+                return Value::Null;
+            }
+            match s.chars().nth(*i as usize) {
+                Some(c) => Value::Str(c.to_string()),
+                None    => Value::Null,
+            }
+        }
         _ => Value::Null,
     }
 }

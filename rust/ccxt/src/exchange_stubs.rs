@@ -820,8 +820,15 @@ impl Exchange {
         match v {
             Value::Int(_)   => v,
             Value::Float(f) => Value::Int(f as i64),
+            // CCXT `safeInteger` is parseInt-style: a decimal string like
+            // "3.33" truncates to 3 (arkham leverage tiers), not null. Try
+            // an exact i64 first, then fall back to f64 → truncate.
             Value::Str(s)   => match s.parse::<i64>() {
-                Ok(n) => Value::Int(n), Err(_) => arg_default(optional_args),
+                Ok(n) => Value::Int(n),
+                Err(_) => match s.parse::<f64>() {
+                    Ok(f) if f.is_finite() => Value::Int(f as i64),
+                    _ => arg_default(optional_args),
+                },
             },
             _ => arg_default(optional_args),
         }
@@ -971,10 +978,21 @@ impl Exchange {
     }
 
     pub fn omit_zero(&self, v: Value) -> Value {
+        // Mirrors TS `omitZero`: undefined/'' or any value that parses to
+        // numeric 0 → undefined. The old `s == "0"` check missed "0.0",
+        // "0.00", "0e0" etc. — e.g. gate echoes `gt_fee:"0.0"`, and
+        // keeping it as a non-null fee left `safeTrade` with 3 fee
+        // entries (so it couldn't collapse to a single `fee`).
         match &v {
             Value::Int(0)                => Value::Null,
             Value::Float(f) if *f == 0.0 => Value::Null,
-            Value::Str(s) if s == "0"    => Value::Null,
+            Value::Str(s) => {
+                if s.is_empty() { return Value::Null; }
+                match s.parse::<f64>() {
+                    Ok(n) if n == 0.0 => Value::Null,
+                    _ => v,
+                }
+            }
             _ => v,
         }
     }
@@ -1031,11 +1049,19 @@ impl Exchange {
     pub fn index_by(&self, arr: Value, key: Value) -> Value {
         let k = key_str(&key);
         let mut out: HashMap<String, Value> = HashMap::new();
-        if let Value::Array(items) = arr {
-            for item in items {
-                if let Some(kv) = crate::value::safe_string(&item, &k, None) {
-                    out.insert(kv, item);
-                }
+        // TS `indexBy` accepts an array OR an object — for an object it
+        // iterates `Object.values`. okx's parseDepositAddress relies on
+        // this: `indexBy(currency['networks'], 'id')` where `networks` is
+        // a dict keyed by network code. Array-only would return {} and
+        // collapse every parsed address to a null network.
+        let items: Vec<Value> = match arr {
+            Value::Array(items) => items,
+            Value::Map(m)       => m.into_iter().map(|(_, v)| v).collect(),
+            _ => return Value::Map(out),
+        };
+        for item in items {
+            if let Some(kv) = crate::value::safe_string(&item, &k, None) {
+                out.insert(kv, item);
             }
         }
         Value::Map(out)
@@ -1154,9 +1180,21 @@ impl Exchange {
         acc.unwrap_or(Value::Null)
     }
 
-    /// `parse_json(text)` — JSON parse.
+    /// `parse_json(text)` — JSON parse. Mirrors CCXT `parseJson`, which
+    /// runs `onJsonResponse` first: when `quoteJsonNumbers` is on
+    /// (default), every object number VALUE is wrapped in quotes before
+    /// parsing so big integer ids (e.g. bingx's 18-digit `orderId`) and
+    /// precise decimals survive as strings instead of lossy f64/i64.
     pub fn parse_json_value(&self, v: Value) -> Value {
-        crate::runtime::json_parse(&v)
+        match v {
+            Value::Str(s) => {
+                let prepared = crate::runtime::quote_json_numbers(&s);
+                crate::runtime::json_parse(&Value::Str(prepared))
+            }
+            // Already a parsed object/array (some fixtures store the
+            // response pre-parsed) — pass it through untouched.
+            other => other,
+        }
     }
 
     /// `yymmdd()` / `yyyymmdd()` — date formatters.

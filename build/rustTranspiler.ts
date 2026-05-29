@@ -289,6 +289,48 @@ class RustTranspilerBuilder {
         return out;
     }
 
+    // Writes index-mutations back to their source array. TS does
+    // `const x = arr[i]; x['k'] = v;` relying on `x` being a *reference*
+    // into `arr`. In Rust `let x = get_value(&arr, &i)` clones, so the
+    // mutation is lost (e.g. coinmetro `fetchOpenOrders` tags each order
+    // with `status='open'` after parsing). When a local bound directly
+    // from `get_value(&ARR, &IDX)` (IDX a loop index) is immediately
+    // mutated via `add_element_to_object`/`set_value`, append a
+    // `set_value(&mut ARR, &IDX, local)` write-back after the last such
+    // contiguous mutation so `ARR` reflects it.
+    writeBackIndexedMutations(content: string): string {
+        const lines = content.split('\n');
+        const out: string[] = [];
+        const bindRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = get_value\(&([a-zA-Z_]\w*), &([a-zA-Z_]\w*)\);\s*$/;
+        let i = 0;
+        while (i < lines.length) {
+            const m = lines[i].match(bindRe);
+            // Only treat single-letter indices (`i`, `j`, `k`) as loop
+            // indices — avoids rewriting `get_value(&x, &someKey)` field
+            // reads where a write-back would be wrong / not compile.
+            if (m && /^[a-z]$/.test(m[4])) {
+                const [, indent, local, arr, idx] = m;
+                out.push(lines[i]);
+                let j = i + 1;
+                const mutRe = new RegExp(`^\\s*(add_element_to_object|crate::set_value|set_value)\\(&mut ${local}[,)]`);
+                let mutated = false;
+                while (j < lines.length && mutRe.test(lines[j])) {
+                    out.push(lines[j]);
+                    mutated = true;
+                    j++;
+                }
+                if (mutated) {
+                    out.push(`${indent}crate::set_value(&mut ${arr}, &${idx}, ${local}.clone());`);
+                    i = j;
+                    continue;
+                }
+            }
+            out.push(lines[i]);
+            i++;
+        }
+        return out.join('\n');
+    }
+
     // Walks Rust source from a `{` to its matching `}` while skipping
     // line and block comments and string literals — an unbalanced `{`
     // inside a JSON example in a docstring would otherwise trick the
@@ -3927,6 +3969,7 @@ ${isBase
         content = this.stripMutSelfFieldClones(content);
         content = this.splitAddElementBorrowConflicts(content);
         content = this.splitGetValueMutAdds(content);
+        content = this.writeBackIndexedMutations(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
         {
@@ -4059,6 +4102,11 @@ impl ${coreName} {
         // (e.g. portfolioMargin via fixture) take precedence, then
         // describe()'s defaults fill in any gaps.
         let __described_options = crate::get_value(&described, &crate::Value::Str("options".to_string()));
+        // Capture the describe()'s explicit networksById BEFORE the merge
+        // — the merge below overlays the base Exchange's options (whose
+        // after_construct left an EMPTY networksById), which would
+        // otherwise clobber the manual mappings like binance BSC to BEP20.
+        let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
         if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
@@ -4068,16 +4116,15 @@ impl ${coreName} {
         } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
             self.exchange.options = __described_options;
         }
-        // Derive options.networksById by inverting options.networks
-        // (CCXT's createNetworksByIdObject) — needed by networkIdToCode.
-        // The transpiled method mutates a clone, so do it here against
-        // the real options map.
+        // Derive options.networksById (CCXT's createNetworksByIdObject):
+        // start from the auto-inverted networks (generated), then overlay
+        // the describe()'s explicit networksById so manual mappings win —
+        // mirrors TS extend(generated, manual). Without the manual
+        // overlay, an exchange whose networks defines both BSC to BSC and
+        // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
+        // order instead of the intended BSC to BEP20.
         if let crate::Value::Map(mut opts) = self.exchange.options.clone() {
-            let mut by_id: indexmap::IndexMap<String, crate::Value> =
-                match opts.get("networksById") {
-                    Some(crate::Value::Map(m)) => m.clone(),
-                    _ => indexmap::IndexMap::new(),
-                };
+            let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
             if let Some(crate::Value::Map(networks)) = opts.get("networks") {
                 for (code, id) in networks {
                     if let crate::Value::Str(id_s) = id {
@@ -4085,6 +4132,9 @@ impl ${coreName} {
                              .or_insert_with(|| crate::Value::Str(code.clone()));
                     }
                 }
+            }
+            if let crate::Value::Map(manual) = &__described_networks_by_id {
+                for (k, v) in manual { by_id.insert(k.clone(), v.clone()); }
             }
             opts.insert("networksById".to_string(), crate::Value::Map(by_id));
             self.exchange.options = crate::Value::Map(opts);
@@ -4098,6 +4148,10 @@ impl ${coreName} {
         // exchange's describe() actually provides them (super.describe()
         // is stubbed, so most exchanges' describe() omits this).
         { let __rc = crate::get_value(&described, &crate::Value::Str("requiredCredentials".to_string())); if !matches!(__rc, crate::Value::Null) { self.exchange.requiredCredentials = __rc; } }
+        // Merge describe()'s commonCurrencies over the base defaults so
+        // exchange-specific aliases (bitfinex UST to USDT, onetrading
+        // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Map(extra) = __cc { if let crate::Value::Map(base) = &mut self.exchange.commonCurrencies { for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
         self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
         self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));

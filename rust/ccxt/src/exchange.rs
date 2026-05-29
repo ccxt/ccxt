@@ -996,9 +996,20 @@ impl Exchange {
         if str_val.is_empty() {
             return Value::Null;
         }
-        // rfc3339 (`T…Z` / offset forms).
+        // rfc3339 (`T…Z` / `+00:00` offset forms).
         if let Ok(t) = chrono::DateTime::parse_from_rfc3339(&str_val) {
             return Value::Int(t.timestamp_millis());
+        }
+        // Numeric timezone offset WITHOUT a colon (`+0000`) — not valid
+        // rfc3339 but common (e.g. bitso `2024-03-13T10:59:59+0000`). JS
+        // `Date.parse` accepts it; chrono needs an explicit `%z` format.
+        for fmt in [
+            "%Y-%m-%dT%H:%M:%S%.f%z", "%Y-%m-%dT%H:%M:%S%z",
+            "%Y-%m-%d %H:%M:%S%.f%z", "%Y-%m-%d %H:%M:%S%z",
+        ] {
+            if let Ok(t) = chrono::DateTime::parse_from_str(&str_val, fmt) {
+                return Value::Int(t.timestamp_millis());
+            }
         }
         // Lenient fallbacks — naive forms are interpreted as UTC.
         for fmt in [

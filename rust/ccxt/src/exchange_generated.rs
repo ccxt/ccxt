@@ -15,7 +15,7 @@ use crate::runtime::*;
 impl Exchange {
     pub fn describe(&self) -> Value {
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.id.clone());
         m.insert("name".to_string(), self.name.clone());
         m.insert("countries".to_string(), self.countries.clone());
@@ -28,7 +28,7 @@ impl Exchange {
         m.insert("alias".to_string(), self.alias.clone());
         m.insert("dex".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("publicAPI".to_string(), Value::Bool(true));
         m.insert("privateAPI".to_string(), Value::Bool(true));
         m.insert("CORS".to_string(), Value::Null);
@@ -271,7 +271,7 @@ impl Exchange {
     m
 }));
         m.insert("urls".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("logo".to_string(), Value::Null);
         m.insert("api".to_string(), Value::Null);
         m.insert("test".to_string(), Value::Null);
@@ -284,7 +284,7 @@ impl Exchange {
 }));
         m.insert("api".to_string(), Value::Null);
         m.insert("requiredCredentials".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), Value::Bool(true));
         m.insert("secret".to_string(), Value::Bool(true));
         m.insert("uid".to_string(), Value::Bool(false));
@@ -299,14 +299,14 @@ impl Exchange {
 }));
         m.insert("markets".to_string(), Value::Null);
         m.insert("currencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("timeframes".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("trading".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::Null);
@@ -314,15 +314,15 @@ impl Exchange {
     m
 }));
         m.insert("funding".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("tierBased".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
@@ -330,7 +330,7 @@ impl Exchange {
     m
 }));
         m.insert("status".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".to_string()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
@@ -340,7 +340,7 @@ impl Exchange {
 }));
         m.insert("exceptions".to_string(), Value::Null);
         m.insert("httpExceptions".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("422".to_string(), Value::Str("ExchangeError".to_string()).clone());
         m.insert("418".to_string(), Value::Str("DDoSProtection".to_string()).clone());
         m.insert("429".to_string(), Value::Str("RateLimitExceeded".to_string()).clone());
@@ -369,7 +369,7 @@ impl Exchange {
     m
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("XBT".to_string(), Value::Str("BTC".to_string()));
         m.insert("BCHSV".to_string(), Value::Str("BSV".to_string()));
     m
@@ -377,27 +377,27 @@ impl Exchange {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("paddingMode".to_string(), Value::Int(crate::runtime::NO_PADDING));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -555,15 +555,15 @@ impl Exchange {
     pub fn handle_deltas(&self, mut orderbook: Value, mut deltas: Value) {
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&deltas)) {
+            let mut __for_first_67: bool = true;
+            while { if !__for_first_67 { i = add(&i, &Value::Int(1)); } __for_first_67 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             self.handle_delta(orderbook.clone(), get_value(&deltas, &i));
-            i = add(&i, &Value::Int(1));
         }
         }
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" handleDelta not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" handleDelta not supported yet".to_string()))));
 }
 
     pub fn handle_deltas_with_keys(&self, mut bookSide: Value, mut deltas: Value, optional_args: &[Value]) {
@@ -572,10 +572,10 @@ impl Exchange {
         let mut countOrIdKey = get_arg(optional_args, 2, Value::Int(2));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&deltas)) {
+            let mut __for_first_68: bool = true;
+            while { if !__for_first_68 { i = add(&i, &Value::Int(1)); } __for_first_68 = false; is_less_than(&i, &get_array_length(&deltas)) } {
             let mut bidAsk: Value = self.parse_bid_ask(get_value(&deltas, &i), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
             bookSide.store_array(bidAsk);
-            i = add(&i, &Value::Int(1));
         }
         }
 }
@@ -590,9 +590,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&arraysOfArrays)) {
+            let mut __for_first_69: bool = true;
+            while { if !__for_first_69 { i = add(&i, &Value::Int(1)); } __for_first_69 = false; is_less_than(&i, &get_array_length(&arraysOfArrays)) } {
             result = self.array_concat(result.clone(), get_value(&arraysOfArrays, &i));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -608,12 +608,12 @@ impl Exchange {
         let mut keys: Value = object_keys(&timeframes);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_70: bool = true;
+            while { if !__for_first_70 { i = add(&i, &Value::Int(1)); } __for_first_70 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             if is_equal(&get_value(&timeframes, &key), &timeframe) {
                 return key;
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
@@ -656,7 +656,7 @@ impl Exchange {
         let mut length: Value = get_array_length(&usedProxies);
         if is_greater_than(&length, &Value::Int(1)) {
             let mut joinedProxyNames: Value = join(&usedProxies, &Value::Str(",".to_string()));
-            panic!("{:?}", crate::exchange_errors::invalid_proxy_settings(add(&add(&add(&self.id, &Value::Str(" you have multiple conflicting proxy settings (".to_string())), &joinedProxyNames), &Value::Str("), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_proxy_settings(add(&add(&add(&self.id, &Value::Str(" you have multiple conflicting proxy settings (".to_string())), &joinedProxyNames), &Value::Str("), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback".to_string()))));
         }
         return proxyUrl;
 
@@ -724,7 +724,7 @@ impl Exchange {
         let mut length: Value = get_array_length(&usedProxies);
         if is_greater_than(&length, &Value::Int(1)) {
             let mut joinedProxyNames: Value = join(&usedProxies, &Value::Str(",".to_string()));
-            panic!("{:?}", crate::exchange_errors::invalid_proxy_settings(add(&add(&add(&self.id, &Value::Str(" you have multiple conflicting proxy settings (".to_string())), &joinedProxyNames), &Value::Str("), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_proxy_settings(add(&add(&add(&self.id, &Value::Str(" you have multiple conflicting proxy settings (".to_string())), &joinedProxyNames), &Value::Str("), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback".to_string()))));
         }
         return Value::List(vec![httpProxy.clone(), httpsProxy.clone(), socksProxy.clone()]);
 
@@ -761,7 +761,7 @@ impl Exchange {
         let mut length: Value = get_array_length(&usedProxies);
         if is_greater_than(&length, &Value::Int(1)) {
             let mut joinedProxyNames: Value = join(&usedProxies, &Value::Str(",".to_string()));
-            panic!("{:?}", crate::exchange_errors::invalid_proxy_settings(add(&add(&add(&self.id, &Value::Str(" you have multiple conflicting proxy settings (".to_string())), &joinedProxyNames), &Value::Str("), please use only one from: wsProxy, wssProxy, wsSocksProxy".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_proxy_settings(add(&add(&add(&self.id, &Value::Str(" you have multiple conflicting proxy settings (".to_string())), &joinedProxyNames), &Value::Str("), please use only one from: wsProxy, wssProxy, wsSocksProxy".to_string()))));
         }
         return Value::List(vec![wsProxy.clone(), wssProxy.clone(), wsSocksProxy.clone()]);
 
@@ -770,20 +770,20 @@ impl Exchange {
 
     pub fn check_conflicting_proxies(&self, mut proxyAgentSet: Value, mut proxyUrlSet: Value) {
         if is_true(&proxyAgentSet) && is_true(&proxyUrlSet) {
-            panic!("{:?}", crate::exchange_errors::invalid_proxy_settings(add(&self.id, &Value::Str(" you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_proxy_settings(add(&self.id, &Value::Str(" you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy".to_string()))));
         }
 }
 
     pub fn check_address(&self, optional_args: &[Value]) -> Value {
         let mut address = get_arg(optional_args, 0, Value::Null);
         if is_equal(&address, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::invalid_address(add(&self.id, &Value::Str(" address is undefined".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_address(add(&self.id, &Value::Str(" address is undefined".to_string()))));
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         let mut uniqChars: Value = (self.unique(self.string_to_chars_array(address.clone())));
         let mut length: Value = get_array_length(&uniqChars); // py transpiler trick
         if is_equal(&length, &Value::Int(1)) || is_less_than(&get_array_length(&address), &self.minFundingAddressLength) || is_greater_than(&get_index_of(&address, &Value::Str(" ".to_string())), &negate(&Value::Int(1))) {
-            panic!("{:?}", crate::exchange_errors::invalid_address(add(&add(&add(&add(&add(&self.id, &Value::Str(" address is invalid or has less than ".to_string())), &to_string_val(&self.minFundingAddressLength)), &Value::Str(" characters: \"".to_string())), &to_string_val(&address)), &Value::Str("\"".to_string()))));
+            panic!("{}", crate::exchange_errors::invalid_address(add(&add(&add(&add(&add(&self.id, &Value::Str(" address is invalid or has less than ".to_string())), &to_string_val(&self.minFundingAddressLength)), &Value::Str(" characters: \"".to_string())), &to_string_val(&address)), &Value::Str("\"".to_string()))));
         }
         return address;
 
@@ -795,12 +795,12 @@ impl Exchange {
         let mut messageHashes: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&messageHashes)) {
+            let mut __for_first_71: bool = true;
+            while { if !__for_first_71 { i = add(&i, &Value::Int(1)); } __for_first_71 = false; is_less_than(&i, &get_array_length(&messageHashes)) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             if is_greater_than_or_equal(&get_index_of(&messageHash, &element), &Value::Int(0)) {
                 append_to_array(&mut result, messageHash.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -827,14 +827,14 @@ impl Exchange {
                     if is_greater_than(&limit, &arrayLength) {
                         limit = arrayLength.clone();
                     }
-                    // array = ascending ? get_value(&this, &Value::Str("arraySlice".to_string())) (array, 0, limit) : get_value(&this, &Value::Str("arraySlice".to_string())) (array, -limit);
+                    // array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
                     if is_true(&ascending) {
                         array = self.array_slice(array.clone(), Value::Int(0), &[limit.clone()]);
                     }  else {
                         array = self.array_slice(array.clone(), negate(&limit), &[]);
                     }
                 }  else {
-                    // array = ascending ? get_value(&this, &Value::Str("arraySlice".to_string())) (array, -limit) : get_value(&this, &Value::Str("arraySlice".to_string())) (array, 0, limit);
+                    // array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
                     if is_true(&ascending) {
                         array = self.array_slice(array.clone(), negate(&limit), &[]);
                     }  else {
@@ -860,13 +860,13 @@ impl Exchange {
             result = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&parsedArray)) {
+                let mut __for_first_72: bool = true;
+                while { if !__for_first_72 { i = add(&i, &Value::Int(1)); } __for_first_72 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
                 let mut entry: Value = get_value(&parsedArray, &i);
                 let mut value: Value = self.safe_value(entry.clone(), key.clone(), &[]);
                 if is_true(&value) && is_true(&(is_greater_than_or_equal(&value, &since))) {
                     append_to_array(&mut result, entry.clone());
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -896,7 +896,8 @@ impl Exchange {
             result = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&parsedArray)) {
+                let mut __for_first_73: bool = true;
+                while { if !__for_first_73 { i = add(&i, &Value::Int(1)); } __for_first_73 = false; is_less_than(&i, &get_array_length(&parsedArray)) } {
                 let mut entry: Value = get_value(&parsedArray, &i);
                 let mut entryFiledEqualValue: Value = Value::Bool(is_equal(&get_value(&entry, &field), &value));
                 let mut firstCondition: Value = ternary(is_true(&valueIsDefined), entryFiledEqualValue.clone(), Value::Bool(true));
@@ -906,7 +907,6 @@ impl Exchange {
                 if is_true(&firstCondition) && is_true(&secondCondition) {
                     append_to_array(&mut result, entry.clone());
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -928,25 +928,25 @@ impl Exchange {
         if is_true(&enabled) {
             if is_true(&Value::Bool(in_op(&self.urls, &Value::Str("test".to_string())))) {
                 if is_string(&get_value(&self.urls, &Value::Str("api".to_string()))) {
-                    { let __be_tmp = get_value(&self.urls, &Value::Str("api".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("apiBackup".to_string()), __be_tmp); };
-                    { let __be_tmp = get_value(&self.urls, &Value::Str("test".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+                    { let __be_tmp = get_value(&self.urls, &Value::Str("api".to_string())); add_element_to_object(&mut self.urls, &Value::Str("apiBackup".to_string()), __be_tmp); };
+                    { let __be_tmp = get_value(&self.urls, &Value::Str("test".to_string())); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
                 }  else {
-                    { let __be_tmp = self.clone_value(get_value(&self.urls, &Value::Str("api".to_string()))); add_element_to_object(&mut self.urls.clone(), &Value::Str("apiBackup".to_string()), __be_tmp); };
-                    { let __be_tmp = self.clone_value(get_value(&self.urls, &Value::Str("test".to_string()))); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+                    { let __be_tmp = self.clone_value(get_value(&self.urls, &Value::Str("api".to_string()))); add_element_to_object(&mut self.urls, &Value::Str("apiBackup".to_string()), __be_tmp); };
+                    { let __be_tmp = self.clone_value(get_value(&self.urls, &Value::Str("test".to_string()))); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
                 }
             }  else {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" does not have a sandbox URL".to_string()))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" does not have a sandbox URL".to_string()))));
             }
             // set flag
             self.isSandboxModeEnabled = Value::Bool(true);
         }  else if is_true(&Value::Bool(in_op(&self.urls, &Value::Str("apiBackup".to_string())))) {
             if is_string(&get_value(&self.urls, &Value::Str("api".to_string()))) {
-                { let __be_tmp = get_value(&self.urls, &Value::Str("apiBackup".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+                { let __be_tmp = get_value(&self.urls, &Value::Str("apiBackup".to_string())); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
             }  else {
-                { let __be_tmp = self.clone_value(get_value(&self.urls, &Value::Str("apiBackup".to_string()))); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+                { let __be_tmp = self.clone_value(get_value(&self.urls, &Value::Str("apiBackup".to_string()))); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
             }
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackup".to_string()), &[]);
-            self.urls = newUrls;
+            self.urls = newUrls.clone();
             // set flag
             self.isSandboxModeEnabled = Value::Bool(false);
         }
@@ -960,17 +960,17 @@ impl Exchange {
  */
     pub fn enable_demo_trading(&mut self, mut enable: Value) {
         if is_true(&self.isSandboxModeEnabled) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences".to_string()))));
         }
         if is_true(&enable) {
-            { let __be_tmp = get_value(&self.urls, &Value::Str("api".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("apiBackupDemoTrading".to_string()), __be_tmp); };
-            { let __be_tmp = get_value(&self.urls, &Value::Str("demo".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+            { let __be_tmp = get_value(&self.urls, &Value::Str("api".to_string())); add_element_to_object(&mut self.urls, &Value::Str("apiBackupDemoTrading".to_string()), __be_tmp); };
+            { let __be_tmp = get_value(&self.urls, &Value::Str("demo".to_string())); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
         }  else if is_true(&Value::Bool(in_op(&self.urls, &Value::Str("apiBackupDemoTrading".to_string())))) {
-            { let __be_tmp = get_value(&self.urls, &Value::Str("apiBackupDemoTrading".to_string())); add_element_to_object(&mut self.urls.clone(), &Value::Str("api".to_string()), __be_tmp); };
+            { let __be_tmp = get_value(&self.urls, &Value::Str("apiBackupDemoTrading".to_string())); add_element_to_object(&mut self.urls, &Value::Str("api".to_string()), __be_tmp); };
             let mut newUrls: Value = self.omit(self.urls.clone(), Value::Str("apiBackupDemoTrading".to_string()), &[]);
-            self.urls = newUrls;
+            self.urls = newUrls.clone();
         }
-        add_element_to_object(&mut self.options.clone(), &Value::Str("enableDemoTrading".to_string()), enable.clone());
+        add_element_to_object(&mut self.options, &Value::Str("enableDemoTrading".to_string()), enable.clone());
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
@@ -980,13 +980,13 @@ impl Exchange {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 });
 
@@ -995,10 +995,10 @@ impl Exchange {
 
     pub async fn fetch_accounts(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchAccounts() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchAccounts() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1012,10 +1012,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1024,10 +1024,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradesWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradesWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1036,13 +1036,13 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("watchLiquidationsForSymbols".to_string()))) {
             return self.watch_liquidations_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchLiquidations() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchLiquidations() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1051,10 +1051,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchLiquidationsForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchLiquidationsForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1063,13 +1063,13 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("watchMyLiquidationsForSymbols".to_string()))) {
             return self.watch_my_liquidations_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyLiquidations() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyLiquidations() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1078,10 +1078,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyLiquidationsForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyLiquidationsForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1090,10 +1090,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTrades() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1101,20 +1101,20 @@ impl Exchange {
     pub async fn un_watch_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTrades() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1123,20 +1123,20 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTradesForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTradesForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_trades_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTradesForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTradesForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1145,10 +1145,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTradesForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTradesForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1157,10 +1157,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrdersForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrdersForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1169,20 +1169,20 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCVForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCVForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_ohlcv_for_symbols(&mut self, mut symbolsAndTimeframes: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCVForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCVForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1190,20 +1190,20 @@ impl Exchange {
     pub async fn watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBookForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBookForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_order_book_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrderBookForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrderBookForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1211,30 +1211,30 @@ impl Exchange {
     pub async fn un_watch_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchPositions() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchPositions() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTicker() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTicker() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMarkPrice() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMarkPrice() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1242,10 +1242,10 @@ impl Exchange {
     pub async fn un_watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMarkPrices() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMarkPrices() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1258,10 +1258,10 @@ impl Exchange {
 
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddresses() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddresses() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1274,10 +1274,10 @@ impl Exchange {
 
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1285,34 +1285,46 @@ impl Exchange {
     pub async fn fetch_order_book_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBookWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBookWs() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_margin_mode(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_margin_mode", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchMarginModes".to_string()))) {
             let mut marginModes: Value = self.fetch_margin_modes(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             return self.safe_dict(marginModes.clone(), symbol.clone(), &[]);
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginMode() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginMode() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_margin_modes(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_margin_modes", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginModes () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginModes () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1320,18 +1332,18 @@ impl Exchange {
     pub async fn fetch_rest_order_book_safe(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut fetchSnapshotMaxRetries: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("maxRetries".to_string()), &[Value::Int(3)]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &fetchSnapshotMaxRetries) {
+            let mut __for_first_74: bool = true;
+            while { if !__for_first_74 { i = add(&i, &Value::Int(1)); } __for_first_74 = false; is_less_than(&i, &fetchSnapshotMaxRetries) } {
             {
                 let mut orderBook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
                 return orderBook;
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
@@ -1342,20 +1354,20 @@ impl Exchange {
     pub async fn watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBook() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrderBook() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOrderBook() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1367,10 +1379,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTime() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTime() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1378,10 +1390,10 @@ impl Exchange {
     pub async fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingLimits() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingLimits() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1390,24 +1402,24 @@ impl Exchange {
         // virtual-dispatch (Go-style: this.DerivedExchange.parse_currency(...))
         { let __v = self.derived().parse_currency(rawCurrency.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseCurrency() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseCurrency() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_currencies(&self, mut rawCurrencies: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut arr: Value = self.to_array(rawCurrencies.clone());
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&arr)) {
+            let mut __for_first_75: bool = true;
+            while { if !__for_first_75 { i = add(&i, &Value::Int(1)); } __for_first_75 = false; is_less_than(&i, &get_array_length(&arr)) } {
             let mut parsed: Value = self.parse_currency(get_value(&arr, &i));
             let mut code: Value = get_value(&parsed, &Value::Str("code".to_string()));
             add_element_to_object(&mut result, &code, parsed.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -1419,7 +1431,7 @@ impl Exchange {
         // virtual-dispatch (Go-style: this.DerivedExchange.parse_market(...))
         { let __v = self.derived().parse_market(market.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarket() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarket() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1428,9 +1440,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&markets)) {
+            let mut __for_first_76: bool = true;
+            while { if !__for_first_76 { i = add(&i, &Value::Int(1)); } __for_first_76 = false; is_less_than(&i, &get_array_length(&markets)) } {
             append_to_array(&mut result, self.parse_market(get_value(&markets, &i)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -1443,14 +1455,17 @@ impl Exchange {
         { let __v = self.derived().parse_ticker(ticker.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTicker() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTicker() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_deposit_address(...))
+        { let __v = self.derived().parse_deposit_address(depositAddress.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseDepositAddress() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseDepositAddress() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1460,14 +1475,17 @@ impl Exchange {
         { let __v = self.derived().parse_trade(trade.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTrade() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_transaction(...))
+        { let __v = self.derived().parse_transaction(transaction.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransaction() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransaction() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1477,7 +1495,7 @@ impl Exchange {
         { let __v = self.derived().parse_transfer(transfer.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransfer() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseTransfer() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1486,7 +1504,7 @@ impl Exchange {
         // virtual-dispatch (Go-style: this.DerivedExchange.parse_account(...))
         { let __v = self.derived().parse_account(account.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseAccount() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseAccount() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1496,7 +1514,7 @@ impl Exchange {
         { let __v = self.derived().parse_ledger_entry(item.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLedgerEntry() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLedgerEntry() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1506,34 +1524,37 @@ impl Exchange {
         { let __v = self.derived().parse_order(order.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_cross_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCrossBorrowRates() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCrossBorrowRates() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_isolated_borrow_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIsolatedBorrowRates() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIsolatedBorrowRates() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_market_leverage_tiers(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_market_leverage_tiers(...))
+        { let __v = self.derived().parse_market_leverage_tiers(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarketLeverageTiers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarketLeverageTiers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1546,10 +1567,10 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverageTiers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1559,7 +1580,7 @@ impl Exchange {
         { let __v = self.derived().parse_position(position.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parsePosition() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parsePosition() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1569,42 +1590,45 @@ impl Exchange {
         { let __v = self.derived().parse_funding_rate_history(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseFundingRateHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseFundingRateHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_borrow_interest(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_borrow_interest(...))
+        { let __v = self.derived().parse_borrow_interest(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBorrowInterest() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBorrowInterest() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_isolated_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseIsolatedBorrowRate() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseIsolatedBorrowRate() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_ws_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsTrade() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_ws_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsOrderTrade() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseWsOrderTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1624,10 +1648,10 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRates() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRates() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1640,20 +1664,20 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingIntervals() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingIntervals() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchFundingRate() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchFundingRate() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1661,10 +1685,10 @@ impl Exchange {
     pub async fn watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchFundingRates() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchFundingRates() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1672,17 +1696,17 @@ impl Exchange {
     pub async fn un_watch_funding_rates(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRates() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRates() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn watch_funding_rates_for_symbols(&mut self, mut symbols: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.watch_funding_rates(&[symbols.clone(), params.clone()]).await;
@@ -1697,10 +1721,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" transfer() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1713,20 +1737,20 @@ impl Exchange {
 
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdraw() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdraw() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createDepositAddress() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createDepositAddress() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1739,10 +1763,10 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setLeverage() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1754,15 +1778,17 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchLeverages".to_string()))) {
             let mut leverages: Value = self.fetch_leverages(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             return self.safe_dict(leverages.clone(), symbol.clone(), &[]);
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverage() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverage() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_leverages(&mut self, optional_args: &[Value]) -> Value {
@@ -1773,10 +1799,10 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverages() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLeverages() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1789,10 +1815,10 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setPositionMode() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setPositionMode() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1804,10 +1830,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" addMargin() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" addMargin() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1819,20 +1845,20 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" reduceMargin() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" reduceMargin() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn set_margin(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMargin() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMargin() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1840,10 +1866,10 @@ impl Exchange {
     pub async fn fetch_long_short_ratio(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLongShortRatio() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLongShortRatio() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1854,10 +1880,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLongShortRatioHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLongShortRatioHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1868,10 +1894,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarginAdjustmentHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1884,20 +1910,25 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" setMarginMode() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_deposit_addresses_by_network(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_addresses_by_network", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddressesByNetwork() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddressesByNetwork() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1907,54 +1938,71 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterestHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterestHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_open_interest(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_open_interest", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchOpenInterests".to_string()))) {
             let mut openInterests: Value = self.fetch_open_interests(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             return self.safe_dict(openInterests.clone(), symbol.clone(), &[]);
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterest() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterest() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_open_interests(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_open_interests", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterests() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenInterests() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn sign_in(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("sign_in", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" signIn() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" signIn() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_payment_methods(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPaymentMethods() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPaymentMethods() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -1985,7 +2033,7 @@ impl Exchange {
 
     pub fn is_round_number(&self, mut value: Value) -> Value {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
-        // get_value(&i, &Value::Str("e".to_string())). isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
+        // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         let mut res: Value = self.parse_to_numeric((mod_val(&value, &Value::Int(1))));
         return Value::Bool(is_equal(&res, &Value::Int(0)));
 
@@ -2037,7 +2085,7 @@ impl Exchange {
 
     pub fn init_rest_rate_limiter(&mut self) {
         if is_equal(&self.rateLimit, &Value::Null) || is_true(&(!is_equal(&self.id, &Value::Null) && is_equal(&self.rateLimit, &negate(&Value::Int(1))))) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(".rateLimit property is not configured".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(".rateLimit property is not configured".to_string()))));
         }
         let mut refillRate: Value = self.MAX_VALUE.clone();
         if is_greater_than(&self.rateLimit, &Value::Int(0)) {
@@ -2046,7 +2094,7 @@ impl Exchange {
         let mut useLeaky: Value = Value::Bool(is_true(&(is_equal(&self.rollingWindowSize, &Value::Int(0)))) || is_true(&(is_equal(&self.rateLimiterAlgorithm, &Value::Str("leakyBucket".to_string())))));
         let mut algorithm: Value = ternary(is_true(&useLeaky), Value::Str("leakyBucket".to_string()), Value::Str("rollingWindow".to_string()));
         let mut defaultBucket: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("delay".to_string(), Value::Float(0.001));
                 m.insert("capacity".to_string(), Value::Int(1));
                 m.insert("cost".to_string(), Value::Int(1));
@@ -2057,7 +2105,7 @@ impl Exchange {
             m
         });
         let mut existingBucket: Value = ternary(is_true(&(is_equal(&self.tokenBucket, &Value::Null))), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }), self.tokenBucket.clone());
         { let __t = self.extend(defaultBucket.clone(), &[existingBucket.clone()]); self.tokenBucket = __t; }
@@ -2085,37 +2133,37 @@ impl Exchange {
         // reconstruct
         let mut initialFeatures: Value = self.features.clone();
         self.features = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut unifiedMarketTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
         let mut subTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&unifiedMarketTypes)) {
+            let mut __for_first_78: bool = true;
+            while { if !__for_first_78 { i = add(&i, &Value::Int(1)); } __for_first_78 = false; is_less_than(&i, &get_array_length(&unifiedMarketTypes)) } {
             let mut marketType: Value = get_value(&unifiedMarketTypes, &i);
             // if marketType is not filled for this exchange, don't add that in `features`
             if !is_true(&(Value::Bool(in_op(&initialFeatures, &marketType)))) {
-                add_element_to_object(&mut self.features.clone(), &marketType, Value::Null);
+                add_element_to_object(&mut self.features, &marketType, Value::Null);
             }  else {
                 if is_equal(&marketType, &Value::Str("spot".to_string())) {
-                    add_element_to_object(&mut self.features.clone(), &marketType, self.features_mapper(initialFeatures.clone(), marketType.clone(), &[Value::Null]));
+                    { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[Value::Null]); add_element_to_object(&mut self.features, &marketType, __be_tmp); };
                 }  else {
-                    add_element_to_object(&mut self.features.clone(), &marketType, Value::Map({
-    let mut m = std::collections::HashMap::new();
+                    add_element_to_object(&mut self.features, &marketType, Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 }));
                     {
                                                 let mut j: Value = Value::Int(0);
-                        while is_less_than(&j, &get_array_length(&subTypes)) {
+                        let mut __for_first_77: bool = true;
+                        while { if !__for_first_77 { j = add(&j, &Value::Int(1)); } __for_first_77 = false; is_less_than(&j, &get_array_length(&subTypes)) } {
                         let mut subType: Value = get_value(&subTypes, &j);
-                        add_element_to_object(get_value_mut(&mut self.features.clone(), &marketType), &subType, self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]));
-                        j = add(&j, &Value::Int(1));
+                        { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]); add_element_to_object(get_value_mut(&mut self.features, &marketType), &subType, __be_tmp); };
                     }
                     }
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
 }
@@ -2158,7 +2206,8 @@ impl Exchange {
         let mut keys: Value = object_keys(&featuresObj);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_79: bool = true;
+            while { if !__for_first_79 { i = add(&i, &Value::Int(1)); } __for_first_79 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut featureBlock: Value = get_value(&featuresObj, &key);
             if !is_true(&self.in_array(key.clone(), Value::List(vec![Value::Str("sandbox".to_string())]))) && !is_equal(&featureBlock, &Value::Null) {
@@ -2167,7 +2216,6 @@ impl Exchange {
                     add_element_to_object(&mut featureBlock, &Value::Str("symbolRequired".to_string()), self.in_array(key.clone(), Value::List(vec![Value::Str("createOrder".to_string()), Value::Str("createOrders".to_string()), Value::Str("fetchOHLCV".to_string())])));
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return featuresObj;
@@ -2184,8 +2232,8 @@ impl Exchange {
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
-         * @param {string} [methodName] view currently supported methods: https://get_value(&docs, &Value::Str("ccxt".to_string())).com/README?id=features
-         * @param {string} [paramName] unified param value, like: `triggerPrice`, `get_value(&stopLoss, &Value::Str("triggerPrice".to_string()))` (check docs for supported param names)
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
@@ -2205,7 +2253,7 @@ impl Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [marketType] supported only: "spot", "swap", "future"
          * @param {string} [subType] supported only: "linear", "inverse"
-         * @param {string} [methodName] view currently supported methods: https://get_value(&docs, &Value::Str("ccxt".to_string())).com/README?id=features
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
@@ -2217,7 +2265,7 @@ impl Exchange {
         if is_equal(&marketType, &Value::Null) {
             return defaultValue;
         }
-        // if marketType (get_value(&e, &Value::Str("g".to_string())). 'option') does not exist in features
+        // if marketType (e.g. 'option') does not exist in features
         if !is_true(&(Value::Bool(in_op(&self.features, &marketType)))) {
             return defaultValue;
         }
@@ -2255,7 +2303,7 @@ impl Exchange {
         if is_equal(&paramName, &Value::Null) {
             return ternary(is_true(&(!is_equal(&defaultValue, &Value::Null))), defaultValue.clone(), methodDict.clone());
         }
-        let mut splited: Value = split(&paramName, &Value::Str(".".to_string())); // can be only parent key (`stopLoss`) or with child (`get_value(&stopLoss, &Value::Str("triggerPrice".to_string()))`)
+        let mut splited: Value = split(&paramName, &Value::Str(".".to_string())); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         let mut parentKey: Value = get_value(&splited, &Value::Int(0));
         let mut subKey: Value = self.safe_string(splited.clone(), Value::Int(1), &[]);
         if !is_true(&(Value::Bool(in_op(&methodDict, &parentKey)))) {
@@ -2275,6 +2323,8 @@ impl Exchange {
             }
             return get_value(&get_value(&methodDict, &parentKey), &subKey);
         }
+
+    Value::Null
 }
 
     pub fn orderbook_checksum_message(&self, mut symbol: Value) -> Value {
@@ -2283,41 +2333,49 @@ impl Exchange {
     Value::Null
 }
 
-    pub fn create_networks_by_id_object(&self) {
+    pub fn create_networks_by_id_object(&mut self) {
         // automatically generate network-id-to-code mappings
         let mut networkIdsToCodesGenerated: Value = self.invert_flat_string_dictionary(self.safe_value(self.options.clone(), Value::Str("networks".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         })])); // invert defined networks dictionary
-        add_element_to_object(&mut self.options.clone(), &Value::Str("networksById".to_string()), self.extend(networkIdsToCodesGenerated.clone(), &[self.safe_value(self.options.clone(), Value::Str("networksById".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        { let __be_tmp = self.extend(networkIdsToCodesGenerated.clone(), &[self.safe_value(self.options.clone(), Value::Str("networksById".to_string()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
-})])])); // support manually overriden "networksById" dictionary too
+})])]); add_element_to_object(&mut self.options, &Value::Str("networksById".to_string()), __be_tmp); }; // support manually overriden "networksById" dictionary too
 }
 
     pub fn get_default_options(&self) -> Value {
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("defaultNetworkCodeReplacements".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("ETH".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("ERC20".to_string(), Value::Str("ETH".to_string()));
-    m
-}));
-        m.insert("TRX".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("TRC20".to_string(), Value::Str("TRX".to_string()));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("primary".to_string(), Value::Str("ETH".to_string()));
+        m.insert("secondary".to_string(), Value::Str("ERC20".to_string()));
+        m.insert("default".to_string(), Value::Str("secondary".to_string()));
     m
 }));
         m.insert("CRO".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("CRC20".to_string(), Value::Str("CRONOS".to_string()));
+    let mut m = indexmap::IndexMap::new();
+        m.insert("primary".to_string(), Value::Str("CRONOS".to_string()));
+        m.insert("secondary".to_string(), Value::Str("CRC20".to_string()));
+        m.insert("default".to_string(), Value::Str("secondary".to_string()));
     m
 }));
-        m.insert("BRC20".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
-        m.insert("BRC20".to_string(), Value::Str("BTC".to_string()));
+        m.insert("TRX".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("primary".to_string(), Value::Str("TRX".to_string()));
+        m.insert("secondary".to_string(), Value::Str("TRC20".to_string()));
+        m.insert("default".to_string(), Value::Str("secondary".to_string()));
+    m
+}));
+        m.insert("BTC".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("primary".to_string(), Value::Str("BTC".to_string()));
+        m.insert("secondary".to_string(), Value::Str("BRC20".to_string()));
+        m.insert("default".to_string(), Value::Str("primary".to_string()));
     m
 }));
     m
@@ -2358,11 +2416,11 @@ impl Exchange {
         }
         let mut timestamp: Value = self.safe_integer(entry.clone(), Value::Str("timestamp".to_string()), &[]);
         let mut info: Value = self.safe_dict(entry.clone(), Value::Str("info".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(entry.clone(), Value::Str("id".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -2387,7 +2445,7 @@ impl Exchange {
     pub fn safe_currency_structure(&self, mut currency: Value) -> Value {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         let mut networks: Value = self.safe_dict(currency.clone(), Value::Str("networks".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut keys: Value = object_keys(&networks);
@@ -2395,7 +2453,8 @@ impl Exchange {
         if !is_equal(&length, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &length) {
+                let mut __for_first_80: bool = true;
+                while { if !__for_first_80 { i = add(&i, &Value::Int(1)); } __for_first_80 = false; is_less_than(&i, &length) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut network: Value = get_value(&networks, &key);
                 let mut deposit: Value = self.safe_bool(network.clone(), Value::Str("deposit".to_string()), &[]);
@@ -2439,7 +2498,7 @@ impl Exchange {
                 let mut limitsMain: Value = self.safe_dict(currency.clone(), Value::Str("limits".to_string()), &[]);
                 if is_equal(&limitsMain, &Value::Null) {
                     add_element_to_object(&mut currency, &Value::Str("limits".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
                 }
@@ -2448,7 +2507,7 @@ impl Exchange {
                 let mut limitsDepositMain: Value = self.safe_dict(limitsMain.clone(), Value::Str("deposit".to_string()), &[]);
                 if is_equal(&limitsDepositMain, &Value::Null) {
                     add_element_to_object(get_value_mut(&mut currency, &Value::Str("limits".to_string())), &Value::Str("deposit".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
                 }
@@ -2469,7 +2528,7 @@ impl Exchange {
                 let mut limitsWithdrawMain: Value = self.safe_dict(limitsMain.clone(), Value::Str("withdraw".to_string()), &[]);
                 if is_equal(&limitsWithdrawMain, &Value::Null) {
                     add_element_to_object(get_value_mut(&mut currency, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
                 }
@@ -2485,12 +2544,11 @@ impl Exchange {
                 if is_equal(&limitsWithdrawMaxMain, &Value::Null) || is_true(&crate::precise::Precise::stringGt(&limitsWithdrawMax, &limitsWithdrawMaxMain)) {
                     add_element_to_object(get_value_mut(get_value_mut(&mut currency, &Value::Str("limits".to_string())), &Value::Str("withdraw".to_string())), &Value::Str("max".to_string()), self.parse_number(limitsWithdrawMax.clone(), &[]));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
         return self.extend(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Null);
         m.insert("id".to_string(), Value::Null);
         m.insert("numericId".to_string(), Value::Null);
@@ -2503,23 +2561,23 @@ impl Exchange {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -2535,7 +2593,7 @@ impl Exchange {
     pub fn safe_market_structure(&self, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut cleanStructure: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Null);
                 m.insert("lowercaseId".to_string(), Value::Null);
                 m.insert("symbol".to_string(), Value::Null);
@@ -2565,7 +2623,7 @@ impl Exchange {
                 m.insert("strike".to_string(), Value::Null);
                 m.insert("optionType".to_string(), Value::Null);
                 m.insert("precision".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Null);
         m.insert("price".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
@@ -2574,27 +2632,27 @@ impl Exchange {
     m
 }));
                 m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("amount".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("price".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("cost".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
@@ -2602,7 +2660,7 @@ impl Exchange {
     m
 }));
                 m.insert("marginModes".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("cross".to_string(), Value::Null);
         m.insert("isolated".to_string(), Value::Null);
     m
@@ -2647,17 +2705,18 @@ impl Exchange {
         let mut marketValues: Value = self.sort_by(self.to_array(markets.clone()), Value::Str("spot".to_string()), &[Value::Bool(true), Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&marketValues)) {
+            let mut __for_first_81: bool = true;
+            while { if !__for_first_81 { i = add(&i, &Value::Int(1)); } __for_first_81 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
             let mut value: Value = get_value(&marketValues, &i);
             if is_true(&Value::Bool(in_op(&self.markets_by_id, &get_value(&value, &Value::Str("id".to_string()))))) {
                 let mut marketsByIdArray: Value = get_value(&self.markets_by_id, &get_value(&value, &Value::Str("id".to_string())));
                 append_to_array(&mut marketsByIdArray, value.clone());
-                add_element_to_object(&mut self.markets_by_id.clone(), &get_value(&value, &Value::Str("id".to_string())), marketsByIdArray.clone());
+                add_element_to_object(&mut self.markets_by_id, &get_value(&value, &Value::Str("id".to_string())), marketsByIdArray.clone());
             }  else {
-                add_element_to_object(&mut self.markets_by_id.clone(), &get_value(&value, &Value::Str("id".to_string())), Value::List(vec![value.clone()]));
+                add_element_to_object(&mut self.markets_by_id, &get_value(&value, &Value::Str("id".to_string())), Value::List(vec![value.clone()]));
             }
             let mut market: Value = self.deep_extend(self.safe_market_structure(&[]), &[Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("precision".to_string(), self.precision.clone());
                     m.insert("limits".to_string(), self.limits.clone());
                 m
@@ -2670,7 +2729,6 @@ impl Exchange {
                 add_element_to_object(&mut market, &Value::Str("subType".to_string()), Value::Null);
             }
             append_to_array(&mut values, market.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         { let __t = self.map_to_safe_map(self.index_by(values.clone(), Value::Str("symbol".to_string()))); self.markets = __t; }
@@ -2691,16 +2749,17 @@ impl Exchange {
             let mut quoteCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&values)) {
+                let mut __for_first_82: bool = true;
+                while { if !__for_first_82 { i = add(&i, &Value::Int(1)); } __for_first_82 = false; is_less_than(&i, &get_array_length(&values)) } {
                 let mut market: Value = get_value(&values, &i);
                 let mut defaultCurrencyPrecision: Value = ternary(is_true(&(is_equal(&self.precisionMode, &Value::Int(crate::runtime::DECIMAL_PLACES)))), Value::Int(8), self.parse_number(Value::Str("1e-8".to_string()), &[]));
                 let mut marketPrecision: Value = self.safe_dict(market.clone(), Value::Str("precision".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
                 if is_true(&Value::Bool(in_op(&market, &Value::Str("base".to_string())))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("baseId".to_string()), Value::Str("base".to_string()), &[]));
                             m.insert("numericId".to_string(), self.safe_integer(market.clone(), Value::Str("baseNumericId".to_string()), &[]));
                             m.insert("code".to_string(), self.safe_string(market.clone(), Value::Str("base".to_string()), &[]));
@@ -2711,7 +2770,7 @@ impl Exchange {
                 }
                 if is_true(&Value::Bool(in_op(&market, &Value::Str("quote".to_string())))) {
                     let mut currency: Value = self.safe_currency_structure(Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), self.safe_string2(market.clone(), Value::Str("quoteId".to_string()), Value::Str("quote".to_string()), &[]));
                             m.insert("numericId".to_string(), self.safe_integer(market.clone(), Value::Str("quoteNumericId".to_string()), &[]));
                             m.insert("code".to_string(), self.safe_string(market.clone(), Value::Str("quote".to_string()), &[]));
@@ -2720,7 +2779,6 @@ impl Exchange {
                     }));
                     append_to_array(&mut quoteCurrencies, currency.clone());
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             baseCurrencies = self.sort_by(baseCurrencies.clone(), Value::Str("code".to_string()), &[Value::Bool(false), Value::Str("".to_string())]);
@@ -2733,24 +2791,24 @@ impl Exchange {
             let mut resultingCurrencies: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&codes)) {
+                let mut __for_first_84: bool = true;
+                while { if !__for_first_84 { i = add(&i, &Value::Int(1)); } __for_first_84 = false; is_less_than(&i, &get_array_length(&codes)) } {
                 let mut code: Value = get_value(&codes, &i);
                 let mut groupedCurrenciesCode: Value = self.safe_list(groupedCurrencies.clone(), code.clone(), &[Value::List(vec![])]);
                 let mut highestPrecisionCurrency: Value = self.safe_value(groupedCurrenciesCode.clone(), Value::Int(0), &[]);
                 {
                                         let mut j: Value = Value::Int(1);
-                    while is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) {
+                    let mut __for_first_83: bool = true;
+                    while { if !__for_first_83 { j = add(&j, &Value::Int(1)); } __for_first_83 = false; is_less_than(&j, &get_array_length(&groupedCurrenciesCode)) } {
                     let mut currentCurrency: Value = get_value(&groupedCurrenciesCode, &j);
                     if is_equal(&self.precisionMode, &Value::Int(crate::runtime::TICK_SIZE)) {
                         highestPrecisionCurrency = ternary(is_true(&(is_less_than(&get_value(&currentCurrency, &Value::Str("precision".to_string())), &get_value(&highestPrecisionCurrency, &Value::Str("precision".to_string()))))), currentCurrency.clone(), highestPrecisionCurrency.clone());
                     }  else {
                         highestPrecisionCurrency = ternary(is_true(&(is_greater_than(&get_value(&currentCurrency, &Value::Str("precision".to_string())), &get_value(&highestPrecisionCurrency, &Value::Str("precision".to_string()))))), currentCurrency.clone(), highestPrecisionCurrency.clone());
                     }
-                    j = add(&j, &Value::Int(1));
                 }
                 }
                 append_to_array(&mut resultingCurrencies, highestPrecisionCurrency.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
             let mut sortedCurrencies: Value = self.sort_by(resultingCurrencies.clone(), Value::Str("code".to_string()), &[]);
@@ -2767,11 +2825,11 @@ impl Exchange {
     pub fn set_markets_from_exchange(&mut self, mut sourceExchange: Value) -> Value {
         // Validate that both exchanges are of the same type
         if !is_equal(&self.id, &get_value(&sourceExchange, &Value::Str("id".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" shareMarkets() can only share markets with exchanges of the same type (got ".to_string())), &get_value(&sourceExchange, &Value::Str("id".to_string()))), &Value::Str(")".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" shareMarkets() can only share markets with exchanges of the same type (got ".to_string())), &get_value(&sourceExchange, &Value::Str("id".to_string()))), &Value::Str(")".to_string()))));
         }
         // Validate that source exchange has loaded markets
         if !is_true(&get_value(&sourceExchange, &Value::Str("markets".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(Value::Str("setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function".to_string())));
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str("setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function".to_string())));
         }
         // Set all market-related data
         self.markets = get_value(&sourceExchange, &Value::Str("markets".to_string()));
@@ -2787,12 +2845,12 @@ impl Exchange {
         let mut sourceExchangeHelpers: Value = self.safe_list(get_value(&sourceExchange, &Value::Str("options".to_string())), Value::Str("marketHelperProps".to_string()), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) {
+            let mut __for_first_85: bool = true;
+            while { if !__for_first_85 { i = add(&i, &Value::Int(1)); } __for_first_85 = false; is_less_than(&i, &get_array_length(&sourceExchangeHelpers)) } {
             let mut helper: Value = get_value(&sourceExchangeHelpers, &i);
             if !is_equal(&get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper), &Value::Null) {
-                add_element_to_object(&mut self.options.clone(), &helper, get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper));
+                add_element_to_object(&mut self.options, &helper, get_value(&get_value(&sourceExchange, &Value::Str("options".to_string())), &helper));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
@@ -2812,24 +2870,25 @@ impl Exchange {
         let mut balances: Value = self.omit(balance.clone(), Value::List(vec![Value::Str("info".to_string()), Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), Value::Str("free".to_string()), Value::Str("used".to_string()), Value::Str("total".to_string())]), &[]);
         let mut codes: Value = object_keys(&balances);
         add_element_to_object(&mut balance, &Value::Str("free".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         add_element_to_object(&mut balance, &Value::Str("used".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         add_element_to_object(&mut balance, &Value::Str("total".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut debtBalance: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&codes)) {
+            let mut __for_first_86: bool = true;
+            while { if !__for_first_86 { i = add(&i, &Value::Int(1)); } __for_first_86 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut total: Value = self.safe_string(get_value(&balance, &code), Value::Str("total".to_string()), &[]);
             let mut free: Value = self.safe_string(get_value(&balance, &code), Value::Str("free".to_string()), &[]);
@@ -2854,7 +2913,6 @@ impl Exchange {
                 add_element_to_object(get_value_mut(&mut balance, &code), &Value::Str("debt".to_string()), self.parse_number(debt.clone(), &[]));
                 add_element_to_object(&mut debtBalance, &code, get_value(&get_value(&balance, &code), &Value::Str("debt".to_string())));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut debtBalanceArray: Value = object_keys(&debtBalance);
@@ -2895,7 +2953,7 @@ impl Exchange {
         let mut isTriggerOrSLTpOrder: Value = Value::Bool(is_true(&(!is_equal(&self.safe_string(order.clone(), Value::Str("triggerPrice".to_string()), &[]), &Value::Null) || is_true(&(!is_equal(&self.safe_string(order.clone(), Value::Str("stopLossPrice".to_string()), &[]), &Value::Null))))) || is_true(&(!is_equal(&self.safe_string(order.clone(), Value::Str("takeProfitPrice".to_string()), &[]), &Value::Null))));
         if is_true(&parseFilled) || is_true(&parseCost) || is_true(&shouldParseFees) {
             let mut rawTrades: Value = self.safe_value(order.clone(), Value::Str("trades".to_string()), &[trades.clone()]);
-            // const oldNumber = get_value(&this, &Value::Str("number".to_string()));
+            // const oldNumber = this.number;
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
@@ -2907,7 +2965,7 @@ impl Exchange {
             }  else {
                 trades = rawTrades.clone();
             }
-            // get_value(&this, &Value::Str("number".to_string())) = oldNumber; why parse trades as strings if you read the value using `safeString` ?
+            // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             let mut tradesLength: Value = Value::Int(0);
             let mut isArray: Value = Value::Bool(is_array(&trades));
             if is_true(&isArray) {
@@ -2935,7 +2993,8 @@ impl Exchange {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&trades)) {
+                    let mut __for_first_88: bool = true;
+                    while { if !__for_first_88 { i = add(&i, &Value::Int(1)); } __for_first_88 = false; is_less_than(&i, &get_array_length(&trades)) } {
                     let mut trade: Value = get_value(&trades, &i);
                     let mut tradeAmount: Value = self.safe_string(trade.clone(), Value::Str("amount".to_string()), &[]);
                     if is_true(&parseFilled) && is_true(&(!is_equal(&tradeAmount, &Value::Null))) {
@@ -2964,26 +3023,25 @@ impl Exchange {
                         if !is_equal(&tradeFees, &Value::Null) {
                             {
                                                                 let mut j: Value = Value::Int(0);
-                                while is_less_than(&j, &get_array_length(&tradeFees)) {
+                                let mut __for_first_87: bool = true;
+                                while { if !__for_first_87 { j = add(&j, &Value::Int(1)); } __for_first_87 = false; is_less_than(&j, &get_array_length(&tradeFees)) } {
                                 let mut tradeFee: Value = get_value(&tradeFees, &j);
                                 append_to_array(&mut fees, self.extend(Value::Map({
-                                    let mut m = std::collections::HashMap::new();
+                                    let mut m = indexmap::IndexMap::new();
                                     m
                                 }), &[tradeFee.clone()]));
-                                j = add(&j, &Value::Int(1));
                             }
                             }
                         }  else {
                             let mut tradeFee: Value = self.safe_value(trade.clone(), Value::Str("fee".to_string()), &[]);
                             if !is_equal(&tradeFee, &Value::Null) {
                                 append_to_array(&mut fees, self.extend(Value::Map({
-                                    let mut m = std::collections::HashMap::new();
+                                    let mut m = indexmap::IndexMap::new();
                                     m
                                 }), &[tradeFee.clone()]));
                             }
                         }
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
             }
@@ -2993,12 +3051,12 @@ impl Exchange {
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &reducedLength) {
+                let mut __for_first_89: bool = true;
+                while { if !__for_first_89 { i = add(&i, &Value::Int(1)); } __for_first_89 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.safe_number(get_value(&reducedFees, &i), Value::Str("cost".to_string()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("cost".to_string()), __be_tmp); };
                 if is_true(&Value::Bool(in_op(&get_value(&reducedFees, &i), &Value::Str("rate".to_string())))) {
                     { let __be_tmp = self.safe_number(get_value(&reducedFees, &i), Value::Str("rate".to_string()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &i), &Value::Str("rate".to_string()), __be_tmp); };
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             if !is_true(&parseFee) && is_true(&(is_equal(&reducedLength, &Value::Int(0)))) {
@@ -3085,13 +3143,14 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&trades)) {
+            let mut __for_first_91: bool = true;
+            while { if !__for_first_91 { i = add(&i, &Value::Int(1)); } __for_first_91 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut entry: Value = get_value(&trades, &i);
             { let __be_tmp = self.safe_number(entry.clone(), Value::Str("amount".to_string()), &[]); add_element_to_object(&mut entry, &Value::Str("amount".to_string()), __be_tmp); };
             { let __be_tmp = self.safe_number(entry.clone(), Value::Str("price".to_string()), &[]); add_element_to_object(&mut entry, &Value::Str("price".to_string()), __be_tmp); };
             { let __be_tmp = self.safe_number(entry.clone(), Value::Str("cost".to_string()), &[]); add_element_to_object(&mut entry, &Value::Str("cost".to_string()), __be_tmp); };
             let mut tradeFee: Value = self.safe_dict(entry.clone(), Value::Str("fee".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             { let __be_tmp = self.safe_number(tradeFee.clone(), Value::Str("cost".to_string()), &[]); add_element_to_object(&mut tradeFee, &Value::Str("cost".to_string()), __be_tmp); };
@@ -3101,14 +3160,13 @@ impl Exchange {
             let mut entryFees: Value = self.safe_list(entry.clone(), Value::Str("fees".to_string()), &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                while is_less_than(&j, &get_array_length(&entryFees)) {
+                let mut __for_first_90: bool = true;
+                while { if !__for_first_90 { j = add(&j, &Value::Int(1)); } __for_first_90 = false; is_less_than(&j, &get_array_length(&entryFees)) } {
                 { let __be_tmp = self.safe_number(get_value(&entryFees, &j), Value::Str("cost".to_string()), &[]); add_element_to_object(get_value_mut(&mut entryFees, &j), &Value::Str("cost".to_string()), __be_tmp); };
-                j = add(&j, &Value::Int(1));
             }
             }
             add_element_to_object(&mut entry, &Value::Str("fees".to_string()), entryFees.clone());
             add_element_to_object(&mut entry, &Value::Str("fee".to_string()), tradeFee.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut timeInForce: Value = self.safe_string(order.clone(), Value::Str("timeInForce".to_string()), &[]);
@@ -3136,7 +3194,7 @@ impl Exchange {
         let mut takeProfitPrice: Value = self.parse_number(self.safe_string(order.clone(), Value::Str("takeProfitPrice".to_string()), &[]), &[]);
         let mut stopLossPrice: Value = self.parse_number(self.safe_string(order.clone(), Value::Str("stopLossPrice".to_string()), &[]), &[]);
         return self.extend(order.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(order.clone(), Value::Str("id".to_string()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string(order.clone(), Value::Str("clientOrderId".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -3173,7 +3231,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         //
@@ -3201,28 +3259,28 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&orders))) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&orders)) {
+                let mut __for_first_92: bool = true;
+                while { if !__for_first_92 { i = add(&i, &Value::Int(1)); } __for_first_92 = false; is_less_than(&i, &get_array_length(&orders)) } {
                 let mut parsed: Value = self.parse_order(get_value(&orders, &i), &[market.clone()]); // don't inline this call
                 let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut ids: Value = object_keys(&orders);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&ids)) {
+                let mut __for_first_93: bool = true;
+                while { if !__for_first_93 { i = add(&i, &Value::Int(1)); } __for_first_93 = false; is_less_than(&i, &get_array_length(&ids)) } {
                 let mut id: Value = get_value(&ids, &i);
                 let mut idExtended: Value = self.extend(Value::Map({
-                    let mut m = std::collections::HashMap::new();
+                    let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.clone());
                     m
                 }), &[get_value(&orders, &id)]);
                 let mut parsedOrder: Value = self.parse_order(idExtended.clone(), &[market.clone()]); // don't  inline these calls
                 let mut order: Value = self.extend(parsedOrder.clone(), &[params.clone()]);
                 append_to_array(&mut results, order.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -3237,11 +3295,11 @@ impl Exchange {
         let mut takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".to_string()));
         let mut feeRate = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_equal(&type_var, &Value::Str("market".to_string())) && is_equal(&takerOrMaker, &Value::Str("maker".to_string())) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.".to_string()))));
         }
         let mut market: Value = get_value(&self.markets, &symbol);
         let mut feeSide: Value = self.safe_string(market.clone(), Value::Str("feeSide".to_string()), &[Value::Str("quote".to_string())]);
@@ -3276,7 +3334,7 @@ impl Exchange {
         let mut rate: Value = ternary(is_true(&(!is_equal(&feeRate, &Value::Null))), self.number_to_string(feeRate.clone()), self.safe_string(market.clone(), takerOrMaker.clone(), &[]));
         cost = crate::precise::Precise::stringMul(&cost, &rate);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMaker.clone());
         m.insert("currency".to_string(), get_value(&market, &key));
         m.insert("rate".to_string(), self.parse_number(rate.clone(), &[]));
@@ -3290,7 +3348,7 @@ impl Exchange {
     pub fn calculate_fee(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".to_string()));
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.calculate_fee_with_rate(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), price.clone(), &[takerOrMaker.clone(), Value::Null, params.clone()]);
@@ -3400,9 +3458,9 @@ impl Exchange {
             let mut reducedLength: Value = get_array_length(&reducedFees);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &reducedLength) {
+                let mut __for_first_94: bool = true;
+                while { if !__for_first_94 { i = add(&i, &Value::Int(1)); } __for_first_94 = false; is_less_than(&i, &reducedLength) } {
                 { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &i)); add_element_to_object(&mut reducedFees, &i, __be_tmp); };
-                i = add(&i, &Value::Int(1));
             }
             }
             fees = reducedFees.clone();
@@ -3415,7 +3473,7 @@ impl Exchange {
         // in case `fee & fees` are undefined, set `fees` as empty array
         if is_equal(&fee, &Value::Null) {
             fee = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::Null);
                     m.insert("currency".to_string(), Value::Null);
                 m
@@ -3440,16 +3498,16 @@ impl Exchange {
 }
 
     pub fn find_nearest_ceiling(&self, mut arr: Value, mut providedValue: Value) -> Value {
-        //  get_value(&i, &Value::Str("e".to_string())). findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         let mut length: Value = get_array_length(&arr);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &length) {
+            let mut __for_first_95: bool = true;
+            while { if !__for_first_95 { i = add(&i, &Value::Int(1)); } __for_first_95 = false; is_less_than(&i, &length) } {
             let mut current: Value = get_value(&arr, &i);
             if is_less_than_or_equal(&providedValue, &current) {
                 return current;
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return get_value(&arr, &subtract(&length, &Value::Int(1)));
@@ -3459,19 +3517,19 @@ impl Exchange {
 
     pub fn invert_flat_string_dictionary(&self, mut dict: Value) -> Value {
         let mut reversed: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut keys: Value = object_keys(&dict);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_96: bool = true;
+            while { if !__for_first_96 { i = add(&i, &Value::Int(1)); } __for_first_96 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut value: Value = get_value(&dict, &key);
             if is_string(&value) {
                 add_element_to_object(&mut reversed, &value, key.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return reversed;
@@ -3480,7 +3538,7 @@ impl Exchange {
 }
 
     pub fn string_to_base16(&self, mut str_val: Value) -> Value {
-        return add(&Value::Str("0x".to_string()), &self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str_val.clone()))));
+        return add(&Value::Str("0x".to_string()), &self.binary_to_base16(self.base64_to_binary(self.string_to_base64(str_val.clone(), &[]), &[]), &[]));
 
     Value::Null
 }
@@ -3532,12 +3590,13 @@ impl Exchange {
         //     ]
         //
         let mut reduced: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&fees)) {
+            let mut __for_first_97: bool = true;
+            while { if !__for_first_97 { i = add(&i, &Value::Int(1)); } __for_first_97 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut code: Value = self.safe_string(fee.clone(), Value::Str("currency".to_string()), &[]);
             let mut feeCurrencyCode: Value = ternary(is_true(&(!is_equal(&code, &Value::Null))), code.clone(), to_string_val(&i));
@@ -3549,7 +3608,7 @@ impl Exchange {
                 }
                 if !is_true(&(Value::Bool(in_op(&reduced, &feeCurrencyCode)))) {
                     add_element_to_object(&mut reduced, &feeCurrencyCode, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
                 }
@@ -3558,7 +3617,7 @@ impl Exchange {
                     { let __be_tmp = crate::precise::Precise::stringAdd(&get_value(&get_value(&get_value(&reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".to_string())), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".to_string()), __be_tmp); };
                 }  else {
                     add_element_to_object(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
         m.insert("cost".to_string(), cost.clone());
     m
@@ -3568,17 +3627,16 @@ impl Exchange {
                     }
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut result: Value = Value::List(vec![]);
         let mut feeValues: Value = object_values(&reduced);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&feeValues)) {
+            let mut __for_first_98: bool = true;
+            while { if !__for_first_98 { i = add(&i, &Value::Int(1)); } __for_first_98 = false; is_less_than(&i, &get_array_length(&feeValues)) } {
             let mut reducedFeeValues: Value = object_values(&get_value(&feeValues, &i));
             result = self.array_concat(result.clone(), reducedFeeValues.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -3653,14 +3711,14 @@ impl Exchange {
                         precision = self.precision_from_string(precisionPrice.clone());
                     }
                 }
-                average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open, &close), &Value::Str("2".to_string()));
+                average = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&open, &close), &Value::Str("2".to_string()), &precision);
             }
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
         let mut closeParsed: Value = self.parse_number(self.omit_zero(close.clone()), &[]);
         return self.extend(ticker.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("bid".to_string(), self.parse_number(self.omit_zero(self.safe_string(ticker.clone(), Value::Str("bid".to_string()), &[])), &[]));
         m.insert("bidVolume".to_string(), self.safe_number(ticker.clone(), Value::Str("bidVolume".to_string()), &[]));
         m.insert("ask".to_string(), self.parse_number(self.omit_zero(self.safe_string(ticker.clone(), Value::Str("ask".to_string()), &[])), &[]));
@@ -3687,10 +3745,10 @@ impl Exchange {
 
     pub async fn fetch_borrow_rate(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead".to_string()))));
 
     Value::Null
 }
@@ -3702,10 +3760,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayCrossMargin is not support yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayCrossMargin is not support yet".to_string()))));
 
     Value::Null
 }
@@ -3717,10 +3775,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayIsolatedMargin is not support yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayIsolatedMargin is not support yet".to_string()))));
 
     Value::Null
 }
@@ -3732,10 +3790,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowCrossMargin is not support yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowCrossMargin is not support yet".to_string()))));
 
     Value::Null
 }
@@ -3747,10 +3805,10 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowIsolatedMargin is not support yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowIsolatedMargin is not support yet".to_string()))));
 
     Value::Null
 }
@@ -3758,10 +3816,10 @@ impl Exchange {
     pub async fn borrow_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead".to_string()))));
 
     Value::Null
 }
@@ -3769,10 +3827,10 @@ impl Exchange {
     pub async fn repay_margin(&mut self, mut code: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead".to_string()))));
 
     Value::Null
 }
@@ -3787,14 +3845,14 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut message: Value = Value::Str("".to_string());
         if is_true(&get_value(&self.has, &Value::Str("fetchTrades".to_string()))) {
             message = Value::Str(". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file".to_string());
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOHLCV() is not supported yet".to_string())), &message)));
+        panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOHLCV() is not supported yet".to_string())), &message)));
 
     Value::Null
 }
@@ -3804,10 +3862,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSpotOHLCV() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSpotOHLCV() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -3817,10 +3875,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractOHLCV() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractOHLCV() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -3830,14 +3888,14 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut message: Value = Value::Str("".to_string());
         if is_true(&get_value(&self.has, &Value::Str("fetchTradesWs".to_string()))) {
             message = Value::Str(". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file".to_string());
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.".to_string())), &message)));
+        panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.".to_string())), &message)));
 
     Value::Null
 }
@@ -3847,10 +3905,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCV() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOHLCV() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -3872,9 +3930,9 @@ impl Exchange {
         let mut volumes: Value = self.safe_list(ohlcvs.clone(), volume.clone(), &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&timestamps)) {
+            let mut __for_first_99: bool = true;
+            while { if !__for_first_99 { i = add(&i, &Value::Int(1)); } __for_first_99 = false; is_less_than(&i, &get_array_length(&timestamps)) } {
             append_to_array(&mut result, Value::List(vec![ternary(is_true(&ms), self.safe_integer(timestamps.clone(), i.clone(), &[]), self.safe_timestamp(timestamps.clone(), i.clone(), &[])), self.safe_value(opens.clone(), i.clone(), &[]), self.safe_value(highs.clone(), i.clone(), &[]), self.safe_value(lows.clone(), i.clone(), &[]), self.safe_value(closes.clone(), i.clone(), &[]), self.safe_value(volumes.clone(), i.clone(), &[])]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -3891,7 +3949,7 @@ impl Exchange {
         let mut volume = get_arg(optional_args, 5, Value::Str("v".to_string()));
         let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         add_element_to_object(&mut result, &timestamp, Value::List(vec![]));
@@ -3902,7 +3960,8 @@ impl Exchange {
         add_element_to_object(&mut result, &volume, Value::List(vec![]));
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ohlcvs)) {
+            let mut __for_first_100: bool = true;
+            while { if !__for_first_100 { i = add(&i, &Value::Int(1)); } __for_first_100 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             let mut ts: Value = ternary(is_true(&ms), get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), self.parse_to_int(divide(&get_value(&get_value(&ohlcvs, &i), &Value::Int(0)), &Value::Int(1000))));
             let mut resultTimestamp: Value = get_value(&result, &timestamp);
             append_to_array(&mut resultTimestamp, ts.clone());
@@ -3916,7 +3975,6 @@ impl Exchange {
             append_to_array(&mut resultClose, get_value(&get_value(&ohlcvs, &i), &Value::Int(4)));
             let mut resultVolume: Value = get_value(&result, &volume);
             append_to_array(&mut resultVolume, get_value(&get_value(&ohlcvs, &i), &Value::Int(5)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -3929,7 +3987,7 @@ impl Exchange {
         let mut endRegex = get_arg(optional_args, 1, Value::Null);
         let mut errorMessage: Value = Value::Str("".to_string());
         let mut options: Value = self.safe_value(self.options.clone(), method.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut muteOnFailure: Value = self.safe_bool(options.clone(), Value::Str("webApiMuteFailure".to_string()), &[Value::Bool(true)]);
@@ -3945,7 +4003,7 @@ impl Exchange {
             while is_less_than(&retry, &maxRetries) {
                 {
                     response = self.call_method(endpointMethod.clone(), &[Value::Map({
-                        let mut m = std::collections::HashMap::new();
+                        let mut m = indexmap::IndexMap::new();
                         m
                     })]).await;
                     shouldBreak = Value::Bool(true);
@@ -3969,7 +4027,7 @@ impl Exchange {
                 if is_true(&jsoned) {
                     return jsoned;
                 }  else {
-                    panic!("{:?}", crate::exchange_errors::bad_response(Value::Str("could not parse the response into json".to_string())));
+                    panic!("{}", crate::exchange_errors::bad_response(Value::Str("could not parse the response into json".to_string())));
                 }
             }  else {
                 return content;
@@ -3978,7 +4036,7 @@ impl Exchange {
         if is_true(&muteOnFailure) {
             return Value::Null;
         }  else {
-            panic!("{:?}", crate::exchange_errors::bad_response(errorMessage));
+            panic!("{}", crate::exchange_errors::bad_response(errorMessage));
         }
 }
 
@@ -3990,9 +4048,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&symbols)) {
+            let mut __for_first_101: bool = true;
+            while { if !__for_first_101 { i = add(&i, &Value::Int(1)); } __for_first_101 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut result, self.market_id(get_value(&symbols, &i)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4008,9 +4066,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&codes)) {
+            let mut __for_first_102: bool = true;
+            while { if !__for_first_102 { i = add(&i, &Value::Int(1)); } __for_first_102 = false; is_less_than(&i, &get_array_length(&codes)) } {
             append_to_array(&mut result, self.currency_id(get_value(&codes, &i)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4026,9 +4084,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&symbols)) {
+            let mut __for_first_103: bool = true;
+            while { if !__for_first_103 { i = add(&i, &Value::Int(1)); } __for_first_103 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             append_to_array(&mut result, self.market(get_value(&symbols, &i)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4044,14 +4102,14 @@ impl Exchange {
         let mut sameSubTypeOnly = get_arg(optional_args, 4, Value::Bool(false));
         if is_equal(&symbols, &Value::Null) {
             if !is_true(&allowEmpty) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" empty list of symbols is not supported".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" empty list of symbols is not supported".to_string()))));
             }
             return symbols;
         }
         let mut symbolsLength: Value = get_array_length(&symbols);
         if is_equal(&symbolsLength, &Value::Int(0)) {
             if !is_true(&allowEmpty) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" empty list of symbols is not supported".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" empty list of symbols is not supported".to_string()))));
             }
             return symbols;
         }
@@ -4060,20 +4118,21 @@ impl Exchange {
         let mut isLinearSubType: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&symbols)) {
+            let mut __for_first_104: bool = true;
+            while { if !__for_first_104 { i = add(&i, &Value::Int(1)); } __for_first_104 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             if is_true(&sameTypeOnly) && is_true(&(!is_equal(&marketType, &Value::Null))) {
                 if !is_equal(&get_value(&market, &Value::Str("type".to_string())), &marketType) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&add(&add(&add(&self.id, &Value::Str(" symbols must be of the same type, either ".to_string())), &marketType), &Value::Str(" or ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(".".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&add(&self.id, &Value::Str(" symbols must be of the same type, either ".to_string())), &marketType), &Value::Str(" or ".to_string())), &get_value(&market, &Value::Str("type".to_string()))), &Value::Str(".".to_string()))));
                 }
             }
             if is_true(&sameSubTypeOnly) && is_true(&(!is_equal(&isLinearSubType, &Value::Null))) {
                 if !is_equal(&get_value(&market, &Value::Str("linear".to_string())), &isLinearSubType) {
-                    panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" symbols must be of the same subType, either linear or inverse.".to_string()))));
+                    panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" symbols must be of the same subType, either linear or inverse.".to_string()))));
                 }
             }
             if !is_equal(&type_var, &Value::Null) && !is_equal(&get_value(&market, &Value::Str("type".to_string())), &type_var) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" symbols must be of the same type ".to_string())), &type_var), &Value::Str(". If the type is incorrect you can change it in options or the params of the request".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&self.id, &Value::Str(" symbols must be of the same type ".to_string())), &type_var), &Value::Str(". If the type is incorrect you can change it in options or the params of the request".to_string()))));
             }
             marketType = get_value(&market, &Value::Str("type".to_string()));
             if !is_true(&get_value(&market, &Value::Str("spot".to_string()))) {
@@ -4081,7 +4140,6 @@ impl Exchange {
             }
             let mut symbol: Value = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[get_value(&symbols, &i)]);
             append_to_array(&mut result, symbol.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4097,9 +4155,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&codes)) {
+            let mut __for_first_105: bool = true;
+            while { if !__for_first_105 { i = add(&i, &Value::Int(1)); } __for_first_105 = false; is_less_than(&i, &get_array_length(&codes)) } {
             append_to_array(&mut result, self.common_currency_code(get_value(&codes, &i)));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4115,9 +4173,9 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&bidasks)) {
+            let mut __for_first_106: bool = true;
+            while { if !__for_first_106 { i = add(&i, &Value::Int(1)); } __for_first_106 = false; is_less_than(&i, &get_array_length(&bidasks)) } {
             append_to_array(&mut result, self.parse_bid_ask(get_value(&bidasks, &i), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4128,12 +4186,12 @@ impl Exchange {
     pub async fn fetch_l2_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut orderbook: Value = self.fetch_order_book(symbol.clone(), &[limit.clone(), params.clone()]).await;
         return self.extend(orderbook.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("asks".to_string(), self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("asks".to_string()))), Value::Int(0), &[]));
         m.insert("bids".to_string(), self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("bids".to_string()))), Value::Int(0), &[Value::Bool(true)]));
     m
@@ -4150,12 +4208,12 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&objects)) {
+            let mut __for_first_107: bool = true;
+            while { if !__for_first_107 { i = add(&i, &Value::Int(1)); } __for_first_107 = false; is_less_than(&i, &get_array_length(&objects)) } {
             let mut objectSymbol: Value = self.safe_string(get_value(&objects, &i), Value::Str("symbol".to_string()), &[]);
             if is_equal(&objectSymbol, &symbol) {
                 append_to_array(&mut result, get_value(&objects, &i));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4184,7 +4242,7 @@ impl Exchange {
         let mut deposit: Value = self.safe_dict(limits.clone(), Value::Str("deposit".to_string()), &[]);
         let mut isEnabled: Value = Value::Bool(is_true(&withdrawEnabled) && is_true(&depositEnabled));
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), get_value(&network, &Value::Str("info".to_string())));
         m.insert("id".to_string(), self.safe_string(network.clone(), Value::Str("id".to_string()), &[]));
         m.insert("name".to_string(), self.safe_string(network.clone(), Value::Str("name".to_string()), &[]));
@@ -4195,15 +4253,15 @@ impl Exchange {
         m.insert("fee".to_string(), self.safe_number(network.clone(), Value::Str("fee".to_string()), &[]));
         m.insert("precision".to_string(), self.safe_number(network.clone(), Value::Str("precision".to_string()), &[]));
         m.insert("limits".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number(withdraw.clone(), Value::Str("min".to_string()), &[]));
         m.insert("max".to_string(), self.safe_number(withdraw.clone(), Value::Str("max".to_string()), &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number(deposit.clone(), Value::Str("min".to_string()), &[]));
         m.insert("max".to_string(), self.safe_number(deposit.clone(), Value::Str("max".to_string()), &[]));
     m
@@ -4212,6 +4270,67 @@ impl Exchange {
 }));
     m
 });
+
+    Value::Null
+}
+
+    pub fn prioritized_network_aliases(&self, optional_args: &[Value]) -> Value {
+        let mut networkCode = get_arg(optional_args, 0, Value::Null);
+        let mut currencyCode = get_arg(optional_args, 1, Value::Null);
+        let mut allowDefault = get_arg(optional_args, 2, Value::Bool(false));
+        /*
+         * @method
+         * @name Exchange#prioritizedNetworkAliases
+         * @description returns the chain pair [preferred, alternative] for the given networkCode & currency, e.g:
+         *   ---------------------------------
+         *   | input          | output       |
+         *   --------------------------------|
+         *   | ETH & USDC     | ERC20, ETH   |
+         *   | ERC20 & USDC   | ERC20, ETH   |
+         *   | ETH & ETH      | ETH, ERC20   |
+         *   | ERC20 & ETH    | ETH, ERC20   |
+         *   | ERC20          | ERC20, ETH   |
+         *   | ETH            | ERC20, ETH   |
+         *   ---------------------------------
+         * @param {string} networkCode unified network-code
+         * @param {string} currencyCode unified currency-code
+         * @param {boolean} allowDefault when currencyCode is undefined, order by replacement's "default" instead of by user input
+         * @returns {string[]} [preferredChain, alternativeChain]
+         */
+        if is_equal(&networkCode, &Value::Null) {
+            return Value::Null;
+        }
+        let mut replacements: Value = self.safe_dict(self.options.clone(), Value::Str("defaultNetworkCodeReplacements".to_string()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut keys: Value = object_keys(&replacements);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_108: bool = true;
+            while { if !__for_first_108 { i = add(&i, &Value::Int(1)); } __for_first_108 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut baseCoin: Value = get_value(&keys, &i);
+            let mut entry: Value = get_value(&replacements, &baseCoin);
+            let mut primary: Value = get_value(&entry, &Value::Str("primary".to_string()));
+            let mut secondary: Value = get_value(&entry, &Value::Str("secondary".to_string()));
+            if !is_equal(&networkCode, &primary) && !is_equal(&networkCode, &secondary) {
+                continue;
+            }
+            // pick which form goes first in the returned pair
+            let mut preferPrimary: Value = Value::Bool(false);
+            if is_equal(&currencyCode, &baseCoin) {
+                preferPrimary = Value::Bool(true); // mainnet currency uses primary chain
+            }  else if !is_equal(&currencyCode, &Value::Null) {
+                preferPrimary = Value::Bool(false); // any other (token) currency uses secondary chain
+            }  else if is_true(&allowDefault) {
+                preferPrimary = Value::Bool(is_equal(&get_value(&entry, &Value::Str("default".to_string())), &Value::Str("primary".to_string())));
+            }  else {
+                preferPrimary = Value::Bool(is_equal(&networkCode, &primary)); // keep user input first
+            }
+            return ternary(is_true(&(preferPrimary)), Value::List(vec![primary.clone(), secondary.clone()]), Value::List(vec![secondary.clone(), primary.clone()]));
+        }
+        }
+        return Value::List(vec![networkCode.clone(), networkCode.clone()]);
 
     Value::Null
 }
@@ -4230,65 +4349,39 @@ impl Exchange {
         if is_equal(&networkCode, &Value::Null) {
             return Value::Null;
         }
-        let mut networkIdsByCodes: Value = self.safe_value(self.options.clone(), Value::Str("networks".to_string()), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
-            m
-        })]);
-        let mut networkId: Value = self.safe_string(networkIdsByCodes.clone(), networkCode.clone(), &[]);
-        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
-        if is_equal(&networkId, &Value::Null) {
-            if is_equal(&currencyCode, &Value::Null) {
-                let mut currencies: Value = object_values(&self.currencies);
-                {
-                                        let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&currencies)) {
-                    let mut currency: Value = get_value(&currencies, &i);
-                    let mut networks: Value = self.safe_dict(currency.clone(), Value::Str("networks".to_string()), &[]);
-                    let mut network: Value = self.safe_dict(networks.clone(), networkCode.clone(), &[]);
-                    networkId = self.safe_string(network.clone(), Value::Str("id".to_string()), &[]);
-                    if !is_equal(&networkId, &Value::Null) {
-                        break;
-                    }
-                    i = add(&i, &Value::Int(1));
-                }
-                }
-            }  else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (get_value(&i, &Value::Str("e".to_string())). ERC20 for ETH) or is in the currency
-                let mut defaultNetworkCodeReplacements: Value = self.safe_value(self.options.clone(), Value::Str("defaultNetworkCodeReplacements".to_string()), &[Value::Map({
-                    let mut m = std::collections::HashMap::new();
-                    m
-                })]);
-                if is_true(&Value::Bool(in_op(&defaultNetworkCodeReplacements, &currencyCode))) {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    let mut replacementObject: Value = get_value(&defaultNetworkCodeReplacements, &currencyCode); // get_value(&i, &Value::Str("e".to_string())). { 'ERC20': 'ETH' }
-                    let mut keys: Value = object_keys(&replacementObject);
-                    {
-                                                let mut i: Value = Value::Int(0);
-                        while is_less_than(&i, &get_array_length(&keys)) {
-                        let mut key: Value = get_value(&keys, &i);
-                        let mut value: Value = get_value(&replacementObject, &key);
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if is_equal(&value, &networkCode) {
-                            networkId = self.safe_string(networkIdsByCodes.clone(), key.clone(), &[]);
-                            break;
-                        }
-                        i = add(&i, &Value::Int(1));
-                    }
-                    }
-                }  else {
-                    // serach for network inside currency
-                    let mut currency: Value = self.safe_dict(self.currencies.clone(), currencyCode.clone(), &[]);
-                    let mut networks: Value = self.safe_dict(currency.clone(), Value::Str("networks".to_string()), &[]);
-                    let mut network: Value = self.safe_dict(networks.clone(), networkCode.clone(), &[]);
-                    networkId = self.safe_string(network.clone(), Value::Str("id".to_string()), &[]);
-                }
-            }
-            // if it wasn't found, we just set the provided value to network-id
-            if is_equal(&networkId, &Value::Null) {
-                networkId = networkCode.clone();
+        let mut networkIdsByCodes: Value = self.safe_dict(self.options.clone(), Value::Str("networks".to_string()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
+        let mut preferredChainalternativeChainVariable = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(false)]);
+        let mut preferredChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(0));
+        let mut alternativeChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(1));
+        let mut networkId: Value = self.safe_string2(networkIdsByCodes.clone(), preferredChain.clone(), alternativeChain.clone(), &[]);
+        if !is_equal(&networkId, &Value::Null) {
+            return networkId;
+        }
+        // fall back to scanning loaded currencies
+        let mut currenciesToCheck: Value = Value::List(vec![]);
+        if is_equal(&currencyCode, &Value::Null) {
+            currenciesToCheck = object_keys(&self.currencies);
+        }  else {
+            currenciesToCheck = Value::List(vec![self.safe_dict(self.currencies.clone(), currencyCode.clone(), &[])]);
+        }
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_109: bool = true;
+            while { if !__for_first_109 { i = add(&i, &Value::Int(1)); } __for_first_109 = false; is_less_than(&i, &get_array_length(&currenciesToCheck)) } {
+            let mut networks: Value = self.safe_dict(get_value(&currenciesToCheck, &i), Value::Str("networks".to_string()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+            if is_true(&Value::Bool(in_op(&networks, &networkCode))) {
+                return self.safe_string(get_value(&networks, &networkCode), Value::Str("id".to_string()), &[]);
             }
         }
-        return networkId;
+        }
+        return networkCode;
 
     Value::Null
 }
@@ -4309,25 +4402,25 @@ impl Exchange {
             return Value::Null;
         }
         let mut networkCodesByIds: Value = self.safe_dict(self.options.clone(), Value::Str("networksById".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut networkCode: Value = self.safe_string(networkCodesByIds.clone(), networkId.clone(), &[networkId.clone()]);
-        // replace mainnet network-codes (get_value(&i, &Value::Str("e".to_string())). ERC20->ETH)
-        if !is_equal(&currencyCode, &Value::Null) {
-            let mut defaultNetworkCodeReplacements: Value = self.safe_dict(self.options.clone(), Value::Str("defaultNetworkCodeReplacements".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+        let mut preferredChainalternativeChainVariable = self.prioritized_network_aliases(&[networkCode.clone(), currencyCode.clone(), Value::Bool(true)]);
+        let mut preferredChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(0));
+        let mut alternativeChain: Value = get_value(&preferredChainalternativeChainVariable, &Value::Int(1));
+        // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
+        // it disambiguates them — trust the direct id→code inversion instead of guessing
+        if is_equal(&currencyCode, &Value::Null) {
+            let mut networkIdsByCodes: Value = self.safe_dict(self.options.clone(), Value::Str("networks".to_string()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if is_true(&Value::Bool(in_op(&defaultNetworkCodeReplacements, &currencyCode))) {
-                let mut replacementObject: Value = self.safe_dict(defaultNetworkCodeReplacements.clone(), currencyCode.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
-    m
-})]);
-                networkCode = self.safe_string(replacementObject.clone(), networkCode.clone(), &[networkCode.clone()]);
+            if is_true(&(Value::Bool(in_op(&networkIdsByCodes, &preferredChain)))) && is_true(&(Value::Bool(in_op(&networkIdsByCodes, &alternativeChain)))) {
+                return networkCode;
             }
         }
-        return networkCode;
+        return preferredChain;
 
     Value::Null
 }
@@ -4345,7 +4438,7 @@ impl Exchange {
     pub fn default_network_code(&self, mut currencyCode: Value) -> Value {
         let mut defaultNetworkCode: Value = Value::Null;
         let mut defaultNetworks: Value = self.safe_dict(self.options.clone(), Value::Str("defaultNetworks".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         if is_true(&Value::Bool(in_op(&defaultNetworks, &currencyCode))) {
@@ -4383,19 +4476,19 @@ impl Exchange {
         let mut responseNetworksLength: Value = get_array_length(&availableNetworkIds);
         if !is_equal(&networkCode, &Value::Null) {
             if is_equal(&responseNetworksLength, &Value::Int(0)) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&add(&self.id, &Value::Str(" - ".to_string())), &networkCode), &Value::Str(" network did not return any result for ".to_string())), &currencyCode)));
+                panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&add(&self.id, &Value::Str(" - ".to_string())), &networkCode), &Value::Str(" network did not return any result for ".to_string())), &currencyCode)));
             }  else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 let mut networkIdOrCode: Value = ternary(is_true(&isIndexedByUnifiedNetworkCode), networkCode.clone(), self.network_code_to_id(networkCode.clone(), &[currencyCode.clone()]));
                 if is_true(&Value::Bool(in_op(&indexedNetworkEntries, &networkIdOrCode))) {
                     chosenNetworkId = networkIdOrCode.clone();
                 }  else {
-                    panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&add(&add(&add(&self.id, &Value::Str(" - ".to_string())), &networkIdOrCode), &Value::Str(" network was not found for ".to_string())), &currencyCode), &Value::Str(", use one of ".to_string())), &join(&availableNetworkIds, &Value::Str(", ".to_string())))));
+                    panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&add(&add(&add(&self.id, &Value::Str(" - ".to_string())), &networkIdOrCode), &Value::Str(" network was not found for ".to_string())), &currencyCode), &Value::Str(", use one of ".to_string())), &join(&availableNetworkIds, &Value::Str(", ".to_string())))));
                 }
             }
         }  else {
             if is_equal(&responseNetworksLength, &Value::Int(0)) {
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" - no networks were returned for ".to_string())), &currencyCode)));
+                panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" - no networks were returned for ".to_string())), &currencyCode)));
             }  else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 let mut defaultNetworkCode: Value = self.default_network_code(currencyCode.clone());
@@ -4403,7 +4496,7 @@ impl Exchange {
                 if is_true(&Value::Bool(in_op(&indexedNetworkEntries, &defaultNetworkId))) {
                     return defaultNetworkId;
                 }
-                panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" - can not determine the default network, please pass param[\"network\"] one from : ".to_string())), &join(&availableNetworkIds, &Value::Str(", ".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(add(&add(&self.id, &Value::Str(" - can not determine the default network, please pass param[\"network\"] one from : ".to_string())), &join(&availableNetworkIds, &Value::Str(", ".to_string())))));
             }
         }
         return chosenNetworkId;
@@ -4432,7 +4525,7 @@ impl Exchange {
         let mut bids: Value = self.parse_bids_asks(self.safe_value(orderbook.clone(), bidsKey.clone(), &[Value::List(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         let mut asks: Value = self.parse_bids_asks(self.safe_value(orderbook.clone(), asksKey.clone(), &[Value::List(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("bids".to_string(), self.sort_by(bids.clone(), Value::Int(0), &[Value::Bool(true)]));
         m.insert("asks".to_string(), self.sort_by(asks.clone(), Value::Int(0), &[]));
@@ -4454,9 +4547,9 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ohlcvs)) {
+            let mut __for_first_110: bool = true;
+            while { if !__for_first_110 { i = add(&i, &Value::Int(1)); } __for_first_110 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, self.parse_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(results.clone(), Value::Int(0), &[]);
@@ -4471,7 +4564,7 @@ impl Exchange {
         // marketIdKey should only be undefined when response is a dictionary.
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut tiers: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut symbolsLength: Value = Value::Int(0);
@@ -4482,7 +4575,8 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&response)) {
+                let mut __for_first_111: bool = true;
+                while { if !__for_first_111 { i = add(&i, &Value::Int(1)); } __for_first_111 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut item: Value = get_value(&response, &i);
                 let mut id: Value = self.safe_string(item.clone(), marketIdKey.clone(), &[]);
                 let mut market: Value = self.safe_market(&[id.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
@@ -4491,14 +4585,14 @@ impl Exchange {
                 if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
                     add_element_to_object(&mut tiers, &symbol, self.parse_market_leverage_tiers(item.clone(), &[market.clone()]));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut keys: Value = object_keys(&response);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&keys)) {
+                let mut __for_first_112: bool = true;
+                while { if !__for_first_112 { i = add(&i, &Value::Int(1)); } __for_first_112 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut marketId: Value = get_value(&keys, &i);
                 let mut item: Value = get_value(&response, &marketId);
                 let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("swap".to_string())]);
@@ -4507,7 +4601,6 @@ impl Exchange {
                 if is_true(&contract) && is_true(&(is_true(&noSymbols) || is_true(&self.in_array(symbol.clone(), symbols.clone())))) {
                     add_element_to_object(&mut tiers, &symbol, self.parse_market_leverage_tiers(item.clone(), &[market.clone()]));
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -4520,7 +4613,7 @@ impl Exchange {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut reload = get_arg(optional_args, 1, Value::Bool(false));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchTradingLimits".to_string()))) {
@@ -4528,13 +4621,13 @@ impl Exchange {
                 let mut response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&symbols)) {
+                    let mut __for_first_113: bool = true;
+                    while { if !__for_first_113 { i = add(&i, &Value::Int(1)); } __for_first_113 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                     let mut symbol: Value = get_value(&symbols, &i);
-                    { let __be_tmp = self.deep_extend(get_value(&self.markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut self.markets.clone(), &symbol, __be_tmp); };
-                    i = add(&i, &Value::Int(1));
+                    { let __be_tmp = self.deep_extend(get_value(&self.markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut self.markets, &symbol, __be_tmp); };
                 }
                 }
-                add_element_to_object(&mut self.options.clone(), &Value::Str("limitsLoaded".to_string()), self.milliseconds());
+                { let __be_tmp = self.milliseconds(); add_element_to_object(&mut self.options, &Value::Str("limitsLoaded".to_string()), __be_tmp); };
             }
         }
         return self.markets.clone();
@@ -4551,8 +4644,8 @@ impl Exchange {
         //
         let mut percentage: Value = self.safe_value(position.clone(), Value::Str("percentage".to_string()), &[]);
         if is_true(&(is_equal(&percentage, &Value::Null))) && is_true(&(!is_equal(&unrealizedPnlString, &Value::Null))) && is_true(&(!is_equal(&initialMarginString, &Value::Null))) {
-            // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
-            let mut percentageString: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&unrealizedPnlString, &initialMarginString), &Value::Str("100".to_string()));
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            let mut percentageString: Value = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".to_string()));
             add_element_to_object(&mut position, &Value::Str("percentage".to_string()), self.parse_number(percentageString.clone(), &[]));
         }
         // if contractSize is undefined get from market
@@ -4574,7 +4667,7 @@ impl Exchange {
     pub fn parse_positions(&self, mut positions: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         symbols = self.market_symbols(&[symbols.clone()]);
@@ -4582,10 +4675,10 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&positions)) {
+            let mut __for_first_114: bool = true;
+            while { if !__for_first_114 { i = add(&i, &Value::Int(1)); } __for_first_114 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = self.extend(self.parse_position(get_value(&positions, &i), &[Value::Null]), &[params.clone()]);
             append_to_array(&mut result, position.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
@@ -4594,8 +4687,11 @@ impl Exchange {
 }
 
     pub fn parse_adl_rank(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_adl_rank(...))
+        { let __v = self.derived().parse_adl_rank(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseADLRank() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseADLRank() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -4603,7 +4699,7 @@ impl Exchange {
     pub fn parse_adl_ranks(&self, mut ranks: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         symbols = self.market_symbols(&[symbols.clone()]);
@@ -4611,10 +4707,10 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ranks)) {
+            let mut __for_first_115: bool = true;
+            while { if !__for_first_115 { i = add(&i, &Value::Int(1)); } __for_first_115 = false; is_less_than(&i, &get_array_length(&ranks)) } {
             let mut rank: Value = self.extend(self.parse_adl_rank(get_value(&ranks, &i), &[Value::Null]), &[params.clone()]);
             append_to_array(&mut result, rank.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
@@ -4624,17 +4720,17 @@ impl Exchange {
 
     pub fn parse_accounts(&self, mut accounts: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         accounts = self.to_array(accounts.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&accounts)) {
+            let mut __for_first_116: bool = true;
+            while { if !__for_first_116 { i = add(&i, &Value::Int(1)); } __for_first_116 = false; is_less_than(&i, &get_array_length(&accounts)) } {
             let mut account: Value = self.extend(self.parse_account(get_value(&accounts, &i)), &[params.clone()]);
             append_to_array(&mut result, account.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -4647,14 +4743,15 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         trades = self.to_array(trades.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&trades)) {
+            let mut __for_first_117: bool = true;
+            while { if !__for_first_117 { i = add(&i, &Value::Int(1)); } __for_first_117 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut parsed: Value = Value::Null;
             if is_true(&isWs) {
                 parsed = self.parse_ws_trade(get_value(&trades, &i), &[market.clone()]);
@@ -4663,7 +4760,6 @@ impl Exchange {
             }
             let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
             append_to_array(&mut result, trade.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         result = self.sort_by2(result.clone(), Value::Str("timestamp".to_string()), Value::Str("id".to_string()), &[]);
@@ -4678,7 +4774,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.parse_trades_helper(Value::Bool(false), trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
@@ -4691,7 +4787,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.parse_trades_helper(Value::Bool(true), trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
@@ -4704,17 +4800,17 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         transactions = self.to_array(transactions.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&transactions)) {
+            let mut __for_first_118: bool = true;
+            while { if !__for_first_118 { i = add(&i, &Value::Int(1)); } __for_first_118 = false; is_less_than(&i, &get_array_length(&transactions)) } {
             let mut transaction: Value = self.extend(self.parse_transaction(get_value(&transactions, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transaction.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -4729,17 +4825,17 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         transfers = self.to_array(transfers.clone());
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&transfers)) {
+            let mut __for_first_119: bool = true;
+            while { if !__for_first_119 { i = add(&i, &Value::Int(1)); } __for_first_119 = false; is_less_than(&i, &get_array_length(&transfers)) } {
             let mut transfer: Value = self.extend(self.parse_transfer(get_value(&transfers, &i), &[currency.clone()]), &[params.clone()]);
             append_to_array(&mut result, transfer.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -4754,27 +4850,27 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut result: Value = Value::List(vec![]);
         let mut arrayData: Value = self.to_array(data.clone());
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&arrayData)) {
+            let mut __for_first_121: bool = true;
+            while { if !__for_first_121 { i = add(&i, &Value::Int(1)); } __for_first_121 = false; is_less_than(&i, &get_array_length(&arrayData)) } {
             let mut itemOrItems: Value = self.parse_ledger_entry(get_value(&arrayData, &i), &[currency.clone()]);
             if is_true(&Value::Bool(is_array(&itemOrItems))) {
                 {
                                         let mut j: Value = Value::Int(0);
-                    while is_less_than(&j, &get_array_length(&itemOrItems)) {
+                    let mut __for_first_120: bool = true;
+                    while { if !__for_first_120 { j = add(&j, &Value::Int(1)); } __for_first_120 = false; is_less_than(&j, &get_array_length(&itemOrItems)) } {
                     append_to_array(&mut result, self.extend(get_value(&itemOrItems, &j), &[params.clone()]));
-                    j = add(&j, &Value::Int(1));
                 }
                 }
             }  else {
                 append_to_array(&mut result, self.extend(itemOrItems.clone(), &[params.clone()]));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -4908,7 +5004,7 @@ impl Exchange {
         if !is_equal(&networkCode, &Value::Null) {
             add_element_to_object(&mut request, &exchangeSpecificKey, self.network_code_to_id(networkCode.clone(), &[currencyCode.clone()]));
         }  else if is_true(&isRequired) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" - \"network\" param is required for this request".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" - \"network\" param is required for this request".to_string()))));
         }
         return Value::List(vec![request.clone(), params.clone()]);
 
@@ -4929,9 +5025,9 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&newArray)) {
+            let mut __for_first_122: bool = true;
+            while { if !__for_first_122 { i = add(&i, &Value::Int(1)); } __for_first_122 = false; is_less_than(&i, &get_array_length(&newArray)) } {
             append_to_array(&mut results, get_value(&get_value(&newArray, &i), &key));
-            i = add(&i, &Value::Int(1));
         }
         }
         return results;
@@ -4971,7 +5067,7 @@ impl Exchange {
         objects = self.to_array(objects.clone());
         // return all of them if no values were passed
         if is_equal(&values, &Value::Null) || !is_true(&values) {
-            // return indexed ? get_value(&this, &Value::Str("indexBy".to_string())) (objects, key) : objects;
+            // return indexed ? this.indexBy (objects, key) : objects;
             if is_true(&indexed) {
                 return self.index_by(objects.clone(), key.clone());
             }  else {
@@ -4981,14 +5077,14 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&objects)) {
+            let mut __for_first_123: bool = true;
+            while { if !__for_first_123 { i = add(&i, &Value::Int(1)); } __for_first_123 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
-        // return indexed ? get_value(&this, &Value::Str("indexBy".to_string())) (results, key) : results;
+        // return indexed ? this.indexBy (results, key) : results;
         if is_true(&indexed) {
             return self.index_by(results.clone(), key.clone());
         }
@@ -5003,7 +5099,7 @@ impl Exchange {
         objects = self.to_array(objects.clone());
         // return all of them if no values were passed
         if is_equal(&values, &Value::Null) || !is_true(&values) {
-            // return indexed ? get_value(&this, &Value::Str("indexBy".to_string())) (objects, key) : objects;
+            // return indexed ? this.indexBy (objects, key) : objects;
             if is_true(&indexed) {
                 return self.index_by(objects.clone(), key.clone());
             }  else {
@@ -5013,14 +5109,14 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&objects)) {
+            let mut __for_first_124: bool = true;
+            while { if !__for_first_124 { i = add(&i, &Value::Int(1)); } __for_first_124 = false; is_less_than(&i, &get_array_length(&objects)) } {
             if !is_true(&self.in_array(get_value(&get_value(&objects, &i), &key), values.clone())) {
                 append_to_array(&mut results, get_value(&objects, &i));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
-        // return indexed ? get_value(&this, &Value::Str("indexBy".to_string())) (results, key) : results;
+        // return indexed ? this.indexBy (results, key) : results;
         if is_true(&indexed) {
             return self.index_by(results.clone(), key.clone());
         }
@@ -5033,13 +5129,13 @@ impl Exchange {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut config = get_arg(optional_args, 5, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&self.enableRateLimit) {
@@ -5052,7 +5148,8 @@ impl Exchange {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[Value::Int(0)]); retryDelay = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &add(&retries, &Value::Int(1))) {
+            let mut __for_first_125: bool = true;
+            while { if !__for_first_125 { i = add(&i, &Value::Int(1)); } __for_first_125 = false; is_less_than(&i, &add(&retries, &Value::Int(1))) } {
             {
                 { let __t = self.milliseconds(); self.lastRestRequestTimestamp = __t; }
                 let mut request: Value = self.sign(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone()]);
@@ -5061,7 +5158,6 @@ impl Exchange {
                 self.last_request_url = get_value(&request, &Value::Str("url".to_string()));
                 return self.fetch(get_value(&request, &Value::Str("url".to_string())), &[get_value(&request, &Value::Str("method".to_string())), get_value(&request, &Value::Str("headers".to_string())), get_value(&request, &Value::Str("body".to_string()))]).await;
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
@@ -5073,13 +5169,13 @@ impl Exchange {
         let mut api = get_arg(optional_args, 0, Value::Str("public".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut config = get_arg(optional_args, 5, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
@@ -5090,7 +5186,7 @@ impl Exchange {
     pub async fn load_accounts(&mut self, optional_args: &[Value]) -> Value {
         let mut reload = get_arg(optional_args, 0, Value::Bool(false));
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&reload) {
@@ -5126,13 +5222,14 @@ impl Exchange {
         let mut tradesLength: Value = get_array_length(&trades);
         let mut oldest: Value = crate::runtime::Math::min(&tradesLength, &limit);
         let mut options: Value = self.safe_dict(self.options.clone(), Value::Str("buildOHLCVC".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut skipZeroPrices: Value = self.safe_bool(options.clone(), Value::Str("skipZeroPrices".to_string()), &[Value::Bool(true)]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &oldest) {
+            let mut __for_first_126: bool = true;
+            while { if !__for_first_126 { i = add(&i, &Value::Int(1)); } __for_first_126 = false; is_less_than(&i, &oldest) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut ts: Value = get_value(&trade, &Value::Str("timestamp".to_string()));
             let mut price: Value = get_value(&trade, &Value::Str("price".to_string()));
@@ -5149,7 +5246,7 @@ impl Exchange {
                 continue;
             }
             let mut isFirstCandle: Value = Value::Bool(is_equal(&candle, &negate(&Value::Int(1))));
-            if is_true(&isFirstCandle) || is_greater_than_or_equal(&openingTime, &self.sum(get_value(&get_value(&ohlcvs, &candle), &i_timestamp), ms.clone(), &[])) {
+            if is_true(&isFirstCandle) || is_greater_than_or_equal(&openingTime, &self.sum(&[get_value(&get_value(&ohlcvs, &candle), &i_timestamp), ms.clone()])) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 append_to_array(&mut ohlcvs, Value::List(vec![openingTime.clone(), price.clone(), price.clone(), price.clone(), price.clone(), get_value(&trade, &Value::Str("amount".to_string())), Value::Int(1)]));
             }  else {
@@ -5157,10 +5254,9 @@ impl Exchange {
                 { let __be_tmp = crate::runtime::Math::max(&get_value(&get_value(&ohlcvs, &candle), &i_high), &price); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_high, __be_tmp); };
                 { let __be_tmp = crate::runtime::Math::min(&get_value(&get_value(&ohlcvs, &candle), &i_low), &price); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_low, __be_tmp); };
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_close, price.clone());
-                { let __be_tmp = self.sum(get_value(&get_value(&ohlcvs, &candle), &i_volume), get_value(&trade, &Value::Str("amount".to_string())), &[]); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, __be_tmp); };
-                { let __be_tmp = self.sum(get_value(&get_value(&ohlcvs, &candle), &i_count), Value::Int(1), &[]); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, __be_tmp); };
+                { let __be_tmp = self.sum(&[get_value(&get_value(&ohlcvs, &candle), &i_volume), get_value(&trade, &Value::Str("amount".to_string()))]); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, __be_tmp); };
+                { let __be_tmp = self.sum(&[get_value(&get_value(&ohlcvs, &candle), &i_count), Value::Int(1)]); add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, __be_tmp); };
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return ohlcvs;
@@ -5182,7 +5278,7 @@ impl Exchange {
     pub async fn edit_limit_buy_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -5193,7 +5289,7 @@ impl Exchange {
     pub async fn edit_limit_sell_order(&mut self, mut id: Value, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.edit_limit_order(id.clone(), symbol.clone(), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -5204,7 +5300,7 @@ impl Exchange {
     pub async fn edit_limit_order(&mut self, mut id: Value, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.edit_order(id.clone(), symbol.clone(), Value::Str("limit".to_string()), side.clone(), &[amount.clone(), price.clone(), params.clone()]).await;
@@ -5221,7 +5317,7 @@ impl Exchange {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.cancel_order(id.clone(), &[symbol.clone()]).await;
@@ -5234,11 +5330,11 @@ impl Exchange {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clientOrderId".to_string(), clientOrderId.clone());
             m
         })]);
@@ -5251,7 +5347,7 @@ impl Exchange {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.cancel_order_ws(id.clone(), &[symbol.clone()]).await;
@@ -5267,20 +5363,20 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPosition() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_position_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5288,10 +5384,10 @@ impl Exchange {
     pub async fn watch_position(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPosition() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPosition() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5301,10 +5397,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPositions() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchPositions() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5314,7 +5410,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.watch_positions(&[symbols.clone(), since.clone(), limit.clone(), params.clone()]).await;
@@ -5324,20 +5420,20 @@ impl Exchange {
 
     pub async fn fetch_positions_for_symbol(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_positions_for_symbol_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsForSymbol() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5350,10 +5446,10 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5361,10 +5457,10 @@ impl Exchange {
     pub async fn fetch_positions_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositions() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5372,10 +5468,10 @@ impl Exchange {
     pub async fn fetch_positions_risk(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsRisk() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5383,10 +5479,10 @@ impl Exchange {
     pub async fn fetch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBidsAsks() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5397,10 +5493,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 2, Value::Null);
         let mut limit = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBorrowInterest() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBorrowInterest() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5415,10 +5511,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedger() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedger() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5426,10 +5522,10 @@ impl Exchange {
     pub async fn fetch_ledger_entry(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedgerEntry() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLedgerEntry() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5466,7 +5562,7 @@ impl Exchange {
             code = self.common_currency_code(to_upper(&currencyId));
         }
         return self.safe_currency_structure(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.clone());
         m.insert("code".to_string(), code.clone());
         m.insert("precision".to_string(), Value::Null);
@@ -5490,19 +5586,19 @@ impl Exchange {
                 }  else {
                     if is_equal(&marketType, &Value::Null) {
                         if is_equal(&market, &Value::Null) {
-                            panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" safeMarket() requires a fourth argument for ".to_string())), &marketId), &Value::Str(" to disambiguate between different markets with the same market id".to_string()))));
+                            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" safeMarket() requires a fourth argument for ".to_string())), &marketId), &Value::Str(" to disambiguate between different markets with the same market id".to_string()))));
                         }  else {
                             marketType = get_value(&market, &Value::Str("type".to_string()));
                         }
                     }
                     {
                                                 let mut i: Value = Value::Int(0);
-                        while is_less_than(&i, &get_array_length(&markets)) {
+                        let mut __for_first_127: bool = true;
+                        while { if !__for_first_127 { i = add(&i, &Value::Int(1)); } __for_first_127 = false; is_less_than(&i, &get_array_length(&markets)) } {
                         let mut currentMarket: Value = get_value(&markets, &i);
                         if is_true(&get_value(&currentMarket, &marketType)) {
                             return currentMarket;
                         }
-                        i = add(&i, &Value::Int(1));
                     }
                     }
                 }
@@ -5510,7 +5606,7 @@ impl Exchange {
                 let mut parts: Value = split(&marketId, &delimiter);
                 let mut partsLength: Value = get_array_length(&parts);
                 let mut result: Value = self.safe_market_structure(&[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketId.clone());
         m.insert("marketId".to_string(), marketId.clone());
     m
@@ -5529,7 +5625,7 @@ impl Exchange {
             return market;
         }
         return self.safe_market_structure(&[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketId.clone());
         m.insert("marketId".to_string(), marketId.clone());
     m
@@ -5559,16 +5655,16 @@ impl Exchange {
         let mut keys: Value = object_keys(&self.requiredCredentials);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_128: bool = true;
+            while { if !__for_first_128 { i = add(&i, &Value::Int(1)); } __for_first_128 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
-            if is_true(&get_value(&self.requiredCredentials, &key)) && !is_true(&Value::Null) {
+            if is_true(&get_value(&self.requiredCredentials, &key)) && !is_true(&self.prop(&key)) {
                 if is_true(&error) {
-                    panic!("{:?}", crate::exchange_errors::authentication_error(add(&add(&add(&self.id, &Value::Str(" requires \"".to_string())), &key), &Value::Str("\" credential".to_string()))));
+                    panic!("{}", crate::exchange_errors::authentication_error(add(&add(&add(&self.id, &Value::Str(" requires \"".to_string())), &key), &Value::Str("\" credential".to_string()))));
                 }  else {
                     return Value::Bool(false);
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Bool(true);
@@ -5580,8 +5676,10 @@ impl Exchange {
         if !is_equal(&self.twofa, &Value::Null) {
             return totp(self.twofa.clone());
         }  else {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" exchange.twofa has not been set for 2FA Two-Factor Authentication".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" exchange.twofa has not been set for 2FA Two-Factor Authentication".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_balance(&mut self, optional_args: &[Value]) -> Value {
@@ -5591,20 +5689,20 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalance() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_balance_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalanceWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchBalanceWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -5613,24 +5711,24 @@ impl Exchange {
         // virtual-dispatch (Go-style: this.DerivedExchange.parse_balance(...))
         { let __v = self.derived().parse_balance(response.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
 
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBalance() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBalance() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn watch_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBalance() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBalance() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_partial_balance(&mut self, mut part: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut balance: Value = self.fetch_balance(&[params.clone()]).await;
@@ -5641,7 +5739,7 @@ impl Exchange {
 
     pub async fn fetch_free_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_partial_balance(Value::Str("free".to_string()), &[params.clone()]).await;
@@ -5651,7 +5749,7 @@ impl Exchange {
 
     pub async fn fetch_used_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_partial_balance(Value::Str("used".to_string()), &[params.clone()]).await;
@@ -5661,7 +5759,7 @@ impl Exchange {
 
     pub async fn fetch_total_balance(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_partial_balance(Value::Str("total".to_string()), &[params.clone()]).await;
@@ -5676,21 +5774,21 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchStatus() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchStatus() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("fetchTransactionFees".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactionFee() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactionFee() is not supported yet".to_string()))));
         }
         return self.fetch_transaction_fees(&[Value::List(vec![code.clone()]), params.clone()]).await;
 
@@ -5700,32 +5798,42 @@ impl Exchange {
     pub async fn fetch_transaction_fees(&mut self, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactionFees() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactionFees() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_deposit_withdraw_fees(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fees", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositWithdrawFees() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositWithdrawFees() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_deposit_withdraw_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposit_withdraw_fee", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(code.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("fetchDepositWithdrawFees".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositWithdrawFee() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositWithdrawFee() is not supported yet".to_string()))));
         }
         let mut fees: Value = self.fetch_deposit_withdraw_fees(&[Value::List(vec![code.clone()]), params.clone()]).await;
         return self.safe_value(fees.clone(), code.clone(), &[]);
@@ -5735,29 +5843,31 @@ impl Exchange {
 
     pub fn get_supported_mapping(&self, mut key: Value, optional_args: &[Value]) -> Value {
         let mut mapping = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&Value::Bool(in_op(&mapping, &key))) {
             return get_value(&mapping, &key);
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &key), &Value::Str(" does not have a value in mapping".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &key), &Value::Str(" does not have a value in mapping".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_cross_borrow_rate(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if !is_true(&get_value(&self.has, &Value::Str("fetchBorrowRates".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCrossBorrowRate() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCrossBorrowRate() is not supported yet".to_string()))));
         }
         let mut borrowRates: Value = self.fetch_cross_borrow_rates(&[params.clone()]).await;
         let mut rate: Value = self.safe_value(borrowRates.clone(), code.clone(), &[]);
         if is_equal(&rate, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchCrossBorrowRate() could not find the borrow rate for currency code ".to_string())), &code)));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchCrossBorrowRate() could not find the borrow rate for currency code ".to_string())), &code)));
         }
         return rate;
 
@@ -5766,17 +5876,17 @@ impl Exchange {
 
     pub async fn fetch_isolated_borrow_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         self.load_markets(&[]).await;
         if !is_true(&get_value(&self.has, &Value::Str("fetchBorrowRates".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIsolatedBorrowRate() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIsolatedBorrowRate() is not supported yet".to_string()))));
         }
         let mut borrowRates: Value = self.fetch_isolated_borrow_rates(&[params.clone()]).await;
         let mut rate: Value = self.safe_dict(borrowRates.clone(), symbol.clone(), &[]);
         if is_equal(&rate, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ".to_string())), &symbol)));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ".to_string())), &symbol)));
         }
         return rate;
 
@@ -5785,7 +5895,7 @@ impl Exchange {
 
     pub fn handle_option_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        // This method can be used to obtain method specific properties, get_value(&i, &Value::Str("e".to_string())): get_value(&this, &Value::Str("handleOptionAndParams".to_string())) (params, 'fetchPosition', 'marginMode', 'isolated')
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         let mut defaultOptionName: Value = add(&Value::Str("default".to_string()), &self.capitalize(optionName.clone())); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
         let mut value: Value = self.safe_value2(params.clone(), optionName.clone(), defaultOptionName.clone(), &[]);
@@ -5832,7 +5942,7 @@ impl Exchange {
     pub fn handle_option(&self, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut res: Value = self.handle_option_and_params(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }), methodName.clone(), optionName.clone(), &[defaultValue.clone()]);
         return self.safe_value(res.clone(), Value::Int(0), &[]);
@@ -5843,7 +5953,7 @@ impl Exchange {
     pub fn handle_market_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut defaultValue = get_arg(optional_args, 2, Value::Null);
@@ -5854,8 +5964,8 @@ impl Exchange {
          * @param methodName the method calling handleMarketTypeAndParams
          * @param {Market} market
          * @param {object} params
-         * @param {string} [get_value(&params, &Value::Str("type".to_string()))] type assigned by user
-         * @param {string} [get_value(&params, &Value::Str("defaultType".to_string()))] same as get_value(&params, &Value::Str("type".to_string()))
+         * @param {string} [params.type] type assigned by user
+         * @param {string} [params.defaultType] same as params.type
          * @param {string} [defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @returns {[string, object]} the market type and params with type and defaultType omitted
          */
@@ -5893,7 +6003,7 @@ impl Exchange {
     pub fn handle_sub_type_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut defaultValue = get_arg(optional_args, 2, Value::Null);
@@ -5916,7 +6026,7 @@ impl Exchange {
             // if it was not defined in market object
             if is_equal(&subType, &Value::Null) {
                 let mut values: Value = self.handle_option_and_params(Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }), methodName.clone(), Value::Str("subType".to_string()), &[defaultValue.clone()]); // no need to re-test params here
                 subType = get_value(&values, &Value::Int(0));
@@ -5929,7 +6039,7 @@ impl Exchange {
 
     pub fn handle_margin_mode_and_params(&self, mut methodName: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut defaultValue = get_arg(optional_args, 1, Value::Null);
@@ -5943,14 +6053,14 @@ impl Exchange {
             return;
         }
         if is_true(&Value::Bool(in_op(&exact, &string))) {
-            panic!("{:?}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&get_value(&exact, &string)), &crate::runtime::stringify_param(&message)));
+            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&exact, &string))), &crate::runtime::stringify_param(&(message))));
         }
 }
 
     pub fn throw_broadly_matched_exception(&self, mut broad: Value, mut string: Value, mut message: Value) {
         let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), string.clone());
         if !is_equal(&broadKey, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&get_value(&broad, &broadKey)), &crate::runtime::stringify_param(&message)));
+            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(message))));
         }
 }
 
@@ -5959,14 +6069,14 @@ impl Exchange {
         let mut keys: Value = object_keys(&broad);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_129: bool = true;
+            while { if !__for_first_129 { i = add(&i, &Value::Int(1)); } __for_first_129 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             if !is_equal(&string, &Value::Null) {
                 if is_greater_than_or_equal(&get_index_of(&string, &key), &Value::Int(0)) {
                     return key;
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Null;
@@ -5985,7 +6095,7 @@ impl Exchange {
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, mut method: Value, mut path: Value, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.safe_value(config.clone(), Value::Str("cost".to_string()), &[Value::Int(1)]);
@@ -6000,7 +6110,7 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchTickers".to_string()))) {
@@ -6010,18 +6120,20 @@ impl Exchange {
             let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
             if is_equal(&ticker, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickers() could not find a ticker for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickers() could not find a ticker for ".to_string())), &symbol)));
             }  else {
                 return ticker;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTicker() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchMarkPrices".to_string()))) {
@@ -6031,18 +6143,20 @@ impl Exchange {
             let mut tickers: Value = self.fetch_mark_prices(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
             if is_equal(&ticker, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchMarkPrices() could not find a ticker for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchMarkPrices() could not find a ticker for ".to_string())), &symbol)));
             }  else {
                 return ticker;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_ticker_ws(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchTickersWs".to_string()))) {
@@ -6052,21 +6166,23 @@ impl Exchange {
             let mut tickers: Value = self.fetch_tickers_ws(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
             if is_equal(&ticker, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickerWs() could not find a ticker for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchTickerWs() could not find a ticker for ".to_string())), &symbol)));
             }  else {
                 return ticker;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickerWs() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickerWs() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn watch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTicker() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6079,10 +6195,10 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6090,10 +6206,10 @@ impl Exchange {
     pub async fn fetch_spot_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSpotTickers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchSpotTickers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6101,10 +6217,10 @@ impl Exchange {
     pub async fn fetch_contract_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractTickers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractTickers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6112,10 +6228,10 @@ impl Exchange {
     pub async fn fetch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkPrices() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6123,10 +6239,10 @@ impl Exchange {
     pub async fn fetch_tickers_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickersWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTickersWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6135,10 +6251,10 @@ impl Exchange {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBooks() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderBooks() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6146,10 +6262,10 @@ impl Exchange {
     pub async fn watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchBidsAsks() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6157,10 +6273,10 @@ impl Exchange {
     pub async fn watch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchTickers() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6168,20 +6284,20 @@ impl Exchange {
     pub async fn un_watch_tickers(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTickers() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchTickers() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn un_watch_funding_rate(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRate() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchFundingRate() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6194,10 +6310,10 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6209,16 +6325,16 @@ impl Exchange {
  * @param {string} clientOrderId client order Id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clientOrderId".to_string(), clientOrderId.clone());
             m
         })]);
@@ -6230,10 +6346,10 @@ impl Exchange {
     pub async fn fetch_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6241,7 +6357,7 @@ impl Exchange {
     pub async fn fetch_order_status(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         // TODO: TypeScript: change method signature by replacing
@@ -6254,7 +6370,7 @@ impl Exchange {
 
     pub async fn fetch_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.fetch_order(self.safe_string(order.clone(), Value::Str("id".to_string()), &[]), &[self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]), params.clone()]).await;
@@ -6270,20 +6386,20 @@ impl Exchange {
 
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTwapOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTwapOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6291,10 +6407,10 @@ impl Exchange {
     pub async fn create_convert_trade(&mut self, mut id: Value, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createConvertTrade() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createConvertTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6302,10 +6418,10 @@ impl Exchange {
     pub async fn fetch_convert_trade(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertTrade() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertTrade() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6315,10 +6431,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertTradeHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertTradeHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6331,20 +6447,20 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionMode() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionMode() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_adl_rank(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchADLRank() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchADLRank() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6357,10 +6473,10 @@ impl Exchange {
 
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsADLRank() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsADLRank() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6372,7 +6488,7 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchPositionsADLRank".to_string()))) {
@@ -6382,13 +6498,15 @@ impl Exchange {
             let mut ranks: Value = self.fetch_positions_adl_rank(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             let mut rank: Value = self.safe_dict(ranks.clone(), Value::Int(0), &[]);
             if is_equal(&rank, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchPositionsADLRank() could not find a rank for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchPositionsADLRank() could not find a rank for ".to_string())), &symbol)));
             }  else {
                 return rank;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsADLRank() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsADLRank() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn create_trailing_amount_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -6396,7 +6514,7 @@ impl Exchange {
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6411,10 +6529,10 @@ impl Exchange {
          * @param {float} trailingAmount the quote amount to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&trailingAmount, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
         if !is_equal(&trailingTriggerPrice, &Value::Null) {
@@ -6423,7 +6541,7 @@ impl Exchange {
         if is_true(&get_value(&self.has, &Value::Str("createTrailingAmountOrder".to_string()))) {
             return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6433,7 +6551,7 @@ impl Exchange {
         let mut trailingAmount = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6448,10 +6566,10 @@ impl Exchange {
          * @param {float} trailingAmount the quote amount to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&trailingAmount, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() requires a trailingAmount argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() requires a trailingAmount argument".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
         if !is_equal(&trailingTriggerPrice, &Value::Null) {
@@ -6460,7 +6578,7 @@ impl Exchange {
         if is_true(&get_value(&self.has, &Value::Str("createTrailingAmountOrderWs".to_string()))) {
             return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingAmountOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6470,7 +6588,7 @@ impl Exchange {
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6485,10 +6603,10 @@ impl Exchange {
          * @param {float} trailingPercent the percent to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&trailingPercent, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
         if !is_equal(&trailingTriggerPrice, &Value::Null) {
@@ -6497,7 +6615,7 @@ impl Exchange {
         if is_true(&get_value(&self.has, &Value::Str("createTrailingPercentOrder".to_string()))) {
             return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6507,7 +6625,7 @@ impl Exchange {
         let mut trailingPercent = get_arg(optional_args, 1, Value::Null);
         let mut trailingTriggerPrice = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6522,10 +6640,10 @@ impl Exchange {
          * @param {float} trailingPercent the percent to trail away from the current market price
          * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&trailingPercent, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() requires a trailingPercent argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() requires a trailingPercent argument".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
         if !is_equal(&trailingTriggerPrice, &Value::Null) {
@@ -6534,14 +6652,14 @@ impl Exchange {
         if is_true(&get_value(&self.has, &Value::Str("createTrailingPercentOrderWs".to_string()))) {
             return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTrailingPercentOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6552,19 +6670,19 @@ impl Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_true(&get_value(&self.has, &Value::Str("createMarketOrderWithCost".to_string()))) || is_true(&(is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCost".to_string()))) && is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCost".to_string()))))) {
             return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Int(1), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6574,19 +6692,19 @@ impl Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_true(&get_value(&self.options, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()))) || is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCost".to_string()))) {
             return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6596,19 +6714,19 @@ impl Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_true(&get_value(&self.options, &Value::Str("createMarketSellOrderRequiresPrice".to_string()))) || is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCost".to_string()))) {
             return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_market_order_with_cost_ws(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6619,12 +6737,12 @@ impl Exchange {
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_true(&get_value(&self.has, &Value::Str("createMarketOrderWithCostWs".to_string()))) || is_true(&(is_true(&get_value(&self.has, &Value::Str("createMarketBuyOrderWithCostWs".to_string()))) && is_true(&get_value(&self.has, &Value::Str("createMarketSellOrderWithCostWs".to_string()))))) {
             return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Int(1), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCostWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createMarketOrderWithCostWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6633,7 +6751,7 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6647,20 +6765,20 @@ impl Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrder() requires a triggerPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrder() requires a triggerPrice argument".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("triggerPrice".to_string(), triggerPrice.clone());
             m
         })]);
         if is_true(&get_value(&self.has, &Value::Str("createTriggerOrder".to_string()))) {
             return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6669,7 +6787,7 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6683,20 +6801,20 @@ impl Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrderWs() requires a triggerPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTriggerOrderWs() requires a triggerPrice argument".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("triggerPrice".to_string(), triggerPrice.clone());
             m
         })]);
         if is_true(&get_value(&self.has, &Value::Str("createTriggerOrderWs".to_string()))) {
             return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTriggerOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6705,7 +6823,7 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6719,20 +6837,20 @@ impl Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&stopLossPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrder() requires a stopLossPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrder() requires a stopLossPrice argument".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
             m
         })]);
         if is_true(&get_value(&self.has, &Value::Str("createStopLossOrder".to_string()))) {
             return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6741,7 +6859,7 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut stopLossPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6755,20 +6873,20 @@ impl Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&stopLossPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrderWs() requires a stopLossPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopLossOrderWs() requires a stopLossPrice argument".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
             m
         })]);
         if is_true(&get_value(&self.has, &Value::Str("createStopLossOrderWs".to_string()))) {
             return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLossOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6777,7 +6895,7 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6791,20 +6909,20 @@ impl Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&takeProfitPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrder() requires a takeProfitPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrder() requires a takeProfitPrice argument".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
             m
         })]);
         if is_true(&get_value(&self.has, &Value::Str("createTakeProfitOrder".to_string()))) {
             return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6813,7 +6931,7 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut takeProfitPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6827,20 +6945,20 @@ impl Exchange {
          * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         if is_equal(&takeProfitPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrderWs() requires a takeProfitPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createTakeProfitOrderWs() requires a takeProfitPrice argument".to_string()))));
         }
         params = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
             m
         })]);
         if is_true(&get_value(&self.has, &Value::Str("createTakeProfitOrderWs".to_string()))) {
             return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createTakeProfitOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6850,7 +6968,7 @@ impl Exchange {
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6865,21 +6983,21 @@ impl Exchange {
          * @param {float} [takeProfit] the take profit price, in units of the quote currency
          * @param {float} [stopLoss] the stop loss price, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [get_value(&params, &Value::Str("takeProfitType".to_string()))] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [get_value(&params, &Value::Str("stopLossType".to_string()))] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [get_value(&params, &Value::Str("takeProfitPriceType".to_string()))] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {string} [get_value(&params, &Value::Str("stopLossPriceType".to_string()))] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {float} [get_value(&params, &Value::Str("takeProfitLimitPrice".to_string()))] *not available on all exchanges* limit price for a limit take profit order
-         * @param {float} [get_value(&params, &Value::Str("stopLossLimitPrice".to_string()))] *not available on all exchanges* stop loss for a limit stop loss order
-         * @param {float} [get_value(&params, &Value::Str("takeProfitAmount".to_string()))] *not available on all exchanges* the amount for a take profit
-         * @param {float} [get_value(&params, &Value::Str("stopLossAmount".to_string()))] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
         if is_true(&get_value(&self.has, &Value::Str("createOrderWithTakeProfitAndStopLoss".to_string()))) {
             return self.create_order(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6889,22 +7007,22 @@ impl Exchange {
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&(is_equal(&takeProfit, &Value::Null))) && is_true(&(is_equal(&stopLoss, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument".to_string()))));
         }
         if !is_equal(&takeProfit, &Value::Null) {
             add_element_to_object(&mut params, &Value::Str("takeProfit".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPrice".to_string(), takeProfit.clone());
     m
 }));
         }
         if !is_equal(&stopLoss, &Value::Null) {
             add_element_to_object(&mut params, &Value::Str("stopLoss".to_string()), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("triggerPrice".to_string(), stopLoss.clone());
     m
 }));
@@ -6952,7 +7070,7 @@ impl Exchange {
         let mut takeProfit = get_arg(optional_args, 1, Value::Null);
         let mut stopLoss = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -6967,21 +7085,21 @@ impl Exchange {
          * @param {float} [takeProfit] the take profit price, in units of the quote currency
          * @param {float} [stopLoss] the stop loss price, in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [get_value(&params, &Value::Str("takeProfitType".to_string()))] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [get_value(&params, &Value::Str("stopLossType".to_string()))] *not available on all exchanges* 'limit' or 'market'
-         * @param {string} [get_value(&params, &Value::Str("takeProfitPriceType".to_string()))] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {string} [get_value(&params, &Value::Str("stopLossPriceType".to_string()))] *not available on all exchanges* 'last', 'mark' or 'index'
-         * @param {float} [get_value(&params, &Value::Str("takeProfitLimitPrice".to_string()))] *not available on all exchanges* limit price for a limit take profit order
-         * @param {float} [get_value(&params, &Value::Str("stopLossLimitPrice".to_string()))] *not available on all exchanges* stop loss for a limit stop loss order
-         * @param {float} [get_value(&params, &Value::Str("takeProfitAmount".to_string()))] *not available on all exchanges* the amount for a take profit
-         * @param {float} [get_value(&params, &Value::Str("stopLossAmount".to_string()))] *not available on all exchanges* the amount for a stop loss
-         * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+         * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+         * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+         * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+         * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+         * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+         * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
         params = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit.clone(), stopLoss.clone(), params.clone()]);
         if is_true(&get_value(&self.has, &Value::Str("createOrderWithTakeProfitAndStopLossWs".to_string()))) {
             return self.create_order_ws(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLossWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWithTakeProfitAndStopLossWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -6993,40 +7111,40 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_spot_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createSpotOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createSpotOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_contract_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createContractOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createContractOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7034,10 +7152,10 @@ impl Exchange {
     pub async fn create_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7050,10 +7168,10 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7061,10 +7179,10 @@ impl Exchange {
     pub async fn cancel_spot_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelSpotOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelSpotOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7072,10 +7190,10 @@ impl Exchange {
     pub async fn cancel_contract_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelContractOrder() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelContractOrder() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7087,16 +7205,16 @@ impl Exchange {
  * @param {string} clientOrderId client order Id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_order_with_client_order_id(&mut self, mut clientOrderId: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clientOrderId".to_string(), clientOrderId.clone());
             m
         })]);
@@ -7108,10 +7226,10 @@ impl Exchange {
     pub async fn cancel_order_ws(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrderWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrderWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7124,10 +7242,10 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7139,16 +7257,16 @@ impl Exchange {
  * @param {string[]} clientOrderIds client order Ids
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn cancel_orders_with_client_order_ids(&mut self, mut clientOrderIds: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("clientOrderIds".to_string(), clientOrderIds.clone());
             m
         })]);
@@ -7160,10 +7278,10 @@ impl Exchange {
     pub async fn cancel_orders_ws(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7176,10 +7294,10 @@ impl Exchange {
 
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7187,10 +7305,10 @@ impl Exchange {
     pub async fn cancel_all_spot_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllSpotOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllSpotOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7198,30 +7316,30 @@ impl Exchange {
     pub async fn cancel_all_contract_orders(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllContractOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllContractOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersAfter() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersAfter() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn cancel_orders_for_symbols(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersForSymbols() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelOrdersForSymbols() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7229,17 +7347,17 @@ impl Exchange {
     pub async fn cancel_all_orders_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" cancelAllOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.cancel_order(self.safe_string(order.clone(), Value::Str("id".to_string()), &[]), &[self.safe_string(order.clone(), Value::Str("symbol".to_string()), &[]), params.clone()]).await;
@@ -7257,13 +7375,13 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchOpenOrders".to_string()))) && is_true(&get_value(&self.has, &Value::Str("fetchClosedOrders".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead".to_string()))));
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7273,10 +7391,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7286,10 +7404,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrderTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7299,10 +7417,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7317,14 +7435,14 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchOrders".to_string()))) {
             let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
             return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("open".to_string()), &[]);
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7334,14 +7452,14 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchOrdersWs".to_string()))) {
             let mut orders: Value = self.fetch_orders_ws(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
             return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("open".to_string()), &[]);
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrdersWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOpenOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7356,14 +7474,14 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchOrders".to_string()))) {
             let mut orders: Value = self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
             return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7373,10 +7491,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7386,10 +7504,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchCanceledAndClosedOrders() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7399,14 +7517,14 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchOrdersWs".to_string()))) {
             let mut orders: Value = self.fetch_orders_ws(&[symbol.clone(), since.clone(), limit.clone(), params.clone()]).await;
             return self.filter_by(orders.clone(), Value::Str("status".to_string()), Value::Str("closed".to_string()), &[]);
         }
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrdersWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchClosedOrdersWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7421,10 +7539,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7434,10 +7552,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyLiquidations() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyLiquidations() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7446,10 +7564,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLiquidations() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLiquidations() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7459,10 +7577,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTradesWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMyTradesWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7472,20 +7590,20 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTrades() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMyTrades() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_greeks(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchGreeks() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchGreeks() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7493,30 +7611,30 @@ impl Exchange {
     pub async fn fetch_all_greeks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchAllGreeks() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchAllGreeks() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_option_chain(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOptionChain() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOptionChain() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_option(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOption() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOption() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7524,23 +7642,28 @@ impl Exchange {
     pub async fn fetch_convert_quote(&mut self, mut fromCode: Value, mut toCode: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertQuote() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertQuote() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_deposits_withdrawals(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_deposits_withdrawals", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositsWithdrawals() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositsWithdrawals() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7555,10 +7678,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDeposits() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDeposits() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7573,10 +7696,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchWithdrawals() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchWithdrawals() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7586,10 +7709,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositsWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositsWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7599,10 +7722,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchWithdrawalsWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchWithdrawalsWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7617,10 +7740,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRateHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRateHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7630,10 +7753,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7641,20 +7764,20 @@ impl Exchange {
     pub async fn close_position(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut side = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closePosition() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closePosition() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn close_all_positions(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closeAllPositions() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" closeAllPositions() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7662,17 +7785,20 @@ impl Exchange {
     pub async fn fetch_l3_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchL3OrderBook() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchL3OrderBook() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn parse_last_price(&self, mut price: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_last_price(...))
+        { let __v = self.derived().parse_last_price(price.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLastPrice() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLastPrice() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7684,14 +7810,14 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchDepositAddresses".to_string()))) {
             let mut depositAddresses: Value = self.fetch_deposit_addresses(&[Value::List(vec![code.clone()]), params.clone()]).await;
             let mut depositAddress: Value = self.safe_value(depositAddresses.clone(), code.clone(), &[]);
             if is_equal(&depositAddress, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::invalid_address(add(&add(&add(&self.id, &Value::Str(" fetchDepositAddress() could not find a deposit address for ".to_string())), &code), &Value::Str(", make sure you have created a corresponding deposit address in your wallet on the exchange website".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_address(add(&add(&add(&self.id, &Value::Str(" fetchDepositAddress() could not find a deposit address for ".to_string())), &code), &Value::Str(", make sure you have created a corresponding deposit address in your wallet on the exchange website".to_string()))));
             }  else {
                 return depositAddress;
             }
@@ -7707,23 +7833,25 @@ impl Exchange {
                 return self.safe_dict(addressStructures.clone(), key.clone(), &[]);
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddress() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchDepositAddress() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_contract_deposit_address(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractDepositAddress() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchContractDepositAddress() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn account(&self) -> Value {
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), Value::Null);
         m.insert("used".to_string(), Value::Null);
         m.insert("total".to_string(), Value::Null);
@@ -7746,7 +7874,7 @@ impl Exchange {
         let mut keys: Value = object_keys(&self.currencies);
         let mut numCurrencies: Value = get_array_length(&keys);
         if is_equal(&numCurrencies, &Value::Int(0)) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" currencies not loaded".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" currencies not loaded".to_string()))));
         }
         if is_string(&code) {
             if is_true(&Value::Bool(in_op(&self.currencies, &code))) {
@@ -7755,14 +7883,14 @@ impl Exchange {
                 return get_value(&self.currencies_by_id, &code);
             }
         }
-        panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" does not have currency code ".to_string())), &code)));
+        panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" does not have currency code ".to_string())), &code)));
 
     Value::Null
 }
 
     pub fn market(&self, mut symbol: Value) -> Value {
         if is_equal(&self.markets, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
+            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" markets not loaded".to_string()))));
         }
         if is_true(&Value::Bool(in_op(&self.markets, &symbol))) {
             return get_value(&self.markets, &symbol);
@@ -7771,25 +7899,28 @@ impl Exchange {
             let mut defaultType: Value = self.safe_string2(self.options.clone(), Value::Str("defaultType".to_string()), Value::Str("defaultSubType".to_string()), &[Value::Str("spot".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&markets)) {
+                let mut __for_first_130: bool = true;
+                while { if !__for_first_130 { i = add(&i, &Value::Int(1)); } __for_first_130 = false; is_less_than(&i, &get_array_length(&markets)) } {
                 let mut market: Value = get_value(&markets, &i);
                 if is_true(&get_value(&market, &defaultType)) {
                     return market;
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             return get_value(&markets, &Value::Int(0));
         }  else if is_true(&(Value::Bool(ends_with(&symbol, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&symbol, &Value::Str("-P".to_string()))))) || is_true(&(Value::Bool(starts_with(&symbol, &Value::Str("C-".to_string()))))) || is_true(&(Value::Bool(starts_with(&symbol, &Value::Str("P-".to_string()))))) {
             return self.create_expired_option_market(symbol.clone());
         }
-        panic!("{:?}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" does not have market symbol ".to_string())), &symbol)));
+        panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" does not have market symbol ".to_string())), &symbol)));
 
     Value::Null
 }
 
     pub fn create_expired_option_market(&self, mut symbol: Value) -> Value {
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createExpiredOptionMarket () is not supported yet".to_string()))));
+        // virtual-dispatch (Go-style: this.DerivedExchange.create_expired_option_market(...))
+        { let __v = self.derived().create_expired_option_market(symbol.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createExpiredOptionMarket () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -7800,7 +7931,8 @@ impl Exchange {
         let mut leverageSuffixes: Value = Value::List(vec![Value::Str("2L".to_string()), Value::Str("2S".to_string()), Value::Str("3L".to_string()), Value::Str("3S".to_string()), Value::Str("4L".to_string()), Value::Str("4S".to_string()), Value::Str("5L".to_string()), Value::Str("5S".to_string()), Value::Str("UP".to_string()), Value::Str("DOWN".to_string()), Value::Str("BULL".to_string()), Value::Str("BEAR".to_string())]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&leverageSuffixes)) {
+            let mut __for_first_131: bool = true;
+            while { if !__for_first_131 { i = add(&i, &Value::Int(1)); } __for_first_131 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             if is_true(&Value::Bool(ends_with(&currencyCode, &leverageSuffix))) {
                 if !is_true(&checkBaseCoin) {
@@ -7813,7 +7945,6 @@ impl Exchange {
                     }
                 }
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return Value::Bool(false);
@@ -7839,7 +7970,7 @@ impl Exchange {
 
     pub async fn create_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7849,7 +7980,7 @@ impl Exchange {
 
     pub async fn create_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7860,7 +7991,7 @@ impl Exchange {
     pub async fn create_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7871,7 +8002,7 @@ impl Exchange {
     pub async fn create_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), side.clone(), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7881,7 +8012,7 @@ impl Exchange {
 
     pub async fn create_limit_buy_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7891,7 +8022,7 @@ impl Exchange {
 
     pub async fn create_limit_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7901,7 +8032,7 @@ impl Exchange {
 
     pub async fn create_limit_sell_order(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7911,7 +8042,7 @@ impl Exchange {
 
     pub async fn create_limit_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order_ws(symbol.clone(), Value::Str("limit".to_string()), Value::Str("sell".to_string()), amount.clone(), &[price.clone(), params.clone()]).await;
@@ -7921,7 +8052,7 @@ impl Exchange {
 
     pub async fn create_market_buy_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
@@ -7931,7 +8062,7 @@ impl Exchange {
 
     pub async fn create_market_buy_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
@@ -7941,7 +8072,7 @@ impl Exchange {
 
     pub async fn create_market_sell_order(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
@@ -7951,7 +8082,7 @@ impl Exchange {
 
     pub async fn create_market_sell_order_ws(&mut self, mut symbol: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return self.create_order_ws(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), amount.clone(), &[Value::Null, params.clone()]).await;
@@ -7976,7 +8107,7 @@ impl Exchange {
         let mut market: Value = self.market(symbol.clone());
         let mut result: Value = self.decimal_to_precision(price.clone(), Value::Int(crate::runtime::ROUND), get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if is_equal(&result, &Value::Str("0".to_string())) {
-            panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" price of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum price precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string()))))));
+            panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" price of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum price precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string()))))));
         }
         return result;
 
@@ -7990,7 +8121,7 @@ impl Exchange {
         let mut market: Value = self.market(symbol.clone());
         let mut result: Value = self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::TRUNCATE), get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string())), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if is_equal(&result, &Value::Str("0".to_string())) {
-            panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" amount of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum amount precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()))))));
+            panic!("{}", crate::exchange_errors::invalid_order(add(&add(&add(&add(&self.id, &Value::Str(" amount of ".to_string())), &get_value(&market, &Value::Str("symbol".to_string()))), &Value::Str(" must be greater than minimum amount precision of ".to_string())), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string()))))));
         }
         return result;
 
@@ -8013,11 +8144,11 @@ impl Exchange {
         let mut precision: Value = self.safe_value(currency.clone(), Value::Str("precision".to_string()), &[]);
         if !is_equal(&networkCode, &Value::Null) {
             let mut networks: Value = self.safe_dict(currency.clone(), Value::Str("networks".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut networkItem: Value = self.safe_dict(networks.clone(), networkCode.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
             precision = self.safe_value(networkItem.clone(), Value::Str("precision".to_string()), &[precision.clone()]);
@@ -8028,6 +8159,8 @@ impl Exchange {
             let mut roundingMode: Value = self.safe_integer(self.options.clone(), Value::Str("currencyToPrecisionRoundingMode".to_string()), &[Value::Int(crate::runtime::ROUND)]);
             return self.decimal_to_precision(fee.clone(), roundingMode.clone(), precision.clone(), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         }
+
+    Value::Null
 }
 
     pub fn force_string(&self, mut value: Value) -> Value {
@@ -8092,9 +8225,9 @@ impl Exchange {
             let mut parsedPrecision: Value = Value::Str("0.".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) {
+                let mut __for_first_132: bool = true;
+                while { if !__for_first_132 { i = add(&i, &Value::Int(1)); } __for_first_132 = false; is_less_than(&i, &subtract(&precisionNumber, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
-                i = add(&i, &Value::Int(1));
             }
             }
             return add(&parsedPrecision, &Value::Str("1".to_string()));
@@ -8102,13 +8235,15 @@ impl Exchange {
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) {
+                let mut __for_first_133: bool = true;
+                while { if !__for_first_133 { i = add(&i, &Value::Int(1)); } __for_first_133 = false; is_less_than(&i, &subtract(&multiply(&precisionNumber, &negate(&Value::Int(1))), &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
-                i = add(&i, &Value::Int(1));
             }
             }
             return add(&parsedPrecision, &Value::Str("0".to_string()));
         }
+
+    Value::Null
 }
 
     pub fn integer_precision_to_amount(&self, mut precision: Value) -> Value {
@@ -8130,9 +8265,9 @@ impl Exchange {
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) {
+                let mut __for_first_134: bool = true;
+                while { if !__for_first_134 { i = add(&i, &Value::Int(1)); } __for_first_134 = false; is_less_than(&i, &subtract(&positivePrecision, &Value::Int(1))) } {
                 parsedPrecision = add(&parsedPrecision, &Value::Str("0".to_string()));
-                i = add(&i, &Value::Int(1));
             }
             }
             return add(&parsedPrecision, &Value::Str("0".to_string()));
@@ -8141,7 +8276,7 @@ impl Exchange {
 
     pub async fn load_time_difference(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut serverTime: Value = self.fetch_time(&[params.clone()]).await;
@@ -8154,7 +8289,7 @@ impl Exchange {
 
     pub fn implode_hostname(&self, mut url: Value) -> Value {
         return self.implode_params(url.clone(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("hostname".to_string(), self.hostname.clone());
     m
 }));
@@ -8163,33 +8298,40 @@ impl Exchange {
 }
 
     pub async fn fetch_market_leverage_tiers(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_market_leverage_tiers", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchLeverageTiers".to_string()))) {
             let mut market: Value = self.market(symbol.clone());
             if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() supports contract markets only".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() supports contract markets only".to_string()))));
             }
             let mut tiers: Value = self.fetch_leverage_tiers(&[Value::List(vec![symbol.clone()])]).await;
             return self.safe_value(tiers.clone(), symbol.clone(), &[]);
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarketLeverageTiers() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn create_post_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createPostOnlyOrder".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrder() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrder() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("postOnly".to_string(), Value::Bool(true));
             m
         })]);
@@ -8201,14 +8343,14 @@ impl Exchange {
     pub async fn create_post_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createPostOnlyOrderWs".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrderWs() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createPostOnlyOrderWs() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("postOnly".to_string(), Value::Bool(true));
             m
         })]);
@@ -8220,14 +8362,14 @@ impl Exchange {
     pub async fn create_reduce_only_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createReduceOnlyOrder".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrder() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrder() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("reduceOnly".to_string(), Value::Bool(true));
             m
         })]);
@@ -8239,14 +8381,14 @@ impl Exchange {
     pub async fn create_reduce_only_order_ws(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createReduceOnlyOrderWs".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrderWs() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createReduceOnlyOrderWs() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("reduceOnly".to_string(), Value::Bool(true));
             m
         })]);
@@ -8259,17 +8401,17 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createStopOrder".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrder() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrder() is not supported yet".to_string()))));
         }
         if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" create_stop_order() requires a stopPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" create_stop_order() requires a stopPrice argument".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopPrice".to_string(), triggerPrice.clone());
             m
         })]);
@@ -8282,17 +8424,17 @@ impl Exchange {
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut triggerPrice = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createStopOrderWs".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrderWs() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopOrderWs() is not supported yet".to_string()))));
         }
         if is_equal(&triggerPrice, &Value::Null) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopOrderWs() requires a stopPrice argument".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createStopOrderWs() requires a stopPrice argument".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopPrice".to_string(), triggerPrice.clone());
             m
         })]);
@@ -8303,14 +8445,14 @@ impl Exchange {
 
     pub async fn create_stop_limit_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createStopLimitOrder".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrder() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrder() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopPrice".to_string(), triggerPrice.clone());
             m
         })]);
@@ -8321,14 +8463,14 @@ impl Exchange {
 
     pub async fn create_stop_limit_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut price: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createStopLimitOrderWs".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrderWs() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopLimitOrderWs() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopPrice".to_string(), triggerPrice.clone());
             m
         })]);
@@ -8339,14 +8481,14 @@ impl Exchange {
 
     pub async fn create_stop_market_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createStopMarketOrder".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrder() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrder() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopPrice".to_string(), triggerPrice.clone());
             m
         })]);
@@ -8357,14 +8499,14 @@ impl Exchange {
 
     pub async fn create_stop_market_order_ws(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut triggerPrice: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("createStopMarketOrderWs".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrderWs() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createStopMarketOrderWs() is not supported yet".to_string()))));
         }
         let mut query: Value = self.extend(params.clone(), &[Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("stopPrice".to_string(), triggerPrice.clone());
             m
         })]);
@@ -8375,10 +8517,10 @@ impl Exchange {
 
     pub async fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createSubAccount() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createSubAccount() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8425,7 +8567,7 @@ impl Exchange {
     pub fn parse_last_prices(&self, mut pricesData: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         //
@@ -8451,22 +8593,22 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&pricesData))) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&pricesData)) {
+                let mut __for_first_135: bool = true;
+                while { if !__for_first_135 { i = add(&i, &Value::Int(1)); } __for_first_135 = false; is_less_than(&i, &get_array_length(&pricesData)) } {
                 let mut priceData: Value = self.extend(self.parse_last_price(get_value(&pricesData, &i), &[]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut marketIds: Value = object_keys(&pricesData);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&marketIds)) {
+                let mut __for_first_136: bool = true;
+                while { if !__for_first_136 { i = add(&i, &Value::Int(1)); } __for_first_136 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut priceData: Value = self.extend(self.parse_last_price(get_value(&pricesData, &marketId), &[market.clone()]), &[params.clone()]);
                 append_to_array(&mut results, priceData.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -8479,7 +8621,7 @@ impl Exchange {
     pub fn parse_tickers(&self, mut tickers: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         //
@@ -8508,24 +8650,24 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&tickers))) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&tickers)) {
+                let mut __for_first_137: bool = true;
+                while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &get_array_length(&tickers)) } {
                 let mut parsedTicker: Value = self.parse_ticker(get_value(&tickers, &i), &[]);
                 let mut ticker: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut marketIds: Value = object_keys(&tickers);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&marketIds)) {
+                let mut __for_first_138: bool = true;
+                while { if !__for_first_138 { i = add(&i, &Value::Int(1)); } __for_first_138 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut parsed: Value = self.parse_ticker(get_value(&tickers, &marketId), &[market.clone()]);
                 let mut ticker: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, ticker.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -8539,16 +8681,16 @@ impl Exchange {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         let mut indexed = get_arg(optional_args, 1, Value::Bool(true));
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&addresses)) {
+            let mut __for_first_139: bool = true;
+            while { if !__for_first_139 { i = add(&i, &Value::Int(1)); } __for_first_139 = false; is_less_than(&i, &get_array_length(&addresses)) } {
             let mut address: Value = self.extend(self.parse_deposit_address(get_value(&addresses, &i), &[]), &[params.clone()]);
             append_to_array(&mut result, address.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         if !is_equal(&codes, &Value::Null) {
@@ -8567,10 +8709,10 @@ impl Exchange {
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_140: bool = true;
+            while { if !__for_first_140 { i = add(&i, &Value::Int(1)); } __for_first_140 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut row: Value = get_value(&response, &i);
             append_to_array(&mut interests, self.parse_borrow_interest(row.clone(), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return interests;
@@ -8579,8 +8721,11 @@ impl Exchange {
 }
 
     pub fn parse_borrow_rate(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_borrow_rate(...))
+        { let __v = self.derived().parse_borrow_rate(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBorrowRate() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseBorrowRate() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8589,11 +8734,11 @@ impl Exchange {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_141: bool = true;
+            while { if !__for_first_141 { i = add(&i, &Value::Int(1)); } __for_first_141 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut item: Value = get_value(&response, &i);
             let mut borrowRate: Value = self.parse_borrow_rate(item.clone(), &[]);
             append_to_array(&mut result, borrowRate.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -8604,17 +8749,17 @@ impl Exchange {
 
     pub fn parse_isolated_borrow_rates(&self, mut info: Value) -> Value {
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&info)) {
+            let mut __for_first_142: bool = true;
+            while { if !__for_first_142 { i = add(&i, &Value::Int(1)); } __for_first_142 = false; is_less_than(&i, &get_array_length(&info)) } {
             let mut item: Value = get_value(&info, &i);
             let mut borrowRate: Value = self.parse_isolated_borrow_rate(item.clone(), &[]);
             let mut symbol: Value = self.safe_string(borrowRate.clone(), Value::Str("symbol".to_string()), &[]);
             add_element_to_object(&mut result, &symbol, borrowRate.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return result;
@@ -8629,10 +8774,10 @@ impl Exchange {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_143: bool = true;
+            while { if !__for_first_143 { i = add(&i, &Value::Int(1)); } __for_first_143 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, self.parse_funding_rate_history(entry.clone(), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -8657,7 +8802,7 @@ impl Exchange {
         { let __v = self.derived().parse_funding_rate(contract.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseFundingRate() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseFundingRate() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8665,16 +8810,16 @@ impl Exchange {
     pub fn parse_funding_rates(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut fundingRates: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_144: bool = true;
+            while { if !__for_first_144 { i = add(&i, &Value::Int(1)); } __for_first_144 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = self.parse_funding_rate(entry.clone(), &[]);
             add_element_to_object(&mut fundingRates, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array(fundingRates.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -8684,7 +8829,7 @@ impl Exchange {
 
     pub fn parse_long_short_ratio(&self, mut info: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLongShortRatio() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLongShortRatio() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8696,10 +8841,10 @@ impl Exchange {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_145: bool = true;
+            while { if !__for_first_145 { i = add(&i, &Value::Int(1)); } __for_first_145 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             append_to_array(&mut rates, self.parse_long_short_ratio(entry.clone(), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(rates.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -8759,7 +8904,7 @@ impl Exchange {
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
         if !is_true(&self.in_array(triggerDirection.clone(), Value::List(vec![Value::Str("ascending".to_string()), Value::Str("descending".to_string()), Value::Str("up".to_string()), Value::Str("down".to_string()), Value::Str("above".to_string()), Value::Str("below".to_string())]))) && !is_true(&exchangeSpecificDefined) && !is_true(&allowEmpty) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"".to_string()))));
         }
         // if old format was provided, overwrite to new
         if is_equal(&triggerDirection, &Value::Str("up".to_string())) || is_equal(&triggerDirection, &Value::Str("above".to_string())) {
@@ -8790,7 +8935,7 @@ impl Exchange {
 
     pub fn is_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificParam: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -8810,20 +8955,22 @@ impl Exchange {
         postOnly = Value::Bool(is_true(&postOnly) || is_true(&timeInForcePostOnly) || is_true(&exchangeSpecificParam));
         if is_true(&postOnly) {
             if is_true(&ioc) || is_true(&fok) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" postOnly orders cannot have timeInForce equal to ".to_string())), &timeInForce)));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" postOnly orders cannot have timeInForce equal to ".to_string())), &timeInForce)));
             }  else if is_true(&isMarketOrder) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" market orders cannot be postOnly".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" market orders cannot be postOnly".to_string()))));
             }  else {
                 return Value::Bool(true);
             }
         }  else {
             return Value::Bool(false);
         }
+
+    Value::Null
 }
 
     pub fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -8842,9 +8989,9 @@ impl Exchange {
         postOnly = Value::Bool(is_true(&postOnly) || is_true(&po) || is_true(&exchangeSpecificPostOnlyOption));
         if is_true(&postOnly) {
             if is_true(&ioc) || is_true(&fok) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" postOnly orders cannot have timeInForce equal to ".to_string())), &timeInForce)));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" postOnly orders cannot have timeInForce equal to ".to_string())), &timeInForce)));
             }  else if is_true(&isMarketOrder) {
-                panic!("{:?}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" market orders cannot be postOnly".to_string()))));
+                panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" market orders cannot be postOnly".to_string()))));
             }  else {
                 if is_true(&po) {
                     params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
@@ -8861,10 +9008,10 @@ impl Exchange {
     pub async fn fetch_last_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLastPrices() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchLastPrices() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8876,20 +9023,20 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFees() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFees() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn fetch_trading_fees_ws(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFeesWs() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFeesWs() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8901,11 +9048,11 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if !is_true(&get_value(&self.has, &Value::Str("fetchTradingFees".to_string()))) {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTradingFee() is not supported yet".to_string()))));
         }
         let mut fees: Value = self.fetch_trading_fees(&[params.clone()]).await;
         return self.safe_dict(fees.clone(), symbol.clone(), &[]);
@@ -8915,10 +9062,10 @@ impl Exchange {
 
     pub async fn fetch_convert_currencies(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertCurrencies() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchConvertCurrencies() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8928,7 +9075,7 @@ impl Exchange {
         { let __v = self.derived().parse_open_interest(interest.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOpenInterest () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOpenInterest () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -8936,16 +9083,16 @@ impl Exchange {
     pub fn parse_open_interests(&self, mut response: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut result: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_146: bool = true;
+            while { if !__for_first_146 { i = add(&i, &Value::Int(1)); } __for_first_146 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut parsed: Value = self.parse_open_interest(entry.clone(), &[]);
             add_element_to_object(&mut result, &get_value(&parsed, &Value::Str("symbol".to_string())), parsed.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         return self.filter_by_array(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -8960,11 +9107,11 @@ impl Exchange {
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_147: bool = true;
+            while { if !__for_first_147 { i = add(&i, &Value::Int(1)); } __for_first_147 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut entry: Value = get_value(&response, &i);
             let mut interest: Value = self.parse_open_interest(entry.clone(), &[market.clone()]);
             append_to_array(&mut interests, interest.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(interests.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -8981,7 +9128,7 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchFundingRates".to_string()))) {
@@ -8989,18 +9136,20 @@ impl Exchange {
             let mut market: Value = self.market(symbol.clone());
             symbol = get_value(&market, &Value::Str("symbol".to_string()));
             if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports contract markets only".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingRate() supports contract markets only".to_string()))));
             }
             let mut rates: Value = self.fetch_funding_rates(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             let mut rate: Value = self.safe_value(rates.clone(), symbol.clone(), &[]);
             if is_equal(&rate, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchFundingRate () returned no data for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchFundingRate () returned no data for ".to_string())), &symbol)));
             }  else {
                 return rate;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRate () is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingRate () is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_funding_interval(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -9010,7 +9159,7 @@ impl Exchange {
         }
 
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         if is_true(&get_value(&self.has, &Value::Str("fetchFundingIntervals".to_string()))) {
@@ -9018,18 +9167,20 @@ impl Exchange {
             let mut market: Value = self.market(symbol.clone());
             symbol = get_value(&market, &Value::Str("symbol".to_string()));
             if !is_true(&get_value(&market, &Value::Str("contract".to_string()))) {
-                panic!("{:?}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingInterval() supports contract markets only".to_string()))));
+                panic!("{}", crate::exchange_errors::bad_symbol(add(&self.id, &Value::Str(" fetchFundingInterval() supports contract markets only".to_string()))));
             }
             let mut rates: Value = self.fetch_funding_intervals(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             let mut rate: Value = self.safe_value(rates.clone(), symbol.clone(), &[]);
             if is_equal(&rate, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchFundingInterval() returned no data for ".to_string())), &symbol)));
+                panic!("{}", crate::exchange_errors::null_response(add(&add(&self.id, &Value::Str(" fetchFundingInterval() returned no data for ".to_string())), &symbol)));
             }  else {
                 return rate;
             }
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingInterval() is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingInterval() is not supported yet".to_string()))));
         }
+
+    Value::Null
 }
 
     pub async fn fetch_mark_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -9037,7 +9188,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -9053,13 +9204,13 @@ impl Exchange {
          */
         if is_true(&get_value(&self.has, &Value::Str("fetchMarkOHLCV".to_string()))) {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("mark".to_string()));
                 m
             });
             return self.fetch_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkOHLCV () is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchMarkOHLCV () is not supported yet".to_string()))));
         }
 }
 
@@ -9068,7 +9219,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -9084,13 +9235,13 @@ impl Exchange {
          */
         if is_true(&get_value(&self.has, &Value::Str("fetchIndexOHLCV".to_string()))) {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("index".to_string()));
                 m
             });
             return self.fetch_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIndexOHLCV () is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchIndexOHLCV () is not supported yet".to_string()))));
         }
 }
 
@@ -9104,7 +9255,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -9120,32 +9271,32 @@ impl Exchange {
          */
         if is_true(&get_value(&self.has, &Value::Str("fetchPremiumIndexOHLCV".to_string()))) {
             let mut request: Value = Value::Map({
-                let mut m = std::collections::HashMap::new();
+                let mut m = indexmap::IndexMap::new();
                     m.insert("price".to_string(), Value::Str("premiumIndex".to_string()));
                 m
             });
             return self.fetch_ohlcv(symbol.clone(), &[timeframe.clone(), since.clone(), limit.clone(), self.extend(request.clone(), &[params.clone()])]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPremiumIndexOHLCV () is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPremiumIndexOHLCV () is not supported yet".to_string()))));
         }
 }
 
     pub fn handle_time_in_force(&self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
          * @ignore
          * @method
-         * Must add timeInForce to get_value(&this, &Value::Str("options".to_string())) to use this method
+         * Must add timeInForce to this.options to use this method
          * @returns {string} returns the exchange specific value for timeInForce
          */
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]); // supported values GTC, IOC, PO
         if !is_equal(&timeInForce, &Value::Null) {
             let mut exchangeValue: Value = self.safe_string(get_value(&self.options, &Value::Str("timeInForce".to_string())), timeInForce.clone(), &[]);
             if is_equal(&exchangeValue, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" does not support timeInForce \"".to_string())), &timeInForce), &Value::Str("\"".to_string()))));
+                panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" does not support timeInForce \"".to_string())), &timeInForce), &Value::Str("\"".to_string()))));
             }
             return exchangeValue;
         }
@@ -9158,12 +9309,12 @@ impl Exchange {
         /*
          * @ignore
          * @method
-         * Must add accountsByType to get_value(&this, &Value::Str("options".to_string())) to use this method
-         * @param {string} account key for account name in get_value(&this, &Value::Str("options".to_string()))['accountsByType']
+         * Must add accountsByType to this.options to use this method
+         * @param {string} account key for account name in this.options['accountsByType']
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         let mut accountsByType: Value = self.safe_dict(self.options.clone(), Value::Str("accountsByType".to_string()), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut lowercaseAccount: Value = to_lower(&account);
@@ -9175,6 +9326,8 @@ impl Exchange {
         }  else {
             return account;
         }
+
+    Value::Null
 }
 
     pub fn check_required_argument(&self, mut methodName: Value, mut argument: Value, mut argumentName: Value, optional_args: &[Value]) {
@@ -9195,7 +9348,7 @@ impl Exchange {
             if !is_equal(&messageOptions, &Value::Str("".to_string())) {
                 message = add(&message, &add(&add(&add(&Value::Str(", one of ".to_string()), &Value::Str("(".to_string())), &messageOptions), &Value::Str(")".to_string())));
             }
-            panic!("{:?}", crate::exchange_errors::arguments_required(message));
+            panic!("{}", crate::exchange_errors::arguments_required(message));
         }
 }
 
@@ -9208,9 +9361,9 @@ impl Exchange {
          * @param {string} marginMode is either 'isolated' or 'cross'
          */
         if is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))) && is_true(&(is_equal(&symbol, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a symbol argument for isolated margin".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a symbol argument for isolated margin".to_string()))));
         }  else if is_true(&(is_equal(&marginMode, &Value::Str("cross".to_string())))) && is_true(&(!is_equal(&symbol, &Value::Null))) {
-            panic!("{:?}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() cannot have a symbol argument for cross margin".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() cannot have a symbol argument for cross margin".to_string()))));
         }
 }
 
@@ -9226,7 +9379,7 @@ impl Exchange {
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         let mut depositWithdrawFees: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut isArray: Value = Value::Bool(is_array(&response));
@@ -9236,7 +9389,8 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&responseKeys)) {
+            let mut __for_first_148: bool = true;
+            while { if !__for_first_148 { i = add(&i, &Value::Int(1)); } __for_first_148 = false; is_less_than(&i, &get_array_length(&responseKeys)) } {
             let mut entry: Value = get_value(&responseKeys, &i);
             let mut dictionary: Value = ternary(is_true(&isArray), entry.clone(), get_value(&response, &entry));
             let mut currencyId: Value = ternary(is_true(&isArray), self.safe_string(dictionary.clone(), currencyIdKey.clone(), &[]), entry.clone());
@@ -9245,7 +9399,6 @@ impl Exchange {
             if is_true(&(is_equal(&codes, &Value::Null))) || is_true(&(self.in_array(code.clone(), codes.clone()))) {
                 add_element_to_object(&mut depositWithdrawFees, &code, self.parse_deposit_withdraw_fee(dictionary.clone(), &[currency.clone()]));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return depositWithdrawFees;
@@ -9254,30 +9407,33 @@ impl Exchange {
 }
 
     pub fn parse_deposit_withdraw_fee(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_deposit_withdraw_fee(...))
+        { let __v = self.derived().parse_deposit_withdraw_fee(fee.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseDepositWithdrawFee() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseDepositWithdrawFee() is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub fn deposit_withdraw_fee(&self, mut info: Value) -> Value {
         return Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("withdraw".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
         m.insert("networks".to_string(), Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
     m
@@ -9293,7 +9449,7 @@ impl Exchange {
          * @method
          * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
          * @param {object} fee A deposit withdraw fee structure
-         * @param {object} currency A currency structure, the response from get_value(&this, &Value::Str("currency".to_string())) ()
+         * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
         let mut networkKeys: Value = object_keys(&get_value(&fee, &Value::Str("networks".to_string())));
@@ -9306,13 +9462,13 @@ impl Exchange {
         let mut currencyCode: Value = self.safe_string(currency.clone(), Value::Str("code".to_string()), &[]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &numNetworks) {
+            let mut __for_first_149: bool = true;
+            while { if !__for_first_149 { i = add(&i, &Value::Int(1)); } __for_first_149 = false; is_less_than(&i, &numNetworks) } {
             let mut network: Value = get_value(&networkKeys, &i);
             if is_equal(&network, &currencyCode) {
                 { let __be_tmp = get_value(&get_value(&get_value(&fee, &Value::Str("networks".to_string())), &get_value(&networkKeys, &i)), &Value::Str("withdraw".to_string())); add_element_to_object(&mut fee, &Value::Str("withdraw".to_string()), __be_tmp); };
                 { let __be_tmp = get_value(&get_value(&get_value(&fee, &Value::Str("networks".to_string())), &get_value(&networkKeys, &i)), &Value::Str("deposit".to_string())); add_element_to_object(&mut fee, &Value::Str("deposit".to_string()), __be_tmp); };
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return fee;
@@ -9321,8 +9477,11 @@ impl Exchange {
 }
 
     pub fn parse_income(&self, mut info: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_income(...))
+        { let __v = self.derived().parse_income(info.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseIncome () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseIncome () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -9339,16 +9498,16 @@ impl Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [funding history structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=funding-history-structure}
+         * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&incomes)) {
+            let mut __for_first_150: bool = true;
+            while { if !__for_first_150 { i = add(&i, &Value::Int(1)); } __for_first_150 = false; is_less_than(&i, &get_array_length(&incomes)) } {
             let mut entry: Value = get_value(&incomes, &i);
             let mut parsed: Value = self.parse_income(entry.clone(), &[market.clone()]);
             append_to_array(&mut result, parsed.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -9378,9 +9537,9 @@ impl Exchange {
         let mut results: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&ohlcvs)) {
+            let mut __for_first_151: bool = true;
+            while { if !__for_first_151 { i = add(&i, &Value::Int(1)); } __for_first_151 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
             append_to_array(&mut results, self.parse_ws_ohlcv(get_value(&ohlcvs, &i), &[market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return results;
@@ -9393,7 +9552,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -9405,12 +9564,12 @@ impl Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=transaction-structure}
+         * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
          */
         if is_true(&get_value(&self.has, &Value::Str("fetchDepositsWithdrawals".to_string()))) {
             return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactions () is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransactions () is not supported yet".to_string()))));
         }
 }
 
@@ -9440,11 +9599,11 @@ impl Exchange {
 
     pub fn create_ohlcv_object(&self, mut symbol: Value, mut timeframe: Value, mut data: Value) -> Value {
         let mut res: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         add_element_to_object(&mut res, &symbol, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         add_element_to_object(get_value_mut(&mut res, &symbol), &timeframe, data.clone());
@@ -9456,7 +9615,7 @@ impl Exchange {
     pub fn handle_max_entries_per_request_and_params(&self, mut method: Value, optional_args: &[Value]) -> Value {
         let mut maxEntriesPerRequest = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut newMaxEntriesPerRequest: Value = Value::Null;
@@ -9477,7 +9636,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut maxEntriesPerRequest = get_arg(optional_args, 4, Value::Null);
@@ -9498,7 +9657,7 @@ impl Exchange {
         { let __destr_tmp = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest.clone(), params.clone()]); maxEntriesPerRequest = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&(is_equal(&paginationDirection, &Value::Str("forward".to_string())))) {
             if is_equal(&since, &Value::Null) {
-                panic!("{:?}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" pagination requires a since argument when paginationDirection set to forward".to_string()))));
+                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" pagination requires a since argument when paginationDirection set to forward".to_string()))));
             }
             paginationTimestamp = since.clone();
         }
@@ -9571,7 +9730,7 @@ impl Exchange {
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut timeframe = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut maxRetries: Value = Value::Null;
@@ -9597,7 +9756,7 @@ impl Exchange {
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut timeframe = get_arg(optional_args, 3, Value::Null);
         let mut params = get_arg(optional_args, 4, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
@@ -9618,12 +9777,13 @@ impl Exchange {
         if !is_equal(&until, &Value::Null) {
             let mut requiredCalls: Value = math_ceil(&divide(&(subtract(&until, &since)), &step));
             if is_greater_than(&requiredCalls, &maxCalls) {
-                panic!("{:?}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ".to_string())), &to_string_val(&maxCalls)), &Value::Str(" required calls is ".to_string())), &to_string_val(&requiredCalls))));
+                panic!("{}", crate::exchange_errors::bad_request(add(&add(&add(&add(&self.id, &Value::Str(" the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ".to_string())), &to_string_val(&maxCalls)), &Value::Str(" required calls is ".to_string())), &to_string_val(&requiredCalls))));
             }
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &maxCalls) {
+            let mut __for_first_152: bool = true;
+            while { if !__for_first_152 { i = add(&i, &Value::Int(1)); } __for_first_152 = false; is_less_than(&i, &maxCalls) } {
             if is_true(&(!is_equal(&until, &Value::Null))) && is_true(&(is_greater_than_or_equal(&currentSince, &until))) {
                 break;
             }
@@ -9631,17 +9791,16 @@ impl Exchange {
                 break;
             }
             append_to_array(&mut tasks, self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequest.clone(), timeframe.clone(), params.clone()]).await);
-            currentSince = subtract(&self.sum(currentSince.clone(), step.clone(), &[]), &Value::Int(1));
-            i = add(&i, &Value::Int(1));
+            currentSince = subtract(&self.sum(&[currentSince.clone(), step.clone()]), &Value::Int(1));
         }
         }
         let mut results: Value = promise_all(&tasks).await;
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&results)) {
+            let mut __for_first_153: bool = true;
+            while { if !__for_first_153 { i = add(&i, &Value::Int(1)); } __for_first_153 = false; is_less_than(&i, &get_array_length(&results)) } {
             result = self.array_concat(result.clone(), get_value(&results, &i));
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut uniqueResults: Value = self.remove_repeated_elements_from_array(result.clone(), &[]);
@@ -9656,7 +9815,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut cursorReceived = get_arg(optional_args, 4, Value::Null);
@@ -9705,11 +9864,12 @@ impl Exchange {
                 }
                 result = self.array_concat(result.clone(), response.clone());
                 let mut last: Value = self.safe_dict(response.clone(), subtract(&responseLength, &Value::Int(1)), &[]);
-                // cursorValue = get_value(&this, &Value::Str("safeValue".to_string())) (last['info'], cursorReceived);
+                // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = Value::Null; // search for the cursor
                 {
                                         let mut j: Value = Value::Int(0);
-                    while is_less_than(&j, &responseLength) {
+                    let mut __for_first_154: bool = true;
+                    while { if !__for_first_154 { j = add(&j, &Value::Int(1)); } __for_first_154 = false; is_less_than(&j, &responseLength) } {
                     let mut index: Value = subtract(&subtract(&responseLength, &j), &Value::Int(1));
                     let mut entry: Value = self.safe_dict(response.clone(), index.clone(), &[]);
                     let mut info: Value = self.safe_dict(entry.clone(), Value::Str("info".to_string()), &[]);
@@ -9718,7 +9878,6 @@ impl Exchange {
                         cursorValue = cursor.clone();
                         break;
                     }
-                    j = add(&j, &Value::Int(1));
                 }
                 }
                 if is_equal(&cursorValue, &Value::Null) {
@@ -9743,7 +9902,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         let mut pageKey = get_arg(optional_args, 4, Value::Null);
@@ -9799,20 +9958,20 @@ impl Exchange {
     pub fn remove_repeated_elements_from_array(&self, mut input: Value, optional_args: &[Value]) -> Value {
         let mut fallbackToTimestamp = get_arg(optional_args, 0, Value::Bool(true));
         let mut uniqueDic: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         let mut uniqueResult: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&input)) {
+            let mut __for_first_155: bool = true;
+            while { if !__for_first_155 { i = add(&i, &Value::Int(1)); } __for_first_155 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut uniqValue: Value = ternary(is_true(&fallbackToTimestamp), self.safe_string_n(entry.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("timestamp".to_string()), Value::Int(0)]), &[]), self.safe_string(entry.clone(), Value::Str("id".to_string()), &[]));
             if !is_equal(&uniqValue, &Value::Null) && !is_true(&(Value::Bool(in_op(&uniqueDic, &uniqValue)))) {
                 add_element_to_object(&mut uniqueDic, &uniqValue, Value::Int(1));
                 append_to_array(&mut uniqueResult, entry.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut valuesLength: Value = get_array_length(&uniqueResult);
@@ -9826,12 +9985,13 @@ impl Exchange {
 
     pub fn remove_repeated_trades_from_array(&self, mut input: Value) -> Value {
         let mut uniqueResult: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&input)) {
+            let mut __for_first_156: bool = true;
+            while { if !__for_first_156 { i = add(&i, &Value::Int(1)); } __for_first_156 = false; is_less_than(&i, &get_array_length(&input)) } {
             let mut entry: Value = get_value(&input, &i);
             let mut id: Value = self.safe_string(entry.clone(), Value::Str("id".to_string()), &[]);
             if is_equal(&id, &Value::Null) {
@@ -9845,7 +10005,6 @@ impl Exchange {
             if !is_equal(&id, &Value::Null) && !is_true(&(Value::Bool(in_op(&uniqueResult, &id)))) {
                 add_element_to_object(&mut uniqueResult, &id, entry.clone());
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut values: Value = object_values(&uniqueResult);
@@ -9857,17 +10016,17 @@ impl Exchange {
     pub fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
         let mut keys: Value = object_keys(&dict);
         let mut newDict: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&keys)) {
+            let mut __for_first_157: bool = true;
+            while { if !__for_first_157 { i = add(&i, &Value::Int(1)); } __for_first_157 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             if !is_true(&self.in_array(key.clone(), removeKeys.clone())) {
                 add_element_to_object(&mut newDict, &key, get_value(&dict, &key));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return newDict;
@@ -9894,7 +10053,7 @@ impl Exchange {
             symbol = self.safe_string(market.clone(), Value::Str("symbol".to_string()), &[]);
         }
         return self.extend(interest.clone(), &[Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("baseVolume".to_string(), self.safe_number(interest.clone(), Value::Str("baseVolume".to_string()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_number(interest.clone(), Value::Str("quoteVolume".to_string()), &[]));
@@ -9914,7 +10073,7 @@ impl Exchange {
         { let __v = self.derived().parse_liquidation(liquidation.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLiquidation () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLiquidation () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -9931,16 +10090,16 @@ impl Exchange {
          * @param {object} market ccxt market
          * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
          * @param {int} [limit] limits the number of items in the response
-         * @returns {object[]} an array of [liquidation structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=liquidation-structure}
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&liquidations)) {
+            let mut __for_first_158: bool = true;
+            while { if !__for_first_158 { i = add(&i, &Value::Int(1)); } __for_first_158 = false; is_less_than(&i, &get_array_length(&liquidations)) } {
             let mut entry: Value = get_value(&liquidations, &i);
             let mut parsed: Value = self.parse_liquidation(entry.clone(), &[market.clone()]);
             append_to_array(&mut result, parsed.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -9951,8 +10110,11 @@ impl Exchange {
 }
 
     pub fn parse_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_greeks(...))
+        { let __v = self.derived().parse_greeks(greeks.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseGreeks () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseGreeks () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -9960,7 +10122,7 @@ impl Exchange {
     pub fn parse_all_greeks(&self, mut greeks: Value, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         //
@@ -9970,24 +10132,24 @@ impl Exchange {
         if is_true(&Value::Bool(is_array(&greeks))) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&greeks)) {
+                let mut __for_first_159: bool = true;
+                while { if !__for_first_159 { i = add(&i, &Value::Int(1)); } __for_first_159 = false; is_less_than(&i, &get_array_length(&greeks)) } {
                 let mut parsedTicker: Value = self.parse_greeks(get_value(&greeks, &i), &[]);
                 let mut greek: Value = self.extend(parsedTicker.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
             let mut marketIds: Value = object_keys(&greeks);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&marketIds)) {
+                let mut __for_first_160: bool = true;
+                while { if !__for_first_160 { i = add(&i, &Value::Int(1)); } __for_first_160 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
                 let mut marketId: Value = get_value(&marketIds, &i);
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut parsed: Value = self.parse_greeks(get_value(&greeks, &marketId), &[market.clone()]);
                 let mut greek: Value = self.extend(parsed.clone(), &[params.clone()]);
                 append_to_array(&mut results, greek.clone());
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -10000,7 +10162,7 @@ impl Exchange {
     pub fn parse_option(&self, mut chain: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut market = get_arg(optional_args, 1, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOption () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseOption () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10009,19 +10171,19 @@ impl Exchange {
         let mut currencyKey = get_arg(optional_args, 0, Value::Null);
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut optionStructures: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_161: bool = true;
+            while { if !__for_first_161 { i = add(&i, &Value::Int(1)); } __for_first_161 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string(info.clone(), currencyKey.clone(), &[]);
             let mut currency: Value = self.safe_currency(currencyId.clone(), &[]);
             let mut marketId: Value = self.safe_string(info.clone(), symbolKey.clone(), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("option".to_string())]);
             add_element_to_object(&mut optionStructures, &get_value(&market, &Value::Str("symbol".to_string())), self.parse_option(info.clone(), &[currency.clone(), market.clone()]));
-            i = add(&i, &Value::Int(1));
         }
         }
         return optionStructures;
@@ -10034,7 +10196,7 @@ impl Exchange {
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
         let mut marginModeStructures: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if is_equal(&marketType, &Value::Null) {
@@ -10042,14 +10204,14 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_162: bool = true;
+            while { if !__for_first_162 { i = add(&i, &Value::Int(1)); } __for_first_162 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string(info.clone(), symbolKey.clone(), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&self.in_array(get_value(&market, &Value::Str("symbol".to_string())), symbols.clone())) {
                 add_element_to_object(&mut marginModeStructures, &get_value(&market, &Value::Str("symbol".to_string())), self.parse_margin_mode(info.clone(), &[market.clone()]));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return marginModeStructures;
@@ -10058,8 +10220,11 @@ impl Exchange {
 }
 
     pub fn parse_margin_mode(&self, mut marginMode: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_margin_mode(...))
+        { let __v = self.derived().parse_margin_mode(marginMode.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginMode () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginMode () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10069,7 +10234,7 @@ impl Exchange {
         let mut symbolKey = get_arg(optional_args, 1, Value::Null);
         let mut marketType = get_arg(optional_args, 2, Value::Null);
         let mut leverageStructures: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
             m
         });
         if is_equal(&marketType, &Value::Null) {
@@ -10077,14 +10242,14 @@ impl Exchange {
         }
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_163: bool = true;
+            while { if !__for_first_163 { i = add(&i, &Value::Int(1)); } __for_first_163 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string(info.clone(), symbolKey.clone(), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&self.in_array(get_value(&market, &Value::Str("symbol".to_string())), symbols.clone())) {
                 add_element_to_object(&mut leverageStructures, &get_value(&market, &Value::Str("symbol".to_string())), self.parse_leverage(info.clone(), &[market.clone()]));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return leverageStructures;
@@ -10093,8 +10258,11 @@ impl Exchange {
 }
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_leverage(...))
+        { let __v = self.derived().parse_leverage(leverage.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLeverage () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseLeverage () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10106,7 +10274,7 @@ impl Exchange {
         let mut since = get_arg(optional_args, 3, Value::Null);
         let mut limit = get_arg(optional_args, 4, Value::Null);
         let mut params = get_arg(optional_args, 5, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         conversions = self.to_array(conversions.clone());
@@ -10115,7 +10283,8 @@ impl Exchange {
         let mut toCurrency: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&conversions)) {
+            let mut __for_first_164: bool = true;
+            while { if !__for_first_164 { i = add(&i, &Value::Int(1)); } __for_first_164 = false; is_less_than(&i, &get_array_length(&conversions)) } {
             let mut entry: Value = get_value(&conversions, &i);
             let mut fromId: Value = self.safe_string(entry.clone(), fromCurrencyKey.clone(), &[]);
             let mut toId: Value = self.safe_string(entry.clone(), toCurrencyKey.clone(), &[]);
@@ -10127,7 +10296,6 @@ impl Exchange {
             }
             let mut conversion: Value = self.extend(self.parse_conversion(entry.clone(), &[fromCurrency.clone(), toCurrency.clone()]), &[params.clone()]);
             append_to_array(&mut result, conversion.clone());
-            i = add(&i, &Value::Int(1));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -10148,9 +10316,12 @@ impl Exchange {
 }
 
     pub fn parse_conversion(&self, mut conversion: Value, optional_args: &[Value]) -> Value {
+        // virtual-dispatch (Go-style: this.DerivedExchange.parse_conversion(...))
+        { let __v = self.derived().parse_conversion(conversion.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+
         let mut fromCurrency = get_arg(optional_args, 0, Value::Null);
         let mut toCurrency = get_arg(optional_args, 1, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseConversion () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseConversion () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10206,7 +10377,7 @@ impl Exchange {
     pub fn convert_market_id_expire_date(&self, mut date: Value) -> Value {
         // parse 03JAN24 to 240103.
         let mut monthMappping: Value = Value::Map({
-            let mut m = std::collections::HashMap::new();
+            let mut m = indexmap::IndexMap::new();
                 m.insert("JAN".to_string(), Value::Str("01".to_string()));
                 m.insert("FEB".to_string(), Value::Str("02".to_string()));
                 m.insert("MAR".to_string(), Value::Str("03".to_string()));
@@ -10221,7 +10392,7 @@ impl Exchange {
                 m.insert("DEC".to_string(), Value::Str("12".to_string()));
             m
         });
-        // if exchange omits first zero and provides get_value(&i, &Value::Str("e".to_string())). '3JAN24' instead of '03JAN24'
+        // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
         if is_equal(&get_array_length(&date), &Value::Int(6)) {
             date = add(&Value::Str("0".to_string()), &date);
         }
@@ -10236,10 +10407,15 @@ impl Exchange {
 }
 
     pub async fn fetch_position_history(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_position_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.push(symbol.clone()); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut since = get_arg(optional_args, 0, Value::Null);
         let mut limit = get_arg(optional_args, 1, Value::Null);
         let mut params = get_arg(optional_args, 2, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         /*
@@ -10250,13 +10426,13 @@ impl Exchange {
          * @param {int} [since] timestamp in ms of the position
          * @param {int} [limit] the maximum amount of candles to fetch, default=1000
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://get_value(&docs, &Value::Str("ccxt".to_string())).com/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
          */
         if is_true(&get_value(&self.has, &Value::Str("fetchPositionsHistory".to_string()))) {
             let mut positions: Value = self.fetch_positions_history(&[Value::List(vec![symbol.clone()]), since.clone(), limit.clone(), params.clone()]).await;
             return positions;
         }  else {
-            panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionHistory () is not supported yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionHistory () is not supported yet".to_string()))));
         }
 }
 
@@ -10267,14 +10443,19 @@ impl Exchange {
 }
 
     pub async fn fetch_positions_history(&mut self, optional_args: &[Value]) -> Value {
+        // async-virtual: try the derived exchange first
+        if let Some(__v) = self.dispatch_to_derived("fetch_positions_history", { let mut __args: Vec<crate::Value> = Vec::new(); __args.extend_from_slice(optional_args); __args }).await {
+            if !matches!(__v, crate::Value::Null) { return __v; }
+        }
+
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsHistory () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchPositionsHistory () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10284,7 +10465,7 @@ impl Exchange {
         { let __v = self.derived().parse_margin_modification(data.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut market = get_arg(optional_args, 0, Value::Null);
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginModification() is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" parseMarginModification() is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10296,14 +10477,14 @@ impl Exchange {
         let mut marginModifications: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            while is_less_than(&i, &get_array_length(&response)) {
+            let mut __for_first_165: bool = true;
+            while { if !__for_first_165 { i = add(&i, &Value::Int(1)); } __for_first_165 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut info: Value = get_value(&response, &i);
             let mut marketId: Value = self.safe_string(info.clone(), symbolKey.clone(), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
             if is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&self.in_array(get_value(&market, &Value::Str("symbol".to_string())), symbols.clone())) {
                 append_to_array(&mut marginModifications, self.parse_margin_modification(info.clone(), &[market.clone()]));
             }
-            i = add(&i, &Value::Int(1));
         }
         }
         return marginModifications;
@@ -10314,10 +10495,10 @@ impl Exchange {
     pub async fn fetch_transfer(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
         let mut code = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransfer () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransfer () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10327,10 +10508,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransfers () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTransfers () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10338,20 +10519,20 @@ impl Exchange {
     pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".to_string()));
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCV () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchOHLCV () is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn watch_mark_price(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrice () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrice () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10359,10 +10540,10 @@ impl Exchange {
     pub async fn watch_mark_prices(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrices () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" watchMarkPrices () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10370,10 +10551,10 @@ impl Exchange {
     pub async fn withdraw_ws(&mut self, mut code: Value, mut amount: Value, mut address: Value, optional_args: &[Value]) -> Value {
         let mut tag = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdrawWs () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" withdrawWs () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10381,20 +10562,20 @@ impl Exchange {
     pub async fn un_watch_my_trades(&mut self, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchMyTrades () is not supported yet".to_string()))));
 
     Value::Null
 }
 
     pub async fn create_orders_ws(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrdersWs () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrdersWs () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10404,10 +10585,10 @@ impl Exchange {
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
         let mut params = get_arg(optional_args, 3, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersByStatusWs () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchOrdersByStatusWs () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10415,10 +10596,10 @@ impl Exchange {
     pub async fn un_watch_bids_asks(&mut self, optional_args: &[Value]) -> Value {
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
-        panic!("{:?}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchBidsAsks () is not supported yet".to_string()))));
+        panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" unWatchBidsAsks () is not supported yet".to_string()))));
 
     Value::Null
 }
@@ -10440,24 +10621,24 @@ impl Exchange {
             let mut clientSubscriptions: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&clientSubscriptions)) {
+                let mut __for_first_166: bool = true;
+                while { if !__for_first_166 { i = add(&i, &Value::Int(1)); } __for_first_166 = false; is_less_than(&i, &get_array_length(&clientSubscriptions)) } {
                 let mut sub: Value = get_value(&clientSubscriptions, &i);
                 if is_true(&Value::Bool(starts_with(&sub, &subHash))) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &sub);
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
             let mut clientFutures: Value = object_keys(&get_value(&client, &Value::Str("futures".to_string())));
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&clientFutures)) {
+                let mut __for_first_167: bool = true;
+                while { if !__for_first_167 { i = add(&i, &Value::Int(1)); } __for_first_167 = false; is_less_than(&i, &get_array_length(&clientFutures)) } {
                 let mut future: Value = get_value(&clientFutures, &i);
                 if is_true(&Value::Bool(starts_with(&future, &subHash))) {
                     let mut error = crate::exchange_errors::unsubscribe_error(add(&add(&self.id, &Value::Str(" ".to_string())), &future));
                     client.reject(error, future);
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }
@@ -10472,7 +10653,8 @@ impl Exchange {
             let mut symbolsAndTimeframes: Value = self.safe_list(subscription.clone(), Value::Str("symbolsAndTimeframes".to_string()), &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) {
+                let mut __for_first_168: bool = true;
+                while { if !__for_first_168 { i = add(&i, &Value::Int(1)); } __for_first_168 = false; is_less_than(&i, &get_array_length(&symbolsAndTimeframes)) } {
                 let mut symbolAndTimeFrame: Value = get_value(&symbolsAndTimeframes, &i);
                 let mut symbol: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(0), &[]);
                 let mut timeframe: Value = self.safe_string(symbolAndTimeFrame.clone(), Value::Int(1), &[]);
@@ -10481,13 +10663,13 @@ impl Exchange {
                         remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
                     }
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else if is_greater_than(&symbolsLength, &Value::Int(0)) {
             {
                                 let mut i: Value = Value::Int(0);
-                while is_less_than(&i, &get_array_length(&symbols)) {
+                let mut __for_first_169: bool = true;
+                while { if !__for_first_169 { i = add(&i, &Value::Int(1)); } __for_first_169 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 if is_equal(&topic, &Value::Str("trades".to_string())) {
                     if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
@@ -10506,7 +10688,6 @@ impl Exchange {
                         remove(&mut self.bidsasks.clone(), &symbol);
                     }
                 }
-                i = add(&i, &Value::Int(1));
             }
             }
         }  else {
@@ -10519,37 +10700,37 @@ impl Exchange {
                 let mut clients: Value = object_values(&self.clients);
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&clients)) {
+                    let mut __for_first_170: bool = true;
+                    while { if !__for_first_170 { i = add(&i, &Value::Int(1)); } __for_first_170 = false; is_less_than(&i, &get_array_length(&clients)) } {
                     let mut client: Value = get_value(&clients, &i);
                     let mut futures: Value = get_value(&client, &Value::Str("futures".to_string()));
                     if is_true(&(!is_equal(&futures, &Value::Null))) && is_true(&(Value::Bool(in_op(&futures, &Value::Str("fetchPositionsSnapshot".to_string()))))) {
                         remove(&mut futures, &Value::Str("fetchPositionsSnapshot".to_string()));
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
             }  else if is_true(&(is_equal(&topic, &Value::Str("ticker".to_string())) || is_equal(&topic, &Value::Str("markPrice".to_string())))) && is_true(&(!is_equal(&self.tickers, &Value::Null))) {
                 let mut tickerSymbols: Value = object_keys(&self.tickers);
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&tickerSymbols)) {
+                    let mut __for_first_171: bool = true;
+                    while { if !__for_first_171 { i = add(&i, &Value::Int(1)); } __for_first_171 = false; is_less_than(&i, &get_array_length(&tickerSymbols)) } {
                     let mut tickerSymbol: Value = get_value(&tickerSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.tickers, &tickerSymbol))) {
                         remove(&mut self.tickers.clone(), &tickerSymbol);
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
             }  else if is_equal(&topic, &Value::Str("bidsasks".to_string())) && is_true(&(!is_equal(&self.bidsasks, &Value::Null))) {
                 let mut bidsaskSymbols: Value = object_keys(&self.bidsasks);
                 {
                                         let mut i: Value = Value::Int(0);
-                    while is_less_than(&i, &get_array_length(&bidsaskSymbols)) {
+                    let mut __for_first_172: bool = true;
+                    while { if !__for_first_172 { i = add(&i, &Value::Int(1)); } __for_first_172 = false; is_less_than(&i, &get_array_length(&bidsaskSymbols)) } {
                     let mut bidsaskSymbol: Value = get_value(&bidsaskSymbols, &i);
                     if is_true(&Value::Bool(in_op(&self.bidsasks, &bidsaskSymbol))) {
                         remove(&mut self.bidsasks.clone(), &bidsaskSymbol);
                     }
-                    i = add(&i, &Value::Int(1));
                 }
                 }
             }
@@ -10587,7 +10768,7 @@ impl Exchange {
 
     pub async fn is_uta_enabled(&mut self, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
-    let mut m = std::collections::HashMap::new();
+    let mut m = indexmap::IndexMap::new();
     m
 }));
         return Value::Bool(false);
@@ -10612,6 +10793,7 @@ impl Exchange {
             "calculate_fee" => self.calculate_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args.get(5..).unwrap_or(&[]).to_vec()[..]),
             "calculate_fee_with_rate" => self.calculate_fee_with_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args.get(5..).unwrap_or(&[]).to_vec()[..]),
             "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args.get(4..).unwrap_or(&[]).to_vec()[..]),
+            "call_method" => self.call_method(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_all_contract_orders" => self.cancel_all_contract_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_all_orders" => self.cancel_all_orders(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -10710,6 +10892,7 @@ impl Exchange {
             "feature_value_by_type" => self.feature_value_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "features_mapper" => self.features_mapper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]),
             "fee_to_precision" => self.fee_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "fetch" => self.fetch(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch2" => self.fetch2(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_accounts" => self.fetch_accounts(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "fetch_adl_rank" => self.fetch_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]).await,
@@ -10898,6 +11081,7 @@ impl Exchange {
             "is_trigger_order" => self.is_trigger_order(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_uta_enabled" => self.is_uta_enabled(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "load_accounts" => self.load_accounts(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
+            "load_markets" => self.load_markets(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "load_markets_and_sign_in" => self.load_markets_and_sign_in().await,
             "load_time_difference" => self.load_time_difference(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
             "load_trading_limits" => self.load_trading_limits(&args.get(0..).unwrap_or(&[]).to_vec()[..]).await,
@@ -10994,6 +11178,7 @@ impl Exchange {
             "parse_ws_trades" => self.parse_ws_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args.get(1..).unwrap_or(&[]).to_vec()[..]),
             "parsed_fee_and_fees" => self.parsed_fee_and_fees(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "price_to_precision" => self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "prioritized_network_aliases" => self.prioritized_network_aliases(&args.get(0..).unwrap_or(&[]).to_vec()[..]),
             "reduce_fees_by_currency" => self.reduce_fees_by_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "reduce_margin" => self.reduce_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args.get(2..).unwrap_or(&[]).to_vec()[..]).await,
             "remove_keys_from_dict" => self.remove_keys_from_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),

@@ -417,6 +417,46 @@ pub fn json_parse(v: &Value) -> Value {
     }
 }
 
+/// Wraps every JSON object number VALUE in quotes, replicating CCXT's
+/// `onJsonResponse` transform `responseBody.replace(/":([+.0-9eE-]+)([,}])/g, '":"$1"$2')`
+/// used when `quoteJsonNumbers` is on (the default). This preserves big
+/// integer ids and high-precision decimals as strings through parsing,
+/// matching how the unified parsers (safeString/safeNumber/Precise)
+/// expect to read them. Only object values (a number right after `":`
+/// and right before `,` or `}`) are quoted — array elements are left
+/// alone, mirroring the upstream regex. Byte-oriented so multi-byte
+/// UTF-8 in the surrounding text is preserved.
+pub fn quote_json_numbers(s: &str) -> String {
+    let b = s.as_bytes();
+    let n = b.len();
+    let mut out: Vec<u8> = Vec::with_capacity(n + 16);
+    let mut i = 0;
+    while i < n {
+        if b[i] == b'"' && i + 1 < n && b[i + 1] == b':' {
+            out.push(b'"');
+            out.push(b':');
+            let start = i + 2;
+            let mut j = start;
+            while j < n && matches!(b[j], b'+' | b'.' | b'0'..=b'9' | b'e' | b'E' | b'-') {
+                j += 1;
+            }
+            if j > start && j < n && (b[j] == b',' || b[j] == b'}') {
+                out.push(b'"');
+                out.extend_from_slice(&b[start..j]);
+                out.push(b'"');
+                out.push(b[j]);
+                i = j + 1;
+                continue;
+            }
+            i += 2;
+            continue;
+        }
+        out.push(b[i]);
+        i += 1;
+    }
+    String::from_utf8(out).unwrap_or_else(|_| s.to_string())
+}
+
 pub fn json_stringify(v: &Value) -> Value {
     Value::Str(serde_json::to_string(&v.to_json()).unwrap_or_default())
 }
