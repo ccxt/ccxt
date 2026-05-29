@@ -4293,6 +4293,7 @@ export default class kucoin extends Exchange {
      */
     async createUtaOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
+        const market = this.market(symbol);
         const request = this.createUtaOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.utaPrivatePostAccountModeOrderPlace(request);
         //
@@ -4307,7 +4308,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data);
+        return this.parseOrder(data, market);
     }
     createUtaOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
