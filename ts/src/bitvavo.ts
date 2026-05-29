@@ -1256,7 +1256,9 @@ export default class bitvavo extends Exchange {
         let subaccountId = this.safeString (params, 'subaccountId');
         params = this.omit (params, 'subaccountId');
         let direction = undefined;
-        if (fromAccount === 'master') {
+        if ((fromAccount === 'master') && (toAccount === 'master')) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
+        } else if (fromAccount === 'master') {
             direction = 'masterToSub';
             if (subaccountId === undefined) {
                 subaccountId = toAccount;
@@ -1268,6 +1270,9 @@ export default class bitvavo extends Exchange {
             }
         } else {
             throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be master');
+        }
+        if (subaccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)');
         }
         const request: Dict = {
             'subaccountId': subaccountId,
