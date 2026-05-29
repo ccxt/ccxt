@@ -816,6 +816,71 @@
         ],
         "createOrder": [
             {
+                "description": "uta order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "orderId": "449762571717763072",
+                        "tradeType": "SPOT",
+                        "ts": 1780044955317000000,
+                        "clientOid": "210fd5f5-cccb-4772-9e2a-7f565832ac45"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "449762571717763072",
+                    "clientOrderId": "210fd5f5-cccb-4772-9e2a-7f565832ac45",
+                    "symbol": "LTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": 1780044955316,
+                    "datetime": "2026-05-29T08:55:55.316Z",
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "status": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "info": {
+                        "orderId": "449762571717763072",
+                        "tradeType": "SPOT",
+                        "ts": 1780044955317000000,
+                        "clientOid": "210fd5f5-cccb-4772-9e2a-7f565832ac45"
+                    },
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "linear swap create limit buy order",
                 "method": "createOrder",
                 "input": [
