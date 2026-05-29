@@ -1135,7 +1135,7 @@ class alpaca(Exchange, ImplicitAPI):
         await self.load_markets()
         response = await self.traderPrivateDeleteV2Orders(params)
         if isinstance(response, list):
-            return self.parse_orders(response, None)
+            return self.parse_orders(response)
         else:
             return [
                 self.safe_order({
@@ -1852,7 +1852,7 @@ class alpaca(Exchange, ImplicitAPI):
         errorCode = self.safe_string(response, 'code')
         if code is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-        message = self.safe_value(response, 'message', None)
+        message = self.safe_value(response, 'message')
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)

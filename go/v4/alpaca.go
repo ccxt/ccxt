@@ -1256,7 +1256,7 @@ func (this *AlpacaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		PanicOnError(response)
 		if IsTrue(IsArray(response)) {
 
-			ch <- this.ParseOrders(response, nil)
+			ch <- this.ParseOrders(response)
 			return nil
 		} else {
 
@@ -2281,7 +2281,7 @@ func (this *AlpacaCore) HandleErrors(code any, reason any, url any, method any, 
 	if IsTrue(!IsEqual(code, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 	}
-	var message any = this.SafeValue(response, "message", nil)
+	var message any = this.SafeValue(response, "message")
 	if IsTrue(!IsEqual(message, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)

@@ -24,6 +24,7 @@ export default class bingx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     fetchSpotMarkets(params: any): Promise<Market[]>;
     fetchSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;
     fetchInverseSwapMarkets(params: any): Promise<import("./base/types.js").MarketInterface[]>;

@@ -3446,8 +3446,9 @@ class hitbtc extends hitbtc$1["default"] {
         //         "positions": null
         //     }
         //
+        const parsedAmount = this.parseNumber(amount);
         return this.extend(this.parseMarginModification(response, market), {
-            'amount': this.parseNumber(amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }

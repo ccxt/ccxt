@@ -1060,10 +1060,11 @@ func (this *AftermathCore) CreateOrder(symbol any, typeVar any, side any, amount
 		account = GetValue(accountparamsVariable, 0)
 		params = GetValue(accountparamsVariable, 1)
 		var order any = this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
-
-		orders := (<-this.CreateOrders([]any{order}, map[string]any{
+		var accountObj any = map[string]any{
 			"account": account,
-		}))
+		}
+
+		orders := (<-this.CreateOrders([]any{order}, accountObj))
 		PanicOnError(orders)
 
 		ch <- GetValue(orders, 0)
@@ -1092,8 +1093,8 @@ func (this *AftermathCore) CreateOrders(orders any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8588 := (<-this.LoadMarkets())
-		PanicOnError(retRes8588)
+		retRes8598 := (<-this.LoadMarkets())
+		PanicOnError(retRes8598)
 		var ordersRequest any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var order any = this.Clone(GetValue(orders, i))
@@ -1216,8 +1217,8 @@ func (this *AftermathCore) CancelOrders(ids any, optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9468 := (<-this.LoadMarkets())
-		PanicOnError(retRes9468)
+		retRes9478 := (<-this.LoadMarkets())
+		PanicOnError(retRes9478)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams(params, "cancelOrders", "account")
@@ -1273,8 +1274,8 @@ func (this *AftermathCore) CreateAccount(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9858 := (<-this.LoadMarkets())
-		PanicOnError(retRes9858)
+		retRes9868 := (<-this.LoadMarkets())
+		PanicOnError(retRes9868)
 		var market any = this.Market(symbol)
 		var settleId any = GetValue(market, "settleId")
 		var txRequest any = map[string]any{
@@ -1334,8 +1335,8 @@ func (this *AftermathCore) AddMargin(symbol any, amount any, optionalArgs ...any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10298 := (<-this.LoadMarkets())
-		PanicOnError(retRes10298)
+		retRes10308 := (<-this.LoadMarkets())
+		PanicOnError(retRes10308)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams2(params, "addMargin", "account", "accountId")
@@ -1401,8 +1402,8 @@ func (this *AftermathCore) ReduceMargin(symbol any, amount any, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes10778 := (<-this.LoadMarkets())
-		PanicOnError(retRes10778)
+		retRes10788 := (<-this.LoadMarkets())
+		PanicOnError(retRes10788)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams2(params, "reduceMargin", "account", "accountId")
@@ -1469,8 +1470,8 @@ func (this *AftermathCore) Transfer(code any, amount any, fromAccount any, toAcc
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes11268 := (<-this.LoadMarkets())
-		PanicOnError(retRes11268)
+		retRes11278 := (<-this.LoadMarkets())
+		PanicOnError(retRes11278)
 		var currency any = this.Currency(code)
 		var txRequest any = map[string]any{
 			"metadata": map[string]any{
@@ -1547,8 +1548,8 @@ func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalA
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11848 := (<-this.LoadMarkets())
-		PanicOnError(retRes11848)
+		retRes11858 := (<-this.LoadMarkets())
+		PanicOnError(retRes11858)
 		var currency any = this.Currency(code)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams(params, "withdraw", "account")
@@ -1571,7 +1572,6 @@ func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalA
 
 		response := (<-this.PrivatePostSubmitWithdraw(request))
 		PanicOnError(response)
-
 		//
 		// {
 		//     "id": "0xf93f9bb8bf97eb570410caada92cfa3e66c7ed3a203a164f51d22d41eabe09c0",
@@ -1581,10 +1581,11 @@ func (this *AftermathCore) Withdraw(code any, amount any, address any, optionalA
 		//     "collateral": 39.0
 		// }
 		//
-		ch <- this.Extend(this.ParseTransaction(response, currency), map[string]any{
-			"addressFrom": account,
-			"amount":      amount,
-		})
+		var parsedTx any = this.ParseTransaction(response, currency)
+		AddElementToObject(parsedTx, "addressFrom ", account)
+		AddElementToObject(parsedTx, "amount", amount)
+
+		ch <- parsedTx
 		return nil
 
 	}()
@@ -1642,8 +1643,8 @@ func (this *AftermathCore) SetLeverage(leverage any, optionalArgs ...any) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes12578 := (<-this.LoadMarkets())
-		PanicOnError(retRes12578)
+		retRes12628 := (<-this.LoadMarkets())
+		PanicOnError(retRes12628)
 		var market any = this.Market(symbol)
 		var account any = nil
 		accountparamsVariable := this.HandleOptionAndParams2(params, "setLeverage", "account", "accountId")

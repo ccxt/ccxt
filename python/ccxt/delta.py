@@ -371,6 +371,7 @@ class delta(Exchange, ImplicitAPI):
         strike = self.safe_string(optionParts, 2)
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
+        optionTypeUnified = 'call' if (optionType == 'C') else 'put'
         return {
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -393,7 +394,7 @@ class delta(Exchange, ImplicitAPI):
             'contractSize': self.parse_number('1'),
             'expiry': timestamp,
             'expiryDatetime': datetime,
-            'optionType': 'call' if (optionType == 'C') else 'put',
+            'optionType': optionTypeUnified,
             'strike': self.parse_number(strike),
             'precision': {
                 'amount': None,

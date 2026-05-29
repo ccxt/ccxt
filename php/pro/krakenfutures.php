@@ -301,10 +301,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
              *
              * watch all open positions
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param $since
-             * @param $limit
-             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch
+             * @param {int} [$limit] the maximum number of positions to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
@@ -1602,8 +1602,20 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        event => 'alert',
         //        $message => 'Failed to subscribe to authenticated feed'
         //    }
+        //    {
+        //        event => 'alert',
+        //        $message => 'Already subscribed to feed, re-requesting'
+        //    }
         //
         $errMsg = $this->safe_string($message, 'message');
+        // Benign "already subscribed" notice => the original subscription is still
+        // active and delivering data on this socket. The generic $client->reject
+        // below rejects every pending future on the connection, so a stray
+        // re-subscribe warning would kill unrelated in-flight watch* calls —
+        // mirrors the bitmart 90008 fix.
+        if ($errMsg !== null && mb_strpos($errMsg, 'Already subscribed') !== false) {
+            return false;
+        }
         try {
             throw new ExchangeError($this->id . ' ' . $errMsg);
         } catch (Exception $error) {

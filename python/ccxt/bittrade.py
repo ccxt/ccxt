@@ -1887,8 +1887,9 @@ class bittrade(Exchange, ImplicitAPI):
             requestSorted = self.keysort(request)
             auth = self.urlencode(requestSorted)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
+            content = [method, self.hostname, url, auth]
             # eslint-disable-next-line quotes
-            payload = "\n".join([method, self.hostname, url, auth])
+            payload = "\n".join(content)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth

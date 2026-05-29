@@ -689,6 +689,7 @@ class digifinex(Exchange, ImplicitAPI):
                 isTrading = self.safe_value(market, 'isTrading')
                 if isTrading:
                     isAllowed = 1
+            isActive = True if isAllowed else False
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -704,7 +705,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else False,
+                'active': isActive,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,

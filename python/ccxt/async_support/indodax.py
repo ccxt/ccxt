@@ -1355,10 +1355,11 @@ class indodax(Exchange, ImplicitAPI):
                             network.append(self.network_id_to_code(networkIds[j]).upper())
                     else:
                         network = self.network_id_to_code(networkId).upper()
+                finalNetwork = network  # java req
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'network': network,
+                    'network': finalNetwork,
                     'address': address,
                     'tag': None,
                 }

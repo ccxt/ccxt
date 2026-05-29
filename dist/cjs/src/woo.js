@@ -1911,7 +1911,7 @@ class woo extends woo$1["default"] {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString(timeInForces, timeInForce, undefined);
+        return this.safeString(timeInForces, timeInForce);
     }
     parseOrder(order, market = undefined) {
         //

@@ -557,6 +557,7 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'maxLeverage', '100')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
+        isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -569,7 +570,7 @@ class blofin(Exchange, ImplicitAPI):
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -1426,6 +1427,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: stop loss order price(if not provided the order will be a market order)
+        :param float [params.tpsl]: whether to force to send the order to the combined TPSL oco order endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -1433,7 +1435,9 @@ class blofin(Exchange, ImplicitAPI):
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
         isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
-        isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined)
+        isTpslEndpoint = False
+        isTpslEndpoint, params = self.handle_option_and_params(params, 'createOrder', 'tpsl', False)
+        isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined) or isTpslEndpoint
         isSlOrTp = isStopLossPriceDefined or isTakeProfitPriceDefined
         response = None
         reduceOnly = self.safe_bool(params, 'reduceOnly')
@@ -1480,10 +1484,24 @@ class blofin(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         if stopLossPrice is not None:
             request['slTriggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
-            request['slOrderPrice'] = '-1' if (type == 'market') else self.price_to_precision(symbol, price)
+            if type == 'market':
+                request['slOrderPrice'] = '-1'
+            else:
+                slLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
+                if slLimitPrice is None:
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter(instead of "price" argument) for stop loss orders when the order type is not market')
+                request['slOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
+                params = self.omit(params, 'stopLossLimitPrice')
         if takeProfitPrice is not None:
             request['tpTriggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-            request['tpOrderPrice'] = '-1' if (type == 'market') else self.price_to_precision(symbol, price)
+            if type == 'market':
+                request['tpOrderPrice'] = '-1'
+            else:
+                tpLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
+                if tpLimitPrice is None:
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter(instead of "price" argument) for take profit orders when the order type is not market')
+                request['tpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
+                params = self.omit(params, 'takeProfitLimitPrice')
         request['marginMode'] = marginMode
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])
         return self.extend(request, params)

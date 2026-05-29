@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress, Currency } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -328,40 +328,39 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const result: Dict = {};
         const currencies = this.safeList (response, 'currencies', []);
-        for (let i = 0; i < currencies.length; i++) {
-            const entry = currencies[i];
-            const id = this.safeString (entry, 'symbol');
-            const code = this.safeCurrencyCode (id);
-            const isWithdrawEnabled = this.safeString (entry, 'withdraw_status', '') === 'normal';
-            const isDepositEnabled = this.safeString (entry, 'deposit_status', '') === 'normal';
-            const type = (code !== 'KRW') ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': entry,
-                'name': this.safeString (entry, 'name'),
-                'active': undefined,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': this.safeNumber (entry, 'withdrawal_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (entry, 'max_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (entry, 'withdrawal_min_amount'),
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (currencies);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'symbol');
+        const code = this.safeCurrencyCode (id);
+        const isWithdrawEnabled = this.safeString (rawCurrency, 'withdraw_status', '') === 'normal';
+        const isDepositEnabled = this.safeString (rawCurrency, 'deposit_status', '') === 'normal';
+        const type = (code !== 'KRW') ? 'crypto' : 'fiat';
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': this.safeString (rawCurrency, 'name'),
+            'active': undefined,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
+            'fee': this.safeNumber (rawCurrency, 'withdrawal_fee'),
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'max_precision'))),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': {},
-                'type': type,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': this.safeNumber (rawCurrency, 'withdrawal_min_amount'),
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+            'type': type,
+        });
     }
 
     /**

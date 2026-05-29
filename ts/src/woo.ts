@@ -1911,7 +1911,7 @@ export default class woo extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, undefined);
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

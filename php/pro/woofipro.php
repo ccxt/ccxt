@@ -1015,9 +1015,9 @@ class woofipro extends \ccxt\async\woofipro {
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
-             * @param $since timestamp in ms of the earliest position to fetch
-             * @param $limit the maximum number of positions to fetch
-             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch
+             * @param {int} [$limit] the maximum number of positions to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());

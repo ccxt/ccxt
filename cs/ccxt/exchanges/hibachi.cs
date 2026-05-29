@@ -777,7 +777,7 @@ public partial class hibachi : Exchange
      * @method
      * @name hibachi#fetchTradingFees
      * @description fetch the trading fee
-     * @param params extra parameters
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFees(object parameters = null)

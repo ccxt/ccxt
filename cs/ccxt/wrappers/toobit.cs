@@ -762,7 +762,7 @@ public partial class toobit
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
-    public async Task<List<Transaction>> FetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, object parameters)
+    public async Task<List<Transaction>> FetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositsOrWithdrawalsHelper(type, code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();

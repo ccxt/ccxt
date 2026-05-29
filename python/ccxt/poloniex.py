@@ -924,6 +924,7 @@ class poloniex(Exchange, ImplicitAPI):
         type = 'swap'
         if alias is not None:
             type = 'future'
+        marketType = 'future' if (type == 'future') else 'swap'
         return {
             'id': id,
             'symbol': symbol,
@@ -933,7 +934,7 @@ class poloniex(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': 'future' if (type == 'future') else 'swap',
+            'type': marketType,
             'spot': False,
             'margin': False,
             'swap': type == 'swap',
@@ -2690,13 +2691,21 @@ class poloniex(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        params = extraParams
-        request['amount'] = self.currency_to_precision(code, amount)
-        request['address'] = address
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'address': address,
+        }
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is None:
+            # we need to know the network to find out the currency-junction
+            raise ArgumentsRequired(self.id + ' withdraw requires a network parameter for ' + code + '.')
+        request['network'] = self.network_code_to_id(networkCode, code)
         if tag is not None:
             request['paymentId'] = tag
-        response = self.privatePostWalletsWithdraw(self.extend(request, params))
+        response = self.privatePostV2WalletsWithdraw(self.extend(request, params))
         #
         #     {
         #         "response": "Withdrew 1.00000000 USDT.",
@@ -2704,11 +2713,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "withdrawalNumber": 13449869
         #     }
         #
-        withdrawResponse = {
-            'response': response,
-            'withdrawNetworkEntry': networkEntry,
-        }
-        return self.parse_transaction(withdrawResponse, currency)
+        return self.parse_transaction(response, currency)
 
     def fetch_transactions_helper(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()

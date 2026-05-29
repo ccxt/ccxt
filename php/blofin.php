@@ -548,6 +548,7 @@ class blofin extends Exchange {
         $maxLeverage = $this->safe_string($market, 'maxLeverage', '100');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
+        $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -560,7 +561,7 @@ class blofin extends Exchange {
             'type' => $type,
             'spot' => $spot,
             'option' => $option,
-            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
+            'margin' => $isMargin,
             'swap' => $swap,
             'future' => $future,
             'active' => $isActive,
@@ -1472,6 +1473,7 @@ class blofin extends Exchange {
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->stopLoss.price] stop loss $order $price (if not provided the $order will be a $market $order)
+         * @param {float} [$params->tpsl] whether to force to send the $order to the combined TPSL oco $order endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->load_markets();
@@ -1479,7 +1481,9 @@ class blofin extends Exchange {
         $isStopLossPriceDefined = $this->safe_string($params, 'stopLossPrice') !== null;
         $isTakeProfitPriceDefined = $this->safe_string($params, 'takeProfitPrice') !== null;
         $isTriggerOrder = $this->safe_string($params, 'triggerPrice') !== null;
-        $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined);
+        $isTpslEndpoint = false;
+        list($isTpslEndpoint, $params) = $this->handle_option_and_params($params, 'createOrder', 'tpsl', false);
+        $isCombinedSlTp = ($isStopLossPriceDefined && $isTakeProfitPriceDefined) || $isTpslEndpoint;
         $isSlOrTp = $isStopLossPriceDefined || $isTakeProfitPriceDefined;
         $response = null;
         $reduceOnly = $this->safe_bool($params, 'reduceOnly');
@@ -1533,11 +1537,29 @@ class blofin extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         if ($stopLossPrice !== null) {
             $request['slTriggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-            $request['slOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
+            if ($type === 'market') {
+                $request['slOrderPrice'] = '-1';
+            } else {
+                $slLimitPrice = $this->safe_string($params, 'stopLossLimitPrice');
+                if ($slLimitPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order $type is not market');
+                }
+                $request['slOrderPrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                $params = $this->omit($params, 'stopLossLimitPrice');
+            }
         }
         if ($takeProfitPrice !== null) {
             $request['tpTriggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            $request['tpOrderPrice'] = ($type === 'market') ? '-1' : $this->price_to_precision($symbol, $price);
+            if ($type === 'market') {
+                $request['tpOrderPrice'] = '-1';
+            } else {
+                $tpLimitPrice = $this->safe_string($params, 'takeProfitLimitPrice');
+                if ($tpLimitPrice === null) {
+                    throw new ArgumentsRequired($this->id . ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order $type is not market');
+                }
+                $request['tpOrderPrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                $params = $this->omit($params, 'takeProfitLimitPrice');
+            }
         }
         $request['marginMode'] = $marginMode;
         $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ));

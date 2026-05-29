@@ -591,7 +591,8 @@ public partial class yobit : Exchange
         object ids = null;
         if (isTrue(isEqual(symbols, null)))
         {
-            ids = String.Join("-", ((IList<object>)this.ids).ToArray());
+            object allIds = this.ids;
+            ids = String.Join("-", ((IList<object>)allIds).ToArray());
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (isTrue(isGreaterThan(getArrayLength(ids), 2048)))
             {
@@ -1182,8 +1183,9 @@ public partial class yobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object intId = parseInt(id);
         object request = new Dictionary<string, object>() {
-            { "order_id", parseInt(id) },
+            { "order_id", intId },
         };
         object response = await this.privatePostOrderInfo(this.extend(request, parameters));
         id = ((object)id).ToString();

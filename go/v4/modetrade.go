@@ -1637,7 +1637,7 @@ func (this *ModetradeCore) ParseTimeInForce(timeInForce any) any {
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *ModetradeCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {

@@ -1034,13 +1034,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'size')
+        symbol = market['symbol']
         return self.safe_trade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,

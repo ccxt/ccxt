@@ -683,12 +683,13 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
+            const settle = settleId ? this.safeCurrencyCode(settleId) : undefined;
             result.push({
                 'id': this.safeString(market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settleId ? this.safeCurrencyCode(settleId) : undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
@@ -916,7 +917,7 @@ export default class bitstamp extends Exchange {
         // }
         //
         const marketId = this.safeString(ticker, 'pair');
-        const symbol = this.safeSymbol(marketId, market, undefined);
+        const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const vwap = this.safeString(ticker, 'vwap');
         const baseVolume = this.safeString(ticker, 'volume');
@@ -1338,8 +1339,9 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
     }
     parseBalance(response) {
+        const finalResponse = response; // java req
         const result = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };

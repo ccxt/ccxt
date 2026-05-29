@@ -1307,10 +1307,12 @@ func (this *P2bCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(BadRequest(Add(this.Id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")))
 		}
 		var market any = this.Market(symbol)
+		var sinceSec any = this.ParseToInt(Divide(since, 1000))
+		var untilSec any = this.ParseToInt(Divide(until, 1000))
 		var request any = map[string]any{
 			"market":    GetValue(market, "id"),
-			"startTime": this.ParseToInt(Divide(since, 1000)),
-			"endTime":   this.ParseToInt(Divide(until, 1000)),
+			"startTime": sinceSec,
+			"endTime":   untilSec,
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -1383,8 +1385,8 @@ func (this *P2bCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes11918 := (<-this.LoadMarkets())
-		PanicOnError(retRes11918)
+		retRes11938 := (<-this.LoadMarkets())
+		PanicOnError(retRes11938)
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		var market any = nil
@@ -1404,9 +1406,11 @@ func (this *P2bCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsGreaterThan((Subtract(until, since)), 86400000)) {
 			panic(BadRequest(Add(this.Id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")))
 		}
+		var sinceSec any = this.ParseToInt(Divide(since, 1000))
+		var untilSec any = this.ParseToInt(Divide(until, 1000))
 		var request any = map[string]any{
-			"startTime": this.ParseToInt(Divide(since, 1000)),
-			"endTime":   this.ParseToInt(Divide(until, 1000)),
+			"startTime": sinceSec,
+			"endTime":   untilSec,
 		}
 		if IsTrue(!IsEqual(market, nil)) {
 			AddElementToObject(request, "market", GetValue(market, "id"))

@@ -1034,13 +1034,14 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         }
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
+        const symbol = market['symbol'];
         return this.safeTrade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,

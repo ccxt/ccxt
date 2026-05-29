@@ -264,10 +264,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -1481,8 +1481,19 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        event: 'alert',
         #        message: 'Failed to subscribe to authenticated feed'
         #    }
+        #    {
+        #        event: 'alert',
+        #        message: 'Already subscribed to feed, re-requesting'
+        #    }
         #
         errMsg = self.safe_string(message, 'message')
+        # Benign "already subscribed" notice: the original subscription is still
+        # active and delivering data on self socket. The generic client.reject
+        # below rejects every pending future on the connection, so a stray
+        # re-subscribe warning would kill unrelated in-flight watch* calls —
+        # mirrors the bitmart 90008 fix.
+        if errMsg is not None and errMsg.find('Already subscribed') >= 0:
+            return False
         try:
             raise ExchangeError(self.id + ' ' + errMsg)
         except Exception as error:

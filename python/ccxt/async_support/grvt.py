@@ -1782,7 +1782,7 @@ class grvt(Exchange, ImplicitAPI):
 
     async def load_account_infos(self):
         if self.safe_string(self.options, 'userMainAccountId') is not None:
-            return
+            return False
         promises = []
         promises.append(self.privateTradingPostFullV1AggregatedAccountSummary())
         #
@@ -1830,6 +1830,7 @@ class grvt(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' loadAccountInfos(): multiple sub accounts found, please set the exchange.options["accountId"] to your preferred sub_account_id from self list: ' + self.json(subAccountIds))
             subAccountId = self.safe_string(subAccountIds, 0)
             self.options['accountId'] = subAccountId
+        return True
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
@@ -1915,8 +1916,10 @@ class grvt(Exchange, ImplicitAPI):
             clientOrderId = str(self.nonce()) + '000' + str(self.request_id())
         params = self.omit(params, ['clientOrderId'])
         isMarketOrder = (type == 'market')
+        subAccountId = self.get_sub_account_id(params)
+        isReduceOnly = self.safe_bool(params, 'reduceOnly', False)
         orderRequest = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccountId,
             'time_in_force': None,
             'legs': [orderLeg],
             'signature': self.default_signature(),
@@ -1925,7 +1928,7 @@ class grvt(Exchange, ImplicitAPI):
             },
             'is_market': isMarketOrder,
             'post_only': False,
-            'reduce_only': self.safe_bool(params, 'reduceOnly', False),
+            'reduce_only': isReduceOnly,
             # 'order_id': null,
             # 'state': null,
         }
@@ -2524,8 +2527,9 @@ class grvt(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
+        subAccountId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccountId,
         }
         market = None
         if symbol is not None:
@@ -2698,8 +2702,9 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
+        subAccountId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccountId,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
@@ -2957,7 +2962,7 @@ class grvt(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_orders([result], None)
+        return self.parse_orders([result])
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2972,8 +2977,9 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
+        subAccoubntId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccoubntId,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:

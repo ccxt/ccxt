@@ -3521,8 +3521,9 @@ class hitbtc extends Exchange {
             //         "positions" => null
             //     }
             //
+            $parsedAmount = $this->parse_number($amount);
             return $this->extend($this->parse_margin_modification($response, $market), array(
-                'amount' => $this->parse_number($amount),
+                'amount' => $parsedAmount,
                 'type' => $type,
             ));
         }) ();

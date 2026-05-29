@@ -3993,7 +3993,6 @@ func (this *HitbtcCore) ModifyMarginHelper(symbol any, amount any, typeVar any, 
 		} else {
 			panic(NotSupported(Add(this.Id, " modifyMarginHelper() not support this market type")))
 		}
-
 		//
 		//     {
 		//         "symbol": "BTCUSDT_PERP",
@@ -4012,8 +4011,10 @@ func (this *HitbtcCore) ModifyMarginHelper(symbol any, amount any, typeVar any, 
 		//         "positions": null
 		//     }
 		//
+		var parsedAmount any = this.ParseNumber(amount)
+
 		ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
-			"amount": this.ParseNumber(amount),
+			"amount": parsedAmount,
 			"type":   typeVar,
 		})
 		return nil
@@ -4085,9 +4086,9 @@ func (this *HitbtcCore) ReduceMargin(symbol any, amount any, optionalArgs ...any
 			panic(BadRequest(Add(this.Id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")))
 		}
 
-		retRes349915 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes349915)
-		ch <- retRes349915
+		retRes350015 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes350015)
+		ch <- retRes350015
 		return nil
 
 	}()
@@ -4115,9 +4116,9 @@ func (this *HitbtcCore) AddMargin(symbol any, amount any, optionalArgs ...any) <
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes351615 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes351615)
-		ch <- retRes351615
+		retRes351715 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes351715)
+		ch <- retRes351715
 		return nil
 
 	}()
@@ -4144,8 +4145,8 @@ func (this *HitbtcCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35328 := (<-this.LoadMarkets())
-		PanicOnError(retRes35328)
+		retRes35338 := (<-this.LoadMarkets())
+		PanicOnError(retRes35338)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4251,8 +4252,8 @@ func (this *HitbtcCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes36138 := (<-this.LoadMarkets())
-		PanicOnError(retRes36138)
+		retRes36148 := (<-this.LoadMarkets())
+		PanicOnError(retRes36148)
 		if IsTrue(IsEqual(GetValue(params, "margin_balance"), nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")))
 		}
@@ -4271,9 +4272,9 @@ func (this *HitbtcCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			"margin_balance": this.AmountToPrecision(symbol, amount),
 		}
 
-		retRes363215 := (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
-		PanicOnError(retRes363215)
-		ch <- retRes363215
+		retRes363315 := (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, params)))
+		PanicOnError(retRes363315)
+		ch <- retRes363315
 		return nil
 
 	}()
@@ -4299,8 +4300,8 @@ func (this *HitbtcCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes36458 := (<-this.LoadMarkets())
-		PanicOnError(retRes36458)
+		retRes36468 := (<-this.LoadMarkets())
+		PanicOnError(retRes36468)
 
 		response := (<-this.PublicGetPublicCurrency(params))
 		PanicOnError(response)
@@ -4411,8 +4412,8 @@ func (this *HitbtcCore) ClosePosition(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes37398 := (<-this.LoadMarkets())
-		PanicOnError(retRes37398)
+		retRes37408 := (<-this.LoadMarkets())
+		PanicOnError(retRes37408)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
 		marginMode = GetValue(marginModeparamsVariable, 0)

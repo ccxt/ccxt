@@ -526,6 +526,8 @@ class deepcoin extends Exchange {
         $maxLimitSize = $this->safe_string($market, 'maxLmtSz');
         $maxAmount = $this->parse_number(Precise::string_max($maxMarketSize, $maxLimitSize));
         $state = $this->safe_string($market, 'state');
+        $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
+        $isInverse = $swap ? (!$isLinear) : null;
         return $this->extend($fees, array(
             'id' => $id,
             'symbol' => $symbol,
@@ -537,14 +539,14 @@ class deepcoin extends Exchange {
             'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
+            'margin' => $isMargin,
             'swap' => $swap,
             'future' => false,
             'option' => false,
             'active' => $state === 'live',
             'contract' => $swap,
             'linear' => $isLinear,
-            'inverse' => $swap ? (!$isLinear) : null,
+            'inverse' => $isInverse,
             'contractSize' => $swap ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => null,
             'expiryDatetime' => null,
@@ -2260,11 +2262,12 @@ class deepcoin extends Exchange {
             }
             $merged = true;
             list($merged, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'merged', $merged);
+            $isMergedMode = $merged ? 1 : 0;
             $request = array(
                 'InstrumentID' => $market['id'],
                 'ProductGroup' => $productGroup,
                 'IsCrossMargin' => $encodedMarginMode,
-                'IsMergeMode' => $merged ? 1 : 0,
+                'IsMergeMode' => $isMergedMode,
             );
             $response = Async\await($this->privatePostDeepcoinTradeSwapCancelAll ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());

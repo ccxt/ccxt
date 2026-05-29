@@ -286,6 +286,7 @@ def test_safe_methods():
     assert exchange.safe_number_omit_zero(input_dict, 'floatString') is not None
     # tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     # tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+    # init array cache tests
     # Test cache types - ArrayCache
     array_cache = ArrayCache(100)
     array_cache.append({

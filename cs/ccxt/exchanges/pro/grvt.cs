@@ -655,6 +655,14 @@ public partial class grvt : ccxt.grvt
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
+        // grvt defaults to the delta channel (v1.book.d); if the very first
+        // message is a delta, the freshly-created orderbook has symbol=null
+        // because no snapshot has reset it yet. Set it unconditionally — we
+        // know the symbol from the selector regardless of channel. Java's
+        // typed WsOrderBook surfaces this as `"symbol":null` in the output;
+        // Python/JS dict-backed orderbooks happen to mask it but the
+        // unconditional assignment is correct for every language.
+        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         ((IDictionary<string,object>)orderbook)["nonce"] = sequenceNumber;
         object messageHash = add("orderbook::", symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
