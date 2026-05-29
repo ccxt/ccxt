@@ -409,27 +409,22 @@ export default class cryptomus extends Exchange {
         //
         const coins = this.safeList (response, 'result');
         const groupedById = this.groupBy (coins, 'currency_code');
-        const keys = Object.keys (groupedById);
-        const newArray = [];
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = groupedById[key];
-            const newDict = {
-                '_id': key,
-                '_networks': item,
-            };
-            newArray.push (newDict);
-        }
-        return this.parseCurrencies (newArray);
+        const groupedArray = Object.values (groupedById);
+        return this.parseCurrencies (groupedArray);
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
-        const id = this.safeString (rawCurrency, '_id');
-        const code = this.safeCurrencyCode (id);
+        // currency here is array of networks
+        let id: Str = undefined; // all entried have same id, as they were grouped by
+        let code: Str = undefined;
         const networks = {};
-        const networkEntries = this.safeList (rawCurrency, '_networks');
-        for (let j = 0; j < networkEntries.length; j++) {
-            const networkEntry = networkEntries[j];
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = rawCurrency[i];
+            // set ID on first loop
+            if (id === undefined) {
+                id = this.safeString (networkEntry, 'currency_code');
+                code = this.safeCurrencyCode (id);
+            }
             const networkId = this.safeString (networkEntry, 'network_code');
             const networkCode = this.networkIdToCode (networkId);
             networks[networkCode] = {
@@ -459,18 +454,6 @@ export default class cryptomus extends Exchange {
             'networks': networks,
             'info': rawCurrency,
         });
-    }
-
-    addKeyInArrayItems (obj, keyName) {
-        const result = [];
-        const keys = Object.keys (obj);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = obj[key];
-            item[keyName] = key;
-            result.push (item);
-        }
-        return result;
     }
 
     /**
