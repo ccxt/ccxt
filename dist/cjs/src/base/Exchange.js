@@ -2145,23 +2145,31 @@ class Exchange {
         }
         return defaultValue;
     }
-    safeBool2(dictionary, key1, key2, defaultValue = undefined) {
+    safeBool2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if (typeof value2 === 'boolean') {
+            return value2;
+        }
+        return defaultValue;
     }
-    safeBool(dictionary, key, defaultValue = undefined) {
+    safeBool(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        const value = this.safeValue(dictionary, key, defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (typeof value === 'boolean') {
             return value;
         }
@@ -2183,14 +2191,14 @@ class Exchange {
         }
         return defaultValue;
     }
-    safeDict(dictionary, key, defaultValue = undefined) {
+    safeDict(dictionaryOrList, key, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        const value = this.safeValue(dictionary, key, defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (value === undefined) {
             return defaultValue;
         }
@@ -2199,14 +2207,22 @@ class Exchange {
         }
         return defaultValue;
     }
-    safeDict2(dictionary, key1, key2, defaultValue = undefined) {
+    safeDict2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if ((value !== undefined) && (typeof value === 'object') && !Array.isArray(value)) {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if ((value2 !== undefined) && (typeof value2 === 'object') && !Array.isArray(value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
     safeListN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -2234,7 +2250,15 @@ class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, [key1, key2], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key1);
+        if ((value !== undefined) && Array.isArray(value)) {
+            return value;
+        }
+        const value2 = this.safeValue(dictionaryOrList, key2);
+        if ((value2 !== undefined) && Array.isArray(value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
     safeList(dictionaryOrList, key, defaultValue = undefined) {
         /**
