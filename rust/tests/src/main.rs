@@ -99,6 +99,10 @@ async fn main() -> ExitCode {
         tests.init(argv_exchange, argv_symbol, argv_method)
     ).catch_unwind().await;
 
+    // NB: the live method-test path calls `exitScript(0)` from inside
+    // TestMainClass (transpiled `tests.rs`) which `std::process::exit`s
+    // before returning here — so a successful live run prints its
+    // completion line from `exitScript`, not from this match.
     match outcome {
         Ok(_)  => ExitCode::SUCCESS,
         Err(_) => {

@@ -237,8 +237,84 @@ pub fn is_instance(value: &Value, class: &Value) -> bool {
         (Value::Str(s), Value::Str(c)) => (s, c),
         _ => return false,
     };
-    let bracketed = format!("[{cls}]");
-    msg.contains(&bracketed)
+    // Errors are stringified as `[Kind] message` (see ExchangeError's
+    // Display). A direct `[cls]` hit covers the exact class and any
+    // non-hierarchy class name.
+    if msg.contains(&format!("[{cls}]")) {
+        return true;
+    }
+    // Hierarchy-aware check: `[RateLimitExceeded]` IS-A `OperationFailed`.
+    // Extract the actual class from the leading `[Kind]` and walk its
+    // ancestor chain (errorHierarchy.ts) — without this, test_safe's
+    // `is_instance(e, "OperationFailed")` retry/warn path never fires for
+    // a rate-limit / network error and those get logged as failures.
+    if let Some(actual) = extract_error_kind(msg) {
+        let mut cur = error_parent(actual);
+        while let Some(c) = cur {
+            if c == cls.as_str() {
+                return true;
+            }
+            cur = error_parent(c);
+        }
+    }
+    false
+}
+
+/// Extracts the class name from the leading `[Kind]` of an error message.
+fn extract_error_kind(msg: &str) -> Option<&str> {
+    let start = msg.find('[')? + 1;
+    let end = msg[start..].find(']')? + start;
+    Some(&msg[start..end])
+}
+
+/// Parent class in the CCXT error hierarchy (mirrors
+/// `ts/src/base/errorHierarchy.ts`). `None` for `BaseError` / unknowns.
+fn error_parent(class: &str) -> Option<&'static str> {
+    Some(match class {
+        // ExchangeError branch
+        "ExchangeError" => "BaseError",
+        "AuthenticationError" => "ExchangeError",
+        "PermissionDenied" => "AuthenticationError",
+        "AccountNotEnabled" => "PermissionDenied",
+        "AccountSuspended" => "AuthenticationError",
+        "ArgumentsRequired" => "ExchangeError",
+        "BadRequest" => "ExchangeError",
+        "BadSymbol" => "BadRequest",
+        "OperationRejected" => "ExchangeError",
+        "NoChange" => "OperationRejected",
+        "MarginModeAlreadySet" => "NoChange",
+        "MarketClosed" => "OperationRejected",
+        "ManualInteractionNeeded" => "OperationRejected",
+        "RestrictedLocation" => "OperationRejected",
+        "InsufficientFunds" => "ExchangeError",
+        "InvalidAddress" => "ExchangeError",
+        "AddressPending" => "InvalidAddress",
+        "InvalidOrder" => "ExchangeError",
+        "OrderNotFound" => "InvalidOrder",
+        "OrderNotCached" => "InvalidOrder",
+        "OrderImmediatelyFillable" => "InvalidOrder",
+        "OrderNotFillable" => "InvalidOrder",
+        "DuplicateOrderId" => "InvalidOrder",
+        "ContractUnavailable" => "InvalidOrder",
+        "NotSupported" => "ExchangeError",
+        "InvalidProxySettings" => "ExchangeError",
+        "ExchangeClosedByUser" => "ExchangeError",
+        // OperationFailed branch
+        "OperationFailed" => "BaseError",
+        "NetworkError" => "OperationFailed",
+        "DDoSProtection" => "NetworkError",
+        "RateLimitExceeded" => "NetworkError",
+        "ExchangeNotAvailable" => "NetworkError",
+        "OnMaintenance" => "ExchangeNotAvailable",
+        "InvalidNonce" => "NetworkError",
+        "ChecksumError" => "InvalidNonce",
+        "RequestTimeout" => "NetworkError",
+        "BadResponse" => "OperationFailed",
+        "NullResponse" => "BadResponse",
+        "CancelPending" => "OperationFailed",
+        "UnsubscribeError" => "BaseError",
+        _ => return None,
+    })
 }
 
 // ── element access ───────────────────────────────────────────────────────────

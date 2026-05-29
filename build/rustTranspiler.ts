@@ -5128,6 +5128,142 @@ impl std::ops::DerefMut for ${coreName} {
         return out;
     }
 
+    // Scans a TS source for `function NAME (p1, p2, ..., pK = default, ...)`
+    // declarations and returns a map of `NAME → firstDefaultParamIdx`.
+    // Used in test-file transpilation: the AST drops defaults from the
+    // emitted Rust signature, but call sites omit the trailing args —
+    // we need to know where the variadic tail starts.
+    detectFreeFnDefaultArgs(tsSrc: string): Map<string, number> {
+        const out = new Map<string, number>();
+        // Match `(async )?function NAME (params)` — only free functions,
+        // not class methods (those don't have the `function` keyword).
+        const re = /\b(?:async\s+)?function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)/g;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(tsSrc)) !== null) {
+            const name = m[1];
+            const params = m[2].split(',').map(s => s.trim()).filter(Boolean);
+            for (let i = 0; i < params.length; i++) {
+                if (params[i].includes('=')) {
+                    out.set(name, i);
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
+    // For each function in `defaultFns`, rewrite the Rust signature so
+    // params from `firstDefaultIdx` onwards collapse into a single
+    // `optional_args: &[Value]` slice (mirrors how exchange methods are
+    // transpiled). Inserts `let mut <pname> = get_arg(optional_args, k,
+    // Value::Null);` declarations at the top of the body for each
+    // collapsed param, and pads every call site to the new arity.
+    //
+    // Limitation: defaults emitted as `Value::Null`. The TS default
+    // value isn't preserved through the AST output we have here, but
+    // every site that *omitted* the arg in TS was passing the moral
+    // equivalent of `undefined` anyway, so Null is the right read.
+    foldDefaultArgsIntoOptional(content: string, defaultFns: Map<string, number>): string {
+        for (const [name, firstDefault] of defaultFns) {
+            // Match the fn signature: `pub (async )?fn NAME(params) -> Value {`
+            const sigRe = new RegExp(
+                `(\\bpub(?:\\s+async)?\\s+fn\\s+${name}\\s*\\()([^)]*)(\\)\\s*->\\s*[^\\{]+\\{)`,
+            );
+            const sigMatch = content.match(sigRe);
+            if (!sigMatch) continue;
+            const params = sigMatch[2].split(',').map(s => s.trim()).filter(Boolean);
+            if (params.length <= firstDefault) continue;
+            const fixed = params.slice(0, firstDefault);
+            const collapsed = params.slice(firstDefault);
+            // Extract param names from the collapsed params for the
+            // `let mut x = get_arg(...)` decls.
+            const collapsedNames = collapsed.map(p => {
+                const m = p.match(/^(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:/);
+                return m ? m[1] : '';
+            });
+            const newSig = `${sigMatch[1]}${fixed.join(', ')}${fixed.length ? ', ' : ''}optional_args: &[Value]${sigMatch[3]}`;
+            // Locate the opening `{` to insert the get_arg lines right
+            // after it. Walk via findMatchingBrace to stay safe in
+            // comments/strings.
+            content = content.replace(sigRe, newSig);
+            // Now insert the decls.
+            const reAfter = new RegExp(`(\\bpub(?:\\s+async)?\\s+fn\\s+${name}\\s*\\([^)]*\\)\\s*->\\s*[^\\{]+\\{)`);
+            const decls = collapsedNames.map((nm, i) =>
+                `\n    let mut ${nm}: Value = get_arg(optional_args, ${i}, Value::Null);`,
+            ).join('');
+            content = content.replace(reAfter, `$1${decls}`);
+            // Rewrite call sites: `NAME(a, b, c)` → if it has fewer args
+            // than the new arity (fixed.length + 1 for &[]), append `&[]`
+            // or wrap trailing args in `&[...]`.
+            const newArity = fixed.length + 1; // +1 for optional_args slice
+            content = this.padCallsForVariadicFn(content, name, fixed.length, newArity);
+        }
+        return content;
+    }
+
+    // For free function `name`, find every `NAME(args)` call and pad it
+    // so the trailing args (those past `fixedCount`) are wrapped in a
+    // `&[ ... ]` slice. Calls already at the correct arity get a `&[]`
+    // appended. If the function is `pub async fn`, also append `.await`
+    // when the call site doesn't already have it.
+    padCallsForVariadicFn(content: string, name: string, fixedCount: number, newArity: number): string {
+        const isAsync = new RegExp(`\\bpub\\s+async\\s+fn\\s+${name}\\b`).test(content);
+        const callRe = new RegExp(`\\b${name}\\s*\\(`, 'g');
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = callRe.exec(content)) !== null) {
+            // Skip the declaration line itself.
+            const beforeStart = content.lastIndexOf('\n', m.index) + 1;
+            const lineSoFar = content.slice(beforeStart, m.index);
+            if (/\bpub(\s+async)?\s+fn\s*$|\basync\s+fn\s*$|\bfn\s*$/.test(lineSoFar.trim())) {
+                out += content.slice(last, m.index + m[0].length);
+                last = m.index + m[0].length;
+                continue;
+            }
+            const openIdx = m.index + m[0].length - 1; // pointing at `(`
+            // Walk to the matching `)`, splitting top-level args.
+            let depth = 1;
+            let j = openIdx + 1;
+            let inStr = false;
+            let escape = false;
+            const argStarts: number[] = [j];
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\' && inStr) { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                    else if (c === ',' && depth === 1) argStarts.push(j + 1);
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            const closeIdx = j;
+            const args = [];
+            for (let k = 0; k < argStarts.length; k++) {
+                const s = argStarts[k];
+                const e = k + 1 < argStarts.length ? argStarts[k + 1] - 1 : closeIdx;
+                args.push(content.slice(s, e).trim());
+            }
+            // Drop empty-only-trailing arg (caused by trailing comma).
+            while (args.length && args[args.length - 1] === '') args.pop();
+            const fixedArgs = args.slice(0, fixedCount);
+            const trailing = args.slice(fixedCount);
+            const slice = trailing.length === 0 ? '&[]' : `&[${trailing.join(', ')}]`;
+            const alreadyAwaited = content.slice(closeIdx + 1).startsWith('.await');
+            const suffix = (isAsync && !alreadyAwaited) ? '.await' : '';
+            const newCall = `${name}(${[...fixedArgs, slice].join(', ')})${suffix}`;
+            out += content.slice(last, m.index) + newCall;
+            last = closeIdx + 1;
+            callRe.lastIndex = closeIdx + 1;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
     /// "test.safeMethods" → "test_safe_methods" (a valid Rust ident).
     private modIdentFor(testFileName: string): string {
         return testFileName
@@ -5162,6 +5298,11 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.wrapVariadicCalls(content, this.handWrittenVariadics());
         content = this.autoCloneCallArgs(content);
         content = this.cloneInArrayLiterals(content);
+        // `symbol in exchange.markets` → `in_op(get_value(exchange,
+        // "markets"), symbol)` deep-clones the whole markets map. In
+        // `test.ticker.rs` that guard runs once per ticker, so for a 3k-
+        // ticker `fetchTickers` it cloned ~4k markets 3k times. Route it
+        // to `market_exists`, a key-containment check off the live Core.
         // Bare identifiers in `ternary(cond, a, b)` need `.clone()` or
         // they get moved on the path-taken branch (test.ticker.rs has
         // `ternary(.., symbol, ..)` followed by a later `symbol.clone()`
@@ -5169,6 +5310,17 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.cloneInTernary(content);
         content = this.rewriteValueFieldAccess(content);
         content = this.rewriteGetValueAssignments(content);
+        // MUST run after `rewriteValueFieldAccess` — that pass is what
+        // turns `exchange.markets` into `get_value(&exchange,
+        // "markets")`. `symbol in exchange.markets` then deep-clones the
+        // whole markets map; in `test.ticker.rs` that guard fires once
+        // per ticker (≈4k-entry clone × 3k tickers for fetchTickers).
+        // Route it to `market_exists` — a key-containment check off the
+        // live Core with no clone.
+        content = content.replace(
+            /in_op\(&get_value\(&exchange, &Value::Str\("markets"\.to_string\(\)\)\), &(\w+)(?:\.clone\(\))?\)/g,
+            'crate::tests_support::shared::market_exists(&exchange, &$1)',
+        );
         content = this.splitAddElementBorrowConflicts(content);
         content = this.splitGetValueMutAdds(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
@@ -5254,8 +5406,10 @@ impl std::ops::DerefMut for ${coreName} {
             // doesn't blow up at link time.
             const RUST_SKIP_TESTS = new Set<string>([
                 'test.createOrder',
-                'test.fetchTickers',
                 'test.proxies',
+                // 'test.fetchTickers' — re-enabled now that the per-ticker
+                // `symbol in exchange.markets` guard routes to
+                // `market_exists` (no per-call markets-map clone).
             ]);
             for (const testName of files) {
                 // `test.sharedMethods` stays hand-written (`tests_support::shared`).
@@ -5270,7 +5424,20 @@ impl std::ops::DerefMut for ${coreName} {
                             .filter((m: any) => m.async)
                             .map((m: any) => m.name),
                     );
+                    // Scan TS source for free-function declarations whose
+                    // trailing params have default values. The AST drops
+                    // those defaults; without compensation the Rust call
+                    // sites pass too few args (e.g. test.fetchTickers'
+                    // inner helper `testFetchTickersHelper(... argParams =
+                    // {})` is called with 3 args but the Rust signature
+                    // has 4). Convert trailing defaults to a variadic
+                    // `optional_args: &[Value]` slice.
+                    const tsSrc = fs.readFileSync(tsFile, 'utf8');
+                    const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
                     let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
+                    if (defaultArgFns.size > 0) {
+                        content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
+                    }
                     // Locate the entry fn: `test<Stem>`, else the first `test*`.
                     const stem = testName.replace(/^test\./, '');
                     const cand = 'test' + stem.charAt(0).toUpperCase() + stem.slice(1);

@@ -122,6 +122,23 @@ pub fn isNullValue(value: Value) -> Value { Value::Bool(matches!(value, Value::N
 
 pub fn exitScript(code: Value) {
     let c = match &code { Value::Int(n) => *n as i32, _ => 0 };
+    // The live method-test path exits here (TestMainClass calls
+    // `exitScript(0)` after `start_test`), `std::process::exit`-ing
+    // before `main` can print anything. Without a line here a passing
+    // run with `--info` off looks identical to a stall (the last output
+    // is the symbol-selection banner). Emit a completion marker keyed by
+    // the exchange under test so it's clear the run finished. Neutral
+    // wording — the live path exits 0 even when individual
+    // `[TEST_FAILURE]` lines were printed, so this is "finished", not a
+    // success claim; failures are still visible inline above.
+    if c == 0 {
+        let id = std::env::args()
+            .skip(1)
+            .find(|a| !a.starts_with("--"));
+        if let Some(id) = id {
+            println!("[RUST] {id} test run finished.");
+        }
+    }
     std::process::exit(c);
 }
 
@@ -230,6 +247,26 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
         // skip the deep-cloned snapshot copy and route to the cached
         // Core via `live_dispatch::live_lookup`.
         m.insert("__live_id".to_string(), exchange_id);
+        // Drop the large describe()-derived config blocks from the
+        // snapshot. The transpiled validators (`testMarket`, `testTicker`,
+        // …) call `exchange.clone()` dozens of times per item; with a
+        // 4k-market loop that deep-copied binance's whole `api` block
+        // ~130k times (≈64s just for loadMarkets). These keys are
+        // immutable during a test and resolve via `live_lookup`
+        // (read_field) straight off the cached Core, so removing them
+        // here is transparent to reads.
+        // NB: do NOT strip `options` here — broker-id tests mutate
+        // `exchange.options` on the snapshot and read it back; stripping
+        // it routed those reads to the Core's pristine options (dropping
+        // the per-case broker overrides → "id not in headers" failures).
+        // `has` IS safe to strip: it's read-only in tests and resolves
+        // via live_lookup. It's ~250 flags and the per-assert
+        // `exchange.clone()` in the validators made cloning it the
+        // dominant cost of large-collection loops (fetchTickers/markets).
+        for k in ["api", "urls", "fees", "timeframes", "exceptions",
+                  "features", "precision", "limits", "has"] {
+            m.shift_remove(k);
+        }
         return Value::Map(m);
     }
     let mut m = match cfg {
@@ -413,7 +450,18 @@ impl ExchangeOps for Value {
     fn convert_to_safe_dictionary(&self, v: Value) -> Value { v }
     /// `market(symbol)` — look the unified symbol up in this exchange
     /// value's `markets` map (offline exchanges carry markets inline).
+    /// For a `__live_id` snapshot, resolve the single market off the
+    /// cached Core instead of `get_value(self, "markets")`, which would
+    /// deep-clone the entire ~4k-market map on every call — the
+    /// validators call this once per item, so that clone dominated
+    /// large-collection loops (fetchTickers/loadMarkets).
     fn market(&self, symbol: Value) -> Value {
+        if let (Value::Map(m), Value::Str(sym)) = (self, &symbol) {
+            if let Some(Value::Str(id)) = m.get("__live_id") {
+                let mkt = crate::live_dispatch::market_for(id, sym);
+                if !matches!(mkt, Value::Null) { return mkt; }
+            }
+        }
         let markets = ccxt::get_value(self, &Value::Str("markets".to_string()));
         ccxt::get_value(&markets, &symbol)
     }

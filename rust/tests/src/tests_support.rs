@@ -67,6 +67,24 @@ pub mod shared {
     // `Args::Any` lets either Value or &mut Exchange be passed without
     // bothering the call site about types.
 
+    /// Cheap `symbol in exchange.markets` check. For a `__live_id`
+    /// snapshot it routes to `live_dispatch::has_market` (a key
+    /// containment test on the Core, no clone); otherwise it falls back
+    /// to `in_op` over the embedded markets map. The transpiler rewrites
+    /// the `in_op(get_value(exchange,"markets"), sym)` pattern emitted
+    /// from `symbol in exchange.markets` to call this — that guard runs
+    /// once per ticker in `test.ticker.rs`, and the naive form deep-
+    /// cloned the whole ~4k-market map on every call.
+    pub fn market_exists(ex: &Value, symbol: &Value) -> bool {
+        if let (Value::Map(m), Value::Str(sym)) = (ex, symbol) {
+            if let Some(Value::Str(id)) = m.get("__live_id") {
+                return crate::live_dispatch::has_market(id, sym);
+            }
+        }
+        let markets = ccxt::get_value(ex, &Value::Str("markets".to_string()));
+        ccxt::runtime::in_op(&markets, symbol)
+    }
+
     pub trait AsValue { fn as_value(&self) -> Value; }
     impl AsValue for Value { fn as_value(&self) -> Value { self.clone() } }
     impl AsValue for &Value { fn as_value(&self) -> Value { (*self).clone() } }

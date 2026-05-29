@@ -92,6 +92,21 @@ type ReadFieldFn = fn(*mut (), &str) -> Option<Value>;
 /// otherwise see those.
 type WriteFieldFn = fn(*mut (), &str, Value);
 
+/// Resolves a SINGLE market by unified symbol off the Core, reusing the
+/// Core's real `market()` logic (markets → markets_by_id → expired
+/// option). Returns just that one market — crucial for perf: the
+/// validators call `exchange.market(symbol)` once per item, and routing
+/// that through `read_field("markets")` would deep-clone the whole
+/// ~4k-entry map on every call (≈25ms × thousands of tickers/markets).
+type ReadMarketFn = fn(*mut (), &str) -> Value;
+
+/// Cheap "is this a known market symbol" check off the Core — a key
+/// containment test on `markets` / `markets_by_id` with no clone. The
+/// `symbol in exchange.markets` guard in `test.ticker.rs` runs once per
+/// ticker; routing it through `read_field("markets")` would clone the
+/// whole map each time.
+type HasMarketFn = fn(*mut (), &str) -> bool;
+
 /// The leaked raw pointer to a boxed `<Exchange>Core`. `*mut ()` isn't
 /// `Send` by default; the unsafe impls assert that the Box lives forever
 /// on the heap (we leak it) and is touched serially from the test runner.
@@ -110,6 +125,8 @@ struct CoreEntry {
     drop_core:     DropCoreFn,
     read_field:    ReadFieldFn,
     write_field:   WriteFieldFn,
+    read_market:   ReadMarketFn,
+    has_market:    HasMarketFn,
 }
 
 static CORES: OnceLock<Mutex<HashMap<String, CoreEntry>>> = OnceLock::new();
@@ -292,6 +309,21 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                     "precisionMode"    => core.precisionMode.clone(),
                     "fees"             => core.fees.clone(),
                     "urls"             => core.urls.clone(),
+                    // Describe-derived config blocks. These are large
+                    // (binance's `api` alone is hundreds of nested
+                    // endpoints) and immutable during a test run, so we
+                    // strip them from the cloned snapshot in
+                    // `initExchange` and resolve them straight off the
+                    // Core here. Keeps `exchange.clone()` — which the
+                    // transpiled validators do dozens of times per
+                    // market — from deep-copying the whole describe()
+                    // output on every iteration.
+                    "api"              => core.api.clone(),
+                    "timeframes"       => core.timeframes.clone(),
+                    "exceptions"       => core.exceptions.clone(),
+                    "features"         => core.features.clone(),
+                    "precision"        => core.precision.clone(),
+                    "limits"           => core.limits.clone(),
                     _ => return None,
                 })
             }
@@ -344,6 +376,19 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                     _ => {},
                 }
             }
+            fn read_market(ptr: *mut (), symbol: &str) -> Value {
+                // Reuse the Core's real `market()` (markets →
+                // markets_by_id → expired option) but clone only the one
+                // market it returns — not the whole markets map.
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                core.market(Value::Str(symbol.to_string()))
+            }
+            fn has_market(ptr: *mut (), symbol: &str) -> bool {
+                let core: &$core = unsafe { &*(ptr as *const $core) };
+                let key = Value::Str(symbol.to_string());
+                ccxt::runtime::in_op(&core.markets, &key)
+                    || ccxt::runtime::in_op(&core.markets_by_id, &key)
+            }
             return Some(CoreEntry {
                 call:          <$core>::__call_dynamic_dispatch as DynCallFn,
                 ptr:           CorePtr(raw),
@@ -353,6 +398,8 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 drop_core:     drop_core     as DropCoreFn,
                 read_field:    read_field    as ReadFieldFn,
                 write_field:   write_field   as WriteFieldFn,
+                read_market:   read_market   as ReadMarketFn,
+                has_market:    has_market    as HasMarketFn,
             });
         }
     }; }
@@ -369,6 +416,34 @@ fn live_lookup(id: &str, key: &str) -> Option<Value> {
     };
     let entry = entry?;
     (entry.read_field)(entry.ptr.0, key)
+}
+
+/// Resolves a single market by symbol off the cached Core for `id`,
+/// without cloning the whole markets map. Returns `Value::Null` if the
+/// id isn't a live Core. Used by `ExchangeOps::market` for `__live_id`
+/// snapshots.
+pub fn market_for(id: &str, symbol: &str) -> Value {
+    let entry = {
+        let m = match cores().lock() { Ok(g) => g, Err(_) => return Value::Null };
+        m.get(id).copied()
+    };
+    match entry {
+        Some(e) => (e.read_market)(e.ptr.0, symbol),
+        None    => Value::Null,
+    }
+}
+
+/// Cheap membership: is `symbol` a known market on the cached Core for
+/// `id`? No markets-map clone. Returns `false` for non-live ids.
+pub fn has_market(id: &str, symbol: &str) -> bool {
+    let entry = {
+        let m = match cores().lock() { Ok(g) => g, Err(_) => return false };
+        m.get(id).copied()
+    };
+    match entry {
+        Some(e) => (e.has_market)(e.ptr.0, symbol),
+        None    => false,
+    }
 }
 
 /// Wire the heavy-field resolver into the ccxt crate. Call once from
