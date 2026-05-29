@@ -23,7 +23,8 @@
 # Imports
 from bip_utils.addr import P2TRAddrEncoder
 from bip_utils.bip.bip32 import Bip32Const, Bip32KeyNetVersions, Bip32Slip10Secp256k1
-from  import DER_PATH_NON_HARDENED_FULL, BipCoinConf
+from ..common.bip_conf_const import DER_PATH_NON_HARDENED_FULL
+from ..common.bip_coin_conf import BipCoinConf
 from bip_utils.coin_conf import CoinsConf
 from bip_utils.slip.slip44 import Slip44
 
