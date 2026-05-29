@@ -818,6 +818,7 @@
             {
                 "description": "uta order",
                 "method": "createOrder",
+                "disabledCS": true,
                 "input": [
                     "LTC/USDT",
                     "market",
