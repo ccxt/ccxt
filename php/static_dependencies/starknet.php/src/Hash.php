@@ -37,7 +37,7 @@ class Hash
 
     public static function computePoseidonHashOnElements($data)
     {
-        return '0x' . Utils::removeLeadingZero(Poseidon::hashMany($data)->toString(16));
+        return '0x' . Utils::removeLeadingZero(Poseidon::hashMany($data)->toHex());
     }
 
     /**

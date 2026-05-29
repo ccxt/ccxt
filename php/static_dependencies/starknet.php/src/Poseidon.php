@@ -1,8 +1,18 @@
 <?php
 
+/**
+ * This file is part of starknet.php package.
+ * 
+ * (c) Kuan-Cheng,Lai <alk03073135@gmail.com>
+ * 
+ * @author Peter Lai <alk03073135@gmail.com>
+ * @license MIT
+ */
+
 namespace StarkNet;
 
-use BN\BN;
+use StarkNet\Utils;
+use StarkNet\Constants;
 
 class Poseidon
 {
@@ -18,39 +28,29 @@ class Poseidon
     private static function fieldPrime()
     {
         if (self::$fieldPrime === null) {
-            self::$fieldPrime = new BN(Constants::FIELD_PRIME, 16);
+            self::$fieldPrime = Utils::toBn('0x' . Constants::FIELD_PRIME, 16);
         }
         return self::$fieldPrime;
     }
 
     private static function field($value)
     {
-        if (!($value instanceof BN)) {
-            $value = self::toBn($value);
+        if (!($value instanceof BigInteger)) {
+            $value = Utils::toBn($value);
         }
-        return $value->umod(self::fieldPrime());
-    }
 
-    private static function toBn($value)
-    {
-        if ($value instanceof BN) {
-            return $value;
+        list(, $remainder) = $value->divide(self::fieldPrime());
+
+        if ($remainder->is_negative) {
+            $remainder = $remainder->add(self::fieldPrime());
         }
-        if (is_int($value)) {
-            return new BN((string) $value, 10);
-        }
-        if (is_string($value)) {
-            if (substr($value, 0, 2) === '0x') {
-                return new BN(substr($value, 2), 16);
-            }
-            return new BN($value, 10);
-        }
-        return new BN((string) $value, 10);
+
+        return $remainder;
     }
 
     private static function roundConstant($name, $index)
     {
-        return self::field(new BN(hash('sha256', $name . (string) $index), 16));
+        return self::field(Utils::toBn('0x' . hash('sha256', $name . (string) $index)));
     }
 
     private static function roundConstants()
@@ -84,7 +84,8 @@ class Poseidon
 
     private static function sbox($value)
     {
-        return $value->mul($value)->mul($value)->umod(self::fieldPrime());
+        $cube = $value->multiply($value)->multiply($value);
+        return self::field($cube);
     }
 
     private static function poseidonRound($values, $isFull, $index)
@@ -104,9 +105,10 @@ class Poseidon
         $result = array();
         $mds = self::mds();
         foreach ($mds as $row) {
-            $acc = new BN('0', 10);
+            $acc = Utils::toBn(0);
             for ($i = 0; $i < count($values); $i++) {
-                $acc = $acc->add($row[$i]->mul($values[$i]));
+                $product = $row[$i]->multiply($values[$i]);
+                $acc = $acc->add($product);
             }
             $result[] = self::field($acc);
         }
@@ -146,10 +148,16 @@ class Poseidon
         while ((count($padded) % self::RATE) !== 0) {
             $padded[] = 0;
         }
-        $state = array(new BN('0', 10), new BN('0', 10), new BN('0', 10));
+        
+        $state = array(
+            Utils::toBn(0),
+            Utils::toBn(0),
+            Utils::toBn(0)
+        );
+        
         for ($i = 0; $i < count($padded); $i += self::RATE) {
             for ($j = 0; $j < self::RATE; $j++) {
-                $state[$j] = $state[$j]->add(self::toBn($padded[$i + $j]));
+                $state[$j] = $state[$j]->add(Utils::toBn($padded[$i + $j]));
             }
             $state = self::poseidonHash($state);
         }
