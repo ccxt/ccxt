@@ -139,7 +139,7 @@ export default class extended extends extendedRest {
         }
     }
 
-    watchPrivate (messageHash: string, subscription = undefined) {
+    async watchPrivate (messageHash: string, subscription = undefined) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'] + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
@@ -163,7 +163,7 @@ export default class extended extends extendedRest {
             this.client (url);
             this.options['ws']['options'] = originalOptions;
         }
-        return this.watch (url, messageHash, undefined, messageHash, subscription);
+        return await this.watch (url, messageHash, undefined, messageHash, subscription);
     }
 
     /**
@@ -641,65 +641,6 @@ export default class extended extends extendedRest {
 
     /**
      * @method
-     * @name extended#watchIndexPrice
-     * @description watches an index price for a specific market
-     * @see https://api.docs.extended.exchange/#index-price-stream
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    async watchIndexPrice (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'indexPrice:' + symbol;
-        const query = this.urlencode (params);
-        let url = this.urls['api']['ws'] + '/prices/index/' + market['id'];
-        if (query.length > 0) {
-            url += '?' + query;
-        }
-        return await this.watch (url, messageHash, undefined, messageHash, {
-            'name': 'indexPrice',
-            'symbol': symbol,
-            'messageHash': messageHash,
-        });
-    }
-
-    handleIndexPrice (client: Client, message) {
-        //
-        //     {
-        //         "type": "IP",
-        //         "data": {
-        //             "m": "BTC-USD",
-        //             "p": "81061.372849012506",
-        //             "ts": 1778641858000
-        //         },
-        //         "ts": 1778641858588,
-        //         "seq": 1
-        //     }
-        //
-        const data = this.safeDict (message, 'data', {});
-        const marketId = this.safeString (data, 'm');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        let timestamp = this.safeInteger (data, 'ts');
-        if ((timestamp === undefined) || (timestamp === 0)) {
-            timestamp = this.safeInteger (message, 'ts');
-        }
-        const ticker = this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'indexPrice': this.safeString (data, 'p'),
-            'info': message,
-        }, market);
-        this.tickers[symbol] = ticker;
-        const messageHash = 'indexPrice:' + symbol;
-        client.resolve (ticker, messageHash);
-    }
-
-    /**
-     * @method
      * @name extended#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://api.docs.extended.exchange/#trades-stream
@@ -931,8 +872,6 @@ export default class extended extends extendedRest {
             }
             if (type === 'MP') {
                 this.handleMarkPrice (client, message);
-            } else if (type === 'IP') {
-                this.handleIndexPrice (client, message);
             } else if ('f' in data) {
                 this.handleFundingRate (client, message);
             } else {
