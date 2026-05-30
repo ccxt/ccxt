@@ -28,7 +28,7 @@ use ccxt::exchanges::{
     binance::BinanceCore, bybit::BybitCore, okx::OkxCore, kucoin::KucoinCore,
     bitget::BitgetCore, hyperliquid::HyperliquidCore, gate::GateCore,
 };
-use std::collections::HashMap;
+use ccxt::value::HashMap;
 use std::env;
 use std::panic;
 use futures::FutureExt;
@@ -96,9 +96,9 @@ fn load_credentials(id: &str) -> Vec<(String, String)> {
             if path.is_file() {
                 if let Ok(text) = std::fs::read_to_string(&path) {
                     let parsed = ccxt::runtime::json_parse(&Value::Str(text));
-                    if let Value::Map(top) = &parsed {
-                        if let Some(Value::Map(ex_obj)) = top.get(id) {
-                            for (k, v) in ex_obj {
+                    if let Value::Dict(top) = &parsed {
+                        if let Some(Value::Dict(ex_obj)) = top.get(id) {
+                            for (k, v) in ex_obj.iter() {
                                 if let Value::Str(s) = v {
                                     creds.insert(k.clone(), s.clone());
                                 }
@@ -203,11 +203,11 @@ macro_rules! impl_load_markets {
 impl_load_markets!(BinanceCore, BybitCore, OkxCore, KucoinCore, BitgetCore, HyperliquidCore, GateCore);
 
 fn populate_markets(ex: &mut ccxt::exchange::Exchange, markets_array: &Value) {
-    let arr = match markets_array { Value::Array(a) => a, _ => return };
+    let arr = match markets_array { Value::Arr(a) => a, _ => return };
     let mut by_symbol: HashMap<String, Value> = HashMap::new();
     let mut by_id:     HashMap<String, Value> = HashMap::new();
     let mut symbols:   Vec<Value> = vec![];
-    for m in arr {
+    for m in arr.iter() {
         if let Some(sym) = ccxt::value::safe_string(m, "symbol", None) {
             by_symbol.insert(sym.clone(), m.clone());
             symbols.push(Value::Str(sym));
