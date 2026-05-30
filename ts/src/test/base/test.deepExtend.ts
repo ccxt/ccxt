@@ -4,6 +4,35 @@ import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
+
+function helperTestDeepExtendImmutability () {
+    // todo: sandbox for real exchanges
+    const opts = {
+        'id': 'sampleexchange',
+        'options': {
+            'sandbox': false,
+        },
+        'urls': {
+            'api': {
+                'public': 'https://example.com'
+            },
+            'test': {
+                'public': 'https://testnet.org'
+            },
+        }
+    };
+    //
+    // CASE A: when sandbox is not enabled
+    //
+    const exchange3 = new ccxt.Exchange (opts);
+    exchange3.setSandboxMode (true);
+    opts['options']['sandbox'] = true;
+    const exchange4 = new ccxt.Exchange (opts);
+    exchange4.setSandboxMode (false);
+    assert (exchange4.urls['api']['public'] === 'https://example.com');
+    assert (exchange4.urls['test']['public'] === 'https://testnet.org');
+}
+
 function testDeepExtend () {
 
     const exchange = new ccxt.Exchange ({
@@ -67,9 +96,10 @@ function testDeepExtend () {
         "other1": "x",
         "other2": "y",
     };
-    // todo: results are different across langs.
-    // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testDeepExtend', deepExtended, compareTo);
+
+    // test against immutability
+    helperTestDeepExtendImmutability ();
 }
 
 export default testDeepExtend;
