@@ -12,6 +12,7 @@
 
 use crate::Value;
 use indexmap::IndexMap as HashMap;
+use std::sync::Arc;
 
 // ── numeric / arithmetic ─────────────────────────────────────────────────────
 
@@ -74,7 +75,7 @@ fn stringify_simple(v: &Value) -> String {
         // Reconstruct the decimal representation so `to_string_val` in
         // transpiled code returns the expected number string (phemex
         // `toEn` shifts decimals by `valueScale`, then reduce/stringify).
-        Value::Map(m) if m.contains_key("__precise") => precise_to_string(m),
+        Value::Dict(m) if m.contains_key("__precise") => precise_to_string(m),
         _ => format!("{v}"),
     }
 }
@@ -205,8 +206,8 @@ impl IsTruthy for &bool     { fn truthy(&self) -> bool { **self } }
 
 pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
 
-pub fn is_array(v: &Value)    -> bool { matches!(v, Value::Array(_)) }
-pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Map(_)) }
+pub fn is_array(v: &Value)    -> bool { matches!(v, Value::Arr(_)) }
+pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Dict(_)) }
 pub fn is_string(v: &Value)   -> bool { matches!(v, Value::Str(_)) }
 pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float(_)) }
 pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
@@ -325,9 +326,10 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
 
 pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => m.entry(k.clone()).or_insert(Value::Null),
-        (Value::Array(a), Value::Int(i)) => {
+        (Value::Dict(m), Value::Str(k)) => Arc::make_mut(m).entry(k.clone()).or_insert(Value::Null),
+        (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
+            let a = Arc::make_mut(a);
             while a.len() <= idx { a.push(Value::Null); }
             &mut a[idx]
         }
@@ -337,10 +339,11 @@ pub fn get_value_mut<'a>(obj: &'a mut Value, key: &Value) -> &'a mut Value {
 
 pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => { m.insert(k.clone(), val); }
-        (Value::Map(m), other) => { m.insert(stringify_simple(other), val); }
-        (Value::Array(a), Value::Int(i)) => {
+        (Value::Dict(m), Value::Str(k)) => { Arc::make_mut(m).insert(k.clone(), val); }
+        (Value::Dict(m), other) => { Arc::make_mut(m).insert(stringify_simple(other), val); }
+        (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
+            let a = Arc::make_mut(a);
             while a.len() <= idx { a.push(Value::Null); }
             a[idx] = val;
         }
@@ -350,9 +353,10 @@ pub fn add_element_to_object(obj: &mut Value, key: &Value, val: Value) {
 
 pub fn remove(obj: &mut Value, key: &Value) {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => { m.remove(k); }
-        (Value::Array(a), Value::Int(i)) => {
+        (Value::Dict(m), Value::Str(k)) => { Arc::make_mut(m).shift_remove(k); }
+        (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
+            let a = Arc::make_mut(a);
             if idx < a.len() { a.remove(idx); }
         }
         _ => {}
@@ -361,22 +365,22 @@ pub fn remove(obj: &mut Value, key: &Value) {
 
 pub fn in_op(obj: &Value, key: &Value) -> bool {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => m.contains_key(k),
-        (Value::Array(a), v) => a.iter().any(|x| is_equal(x, v)),
+        (Value::Dict(m), Value::Str(k)) => m.contains_key(k),
+        (Value::Arr(a), v) => a.iter().any(|x| is_equal(x, v)),
         _ => false,
     }
 }
 
 pub fn object_keys(v: &Value) -> Value {
     match v {
-        Value::Map(m) => Value::Array(m.keys().map(|k| Value::Str(k.clone())).collect()),
+        Value::Dict(m) => Value::Array(m.keys().map(|k| Value::Str(k.clone())).collect()),
         _ => Value::Array(vec![]),
     }
 }
 
 pub fn object_values(v: &Value) -> Value {
     match v {
-        Value::Map(m) => Value::Array(m.values().cloned().collect()),
+        Value::Dict(m) => Value::Array(m.values().cloned().collect()),
         _ => Value::Array(vec![]),
     }
 }
@@ -387,7 +391,7 @@ pub fn get_array_length(v: &Value) -> Value {
 
 pub fn get_index_of(haystack: &Value, needle: &Value) -> Value {
     match haystack {
-        Value::Array(a) => {
+        Value::Arr(a) => {
             for (i, item) in a.iter().enumerate() {
                 if is_equal(item, needle) { return Value::Int(i as i64); }
             }
@@ -498,16 +502,16 @@ pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
 }
 
 pub fn append_to_array(arr: &mut Value, v: Value) {
-    if let Value::Array(a) = arr {
-        a.push(v);
+    if let Value::Arr(a) = arr {
+        Arc::make_mut(a).push(v);
     }
 }
 
 pub fn concat_arrays(a: &Value, b: &Value) -> Value {
     match (a, b) {
-        (Value::Array(x), Value::Array(y)) => {
-            let mut out = x.clone();
-            out.extend(y.clone());
+        (Value::Arr(x), Value::Arr(y)) => {
+            let mut out = (**x).clone();
+            out.extend(y.iter().cloned());
             Value::Array(out)
         }
         _ => Value::Array(vec![]),
@@ -566,7 +570,7 @@ pub fn slice(v: &Value, start: &Value, end: &Value) -> Value {
             };
             if si <= ei { Value::Str(chars[si..ei].iter().collect()) } else { Value::Str(String::new()) }
         }
-        Value::Array(a) => {
+        Value::Arr(a) => {
             let len = a.len() as i64;
             let si = if s < 0 { (len + s).max(0) as usize } else { (s as usize).min(a.len()) };
             let ei = match e_opt {
@@ -582,7 +586,7 @@ pub fn slice(v: &Value, start: &Value, end: &Value) -> Value {
 /// `join(array, separator)` — joins array elements into a string.
 pub fn join(arr: &Value, sep: &Value) -> Value {
     let s = stringify_simple(sep);
-    if let Value::Array(a) = arr {
+    if let Value::Arr(a) = arr {
         let parts: Vec<String> = a.iter().map(stringify_simple).collect();
         Value::Str(parts.join(&s))
     } else { Value::Str(String::new()) }
@@ -657,7 +661,7 @@ pub fn index_of(haystack: &Value, needle: &Value) -> Value {
 pub fn contains(haystack: &Value, needle: &Value) -> bool {
     match (haystack, needle) {
         (Value::Str(h), Value::Str(n))   => h.contains(n.as_str()),
-        (Value::Array(a), n)             => a.iter().any(|el| is_equal(el, n)),
+        (Value::Arr(a), n)             => a.iter().any(|el| is_equal(el, n)),
         _ => false,
     }
 }
@@ -695,7 +699,7 @@ pub fn split(s: &Value, delim: &Value) -> Value {
 /// `concat(a, b)` — generic concat: array+array or string+string.
 pub fn concat(a: &Value, b: &Value) -> Value {
     match (a, b) {
-        (Value::Array(_), Value::Array(_)) => concat_arrays(a, b),
+        (Value::Arr(_), Value::Arr(_)) => concat_arrays(a, b),
         (Value::Str(x), Value::Str(y)) => Value::Str(format!("{x}{y}")),
         _ => Value::Null,
     }
@@ -716,7 +720,7 @@ pub fn totp(_secret: Value) -> Value {
 pub fn encode(s: Value) -> Value {
     match &s {
         Value::Str(st) => Value::Array(st.bytes().map(|b| Value::Int(b as i64)).collect()),
-        Value::Array(_) => s,
+        Value::Arr(_) => s,
         _ => Value::Array(vec![]),
     }
 }

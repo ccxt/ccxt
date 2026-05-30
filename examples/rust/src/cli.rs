@@ -185,7 +185,7 @@ fn set_credential(ex: &mut ccxt::exchange::Exchange, key: &str, val: &str) {
 /// build_implicit_api) and `call_dynamic(method, args) -> Value` in its
 /// generated impl block. We just box the right Core and invoke.
 macro_rules! dispatch_exchange {
-    ($id:expr, $method:expr, $args:expr, $verbose:expr, $testnet:expr, $demo:expr, $creds:expr,
+    ($id:expr, $method:expr, $args:expr, $verbose:expr, $testnet:expr, $demo:expr, $time:expr, $creds:expr,
      $( $name:literal => $core:ty ),* $(,)?
     ) => {{
         match $id {
@@ -202,10 +202,37 @@ macro_rules! dispatch_exchange {
                     if $demo    { ex.exchange.enable_demo_trading(Value::Bool(true)); }
                     // Most unified methods need markets loaded first.
                     let m = $method;
-                    if !["fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m.as_str()) {
+                    let skip_load = ["fetch_markets", "fetch_currencies", "fetch_time", "fetch_status", "describe"].contains(&m.as_str());
+                    let (load_total, load_http, load_json, load_calls);
+                    if skip_load {
+                        load_total = std::time::Duration::ZERO;
+                        load_http = 0u64; load_json = 0u64; load_calls = 0u64;
+                    } else {
+                        let _ = ccxt::exchange::take_http_timings();
+                        let t0 = std::time::Instant::now();
                         let _ = ex.load_markets_safe().await;
+                        load_total = t0.elapsed();
+                        let (h, j, c) = ccxt::exchange::take_http_timings();
+                        load_http = h; load_json = j; load_calls = c;
                     }
-                    ex.call_dynamic(&m, $args).await
+                    let _ = ccxt::exchange::take_http_timings();
+                    let t0 = std::time::Instant::now();
+                    let result = ex.call_dynamic(&m, $args).await;
+                    let method_total = t0.elapsed();
+                    let (m_http, m_json, m_calls) = ccxt::exchange::take_http_timings();
+                    if $time {
+                        let ms = |n: u128| (n as f64) / 1_000_000.0;
+                        eprintln!();
+                        eprintln!("{YELLOW}timings (ms):{RESET}");
+                        eprintln!("  loadMarkets:    total={:>8.2}  http={:>8.2}  json={:>8.2}  calls={}",
+                            ms(load_total.as_nanos()), ms(load_http as u128), ms(load_json as u128), load_calls);
+                        let m_parse = method_total.as_nanos().saturating_sub((m_http as u128).saturating_add(m_json as u128));
+                        eprintln!("  {:<14}  total={:>8.2}  http={:>8.2}  json={:>8.2}  parse={:>8.2}  calls={}",
+                            format!("{m}:"),
+                            ms(method_total.as_nanos()), ms(m_http as u128), ms(m_json as u128),
+                            ms(m_parse), m_calls);
+                    }
+                    result
                 }
             )*
             other => panic!("{RED}exchange not transpiled yet: {other}{RESET}\nAdd it to dispatch_exchange! in cli.rs and run `tsx build/rustTranspiler.ts {other}`."),
@@ -289,6 +316,7 @@ async fn main() {
     let testnet = flags.iter().any(|f| f == "--testnet");
     let demo    = flags.iter().any(|f| f == "--demo");
     let no_keys = flags.iter().any(|f| f == "--no-keys");
+    let time    = flags.iter().any(|f| f == "--time");
 
     // Credentials from keys.local.json / keys.json + env vars.
     let creds: Vec<(String, String)> = if no_keys { Vec::new() } else { load_credentials(&id) };
@@ -312,7 +340,7 @@ async fn main() {
 
     let m = m_snake.clone();
     let result = panic::AssertUnwindSafe(async move {
-        dispatch_exchange!(id.as_str(), m, args, verbose, testnet, demo, creds,
+        dispatch_exchange!(id.as_str(), m, args, verbose, testnet, demo, time, creds,
             "binance"     => BinanceCore,
             "bybit"       => BybitCore,
             "okx"         => OkxCore,

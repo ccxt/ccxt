@@ -15,8 +15,22 @@
 // digifinex / mexc reject (and the static request fixtures assert)
 // specific key orders such as `{symbol,type,side,quantity,price}`.
 pub use indexmap::IndexMap as HashMap;
+use std::sync::Arc;
 
 /// A dynamic value type that mirrors the CCXT JavaScript Value semantics.
+///
+/// `Dict`/`Arr` hold their containers behind an `Arc` so that `clone()` is
+/// an O(1) refcount bump instead of a deep copy — the transpiled parsers
+/// and the static-test assertions clone Values pervasively (every
+/// `safeString`/`safeNumber`, every recursion level), which dominated
+/// runtime. Mutation goes through `Arc::make_mut` (copy-on-write): it
+/// only deep-copies when the container is actually shared.
+///
+/// NOTE: the variants are named `Dict`/`Arr`, but construction uses the
+/// associated functions `Value::Map(..)` / `Value::Array(..)` /
+/// `Value::List(..)` (which wrap the `Arc`) so the ~18k transpiler-emitted
+/// `Value::Map({..})` / `Value::List(vec![..])` call sites need no change.
+/// Pattern matches use `Value::Dict(..)` / `Value::Arr(..)`.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Null,
@@ -24,8 +38,8 @@ pub enum Value {
     Int(i64),
     Float(f64),
     Str(String),
-    Map(HashMap<String, Value>),
-    Array(Vec<Value>),
+    Dict(Arc<HashMap<String, Value>>),
+    Arr(Arc<Vec<Value>>),
 }
 
 impl Default for Value {
@@ -43,7 +57,7 @@ impl Value {
     /// the integer side so the final `stringify_param` renders the
     /// scaled integer correctly (`0.1` × 10^8 → `10000000`).
     pub fn reduce(&mut self) {
-        let m = match self { Value::Map(m) if m.contains_key("__precise") => m, _ => return };
+        let m = match self { Value::Dict(m) if m.contains_key("__precise") => Arc::make_mut(m), _ => return };
         let mut decimals: i64 = match m.get("decimals") {
             Some(Value::Int(n)) => *n,
             _ => return,
@@ -79,17 +93,18 @@ impl Value {
     /// `_data` and updates the `hashmap` index keyed by the cache kind.
     pub fn append(&mut self, item: Value) {
         match self {
-            Value::Array(a) => a.push(item),
-            Value::Map(m) if m.contains_key("__cacheKind") => {
+            Value::Arr(a) => Arc::make_mut(a).push(item),
+            Value::Dict(m) if m.contains_key("__cacheKind") => {
+                let m = Arc::make_mut(m);
                 let kind = match m.get("__cacheKind") {
                     Some(Value::Str(s)) => s.clone(),
                     _ => String::new(),
                 };
-                if let Some(Value::Array(data)) = m.get_mut("_data") {
-                    data.push(item.clone());
+                if let Some(Value::Arr(data)) = m.get_mut("_data") {
+                    Arc::make_mut(data).push(item.clone());
                 }
                 let get_str = |v: &Value, k: &str| -> Option<String> {
-                    match v { Value::Map(im) => match im.get(k) {
+                    match v { Value::Dict(im) => match im.get(k) {
                         Some(Value::Str(s)) => Some(s.clone()), _ => None,
                     }, _ => None }
                 };
@@ -100,11 +115,11 @@ impl Value {
                     _ => None,
                 };
                 if let (Some(sym), Some(key)) = (symbol, second) {
-                    if let Some(Value::Map(hm)) = m.get_mut("hashmap") {
-                        let bucket = hm.entry(sym)
+                    if let Some(Value::Dict(hm)) = m.get_mut("hashmap") {
+                        let bucket = Arc::make_mut(hm).entry(sym)
                             .or_insert_with(|| Value::Map(HashMap::new()));
-                        if let Value::Map(bm) = bucket {
-                            bm.insert(key, item);
+                        if let Value::Dict(bm) = bucket {
+                            Arc::make_mut(bm).insert(key, item);
                         }
                     }
                 }
@@ -119,7 +134,21 @@ impl Value {
     /// `Value::Array(_)`, not `Value::List(_)`.
     #[allow(non_snake_case)]
     pub fn List(items: Vec<Value>) -> Value {
-        Value::Array(items)
+        Value::Arr(Arc::new(items))
+    }
+
+    /// Construction shim — the transpiler emits `Value::Map({..IndexMap..})`
+    /// in ~18k places; this wraps the map in the `Arc` the `Dict` variant
+    /// now holds. (An associated fn, not a variant — patterns use `Dict`.)
+    #[allow(non_snake_case)]
+    pub fn Map(m: HashMap<String, Value>) -> Value {
+        Value::Dict(Arc::new(m))
+    }
+
+    /// Construction shim for `Value::Array(vec)` call sites.
+    #[allow(non_snake_case)]
+    pub fn Array(a: Vec<Value>) -> Value {
+        Value::Arr(Arc::new(a))
     }
 
     // ── constructors ──────────────────────────────────────────────────────────
@@ -156,8 +185,8 @@ impl Value {
     pub fn is_float(&self)  -> bool { matches!(self, Value::Float(_)) }
     pub fn is_number(&self) -> bool { matches!(self, Value::Int(_) | Value::Float(_)) }
     pub fn is_bool(&self)   -> bool { matches!(self, Value::Bool(_)) }
-    pub fn is_map(&self)    -> bool { matches!(self, Value::Map(_)) }
-    pub fn is_array(&self)  -> bool { matches!(self, Value::Array(_)) }
+    pub fn is_map(&self)    -> bool { matches!(self, Value::Dict(_)) }
+    pub fn is_array(&self)  -> bool { matches!(self, Value::Arr(_)) }
     pub fn is_truthy(&self) -> bool {
         match self {
             Value::Null       => false,
@@ -165,8 +194,8 @@ impl Value {
             Value::Int(n)     => *n != 0,
             Value::Float(f)   => *f != 0.0,
             Value::Str(s)     => !s.is_empty(),
-            Value::Map(m)     => !m.is_empty(),
-            Value::Array(a)   => !a.is_empty(),
+            Value::Dict(m)    => !m.is_empty(),
+            Value::Arr(a)     => !a.is_empty(),
         }
     }
 
@@ -183,10 +212,10 @@ impl Value {
     }
     pub fn as_bool(&self)  -> Option<bool>  { if let Value::Bool(b) = self { Some(*b) } else { None } }
     pub fn as_map(&self)   -> Option<&HashMap<String, Value>> {
-        if let Value::Map(m) = self { Some(m) } else { None }
+        if let Value::Dict(m) = self { Some(&**m) } else { None }
     }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
-        if let Value::Array(a) = self { Some(a) } else { None }
+        if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
 
     /// Length of array, map, or string; 0 for everything else.
@@ -194,8 +223,8 @@ impl Value {
     /// closely enough for ASCII-only API addresses/identifiers).
     pub fn len(&self) -> usize {
         match self {
-            Value::Array(a) => a.len(),
-            Value::Map(m)   => m.len(),
+            Value::Arr(a)   => a.len(),
+            Value::Dict(m)  => m.len(),
             Value::Str(s)   => s.chars().count(),
             _               => 0,
         }
@@ -223,8 +252,8 @@ impl Value {
             Value::Int(n)      => serde_json::json!(*n),
             Value::Float(f)    => serde_json::json!(*f),
             Value::Str(s)      => serde_json::Value::String(s.clone()),
-            Value::Array(a)    => serde_json::Value::Array(a.iter().map(Value::to_json).collect()),
-            Value::Map(m)      => serde_json::Value::Object(
+            Value::Arr(a)      => serde_json::Value::Array(a.iter().map(Value::to_json).collect()),
+            Value::Dict(m)     => serde_json::Value::Object(
                 m.iter().map(|(k, v)| (k.clone(), v.to_json())).collect()
             ),
         }
@@ -256,8 +285,8 @@ impl std::fmt::Display for Value {
             Value::Int(n)      => write!(f, "{n}"),
             Value::Float(fl)   => write!(f, "{fl}"),
             Value::Str(s)      => write!(f, "{s}"),
-            Value::Array(a)    => write!(f, "[{} items]", a.len()),
-            Value::Map(m)      => write!(f, "{{{}  keys}}", m.len()),
+            Value::Arr(a)      => write!(f, "[{} items]", a.len()),
+            Value::Dict(m)     => write!(f, "{{{}  keys}}", m.len()),
         }
     }
 }
@@ -342,7 +371,7 @@ fn live_lookup_get() -> Option<LiveLookupFn> {
 /// a `Value::Str` / `Value::Int`. Returns `Value::Null` on miss.
 pub fn get_value(obj: &Value, key: &Value) -> Value {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => {
+        (Value::Dict(m), Value::Str(k)) => {
             // Snapshot value wins WHEN PRESENT AND NON-NULL. Tests that
             // mutate `exchange.options` (e.g. kucoin broker-id test) need
             // the snapshot view to take precedence; but `to_value`
@@ -362,8 +391,8 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
             }
             Value::Null
         }
-        (Value::Array(a), Value::Int(i)) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
-        (Value::Array(a), Value::Str(k)) => {
+        (Value::Arr(a), Value::Int(i)) => a.get(*i as usize).cloned().unwrap_or(Value::Null),
+        (Value::Arr(a), Value::Str(k)) => {
             if let Ok(i) = k.parse::<usize>() {
                 a.get(i).cloned().unwrap_or(Value::Null)
             } else {
@@ -389,9 +418,10 @@ pub fn get_value(obj: &Value, key: &Value) -> Value {
 /// Set a key/index in a map or array value.
 pub fn set_value(obj: &mut Value, key: &Value, val: Value) {
     match (obj, key) {
-        (Value::Map(m), Value::Str(k)) => { m.insert(k.clone(), val); }
-        (Value::Array(a), Value::Int(i)) => {
+        (Value::Dict(m), Value::Str(k)) => { Arc::make_mut(m).insert(k.clone(), val); }
+        (Value::Arr(a), Value::Int(i)) => {
             let idx = *i as usize;
+            let a = Arc::make_mut(a);
             if idx < a.len() { a[idx] = val; }
         }
         _ => {}
@@ -450,12 +480,14 @@ pub fn safe_bool(obj: &Value, key: &str, default: Option<bool>) -> Option<bool> 
 /// For map/map overlaps the source fields win (deep extend).
 pub fn deep_extend(dst: Value, src: Value) -> Value {
     match (dst, src) {
-        (Value::Map(mut d), Value::Map(s)) => {
-            for (k, v) in s {
-                let entry = d.remove(&k).unwrap_or(Value::Null);
-                d.insert(k, deep_extend(entry, v));
+        (Value::Dict(mut d), Value::Dict(s)) => {
+            let dm = Arc::make_mut(&mut d);
+            let sm = Arc::try_unwrap(s).unwrap_or_else(|arc| (*arc).clone());
+            for (k, v) in sm {
+                let entry = dm.shift_remove(&k).unwrap_or(Value::Null);
+                dm.insert(k, deep_extend(entry, v));
             }
-            Value::Map(d)
+            Value::Dict(d)
         }
         (_, src) => src,
     }

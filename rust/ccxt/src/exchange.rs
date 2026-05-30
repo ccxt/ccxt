@@ -38,6 +38,23 @@ type HmacMd5    = Hmac<Md5>;
 /// Callback type used by derived exchanges to provide their `describe()` data.
 pub type DescribeCallback = Arc<dyn Fn() -> Value + Send + Sync>;
 
+// HTTP/JSON timing counters — accumulated by `fetch_typed`, read+reset
+// by the CLI / benchmarks via `take_http_timings()`.
+static HTTP_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static JSON_NANOS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static HTTP_CALLS:  std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Snapshot + reset the global HTTP/JSON timings. Returns
+/// `(http_nanos, json_nanos, http_calls)` and zeroes them.
+pub fn take_http_timings() -> (u64, u64, u64) {
+    use std::sync::atomic::Ordering::Relaxed;
+    (
+        HTTP_NANOS.swap(0, Relaxed),
+        JSON_NANOS.swap(0, Relaxed),
+        HTTP_CALLS.swap(0, Relaxed),
+    )
+}
+
 // ── Internals (Rust-typed runtime state, not exposed to transpiled code) ─────
 
 pub struct Internals {
@@ -367,9 +384,9 @@ fn base_status() -> Value {
 /// nested maps merge key-by-key.
 fn deep_merge(a: &Value, b: &Value) -> Value {
     match (a, b) {
-        (Value::Map(am), Value::Map(bm)) => {
-            let mut out = am.clone();
-            for (k, bv) in bm {
+        (Value::Dict(am), Value::Dict(bm)) => {
+            let mut out = (**am).clone();
+            for (k, bv) in bm.iter() {
                 let merged = match out.get(k) {
                     Some(av) => deep_merge(av, bv),
                     None     => bv.clone(),
@@ -595,7 +612,7 @@ impl Exchange {
         let timeout = crate::get_value(cfg, &Value::Str("timeout".to_string()));
         if matches!(timeout, Value::Int(_) | Value::Float(_)) { self.timeout = timeout; }
         let urls = crate::get_value(cfg, &Value::Str("urls".to_string()));
-        if let Value::Map(_) = urls { self.urls = deep_merge(&self.urls, &urls); }
+        if let Value::Dict(_) = urls { self.urls = deep_merge(&self.urls, &urls); }
         if let Some(v) = safe_string(cfg, "apiKey",        None) { self.apiKey        = Value::Str(v); }
         if let Some(v) = safe_string(cfg, "secret",        None) { self.secret        = Value::Str(v); }
         if let Some(v) = safe_string(cfg, "password",      None) { self.password      = Value::Str(v); }
@@ -618,11 +635,12 @@ impl Exchange {
         if !matches!(markets,    Value::Null) { self.set_markets_inline(markets); }
         if !matches!(currencies, Value::Null) { self.currencies = currencies; }
         let opts = crate::get_value(cfg, &Value::Str("options".to_string()));
-        if let Value::Map(extra) = opts {
+        if let Value::Dict(extra) = opts {
             let mut merged = match &self.options {
-                Value::Map(m) => m.clone(),
+                Value::Dict(m) => (**m).clone(),
                 _ => HashMap::new(),
             };
+            let extra = Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone());
             for (k, v) in extra { merged.insert(k, v); }
             self.options = Value::Map(merged);
         }
@@ -634,8 +652,8 @@ impl Exchange {
     /// Accepts either Map<symbol, market> or Array<market>.
     fn set_markets_inline(&mut self, markets: Value) {
         let arr: Vec<Value> = match &markets {
-            Value::Map(m)   => m.values().cloned().collect(),
-            Value::Array(a) => a.clone(),
+            Value::Dict(m)   => m.values().cloned().collect(),
+            Value::Arr(a) => (**a).clone(),
             _ => return,
         };
         let mut by_symbol = HashMap::new();
@@ -718,7 +736,7 @@ impl Exchange {
         let method_str = match &method { Value::Str(s) => s.clone(), _ => "GET".to_string() };
         let body_str = match &body { Value::Str(s) => Some(s.clone()), _ => None };
         let headers_map: HashMap<String, String> = match &headers {
-            Value::Map(m) => m.iter().filter_map(|(k, v)| match v {
+            Value::Dict(m) => m.iter().filter_map(|(k, v)| match v {
                 Value::Str(s) => Some((k.clone(), s.clone())),
                 _ => None,
             }).collect(),
@@ -737,6 +755,7 @@ impl Exchange {
         headers: HashMap<String, String>,
         body:    Option<String>,
     ) -> Result<Value> {
+        let _fetch_call_count = HTTP_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         // Always record what was *about* to be sent. Lets the static
         // request tests read `last_request_url` / `last_request_body`
         // after triggering a no-op call.
@@ -796,9 +815,12 @@ impl Exchange {
             }
         }
         if let Some(b) = body                 { req = req.body(b); }
+        let __http_t0 = std::time::Instant::now();
         let resp = req.send().await?;
         let status = resp.status().as_u16();
         let text   = resp.text().await?;
+        HTTP_NANOS.fetch_add(__http_t0.elapsed().as_nanos() as u64,
+            std::sync::atomic::Ordering::Relaxed);
         if self.is_verbose() {
             eprintln!("[ccxt] ← {status} {} bytes", text.len());
             // Print the response body, capped so a multi-MB payload
@@ -812,10 +834,13 @@ impl Exchange {
                 eprintln!("[ccxt]   response body: {text}");
             }
         }
+        let __json_t0 = std::time::Instant::now();
         let json = match serde_json::from_str::<serde_json::Value>(&text) {
             Ok(j)  => Value::from_json(&j),
             Err(_) => Value::Null,
         };
+        JSON_NANOS.fetch_add(__json_t0.elapsed().as_nanos() as u64,
+            std::sync::atomic::Ordering::Relaxed);
         if status >= 400 {
             // Let the derived exchange map its own error codes — e.g.
             // binance turns `{"code":-2014}` into an AuthenticationError.
@@ -848,7 +873,7 @@ impl Exchange {
     // ── encoding / URL helpers ──────────────────────────────────────────────
 
     pub fn urlencode_kv(&self, params: &Value) -> String {
-        let m = match params { Value::Map(m) => m, _ => return String::new() };
+        let m = match params { Value::Dict(m) => m, _ => return String::new() };
         m.iter().map(|(k, v)| format!(
             "{}={}",
             url_pct(k),
@@ -858,9 +883,9 @@ impl Exchange {
 
     pub fn implode_params(&self, path: Value, params: Value) -> Value {
         let path_str = match &path { Value::Str(s) => s.clone(), _ => return path };
-        let m = match &params { Value::Map(m) => m, _ => return Value::Str(path_str) };
+        let m = match &params { Value::Dict(m) => m, _ => return Value::Str(path_str) };
         let mut out = path_str;
-        for (k, v) in m {
+        for (k, v) in m.iter() {
             let needle = format!("{{{k}}}");
             if out.contains(&needle) {
                 out = out.replace(&needle, &crate::runtime::stringify_param(v));
@@ -1136,7 +1161,7 @@ impl Exchange {
             // If the current level is a verb (`get`/`post`/…) and its child
             // is a Map, the keys ARE the paths (and values are rate-limit
             // costs — exchange-specific).
-            Value::Map(m) if last_is_verb => {
+            Value::Dict(m) if last_is_verb => {
                 let verb = crumbs.last().unwrap().to_lowercase();
                 // Method name uses snake-cased scope (`fapi_public_get_X`).
                 let scope_snake = Self::api_scope_from_crumbs(&crumbs[..crumbs.len() - 1]);
@@ -1150,22 +1175,22 @@ impl Exchange {
                     Self::register_implicit(&verb, &scope_snake, &scope_segments, path_key, out);
                 }
             }
-            Value::Map(m) => {
-                for (key, child) in m {
+            Value::Dict(m) => {
+                for (key, child) in m.iter() {
                     let mut next = crumbs.to_vec();
                     next.push(key.clone());
                     Self::walk_api_node(child, &next, out);
                 }
             }
             // Some exchanges use `Array<path-string>` at the verb level.
-            Value::Array(a) if last_is_verb => {
+            Value::Arr(a) if last_is_verb => {
                 let verb = crumbs.last().unwrap().to_lowercase();
                 let scope_snake = Self::api_scope_from_crumbs(&crumbs[..crumbs.len() - 1]);
                 let scope_segments: Vec<String> = crumbs[..crumbs.len() - 1].to_vec();
-                for path in a {
+                for path in a.iter() {
                     let path_str = match path {
                         Value::Str(s) => s.clone(),
-                        Value::Map(pm) => match pm.get("method").or_else(|| pm.get("path")) {
+                        Value::Dict(pm) => match pm.get("method").or_else(|| pm.get("path")) {
                             Some(Value::Str(s)) => s.clone(),
                             _ => continue,
                         },
@@ -1299,7 +1324,7 @@ impl Exchange {
         let scoped = crate::get_value(&api, &Value::Str(scope.to_string()));
         let raw = match scoped {
             Value::Str(s) => s,
-            Value::Map(m) => match m.get("rest").or_else(|| m.get("current")) {
+            Value::Dict(m) => match m.get("rest").or_else(|| m.get("current")) {
                 Some(Value::Str(s)) => s.clone(),
                 _ => return self.fallback_rest_url(&api),
             },
@@ -1353,6 +1378,14 @@ impl Exchange {
     /// hitting `fetch`. Private endpoints need per-exchange signing — for
     /// now we treat anything outside `public` as a stub that returns Null.
     pub async fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> Result<Value> {
+        // Static *response* test fast path: a canned mock is returned
+        // regardless of the request, so skip the (otherwise wasted)
+        // `sign()` + URL/HMAC build — it's pure CPU per case and there
+        // are ~1400 cases. `fetch_typed` returns the mock before it
+        // touches the URL.
+        if !matches!(self.mock_response, Value::Null) {
+            return self.fetch_typed("", verb, HashMap::new(), None).await;
+        }
         // Each exchange's TS `sign` declares `api` differently:
         //   binance/hyperliquid/okx/kucoin: a string like "public"
         //   bitget/gate/htx/...:           an array like ["public","spot"]
@@ -1378,12 +1411,12 @@ impl Exchange {
             Value::Null,
             Value::Null,
         );
-        if let Value::Map(m) = &signed {
+        if let Value::Dict(m) = &signed {
             let url = match m.get("url") { Some(Value::Str(s)) => s.clone(), _ => String::new() };
             let method = match m.get("method") { Some(Value::Str(s)) => s.clone(), _ => verb.to_string() };
             let body = match m.get("body") { Some(Value::Str(s)) => Some(s.clone()), _ => None };
             let headers = match m.get("headers") {
-                Some(Value::Map(h)) => h.iter()
+                Some(Value::Dict(h)) => h.iter()
                     .filter_map(|(k, v)| match v { Value::Str(s) => Some((k.clone(), s.clone())), _ => None })
                     .collect::<HashMap<_, _>>(),
                 _ => HashMap::new(),
@@ -1403,8 +1436,9 @@ impl Exchange {
         let path_str = match &imploded { Value::Str(s) => s.clone(), _ => path.to_string() };
         let consumed_keys = self.extract_path_params(path);
         let remaining_params = match params {
-            Value::Map(m) => {
+            Value::Dict(m) => {
                 let mut keep = HashMap::new();
+                let m = Arc::try_unwrap(m).unwrap_or_else(|a| (*a).clone());
                 for (k, v) in m {
                     if !consumed_keys.contains(&k) { keep.insert(k, v); }
                 }
@@ -1415,7 +1449,7 @@ impl Exchange {
         let mut url = format!("{}/{}", base.trim_end_matches('/'), path_str.trim_start_matches('/'));
         let mut body: Option<String> = None;
         let qs = match &remaining_params {
-            Value::Map(m) if !m.is_empty() => self.urlencode_kv(&remaining_params),
+            Value::Dict(m) if !m.is_empty() => self.urlencode_kv(&remaining_params),
             _ => String::new(),
         };
         if verb == "GET" || verb == "DELETE" {
@@ -1473,7 +1507,7 @@ pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
 /// hashStruct(message)` preimage. The caller keccak-hashes this into the
 /// 32-byte digest that gets ECDSA-signed (hyperliquid, etc.).
 pub(crate) fn eip712_encode(domain: &Value, types: &Value, message: &Value) -> Vec<u8> {
-    let dm = match domain { Value::Map(m) => m, _ => return Vec::new() };
+    let dm = match domain { Value::Dict(m) => m, _ => return Vec::new() };
     // EIP712Domain field set — canonical order, only the keys present.
     let mut domain_fields: Vec<(String, String)> = Vec::new();
     for (n, t) in [("name", "string"), ("version", "string"), ("chainId", "uint256"),
@@ -1483,10 +1517,10 @@ pub(crate) fn eip712_encode(domain: &Value, types: &Value, message: &Value) -> V
     let domain_sep = eip712_hash_struct("EIP712Domain", &domain_fields, domain);
     // The primary type is the single key of `types`.
     let (primary, fields) = match types {
-        Value::Map(m) => match m.iter().next() {
-            Some((k, Value::Array(arr))) => {
+        Value::Dict(m) => match m.iter().next() {
+            Some((k, Value::Arr(arr))) => {
                 let f: Vec<(String, String)> = arr.iter().filter_map(|it| match it {
-                    Value::Map(fm) => Some((
+                    Value::Dict(fm) => Some((
                         fm.get("name")?.as_str()?.to_string(),
                         fm.get("type")?.as_str()?.to_string(),
                     )),
@@ -1509,7 +1543,7 @@ fn eip712_hash_struct(type_name: &str, fields: &[(String, String)], data: &Value
     let inner: Vec<String> = fields.iter().map(|(n, t)| format!("{t} {n}")).collect();
     let type_str = format!("{}({})", type_name, inner.join(","));
     let mut enc = hash_raw(type_str.as_bytes(), "keccak"); // typeHash (32 bytes)
-    let dm = match data { Value::Map(m) => Some(m), _ => None };
+    let dm = match data { Value::Dict(m) => Some(m), _ => None };
     for (name, ty) in fields {
         let v = dm.and_then(|m| m.get(name)).cloned().unwrap_or(Value::Null);
         enc.extend_from_slice(&eip712_encode_value(ty, &v));
@@ -1560,7 +1594,7 @@ fn eip712_bytes(v: &Value) -> Vec<u8> {
 pub(crate) fn value_to_bytes(v: &Value) -> Vec<u8> {
     match v {
         Value::Str(s) => s.as_bytes().to_vec(),
-        Value::Array(a) => a.iter().filter_map(|x| match x {
+        Value::Arr(a) => a.iter().filter_map(|x| match x {
             Value::Int(n) => Some(*n as u8),
             _ => None,
         }).collect(),

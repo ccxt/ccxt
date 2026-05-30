@@ -16,6 +16,7 @@
 #![allow(non_snake_case, dead_code, unused_variables)]
 
 use indexmap::IndexMap as HashMap;
+use std::sync::Arc;
 use crate::{Value, ExchangeError, Result};
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
@@ -65,7 +66,7 @@ fn bytes_to_value(bytes: &[u8]) -> Value {
 /// byte values (0..=255) — the port's stand-in for a binary buffer.
 fn is_byte_array(v: &Value) -> bool {
     match v {
-        Value::Array(a) => a.iter().all(|x| matches!(x, Value::Int(n) if (0..=255).contains(n))),
+        Value::Arr(a) => a.iter().all(|x| matches!(x, Value::Int(n) if (0..=255).contains(n))),
         _ => false,
     }
 }
@@ -74,12 +75,12 @@ fn is_byte_array(v: &Value) -> bool {
 /// arrays into bracketed keys (`b[c]`, `d[0]`), encoding only values.
 fn urlencode_nested_walk(prefix: &str, v: &Value, out: &mut Vec<String>) {
     match v {
-        Value::Map(m) => {
-            for (k, val) in m {
+        Value::Dict(m) => {
+            for (k, val) in m.iter() {
                 urlencode_nested_walk(&format!("{prefix}[{k}]"), val, out);
             }
         }
-        Value::Array(a) => {
+        Value::Arr(a) => {
             for (i, val) in a.iter().enumerate() {
                 urlencode_nested_walk(&format!("{prefix}[{i}]"), val, out);
             }
@@ -450,8 +451,8 @@ impl Exchange {
     }
 
     pub fn safe_value_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_value(obj.clone(), k, &[]);
                 if !v.is_null() { return v; }
             }
@@ -479,8 +480,8 @@ impl Exchange {
     }
 
     pub fn safe_string_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() { return v; }
             }
@@ -496,8 +497,8 @@ impl Exchange {
     }
 
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v { return Value::Str(s.to_lowercase()); }
@@ -509,8 +510,8 @@ impl Exchange {
     }
 
     pub fn safe_string_upper_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_string(obj.clone(), k, &[]);
                 if !v.is_null() {
                     if let Value::Str(s) = v { return Value::Str(s.to_uppercase()); }
@@ -659,8 +660,8 @@ impl Exchange {
     /// `binaryConcatArray(arrayOfChunks)` — concatenates hex-string chunks.
     pub fn binary_concat_array(&self, arr: Value) -> Value {
         let mut out = String::new();
-        if let Value::Array(items) = &arr {
-            for it in items {
+        if let Value::Arr(items) = &arr {
+            for it in items.iter() {
                 if let Value::Str(s) = it { out.push_str(s); }
             }
         }
@@ -797,13 +798,13 @@ impl Exchange {
     /// `urlencodeWithArrayRepeat(params)` — `qs.stringify(object, { arrayFormat: 'repeat' })`:
     /// array values repeat the key (`a=1&a=2`); scalars encode normally.
     pub fn urlencode_with_array_repeat(&self, params: Value) -> Value {
-        let m = match &params { Value::Map(m) => m, _ => return Value::Str(String::new()) };
+        let m = match &params { Value::Dict(m) => m, _ => return Value::Str(String::new()) };
         let mut pairs: Vec<String> = Vec::new();
-        for (k, v) in m {
+        for (k, v) in m.iter() {
             let key = crate::exchange::url_pct(k);
             match v {
-                Value::Array(items) => {
-                    for item in items {
+                Value::Arr(items) => {
+                    for item in items.iter() {
                         pairs.push(format!("{}={}", key, crate::exchange::url_pct(&stringify_param(item))));
                     }
                 }
@@ -842,8 +843,8 @@ impl Exchange {
     }
 
     pub fn safe_integer_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_integer(obj.clone(), k, &[]);
                 if !v.is_null() { return v; }
             }
@@ -880,8 +881,8 @@ impl Exchange {
     }
 
     pub fn safe_integer_product_n(&self, obj: Value, keys: Value, factor: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_integer_product(obj.clone(), k, factor.clone(), &[]);
                 if !v.is_null() { return v; }
             }
@@ -926,8 +927,8 @@ impl Exchange {
     pub fn is_empty(&self, v: Value) -> Value {
         let empty = match &v {
             Value::Null         => true,
-            Value::Array(a)     => a.is_empty(),
-            Value::Map(m)       => m.is_empty(),
+            Value::Arr(a)     => a.is_empty(),
+            Value::Dict(m)       => m.is_empty(),
             _ => false,
         };
         Value::Bool(empty)
@@ -941,11 +942,14 @@ impl Exchange {
 
     pub fn extend(&self, a: Value, optional_args: &[Value]) -> Value {
         let mut out = match a {
-            Value::Map(m) => m,
+            Value::Dict(m) => Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone()),
             _ => HashMap::new(),
         };
         let merge = |out: &mut HashMap<String, Value>, src: Value| {
-            if let Value::Map(m) = src { for (k, v) in m { out.insert(k, v); } }
+            if let Value::Dict(m) = src {
+                let m = Arc::try_unwrap(m).unwrap_or_else(|x| (*x).clone());
+                for (k, v) in m { out.insert(k, v); }
+            }
         };
         for extra in optional_args { merge(&mut out, extra.clone()); }
         Value::Map(out)
@@ -961,17 +965,18 @@ impl Exchange {
 
     pub fn omit(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Value {
         match obj {
-            Value::Map(mut m) => {
+            Value::Dict(mut m) => {
+                let mm = Arc::make_mut(&mut m);
                 match keys {
-                    Value::Array(ks) => {
-                        for k in ks {
-                            if let Value::Str(s) = k { m.remove(&s); }
+                    Value::Arr(ks) => {
+                        for k in ks.iter() {
+                            if let Value::Str(s) = k { mm.shift_remove(s); }
                         }
                     }
-                    Value::Str(s) => { m.remove(&s); }
+                    Value::Str(s) => { mm.shift_remove(&s); }
                     _ => {}
                 }
-                Value::Map(m)
+                Value::Dict(m)
             }
             other => other,
         }
@@ -1001,8 +1006,8 @@ impl Exchange {
 
     pub fn to_array(&self, v: Value) -> Value {
         match v {
-            Value::Array(_)  => v,
-            Value::Map(m)    => Value::Array(m.into_iter().map(|(_, v)| v).collect()),
+            Value::Arr(_)  => v,
+            Value::Dict(m)    => Value::Array(m.values().cloned().collect()),
             Value::Null      => Value::Array(vec![]),
             other            => Value::Array(vec![other]),
         }
@@ -1013,7 +1018,7 @@ impl Exchange {
     }
 
     pub fn array_slice(&self, v: Value, start: Value, optional_args: &[Value]) -> Value {
-        let Value::Array(a) = v else { return Value::Array(vec![]); };
+        let Value::Arr(a) = v else { return Value::Array(vec![]); };
         let len = a.len() as i64;
         let s = match start { Value::Int(n) => n, _ => 0 };
         let s = if s < 0 { (len + s).max(0) as usize } else { (s as usize).min(a.len()) };
@@ -1028,16 +1033,16 @@ impl Exchange {
     }
 
     pub fn in_array(&self, needle: Value, haystack: Value) -> Value {
-        let hit = if let Value::Array(a) = haystack {
+        let hit = if let Value::Arr(a) = haystack {
             a.iter().any(|x| crate::runtime::is_equal(x, &needle))
         } else { false };
         Value::Bool(hit)
     }
 
     pub fn unique(&self, v: Value) -> Value {
-        if let Value::Array(a) = v {
+        if let Value::Arr(a) = v {
             let mut out: Vec<Value> = vec![];
-            for item in a {
+            for item in a.iter().cloned() {
                 if !out.iter().any(|x| crate::runtime::is_equal(x, &item)) {
                     out.push(item);
                 }
@@ -1055,8 +1060,8 @@ impl Exchange {
         // a dict keyed by network code. Array-only would return {} and
         // collapse every parsed address to a null network.
         let items: Vec<Value> = match arr {
-            Value::Array(items) => items,
-            Value::Map(m)       => m.into_iter().map(|(_, v)| v).collect(),
+            Value::Arr(items) => Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone()),
+            Value::Dict(m)       => m.values().cloned().collect(),
             _ => return Value::Map(out),
         };
         for item in items {
@@ -1074,8 +1079,8 @@ impl Exchange {
     pub fn group_by(&self, arr: Value, key: Value, _optional_args: &[Value]) -> Value {
         let k = key_str(&key);
         let mut out: HashMap<String, Vec<Value>> = HashMap::new();
-        if let Value::Array(items) = arr {
-            for item in items {
+        if let Value::Arr(items) = arr {
+            for item in items.iter().cloned() {
                 if let Some(kv) = crate::value::safe_string(&item, &k, None) {
                     out.entry(kv).or_default().push(item);
                 }
@@ -1086,7 +1091,8 @@ impl Exchange {
 
     pub fn filter_by(&self, arr: Value, key: Value, value: Value, _optional_args: &[Value]) -> Value {
         let k = key_str(&key);
-        if let Value::Array(items) = arr {
+        if let Value::Arr(items) = arr {
+            let items = Arc::try_unwrap(items).unwrap_or_else(|a| (*a).clone());
             let out: Vec<Value> = items.into_iter().filter(|it| {
                 let v = crate::get_value(it, &Value::Str(k.clone()));
                 crate::runtime::is_equal(&v, &value)
@@ -1098,7 +1104,7 @@ impl Exchange {
     /// `sortBy(array, key, descending=false)` — stable sort of an array
     /// of objects by `obj[key]`. Mirrors `functions/generic.ts`.
     pub fn sort_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value {
-        let mut items = match arr { Value::Array(a) => a, other => return other };
+        let mut items = match arr { Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()), other => return other };
         let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
         let key = Value::Str(stringify_param(&key));
         items.sort_by(|a, b| {
@@ -1113,7 +1119,7 @@ impl Exchange {
     /// `sortBy2(array, key1, key2, descending=false)` — sort by `key1`,
     /// then `key2` as a tiebreaker. Mirrors `functions/generic.ts`.
     pub fn sort_by2(&self, arr: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Value {
-        let mut items = match arr { Value::Array(a) => a, other => return other };
+        let mut items = match arr { Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()), other => return other };
         let descending = matches!(optional_args.get(0), Some(Value::Bool(true)));
         let k1 = Value::Str(stringify_param(&k1));
         let k2 = Value::Str(stringify_param(&k2));
@@ -1126,7 +1132,7 @@ impl Exchange {
     }
 
     pub fn keysort(&self, obj: Value, _optional_args: &[Value]) -> Value {
-        if let Value::Map(m) = obj {
+        if let Value::Dict(m) = obj {
             let mut keys: Vec<&String> = m.keys().collect();
             keys.sort();
             let mut out = HashMap::new();
@@ -1139,11 +1145,11 @@ impl Exchange {
     /// summing volume and dropping zero-volume rows. Preserves the
     /// first-occurrence order of prices. Mirrors `functions/misc.ts`.
     pub fn aggregate(&self, arr: Value) -> Value {
-        let items = match arr { Value::Array(a) => a, _ => return Value::Array(vec![]) };
+        let items = match arr { Value::Arr(a) => Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()), _ => return Value::Array(vec![]) };
         let mut order: Vec<u64> = Vec::new();
         let mut buckets: HashMap<u64, (f64, f64)> = HashMap::new();
         for item in items {
-            let row = match item { Value::Array(r) => r, _ => continue };
+            let row = match item { Value::Arr(r) => r, _ => continue };
             let price = value_as_f64(row.get(0));
             let volume = value_as_f64(row.get(1));
             if volume > 0.0 {
@@ -1319,7 +1325,7 @@ impl Exchange {
         Value::Str(base58_encode(&crate::exchange::value_to_bytes(&b)))
     }
     pub fn binary_length(&self, b: Value, _optional_args: &[Value]) -> Value {
-        match b { Value::Array(a) => Value::Int(a.len() as i64), _ => Value::Int(0) }
+        match b { Value::Arr(a) => Value::Int(a.len() as i64), _ => Value::Int(0) }
     }
     /// `isBinaryMessage` — in this port a binary buffer is a
     /// `Value::Array` of byte-valued ints (see `base16_to_binary`,
@@ -1380,8 +1386,8 @@ impl Exchange {
         }
     }
     pub fn safe_float_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
-        if let Value::Array(ks) = keys {
-            for k in ks {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
                 let v = self.safe_float(obj.clone(), k, &[]);
                 if !v.is_null() { return v; }
             }
@@ -1442,9 +1448,9 @@ impl Exchange {
     /// nested maps → `parent[child]`, arrays → `parent[index]`, only
     /// values are percent-encoded.
     pub fn urlencode_nested(&self, v: Value, _optional_args: &[Value]) -> Value {
-        let m = match &v { Value::Map(m) => m, _ => return Value::Str(String::new()) };
+        let m = match &v { Value::Dict(m) => m, _ => return Value::Str(String::new()) };
         let mut pairs: Vec<String> = Vec::new();
-        for (k, val) in m {
+        for (k, val) in m.iter() {
             urlencode_nested_walk(k, val, &mut pairs);
         }
         Value::Str(pairs.join("&"))
@@ -1459,7 +1465,8 @@ impl Exchange {
         match s { Value::Str(s) => Value::Str(s.trim().to_string()), other => other }
     }
     pub fn sort(&self, v: Value, _optional_args: &[Value]) -> Value {
-        if let Value::Array(mut a) = v {
+        if let Value::Arr(a) = v {
+            let mut a = Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone());
             a.sort_by(|x, y| {
                 let xs = crate::runtime::stringify_param(x);
                 let ys = crate::runtime::stringify_param(y);
@@ -1582,7 +1589,7 @@ impl Exchange {
     /// `rawencode(object)` — `qs.stringify(object, { encode: false })`:
     /// flat `key=value` pairs with no percent-encoding.
     pub fn rawencode(&self, params: Value, _optional_args: &[Value]) -> Value {
-        let m = match &params { Value::Map(m) => m, _ => return Value::Str(String::new()) };
+        let m = match &params { Value::Dict(m) => m, _ => return Value::Str(String::new()) };
         let pairs: Vec<String> = m.iter()
             .map(|(k, v)| format!("{}={}", k, stringify_param(v)))
             .collect();
@@ -1612,8 +1619,8 @@ impl Exchange {
                 Value::Int(i)    => rmpv::Value::Integer((*i).into()),
                 Value::Float(f)  => rmpv::Value::F64(*f),
                 Value::Str(s)    => rmpv::Value::String(s.clone().into()),
-                Value::Array(a)  => rmpv::Value::Array(a.iter().map(to_rmpv).collect()),
-                Value::Map(m)    => rmpv::Value::Map(
+                Value::Arr(a)  => rmpv::Value::Array(a.iter().map(to_rmpv).collect()),
+                Value::Dict(m)    => rmpv::Value::Map(
                     m.iter().map(|(k, v)| (rmpv::Value::String(k.clone().into()), to_rmpv(v))).collect()),
             }
         }
@@ -1673,9 +1680,9 @@ impl Exchange {
     pub fn decode(&self, b: Value) -> Value {
         match b {
             Value::Str(s) => Value::Str(s),
-            Value::Array(a) => {
-                let bytes: Vec<u8> = a.into_iter().filter_map(|v| match v {
-                    Value::Int(n) => Some(n as u8),
+            Value::Arr(a) => {
+                let bytes: Vec<u8> = a.iter().filter_map(|v| match v {
+                    Value::Int(n) => Some(*n as u8),
                     _ => None,
                 }).collect();
                 Value::Str(String::from_utf8_lossy(&bytes).to_string())
@@ -1904,8 +1911,8 @@ impl Exchange {
         //    `id` mappings like bitmex BTC → "XBt").
         // 3. Synthesized from markets (fallback so `set_markets` still
         //    takes the fast IF branch and skips its O(N²) else branch).
-        let preloaded_non_empty = matches!(&self.currencies, Value::Map(m) if !m.is_empty());
-        let currencies_arg = if matches!(&currencies, Value::Map(m) if !m.is_empty()) {
+        let preloaded_non_empty = matches!(&self.currencies, Value::Dict(m) if !m.is_empty());
+        let currencies_arg = if matches!(&currencies, Value::Dict(m) if !m.is_empty()) {
             currencies
         } else if preloaded_non_empty {
             self.currencies.clone()
@@ -1959,8 +1966,8 @@ impl Exchange {
 /// this version completes in milliseconds.
 fn synthesize_currencies_from_markets(markets: &Value, precision_mode: &Value) -> Value {
     let market_list: Vec<&Value> = match markets {
-        Value::Array(a) => a.iter().collect(),
-        Value::Map(m)   => m.values().collect(),
+        Value::Arr(a) => a.iter().collect(),
+        Value::Dict(m)   => m.values().collect(),
         _ => return Value::Map(HashMap::new()),
     };
     let is_tick_size = matches!(precision_mode, Value::Int(n) if *n == crate::runtime::TICK_SIZE);
