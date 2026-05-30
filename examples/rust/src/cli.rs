@@ -39,6 +39,46 @@ const GREEN:  &str = "\x1b[32m";
 const YELLOW: &str = "\x1b[33m";
 const RESET:  &str = "\x1b[0m";
 
+// ── pretty printer (JS-console style) ────────────────────────────────────────
+
+fn is_ident(s: &str) -> bool {
+    let mut chars = s.chars();
+    match chars.next() {
+        Some(c) if c.is_ascii_alphabetic() || c == '_' || c == '$' => {}
+        _ => return false,
+    }
+    chars.all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '$')
+}
+
+fn pretty(v: &Value, indent: usize) -> String {
+    let pad = "  ".repeat(indent);
+    let pad_next = "  ".repeat(indent + 1);
+    match v {
+        Value::Null      => "null".to_string(),
+        Value::Bool(b)   => b.to_string(),
+        Value::Int(n)    => n.to_string(),
+        Value::Float(f)  => {
+            if f.is_nan() { "NaN".into() }
+            else if f.is_infinite() { (if *f < 0.0 { "-Infinity" } else { "Infinity" }).into() }
+            else { format!("{f}") }
+        }
+        Value::Str(s)    => format!("'{}'", s.replace('\\', "\\\\").replace('\'', "\\'")),
+        Value::Arr(a)    => {
+            if a.is_empty() { return "[]".into(); }
+            let items: Vec<String> = a.iter().map(|x| format!("{pad_next}{}", pretty(x, indent + 1))).collect();
+            format!("[\n{}\n{pad}]", items.join(",\n"))
+        }
+        Value::Dict(m)   => {
+            if m.is_empty() { return "{}".into(); }
+            let items: Vec<String> = m.iter().map(|(k, val)| {
+                let key = if is_ident(k) { k.clone() } else { format!("'{}'", k.replace('\'', "\\'")) };
+                format!("{pad_next}{key}: {}", pretty(val, indent + 1))
+            }).collect();
+            format!("{{\n{}\n{pad}}}", items.join(",\n"))
+        }
+    }
+}
+
 // ── arg parsing ──────────────────────────────────────────────────────────────
 
 fn parse_arg(s: &str) -> Value {
@@ -284,7 +324,7 @@ async fn main() {
     }).catch_unwind().await;
 
     match result {
-        Ok(v)  => println!("\n{GREEN}result:{RESET} {v:?}"),
+        Ok(v)  => println!("\n{GREEN}result:{RESET} {}", pretty(&v, 0)),
         Err(payload) => {
             // A thrown CCXT error surfaces as a panic — extract its message.
             let msg = payload.downcast_ref::<String>().map(|s| s.as_str())
