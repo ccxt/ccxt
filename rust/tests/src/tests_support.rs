@@ -17,7 +17,7 @@ pub fn make_exchange(config: Value) -> Exchange {
 /// (which is locally redefined in each base-test file).
 pub fn equals(a: Value, b: Value) -> bool {
     match (&a, &b) {
-        (Value::Map(am), Value::Map(bm)) => am.iter()
+        (Value::Dict(am), Value::Dict(bm)) => am.iter()
             .all(|(k, v)| bm.get(k).map(|bv| values_eq(v, bv)).unwrap_or(false)),
         _ => values_eq(&a, &b),
     }
@@ -76,7 +76,7 @@ pub mod shared {
     /// once per ticker in `test.ticker.rs`, and the naive form deep-
     /// cloned the whole ~4k-market map on every call.
     pub fn market_exists(ex: &Value, symbol: &Value) -> bool {
-        if let (Value::Map(m), Value::Str(sym)) = (ex, symbol) {
+        if let (Value::Dict(m), Value::Str(sym)) = (ex, symbol) {
             if let Some(Value::Str(id)) = m.get("__live_id") {
                 return crate::live_dispatch::has_market(id, sym);
             }
@@ -180,23 +180,23 @@ pub mod shared {
 
     fn collect_skips(skipped: &Value) -> Vec<String> {
         match skipped {
-            Value::Array(a) => a.iter().filter_map(|v| match v {
+            Value::Arr(a) => a.iter().filter_map(|v| match v {
                 Value::Str(s) => Some(s.clone()), _ => None,
             }).collect(),
-            Value::Map(m)   => m.keys().cloned().collect(),
+            Value::Dict(m)   => m.keys().cloned().collect(),
             _               => Vec::new(),
         }
     }
 
     fn deep_eq(a: &Value, b: &Value, skip: &[String]) -> bool {
         match (a, b) {
-            (Value::Map(am), Value::Map(bm)) => {
+            (Value::Dict(am), Value::Dict(bm)) => {
                 let ak: std::collections::BTreeSet<_> = am.keys().filter(|k| !skip.contains(k)).collect();
                 let bk: std::collections::BTreeSet<_> = bm.keys().filter(|k| !skip.contains(k)).collect();
                 if ak != bk { return false; }
                 ak.iter().all(|k| deep_eq(&am[*k], &bm[*k], skip))
             }
-            (Value::Array(av), Value::Array(bv)) => {
+            (Value::Arr(av), Value::Arr(bv)) => {
                 av.len() == bv.len() && av.iter().zip(bv.iter()).all(|(x, y)| deep_eq(x, y, skip))
             }
             _ => shallow_eq(a, b),
@@ -226,9 +226,9 @@ fn values_eq(a: &Value, b: &Value) -> bool {
         (Value::Int(x),  Value::Float(y)) => *x as f64 == *y,
         (Value::Float(x), Value::Int(y))  => *x == *y as f64,
         (Value::Str(x),  Value::Str(y))  => x == y,
-        (Value::Array(x), Value::Array(y)) => x.len() == y.len()
+        (Value::Arr(x), Value::Arr(y)) => x.len() == y.len()
             && x.iter().zip(y.iter()).all(|(a, b)| values_eq(a, b)),
-        (Value::Map(x),  Value::Map(y))  => x.len() == y.len()
+        (Value::Dict(x),  Value::Dict(y))  => x.len() == y.len()
             && x.iter().all(|(k, v)| y.get(k).map(|w| values_eq(v, w)).unwrap_or(false)),
         _ => false,
     }

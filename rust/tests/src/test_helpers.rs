@@ -240,7 +240,8 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
     // `options.brokerId`, which broker-id tests assert) is present.
     // Falls back to a bare config map for ids with no registered Core.
     let snap = crate::registry::exchange_snapshot(&id, cfg.clone());
-    if let Value::Map(mut m) = snap {
+    if let Value::Dict(m_arc) = snap {
+        let mut m = std::sync::Arc::try_unwrap(m_arc).unwrap_or_else(|a| (*a).clone());
         m.insert("id".to_string(), exchange_id.clone());
         // `__live_id` flags this snapshot for `ccxt::value::get_value`'s
         // live-lookup fast path — heavy reads (`exchange.markets` etc.)
@@ -270,7 +271,7 @@ pub fn initExchange(exchange_id: Value, optional_args: &[Value]) -> Value {
         return Value::Map(m);
     }
     let mut m = match cfg {
-        Value::Map(om) => om,
+        Value::Dict(om) => std::sync::Arc::try_unwrap(om).unwrap_or_else(|a| (*a).clone()),
         _ => HashMap::new(),
     };
     m.insert("id".to_string(), exchange_id);
@@ -316,7 +317,7 @@ pub async fn callExchangeMethodDynamically(
         _ => return Value::Null,
     };
     let arg_vec: Vec<Value> = match args {
-        Value::Array(a) => a,
+        Value::Arr(a) => std::sync::Arc::try_unwrap(a).unwrap_or_else(|x| (*x).clone()),
         Value::Null     => Vec::new(),
         other           => vec![other],
     };
@@ -456,7 +457,7 @@ impl ExchangeOps for Value {
     /// validators call this once per item, so that clone dominated
     /// large-collection loops (fetchTickers/loadMarkets).
     fn market(&self, symbol: Value) -> Value {
-        if let (Value::Map(m), Value::Str(sym)) = (self, &symbol) {
+        if let (Value::Dict(m), Value::Str(sym)) = (self, &symbol) {
             if let Some(Value::Str(id)) = m.get("__live_id") {
                 let mkt = crate::live_dispatch::market_for(id, sym);
                 if !matches!(mkt, Value::Null) { return mkt; }

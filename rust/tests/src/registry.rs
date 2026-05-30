@@ -270,8 +270,8 @@ fn build_offline_config(id: &str, fixture_options: &Value) -> Value {
     // {leverageBrackets: ..., portfolioMargin: true}). These map
     // directly into exchange.options. Also support a nested .options
     // key for fixtures that wrap them.
-    if let Value::Map(fm) = fixture_options {
-        for (k, v) in fm {
+    if let Value::Dict(fm) = fixture_options {
+        for (k, v) in fm.iter() {
             // Skip top-level credential keys (handled separately below).
             if matches!(k.as_str(),
                 "apiKey" | "secret" | "password" | "uid" | "walletAddress"
@@ -280,8 +280,8 @@ fn build_offline_config(id: &str, fixture_options: &Value) -> Value {
             ) { continue; }
             nested_options.insert(k.clone(), v.clone());
         }
-        if let Some(Value::Map(inner)) = fm.get("options") {
-            for (k, v) in inner { nested_options.insert(k.clone(), v.clone()); }
+        if let Some(Value::Dict(inner)) = fm.get("options") {
+            for (k, v) in inner.iter() { nested_options.insert(k.clone(), v.clone()); }
         }
     }
     let mut accounts_a = HashMap::new();
@@ -309,8 +309,8 @@ fn build_offline_config(id: &str, fixture_options: &Value) -> Value {
     cfg.insert("accounts".to_string(),        Value::Array(vec![Value::Map(accounts_a), Value::Map(accounts_b)]));
     cfg.insert("options".to_string(),         Value::Map(nested_options));
     // Top-level fixture credential overrides (apiKey/secret/etc.)
-    if let Value::Map(fm) = fixture_options {
-        for (k, v) in fm {
+    if let Value::Dict(fm) = fixture_options {
+        for (k, v) in fm.iter() {
             if k == "options" { continue; } // handled above
             cfg.insert(k.clone(), v.clone());
         }
@@ -322,7 +322,7 @@ fn capture(e: &ccxt::exchange::Exchange) -> Captured {
     let url     = match &e.last_request_url     { Value::Str(s) => s.clone(), _ => String::new() };
     let body    = match &e.last_request_body    { Value::Str(s) => Some(s.clone()), _ => None };
     let headers = match &e.last_request_headers {
-        Value::Map(m) => m.iter().filter_map(|(k, v)|
+        Value::Dict(m) => m.iter().filter_map(|(k, v)|
             match v { Value::Str(s) => Some((k.clone(), s.clone())), _ => None }).collect(),
         _ => HashMap::new(),
     };

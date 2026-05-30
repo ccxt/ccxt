@@ -4107,13 +4107,13 @@ impl ${coreName} {
         // after_construct left an EMPTY networksById), which would
         // otherwise clobber the manual mappings like binance BSC to BEP20.
         let __described_networks_by_id = crate::get_value(&__described_options, &crate::Value::Str("networksById".to_string()));
-        if let (crate::Value::Map(existing), crate::Value::Map(defaults)) =
+        if let (crate::Value::Dict(existing), crate::Value::Dict(defaults)) =
             (&self.exchange.options.clone(), &__described_options)
         {
-            let mut merged = defaults.clone();
-            for (k, v) in existing { merged.insert(k.clone(), v.clone()); }
+            let mut merged = (**defaults).clone();
+            for (k, v) in existing.iter() { merged.insert(k.clone(), v.clone()); }
             self.exchange.options = crate::Value::Map(merged);
-        } else if !matches!(self.exchange.options, crate::Value::Map(_)) {
+        } else if !matches!(self.exchange.options, crate::Value::Dict(_)) {
             self.exchange.options = __described_options;
         }
         // Derive options.networksById (CCXT's createNetworksByIdObject):
@@ -4123,18 +4123,19 @@ impl ${coreName} {
         // overlay, an exchange whose networks defines both BSC to BSC and
         // BEP20 to BSC would invert to BSC to BSC (wrong) by iteration
         // order instead of the intended BSC to BEP20.
-        if let crate::Value::Map(mut opts) = self.exchange.options.clone() {
+        if let crate::Value::Dict(opts_arc) = self.exchange.options.clone() {
+            let mut opts = std::sync::Arc::try_unwrap(opts_arc).unwrap_or_else(|a| (*a).clone());
             let mut by_id: indexmap::IndexMap<String, crate::Value> = indexmap::IndexMap::new();
-            if let Some(crate::Value::Map(networks)) = opts.get("networks") {
-                for (code, id) in networks {
+            if let Some(crate::Value::Dict(networks)) = opts.get("networks") {
+                for (code, id) in networks.iter() {
                     if let crate::Value::Str(id_s) = id {
                         by_id.entry(id_s.clone())
                              .or_insert_with(|| crate::Value::Str(code.clone()));
                     }
                 }
             }
-            if let crate::Value::Map(manual) = &__described_networks_by_id {
-                for (k, v) in manual { by_id.insert(k.clone(), v.clone()); }
+            if let crate::Value::Dict(manual) = &__described_networks_by_id {
+                for (k, v) in manual.iter() { by_id.insert(k.clone(), v.clone()); }
             }
             opts.insert("networksById".to_string(), crate::Value::Map(by_id));
             self.exchange.options = crate::Value::Map(opts);
@@ -4151,7 +4152,7 @@ impl ${coreName} {
         // Merge describe()'s commonCurrencies over the base defaults so
         // exchange-specific aliases (bitfinex UST to USDT, onetrading
         // MIOTA to IOTA) reach commonCurrencyCode / safeCurrencyCode.
-        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Map(extra) = __cc { if let crate::Value::Map(base) = &mut self.exchange.commonCurrencies { for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
+        { let __cc = crate::get_value(&described, &crate::Value::Str("commonCurrencies".to_string())); if let crate::Value::Dict(extra) = __cc { let extra = std::sync::Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone()); if let crate::Value::Dict(base) = &mut self.exchange.commonCurrencies { let base = std::sync::Arc::make_mut(base); for (k, v) in extra { base.insert(k, v); } } else { self.exchange.commonCurrencies = crate::Value::Map(extra); } } }
         self.exchange.precisionMode = crate::get_value(&described, &crate::Value::Str("precisionMode".to_string()));
         self.exchange.timeframes = crate::get_value(&described, &crate::Value::Str("timeframes".to_string()));
         self.exchange.fees = crate::get_value(&described, &crate::Value::Str("fees".to_string()));
@@ -4970,8 +4971,8 @@ impl std::ops::DerefMut for ${coreName} {
                         /\bfn equals\s*\([^)]*\)\s*->\s*Value\s*\{[\s\S]*?\n\}/,
                         [
                             'fn equals(a: Value, b: Value) -> Value {',
-                            '    if let (Value::Map(am), Value::Map(bm)) = (&a, &b) {',
-                            '        for (k, av) in am {',
+                            '    if let (Value::Dict(am), Value::Dict(bm)) = (&a, &b) {',
+                            '        for (k, av) in am.iter() {',
                             '            if bm.get(k) != Some(av) { return Value::Bool(false); }',
                             '        }',
                             '    }',

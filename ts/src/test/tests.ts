@@ -962,6 +962,15 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
+        // Fast path: the error message is only consumed when the assertion
+        // fails, but `jsonStringify` of the (possibly large) computed and
+        // stored outputs happens here on EVERY leaf/branch comparison.
+        // That is cheap in JS but O(tree²) in the Rust port (each level
+        // re-serialises its whole subtree) — it made `--responseTests`
+        // take minutes. Bail out before stringifying when the check holds.
+        if (cond) {
+            return;
+        }
         const calculatedString = jsonStringify (calculatedOutput);
         const storedString = jsonStringify (storedOutput);
         let errorMessage = message;
@@ -1087,7 +1096,14 @@ class testMainClass {
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
+                // Recurse into the *inner* (non-try/catch) variant: the
+                // wrapper's try/catch is only for top-level failure
+                // reporting, and in the Rust port it transpiles to a
+                // `catch_unwind` per node — setting that up at every one
+                // of a result's thousands of nodes made `--responseTests`
+                // take minutes. A failure still unwinds to the single
+                // top-level wrapper.
+                this.assertNewAndStoredOutputInner (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
         } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
@@ -1096,7 +1112,7 @@ class testMainClass {
             for (let i = 0; i < storedOutput.length; i++) {
                 const storedItem = storedOutput[i];
                 const newItem = newOutput[i];
-                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem, strictTypeCheck);
+                this.assertNewAndStoredOutputInner (exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         } else {
             // built-in types like strings, numbers, booleans

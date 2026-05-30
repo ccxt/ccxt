@@ -196,7 +196,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // in the kucoin broker test) to the live Core before the call so the
     // dispatched code path observes them.
     let opts = ccxt::get_value(ex, &Value::Str("options".to_string()));
-    if matches!(opts, Value::Map(_)) {
+    if matches!(opts, Value::Dict(_)) {
         (entry.write_options)(entry.ptr.0, opts);
     }
     // Propagate per-case credential overrides too. Static request tests
@@ -218,13 +218,20 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // synthesizes currencies from markets and would otherwise compute
     // a wrong `currency.id` (e.g. bitmex `XBT` instead of `XBt`),
     // breaking URL builders. Push the snapshot value back here.
-    if let Value::Map(m) = &*ex {
+    if let Value::Dict(m) = &*ex {
         if let Some(curr) = m.get("currencies") {
-            if matches!(curr, Value::Map(c) if !c.is_empty()) {
+            if matches!(curr, Value::Dict(c) if !c.is_empty()) {
                 (entry.write_field)(entry.ptr.0, "currencies", curr.clone());
             }
         }
     }
+    // Now that the currencies live on the Core, drop the (often 100s-of-KB)
+    // copy from the snapshot. The static-output assertions recurse with
+    // `exchange.clone()` per node, so a heavy `currencies` map there turned
+    // `--responseTests` into an O(nodes × map-size) crawl (minutes).
+    // Reads of `exchange.currencies` fall through to `live_lookup` → the
+    // Core, which now holds them.
+    if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("currencies"); }
     // Static *response* tests stash a canned JSON payload via
     // `setFetchResponse(exchange, response)` — push it to the Core so
     // `fetch_typed` returns it instead of hitting the (fake) network.
@@ -233,7 +240,7 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     (entry.write_mock)(entry.ptr.0, mock);
     // Clear the snapshot's mock so it doesn't leak into a subsequent
     // dispatch on the same exchange.
-    if let Value::Map(m) = &mut *ex { m.remove("__fetchResponse"); }
+    if let Value::Dict(m) = &mut *ex { std::sync::Arc::make_mut(m).shift_remove("__fetchResponse"); }
     let snake = camel_to_snake(method);
     let fut = (entry.call)(entry.ptr.0, &snake, args);
     let result = futures::FutureExt::catch_unwind(
@@ -242,7 +249,9 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
     // Sync first — broker-id tests rely on reading `last_request_*`
     // after a panic'd `createOrder` (offline proxy makes the send fail).
     let state = (entry.read_state)(entry.ptr.0);
-    if let (Value::Map(snapshot), Value::Map(fresh)) = (&mut *ex, state) {
+    if let (Value::Dict(snapshot), Value::Dict(fresh)) = (&mut *ex, state) {
+        let snapshot = std::sync::Arc::make_mut(snapshot);
+        let fresh = std::sync::Arc::try_unwrap(fresh).unwrap_or_else(|a| (*a).clone());
         for (k, v) in fresh { snapshot.insert(k, v); }
     }
     match result {
@@ -336,7 +345,7 @@ fn build_core(id: &str, cfg: Value) -> Option<CoreEntry> {
                 // cases, so we replace outright — the snapshot already
                 // mirrors `describe().options` since `to_value()` seeded it.
                 let core: &mut $core = unsafe { &mut *(ptr as *mut $core) };
-                if let Value::Map(_) = &new_opts {
+                if let Value::Dict(_) = &new_opts {
                     core.options = new_opts;
                 }
             }
