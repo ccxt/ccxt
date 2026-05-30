@@ -275,14 +275,8 @@ func StringSub(string1, string2 any) any {
 // }
 
 func StringAdd(string1, string2 any) any {
-	if string1 == nil && string2 == nil {
+	if string1 == nil || string2 == nil {
 		return nil
-	}
-	if string1 == nil {
-		return string2.(string)
-	}
-	if string2 == nil {
-		return string1.(string)
 	}
 	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
 }
