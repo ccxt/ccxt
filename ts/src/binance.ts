@@ -10359,7 +10359,7 @@ export default class binance extends Exchange {
             const rounderString = rounder.toString ();
             const liquidationPriceRoundedString = Precise.stringAdd (rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise.stringDiv (liquidationPriceRoundedString, '1', pricePrecision);
-            if (truncatedLiquidationPrice[0] === '-') {
+            if (truncatedLiquidationPrice !== undefined && truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = undefined;
