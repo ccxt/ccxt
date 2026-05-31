@@ -11254,7 +11254,7 @@ func (this *BinanceCore) ParseAccountPosition(position any, optionalArgs ...any)
 		var rounderString any = ToString(rounder)
 		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
-		if IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-")) {
+		if IsTrue(IsTrue(!IsEqual(truncatedLiquidationPrice, nil)) && IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-"))) {
 			// user cannot be liquidated
 			// since he has more collateral than the size of the position
 			truncatedLiquidationPrice = nil
