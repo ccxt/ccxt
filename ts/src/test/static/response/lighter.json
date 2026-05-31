@@ -1348,17 +1348,17 @@
                     },
                     "USDC": {
                         "free": null,
-                        "used": -3506.638093,
-                        "total": 9130.242706
+                        "used": null,
+                        "total": null
                     },
                     "free": {
                         "USDC": null
                     },
                     "used": {
-                        "USDC": -3506.638093
+                        "USDC": null
                     },
                     "total": {
-                        "USDC": 9130.242706
+                        "USDC": null
                     }
                 }
             }
