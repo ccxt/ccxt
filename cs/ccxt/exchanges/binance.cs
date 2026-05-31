@@ -10857,7 +10857,7 @@ public partial class binance : Exchange
             object rounderString = ((object)rounder).ToString();
             object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (isTrue(isEqual(getValue(truncatedLiquidationPrice, 0), "-")))
+            if (isTrue(isTrue(!isEqual(truncatedLiquidationPrice, null)) && isTrue(isEqual(getValue(truncatedLiquidationPrice, 0), "-"))))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
