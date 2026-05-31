@@ -11265,7 +11265,7 @@ public class BinanceCore extends BinanceApi
             Object rounderString = String.valueOf(rounder);
             Object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             Object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-")))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(truncatedLiquidationPrice, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
