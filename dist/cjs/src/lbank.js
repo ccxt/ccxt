@@ -453,66 +453,65 @@ class lbank extends lbank$1["default"] {
         //
         const currenciesData = this.safeList(response, 'data', []);
         const grouped = this.groupBy(currenciesData, 'assetCode');
-        const groupedKeys = Object.keys(grouped);
-        const result = {};
-        for (let i = 0; i < groupedKeys.length; i++) {
-            const id = (groupedKeys[i]).toString(); // some currencies are numeric
-            const code = this.safeCurrencyCode(id);
-            const networksRaw = grouped[id];
-            const networks = {};
-            for (let j = 0; j < networksRaw.length; j++) {
-                const networkEntry = networksRaw[j];
-                let networkId = this.safeString(networkEntry, 'chain');
-                if (networkId === undefined) {
-                    networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
-                }
-                const networkCode = this.networkIdToCode(networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber(networkEntry, 'min'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': this.safeNumber(networkEntry, 'minTransfer'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
-                    'fee': this.safeNumber(networkEntry, 'fee'),
-                    'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
-                    'info': networkEntry,
-                };
+        const values = Object.values(grouped);
+        return this.parseCurrencies(values);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency[0], 'assetCode'); // first member is guaranteed
+        const code = this.safeCurrencyCode(id);
+        const networksRaw = rawCurrency;
+        const networks = {};
+        for (let j = 0; j < networksRaw.length; j++) {
+            const networkEntry = networksRaw[j];
+            let networkId = this.safeString(networkEntry, 'chain');
+            if (networkId === undefined) {
+                networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
             }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'precision': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
+            const networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber(networkEntry, 'min'),
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': undefined,
+                        'min': this.safeNumber(networkEntry, 'minTransfer'),
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-                'info': networksRaw,
-            });
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': this.safeBool(networkEntry, 'canWithDraw'),
+                'fee': this.safeNumber(networkEntry, 'fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'precision': undefined,
+            'type': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': networksRaw,
+        });
     }
     /**
      * @method
