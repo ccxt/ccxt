@@ -909,8 +909,12 @@ export default class kraken extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const item = obj[key];
-            item[keyName] = key;
-            result.push (item);
+            if (item === undefined || item === null) {
+                continue;
+            }
+            const itemWithKey = this.extend ({}, item);
+            itemWithKey[keyName] = key;
+            result.push (itemWithKey);
         }
         return result;
     }
