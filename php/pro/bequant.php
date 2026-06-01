@@ -9,10 +9,12 @@ use Exception; // a common import
 
 class bequant extends \ccxt\pro\hitbtc {
 
-    public function describe() {
+    public function describe(): mixed {
         // eslint-disable-next-line new-cap
-        $describeExtended = $this->get_describe_for_extended_ws_exchange(new \ccxt\async\bequant (), new \ccxt\async\hitbtc (), parent::describe());
-        return $this->deep_extend($describeExtended, array(
+        $restInstance = new \ccxt\async\bequant ();
+        $restDescribe = $restInstance->describe ();
+        $extended = $this->deep_extend(parent::describe(), $restDescribe);
+        return $this->deep_extend($extended, array(
             'id' => 'bequant',
             'name' => 'Bequant',
             'countries' => array( 'MT' ), // Malta
@@ -22,6 +24,10 @@ class bequant extends \ccxt\pro\hitbtc {
                 'api' => array(
                     'public' => 'https://api.bequant.io/api/3',
                     'private' => 'https://api.bequant.io/api/3',
+                    'ws' => array(
+                        'public' => 'wss://api.bequant.io/api/3/ws/public',
+                        'private' => 'wss://api.bequant.io/api/3/ws/trading',
+                    ),
                 ),
                 'www' => 'https://bequant.io',
                 'doc' => array(

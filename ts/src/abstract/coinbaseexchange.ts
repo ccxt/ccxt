@@ -19,6 +19,7 @@ interface Exchange {
     publicGetProductsIdTrades (params?: {}): Promise<implicitReturnType>;
     publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetProductsSparkLines (params?: {}): Promise<implicitReturnType>;
+    publicGetProductsVolumeSummary (params?: {}): Promise<implicitReturnType>;
     privateGetAddressBook (params?: {}): Promise<implicitReturnType>;
     privateGetAccounts (params?: {}): Promise<implicitReturnType>;
     privateGetAccountsId (params?: {}): Promise<implicitReturnType>;
@@ -54,7 +55,19 @@ interface Exchange {
     privateGetUsersSelfTrailingVolume (params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsFeeEstimate (params?: {}): Promise<implicitReturnType>;
     privateGetConversionsConversionId (params?: {}): Promise<implicitReturnType>;
+    privateGetConversions (params?: {}): Promise<implicitReturnType>;
     privateGetConversionsFees (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansLendingOverview (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansLendingOverviewXm (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansLoanPreview (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansLoanPreviewXm (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansRepaymentPreview (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansRepaymentPreviewXm (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansInterestLoanId (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansInterestHistoryLoanId (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansInterest (params?: {}): Promise<implicitReturnType>;
+    privateGetLoansAssets (params?: {}): Promise<implicitReturnType>;
+    privateGetLoans (params?: {}): Promise<implicitReturnType>;
     privatePostConversions (params?: {}): Promise<implicitReturnType>;
     privatePostDepositsCoinbaseAccount (params?: {}): Promise<implicitReturnType>;
     privatePostDepositsPaymentMethod (params?: {}): Promise<implicitReturnType>;
@@ -69,6 +82,9 @@ interface Exchange {
     privatePostWithdrawalsCoinbaseAccount (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalsCrypto (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalsPaymentMethod (params?: {}): Promise<implicitReturnType>;
+    privatePostLoansOpen (params?: {}): Promise<implicitReturnType>;
+    privatePostLoansRepayInterest (params?: {}): Promise<implicitReturnType>;
+    privatePostLoansRepayPrincipal (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersClientClientOid (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersId (params?: {}): Promise<implicitReturnType>;

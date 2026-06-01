@@ -14,21 +14,21 @@ import { unCamelCase } from '../base/functions/string.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    throw new Error(exceptionMessage(e));
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 process.on('unhandledRejection', (e) => {
-    if (e.message.includes('connection closed by remote server')) {
-        // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
-        return;
-    }
-    throw new Error(exceptionMessage(e));
+    // if (e.message.includes ('connection closed by remote server')) {
+    //     // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
+    //     return;
+    // }
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const ExchangeError = ccxt.ExchangeError;
-const ProxyError = ccxt.ProxyError;
+const InvalidProxySettings = ccxt.InvalidProxySettings;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -41,53 +41,23 @@ function selectArgv(argsArray, needle) {
     const foundArray = argsArray.filter((x) => (x.includes(needle)));
     return foundArray.length ? foundArray[0] : undefined;
 }
-const argvExchange = filterArgvs(argv, '--', false)[0];
+const argvs_filtered = filterArgvs(argv, '--', false);
+const argvExchange = argvs_filtered[0];
 const argvSymbol = selectArgv(argv, '/');
 const argvMethod = selectArgv(argv, '()');
 // #################################################### //
-// non-transpiled part, but shared names among langs
 function getCliArgValue(arg) {
     return process.argv.includes(arg) || false;
 }
-const proxyTestFileName = 'proxies';
-class baseMainTestClass {
-    constructor() {
-        this.lang = 'JS';
-        this.isSynchronous = false;
-        this.idTests = false;
-        this.requestTestsFailed = false;
-        this.responseTestsFailed = false;
-        this.requestTests = false;
-        this.wsTests = false;
-        this.responseTests = false;
-        this.staticTests = false;
-        this.info = false;
-        this.verbose = false;
-        this.debug = false;
-        this.privateTest = false;
-        this.privateTestOnly = false;
-        this.loadKeys = false;
-        this.sandbox = false;
-        this.skippedSettingsForExchange = {};
-        this.skippedMethods = {};
-        this.checkedPublicTests = {};
-        this.testFiles = {};
-        this.publicTests = {};
-        this.newLine = '\n';
-        this.rootDir = DIR_NAME + '/../../../';
-        this.rootDirForSkips = DIR_NAME + '/../../../';
-        this.onlySpecificTests = [];
-        this.envVars = process.env;
-        this.proxyTestFileName = proxyTestFileName;
-        this.ext = import.meta.url.split('.')[1];
-    }
-}
-// const rootDir = DIR_NAME + '/../../../';
-// const rootDirForSkips = DIR_NAME + '/../../../';
-// const envVars = process.env;
+// non-transpiled part, but shared names among langs
+const fileParts = import.meta.url.split('.');
+const EXT = fileParts[fileParts.length - 1];
+const LANG = 'JS';
+const ROOT_DIR = DIR_NAME + '/../../../';
+const ENV_VARS = process.env;
+const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
-const parts = import.meta.url.split('.');
-const ext = parts[parts.length - 1];
+const PROXY_TEST_FILE_NAME = "proxies";
 function dump(...args) {
     console.log(...args);
 }
@@ -114,6 +84,10 @@ function ioDirRead(path) {
     const files = fs.readdirSync(path);
     return files;
 }
+async function callMethodSync(testFiles, methodName, exchange, skippedProperties, args) {
+    // empty in js
+    return {};
+}
 async function callMethod(testFiles, methodName, exchange, skippedProperties, args) {
     // used for calling methods from test files
     return await testFiles[methodName](exchange, skippedProperties, ...args);
@@ -131,6 +105,10 @@ async function callOverridenMethod(exchange, methodName, args) {
 }
 function exceptionMessage(exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, LOG_CHARS_LENGTH);
+}
+// stub for c#
+function getRootException(exc) {
+    return exc;
 }
 function exitScript(code = 0) {
     process.exit(code);
@@ -152,15 +130,19 @@ async function importTestFile(filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
     return (await import(pathToFileURL(filePath + '.js')))['default'];
 }
+function getTestFilesSync(properties, ws = false) {
+    // empty in js
+    return {};
+}
 async function getTestFiles(properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat([proxyTestFileName]);
+    const finalPropList = properties.concat([PROXY_TEST_FILE_NAME, 'features']);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
-        if (ioFileExists(filePathWoExt + '.' + ext)) {
+        if (ioFileExists(filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile(filePathWoExt);
         }
@@ -170,7 +152,7 @@ async function getTestFiles(properties, ws = false) {
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = path + '/base/errors/test.' + name;
-        if (ioFileExists(filePathWoExt + '.' + ext)) {
+        if (ioFileExists(filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile(filePathWoExt);
         }
@@ -187,11 +169,35 @@ function isNullValue(value) {
 async function close(exchange) {
     await exchange.close();
 }
-export { DIR_NAME, 
+function isSync() {
+    return false;
+}
+function getRootDir() {
+    return ROOT_DIR;
+}
+function getEnvVars() {
+    return ENV_VARS;
+}
+function getLang() {
+    return LANG;
+}
+function getExt() {
+    return EXT;
+}
+function isWindows() {
+    return process.platform === "win32";
+}
+function isLinux() {
+    return process.platform === "linux";
+}
+function isAmd64() {
+    return process.arch === "x64";
+}
+export { 
 // errors
-AuthenticationError, NotSupported, ExchangeError, ProxyError, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
+AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
 // shared
 getCliArgValue, 
 //
-proxyTestFileName, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, getTestName, ioFileExists, ioFileRead, ioDirRead, callMethod, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, importTestFile, getTestFiles, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

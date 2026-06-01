@@ -3,118 +3,857 @@
     "skipKeys": [],
     "options": {},
     "methods": {
-        "fetchMyTrades": [
+        "fetchCurrencies": [
             {
-                "description": "spot trade",
-                "method": "fetchMyTrades",
-                "input": [
-                    "BTC/USDT",
-                    null,
-                    1
-                ],
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
                 "httpResponse": {
                     "code": 0,
                     "data": [
                         {
-                            "amount": "0.00010087",
-                            "created_at": 1714618087585,
-                            "deal_id": 4161200602,
-                            "margin_market": "",
-                            "market": "BTCUSDT",
-                            "order_id": 117654919342,
-                            "price": "57464.04",
-                            "side": "sell"
+                            "asset": {
+                                "ccy": "USDT",
+                                "deposit_enabled": true,
+                                "withdraw_enabled": true,
+                                "inter_transfer_enabled": true,
+                                "is_st": false
+                            },
+                            "chains": [
+                                {
+                                    "chain": "BSC",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "2",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 12,
+                                    "irreversible_confirmations": 30,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.067",
+                                    "withdrawal_precision": 8,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                {
+                                    "chain": "TRC20",
+                                    "min_deposit_amount": "1",
+                                    "min_withdraw_amount": "1",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 10,
+                                    "irreversible_confirmations": 20,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "1.9",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                {
+                                    "chain": "ERC20",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 12,
+                                    "irreversible_confirmations": 30,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.06",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                {
+                                    "chain": "PLASMA",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 300,
+                                    "irreversible_confirmations": 600,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.000045",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://plasmascan.to/token/0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"
+                                },
+                                {
+                                    "chain": "AVA_C",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 120,
+                                    "irreversible_confirmations": 200,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.026",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://snowtrace.io/token/0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+                                },
+                                {
+                                    "chain": "SOL",
+                                    "min_deposit_amount": "0.41",
+                                    "min_withdraw_amount": "2",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 50,
+                                    "irreversible_confirmations": 100,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.41",
+                                    "withdrawal_precision": 6,
+                                    "memo": "Memo",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://solscan.io/token/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                {
+                                    "chain": "TON",
+                                    "min_deposit_amount": "0.32",
+                                    "min_withdraw_amount": "6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 100,
+                                    "irreversible_confirmations": 150,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.32",
+                                    "withdrawal_precision": 6,
+                                    "memo": "Memo/Comment",
+                                    "is_memo_required_for_deposit": true,
+                                    "explorer_asset_url": "https://tonviewer.com/EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                },
+                                {
+                                    "chain": "POLKADOTASSETHUB",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 30,
+                                    "irreversible_confirmations": 50,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.0048",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://assethub-polkadot.subscan.io/assets/1984"
+                                },
+                                {
+                                    "chain": "CSC",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 10,
+                                    "irreversible_confirmations": 20,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.0072",
+                                    "withdrawal_precision": 8,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://www.coinex.net/token/0x398dca951cd4fc18264d995dcd171aa5debda129"
+                                }
+                            ]
                         }
                     ],
-                    "message": "OK",
-                    "pagination": {
-                        "has_next": true
-                    }
+                    "message": "OK"
                 },
-                "parsedResponse": [
-                    {
+                "parsedResponse": {
+                    "USDT": {
                         "info": {
-                            "amount": "0.00010087",
-                            "created_at": 1714618087585,
-                            "deal_id": 4161200602,
-                            "margin_market": "",
-                            "market": "BTCUSDT",
-                            "order_id": 117654919342,
-                            "price": "57464.04",
-                            "side": "sell"
+                            "asset": {
+                                "ccy": "USDT",
+                                "deposit_enabled": true,
+                                "withdraw_enabled": true,
+                                "inter_transfer_enabled": true,
+                                "is_st": false
+                            },
+                            "chains": [
+                                {
+                                    "chain": "BSC",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "2",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 12,
+                                    "irreversible_confirmations": 30,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.067",
+                                    "withdrawal_precision": 8,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                {
+                                    "chain": "TRC20",
+                                    "min_deposit_amount": "1",
+                                    "min_withdraw_amount": "1",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 10,
+                                    "irreversible_confirmations": 20,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "1.9",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                {
+                                    "chain": "ERC20",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 12,
+                                    "irreversible_confirmations": 30,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.06",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                {
+                                    "chain": "PLASMA",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 300,
+                                    "irreversible_confirmations": 600,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.000045",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://plasmascan.to/token/0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"
+                                },
+                                {
+                                    "chain": "AVA_C",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 120,
+                                    "irreversible_confirmations": 200,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.026",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://snowtrace.io/token/0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+                                },
+                                {
+                                    "chain": "SOL",
+                                    "min_deposit_amount": "0.41",
+                                    "min_withdraw_amount": "2",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 50,
+                                    "irreversible_confirmations": 100,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.41",
+                                    "withdrawal_precision": 6,
+                                    "memo": "Memo",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://solscan.io/token/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                {
+                                    "chain": "TON",
+                                    "min_deposit_amount": "0.32",
+                                    "min_withdraw_amount": "6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 100,
+                                    "irreversible_confirmations": 150,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.32",
+                                    "withdrawal_precision": 6,
+                                    "memo": "Memo/Comment",
+                                    "is_memo_required_for_deposit": true,
+                                    "explorer_asset_url": "https://tonviewer.com/EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                },
+                                {
+                                    "chain": "POLKADOTASSETHUB",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 30,
+                                    "irreversible_confirmations": 50,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.0048",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://assethub-polkadot.subscan.io/assets/1984"
+                                },
+                                {
+                                    "chain": "CSC",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 10,
+                                    "irreversible_confirmations": 20,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.0072",
+                                    "withdrawal_precision": 8,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://www.coinex.net/token/0x398dca951cd4fc18264d995dcd171aa5debda129"
+                                }
+                            ]
                         },
-                        "timestamp": 1714618087585,
-                        "datetime": "2024-05-02T02:48:07.585Z",
-                        "symbol": "BTC/USDT",
-                        "id": "4161200602",
-                        "order": "117654919342",
-                        "type": null,
-                        "side": "sell",
-                        "takerOrMaker": null,
-                        "price": 57464.04,
-                        "amount": 0.00010087,
-                        "cost": 5.7963977148,
-                        "fee": null,
-                        "fees": []
-                    }
-                ]
-            },
-            {
-                "description": "swap trade",
-                "method": "fetchMyTrades",
-                "input": [
-                    "BTC/USDT:USDT",
-                    null,
-                    1,
-                    {
-                        "side": "buy"
-                    }
-                ],
-                "httpResponse": {
-                    "code": 0,
-                    "data": [
-                        {
-                            "deal_id": 1180222387,
-                            "created_at": 1714119054558,
-                            "market": "BTCUSDT",
-                            "side": "buy",
-                            "order_id": 136915589622,
-                            "price": "64376",
-                            "amount": "0.0001"
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.000045,
+                        "fees": {},
+                        "networks": {
+                            "BEP20": {
+                                "id": "BSC",
+                                "network": "BEP20",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.067,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "BSC",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "2",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 12,
+                                    "irreversible_confirmations": 30,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.067",
+                                    "withdrawal_precision": 8,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://bscscan.com/token/0x55d398326f99059ff775485246999027b3197955"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "TRC20",
+                                "network": "TRC20",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.9,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "TRC20",
+                                    "min_deposit_amount": "1",
+                                    "min_withdraw_amount": "1",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 10,
+                                    "irreversible_confirmations": 20,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "1.9",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://tronscan.org/#/token20/TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                }
+                            },
+                            "ERC20": {
+                                "id": "ERC20",
+                                "network": "ERC20",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.06,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "ERC20",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 12,
+                                    "irreversible_confirmations": 30,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.06",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                }
+                            },
+                            "PLASMA": {
+                                "id": "PLASMA",
+                                "network": "PLASMA",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.000045,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "PLASMA",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 300,
+                                    "irreversible_confirmations": 600,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.000045",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://plasmascan.to/token/0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"
+                                }
+                            },
+                            "AVAXC": {
+                                "id": "AVA_C",
+                                "network": "AVAXC",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.026,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "AVA_C",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 120,
+                                    "irreversible_confirmations": 200,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.026",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://snowtrace.io/token/0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+                                }
+                            },
+                            "SOL": {
+                                "id": "SOL",
+                                "network": "SOL",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.41,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.41,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 2,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "SOL",
+                                    "min_deposit_amount": "0.41",
+                                    "min_withdraw_amount": "2",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 50,
+                                    "irreversible_confirmations": 100,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.41",
+                                    "withdrawal_precision": 6,
+                                    "memo": "Memo",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://solscan.io/token/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                }
+                            },
+                            "TON": {
+                                "id": "TON",
+                                "network": "TON",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.32,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.32,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 6,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "TON",
+                                    "min_deposit_amount": "0.32",
+                                    "min_withdraw_amount": "6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 100,
+                                    "irreversible_confirmations": 150,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.32",
+                                    "withdrawal_precision": 6,
+                                    "memo": "Memo/Comment",
+                                    "is_memo_required_for_deposit": true,
+                                    "explorer_asset_url": "https://tonviewer.com/EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                                }
+                            },
+                            "POLKADOTASSETHUB": {
+                                "id": "POLKADOTASSETHUB",
+                                "network": "POLKADOTASSETHUB",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.0048,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "POLKADOTASSETHUB",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 30,
+                                    "irreversible_confirmations": 50,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.0048",
+                                    "withdrawal_precision": 6,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://assethub-polkadot.subscan.io/assets/1984"
+                                }
+                            },
+                            "CSC": {
+                                "id": "CSC",
+                                "network": "CSC",
+                                "name": null,
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0.0072,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "amount": {
+                                        "min": null,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.2,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 0.6,
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "chain": "CSC",
+                                    "min_deposit_amount": "0.2",
+                                    "min_withdraw_amount": "0.6",
+                                    "deposit_enabled": true,
+                                    "withdraw_enabled": true,
+                                    "deposit_delay_minutes": 0,
+                                    "safe_confirmations": 10,
+                                    "irreversible_confirmations": 20,
+                                    "deflation_rate": "0",
+                                    "withdrawal_fee": "0.0072",
+                                    "withdrawal_precision": 8,
+                                    "memo": "",
+                                    "is_memo_required_for_deposit": false,
+                                    "explorer_asset_url": "https://www.coinex.net/token/0x398dca951cd4fc18264d995dcd171aa5debda129"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.2,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.6,
+                                "max": null
+                            }
                         }
-                    ],
-                    "message": "OK",
-                    "pagination": {
-                        "has_next": true
                     }
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "deal_id": 1180222387,
-                            "created_at": 1714119054558,
-                            "market": "BTCUSDT",
-                            "side": "buy",
-                            "order_id": 136915589622,
-                            "price": "64376",
-                            "amount": "0.0001"
-                        },
-                        "timestamp": 1714119054558,
-                        "datetime": "2024-04-26T08:10:54.558Z",
-                        "symbol": "BTC/USDT:USDT",
-                        "id": "1180222387",
-                        "order": "136915589622",
-                        "type": null,
-                        "side": "buy",
-                        "takerOrMaker": null,
-                        "price": 64376,
-                        "amount": 0.0001,
-                        "cost": 6.4376,
-                        "fee": null,
-                        "fees": []
-                    }
-                ]
+                }
             }
+        ],
+        "fetchMyTrades": [
+          {
+            "description": "spot trade with fees",
+            "method": "fetchMyTrades",
+            "input": [
+              "LTC/USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "code": "0",
+              "data": [
+                {
+                  "amount": "0.09663391",
+                  "created_at": "1724912067673",
+                  "deal_id": "4497671060",
+                  "fee": "0.0119999989438",
+                  "fee_ccy": "USDT",
+                  "margin_market": "",
+                  "market": "LTCUSDT",
+                  "order_id": "126701416621",
+                  "price": "62.09",
+                  "role": "taker",
+                  "side": "buy"
+                }
+              ],
+              "message": "OK",
+              "pagination": {
+                "has_next": true
+              }
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "amount": "0.09663391",
+                  "created_at": "1724912067673",
+                  "deal_id": "4497671060",
+                  "fee": "0.0119999989438",
+                  "fee_ccy": "USDT",
+                  "margin_market": "",
+                  "market": "LTCUSDT",
+                  "order_id": "126701416621",
+                  "price": "62.09",
+                  "role": "taker",
+                  "side": "buy"
+                },
+                "timestamp": 1724912067673,
+                "datetime": "2024-08-29T06:14:27.673Z",
+                "symbol": "LTC/USDT",
+                "id": "4497671060",
+                "order": "126701416621",
+                "type": null,
+                "side": "buy",
+                "takerOrMaker": "taker",
+                "price": 62.09,
+                "amount": 0.09663391,
+                "cost": 5.9999994719,
+                "fee": {
+                  "currency": "USDT",
+                  "cost": 0.0119999989438
+                },
+                "fees": [
+                  {
+                    "currency": "USDT",
+                    "cost": 0.0119999989438
+                  }
+                ]
+              }
+            ]
+          },
+            {
+              "description": "swap trade with fees",
+              "method": "fetchMyTrades",
+              "input": [
+                "LTC/USDT:USDT",
+                null,
+                1
+              ],
+              "httpResponse": {
+                "code": "0",
+                "data": [
+                  {
+                    "deal_id": "1343725676",
+                    "created_at": "1724912014089",
+                    "market": "LTCUSDT",
+                    "side": "sell",
+                    "order_id": "150808898267",
+                    "price": "62.06",
+                    "amount": "0.08",
+                    "role": "taker",
+                    "fee": "0.0024824",
+                    "fee_ccy": "USDT"
+                  }
+                ],
+                "message": "OK",
+                "pagination": {
+                  "has_next": true
+                }
+              },
+              "parsedResponse": [
+                {
+                  "info": {
+                    "deal_id": "1343725676",
+                    "created_at": "1724912014089",
+                    "market": "LTCUSDT",
+                    "side": "sell",
+                    "order_id": "150808898267",
+                    "price": "62.06",
+                    "amount": "0.08",
+                    "role": "taker",
+                    "fee": "0.0024824",
+                    "fee_ccy": "USDT"
+                  },
+                  "timestamp": 1724912014089,
+                  "datetime": "2024-08-29T06:13:34.089Z",
+                  "symbol": "LTC/USDT:USDT",
+                  "id": "1343725676",
+                  "order": "150808898267",
+                  "type": null,
+                  "side": "sell",
+                  "takerOrMaker": "taker",
+                  "price": 62.06,
+                  "amount": 0.08,
+                  "cost": 4.9648,
+                  "fee": {
+                    "currency": "USDT",
+                    "cost": 0.0024824
+                  },
+                  "fees": [
+                    {
+                      "currency": "USDT",
+                      "cost": 0.0024824
+                    }
+                  ]
+                }
+              ]
+          }
         ],
         "fetchClosedOrders": [
             {
@@ -558,7 +1297,7 @@
                         "price": 66567.15,
                         "amount": 0.00132336,
                         "cost": 88.092303624,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -607,9 +1346,11 @@
                     "previousClose": null,
                     "change": 3014.86,
                     "percentage": 4.920093321287385,
-                    "average": 62783.91,
+                    "average": 62783,
                     "baseVolume": 558.59137629,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "close": "64291.34",
                         "high": "65183.04",
@@ -923,6 +1664,132 @@
                   }
                 }
               }
+        ],
+        "fetchBorrowInterest": [
+          {
+            "description": "fetch borrow interest",
+            "method": "fetchBorrowInterest",
+            "input": [
+              "USDT",
+              "BTC/USDT",
+              null,
+              3
+            ],
+            "httpResponse": {
+              "data": [
+                {
+                  "borrow_id": 13784021,
+                  "created_at": 1716435948000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1717299948000,
+                  "borrow_amount": "60",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                {
+                  "borrow_id": 2642934,
+                  "created_at": 1654761016000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655625016000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                {
+                  "borrow_id": 2642914,
+                  "created_at": 1654760611000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655624611000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                }
+              ],
+              "pagination": {
+                "total": 5,
+                "has_next": true
+              },
+              "code": 0,
+              "message": "OK"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "borrow_id": 13784021,
+                  "created_at": 1716435948000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1717299948000,
+                  "borrow_amount": "60",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 60,
+                "marginMode": "isolated",
+                "timestamp": 1717299948000,
+                "datetime": "2024-06-02T03:45:48.000Z"
+              },
+              {
+                "info": {
+                  "borrow_id": 2642934,
+                  "created_at": 1654761016000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655625016000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 100,
+                "marginMode": "isolated",
+                "timestamp": 1655625016000,
+                "datetime": "2022-06-19T07:50:16.000Z"
+              },
+              {
+                "info": {
+                  "borrow_id": 2642914,
+                  "created_at": 1654760611000,
+                  "market": "BTCUSDT",
+                  "ccy": "USDT",
+                  "daily_interest_rate": "0.001",
+                  "expired_at": 1655624611000,
+                  "borrow_amount": "100",
+                  "to_repaied_amount": "0",
+                  "is_auto_renew": false,
+                  "status": "finish"
+                },
+                "symbol": "BTC/USDT",
+                "currency": "USDT",
+                "interest": 0,
+                "interestRate": 0.001,
+                "amountBorrowed": 100,
+                "marginMode": "isolated",
+                "timestamp": 1655624611000,
+                "datetime": "2022-06-19T07:43:31.000Z"
+              }
+            ]
+          }
         ]
     }
 }

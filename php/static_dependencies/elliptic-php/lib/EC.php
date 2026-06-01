@@ -40,11 +40,13 @@ class EC
             $this->hash = $options["curve"]->hash;
     }
 
-    public function keyPair($options) {
+    public function keyPair(#[\SensitiveParameter]
+        $options) {
         return new KeyPair($this, $options);
     }
 
-    public function keyFromPrivate($priv, $enc = false) {
+    public function keyFromPrivate(#[\SensitiveParameter]
+        $priv, $enc = false) {
         return KeyPair::fromPrivate($this, $priv, $enc);
     }
 
@@ -87,7 +89,8 @@ class EC
         return $msg->sub($this->n);
     }
 
-    public function sign($msg, $key, $enc = null, $options = null)
+    public function sign($msg, #[\SensitiveParameter]
+                         $key, $enc = null, $options = null)
     {
         if( !is_string($enc) )
         {
@@ -113,7 +116,7 @@ class EC
             // Instatiate HmacDRBG
             $drbg = new HmacDRBG(array(
                 "hash" => $this->hash,
-                "entropy" => array_key_exists('extraEntropy', $options) ? array_merge($bkey, $options['extraEntropy']) : $bkey,
+                "entropy" => $bkey,
                 "nonce" => $nonce,
                 "pers" => isset($options["pers"]) ? $options["pers"] : "",
                 "persEnc" => isset($options["persEnc"]) ? $options["persEnc"] : false
@@ -136,7 +139,17 @@ class EC
             if( $k->cmpn(1) <= 0 || $k->cmp($ns1) >= 0 )
                 continue;
 
-            $kp = $this->g->mul($k);
+            // Fix the bit-length of the random nonce,
+            // so that it doesn't leak via timing.
+            // This does not change that ks = k mod k
+            $ks = $k->add($this->n);
+            $kt = $ks->add($this->n);
+            if ($ks->bitLength() === $this->n->bitLength()) {
+                $kp = $this->g->mul($kt);
+            } else {
+                $kp = $this->g->mul($ks);
+            }
+
             if( $kp->isInfinity() )
                 continue;
 

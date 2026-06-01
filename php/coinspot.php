@@ -10,7 +10,7 @@ use ccxt\abstract\coinspot as Exchange;
 
 class coinspot extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
@@ -25,33 +25,61 @@ class coinspot extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
@@ -61,13 +89,19 @@ class coinspot extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'ws' => false,
@@ -115,28 +149,146 @@ class coinspot extends Exchange {
                         'ro/my/referralpayments',
                     ),
                 ),
+                'v2' => array(
+                    'public' => array(
+                        'get' => array(
+                            'latest',
+                            'latest/{cointype}',
+                            'latest/{cointype}/{markettype}',
+                            'buyprice/{cointype}',
+                            'buyprice/{cointype}/{markettype}',
+                            'sellprice/{cointype}',
+                            'sellprice/{cointype}/{markettype}',
+                            'orders/open/{cointype}',
+                            'orders/open/{cointype}/{markettype}',
+                            'orders/completed/{cointype}',
+                            'orders/completed/{cointype}/{markettype}',
+                            'orders/summary/completed/{cointype}',
+                            'orders/summary/completed/{cointype}/{markettype}',
+                        ),
+                    ),
+                    'private' => array(
+                        'post' => array(
+                            // Status & Account
+                            'status',
+                            'my/coin/deposit',
+                            // Quotes
+                            'quote/buy/now',
+                            'quote/sell/now',
+                            'quote/swap/now',
+                            // Market Orders
+                            'my/buy',
+                            'my/buy/edit',
+                            'my/sell',
+                            'my/sell/edit',
+                            // Instant Orders
+                            'my/buy/now',
+                            'my/sell/now',
+                            'my/swap/now',
+                            // Cancel Orders
+                            'my/buy/cancel',
+                            'my/buy/cancel/all',
+                            'my/sell/cancel',
+                            'my/sell/cancel/all',
+                            // Withdrawals
+                            'my/coin/withdraw/senddetails',
+                            'my/coin/withdraw/send',
+                            // Read Only Status
+                            'ro/status',
+                            // Read Only Market Orders
+                            'ro/orders/market/open',
+                            'ro/orders/market/completed',
+                            // Read Only Balances
+                            'ro/my/balances',
+                            'ro/my/balance/{cointype}',
+                            // Read Only Orders
+                            'ro/my/orders/market/open',
+                            'ro/my/orders/limit/open',
+                            'ro/my/orders/completed',
+                            'ro/my/orders/market/completed',
+                            // Read Only Transactions
+                            'ro/my/sendreceive',
+                            'ro/my/deposits',
+                            'ro/my/withdrawals',
+                            // Read Only Payments
+                            'ro/my/affiliatepayments',
+                            'ro/my/referralpayments',
+                        ),
+                    ),
+                ),
             ),
             'markets' => array(
-                'ADA/AUD' => $this->safe_market_structure(array( 'id' => 'ada', 'symbol' => 'ADA/AUD', 'base' => 'ADA', 'quote' => 'AUD', 'baseId' => 'ada', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'BTC/AUD' => $this->safe_market_structure(array( 'id' => 'btc', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'btc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'BTC/USDT' => $this->safe_market_structure(array( 'id' => 'btc', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'type' => 'spot', 'spot' => true )),
+                'USDT/AUD' => $this->safe_market_structure(array( 'id' => 'usdt', 'symbol' => 'USDT/AUD', 'base' => 'USDT', 'quote' => 'AUD', 'baseId' => 'usdt', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'ETH/AUD' => $this->safe_market_structure(array( 'id' => 'eth', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'baseId' => 'eth', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'ADA/AUD' => $this->safe_market_structure(array( 'id' => 'ada', 'symbol' => 'ADA/AUD', 'base' => 'ADA', 'quote' => 'AUD', 'baseId' => 'ada', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'SOL/AUD' => $this->safe_market_structure(array( 'id' => 'sol', 'symbol' => 'SOL/AUD', 'base' => 'SOL', 'quote' => 'AUD', 'baseId' => 'sol', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'XRP/AUD' => $this->safe_market_structure(array( 'id' => 'xrp', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'baseId' => 'xrp', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
-                'LTC/AUD' => $this->safe_market_structure(array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'DOGE/AUD' => $this->safe_market_structure(array( 'id' => 'doge', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD', 'baseId' => 'doge', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
-                'RFOX/AUD' => $this->safe_market_structure(array( 'id' => 'rfox', 'symbol' => 'RFOX/AUD', 'base' => 'RFOX', 'quote' => 'AUD', 'baseId' => 'rfox', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
-                'POWR/AUD' => $this->safe_market_structure(array( 'id' => 'powr', 'symbol' => 'POWR/AUD', 'base' => 'POWR', 'quote' => 'AUD', 'baseId' => 'powr', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
-                'NEO/AUD' => $this->safe_market_structure(array( 'id' => 'neo', 'symbol' => 'NEO/AUD', 'base' => 'NEO', 'quote' => 'AUD', 'baseId' => 'neo', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'LTC/AUD' => $this->safe_market_structure(array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'XLM/AUD' => $this->safe_market_structure(array( 'id' => 'xlm', 'symbol' => 'XLM/AUD', 'base' => 'XLM', 'quote' => 'AUD', 'baseId' => 'xlm', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'TRX/AUD' => $this->safe_market_structure(array( 'id' => 'trx', 'symbol' => 'TRX/AUD', 'base' => 'TRX', 'quote' => 'AUD', 'baseId' => 'trx', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'EOS/AUD' => $this->safe_market_structure(array( 'id' => 'eos', 'symbol' => 'EOS/AUD', 'base' => 'EOS', 'quote' => 'AUD', 'baseId' => 'eos', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
-                'XLM/AUD' => $this->safe_market_structure(array( 'id' => 'xlm', 'symbol' => 'XLM/AUD', 'base' => 'XLM', 'quote' => 'AUD', 'baseId' => 'xlm', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
-                'RHOC/AUD' => $this->safe_market_structure(array( 'id' => 'rhoc', 'symbol' => 'RHOC/AUD', 'base' => 'RHOC', 'quote' => 'AUD', 'baseId' => 'rhoc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'A/AUD' => $this->safe_market_structure(array( 'id' => 'eos', 'symbol' => 'A/AUD', 'base' => 'A', 'quote' => 'AUD', 'baseId' => 'eos', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'NEO/AUD' => $this->safe_market_structure(array( 'id' => 'neo', 'symbol' => 'NEO/AUD', 'base' => 'NEO', 'quote' => 'AUD', 'baseId' => 'ans', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'POWR/AUD' => $this->safe_market_structure(array( 'id' => 'powr', 'symbol' => 'POWR/AUD', 'base' => 'POWR', 'quote' => 'AUD', 'baseId' => 'powr', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
                 'GAS/AUD' => $this->safe_market_structure(array( 'id' => 'gas', 'symbol' => 'GAS/AUD', 'base' => 'GAS', 'quote' => 'AUD', 'baseId' => 'gas', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
+                'RHOC/AUD' => $this->safe_market_structure(array( 'id' => 'rhoc', 'symbol' => 'RHOC/AUD', 'base' => 'RHOC', 'quote' => 'AUD', 'baseId' => 'rhoc', 'quoteId' => 'aud', 'type' => 'spot', 'spot' => true )),
             ),
             'commonCurrencies' => array(
                 'DRK' => 'DASH',
             ),
             'options' => array(
                 'fetchBalance' => 'private_post_my_balances',
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => false,
+                            'FOK' => false,
+                            'PO' => false,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => 100000,
+                        'untilDays' => 100000, // todo implement
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => null, // todo implement
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => null, // todo implement
+                    'fetchOHLCV' => null,
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
             ),
             'precisionMode' => TICK_SIZE,
         ));
@@ -145,7 +297,7 @@ class coinspot extends Exchange {
     public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
-        if (gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances))) {
+        if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {
             for ($i = 0; $i < count($balances); $i++) {
                 $currencies = $balances[$i];
                 $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
@@ -174,9 +326,11 @@ class coinspot extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://www.coinspot.com.au/api#listmybalance
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
@@ -203,11 +357,13 @@ class coinspot extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://www.coinspot.com.au/api#listopenorders
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -257,17 +413,19 @@ class coinspot extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://www.coinspot.com.au/api#latestprices
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $response = $this->publicGetLatest ($params);
         $id = $market['id'];
         $id = strtolower($id);
-        $prices = $this->safe_value($response, 'prices');
+        $prices = $this->safe_dict($response, 'prices', array());
         //
         //     {
         //         "status":"ok",
@@ -287,32 +445,34 @@ class coinspot extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
          * @see https://www.coinspot.com.au/api#latestprices
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $response = $this->publicGetLatest ($params);
         //
         //    {
         //        "status" => "ok",
-        //        "prices" => {
-        //        "btc" => array(
-        //        "bid" => "25050",
-        //        "ask" => "25370",
-        //        "last" => "25234"
-        //        ),
-        //        "ltc" => {
-        //        "bid" => "79.39192993",
-        //        "ask" => "87.98",
-        //        "last" => "87.95"
+        //        "prices" =>   {
+        //            "btc" =>   array(
+        //                "bid" => "25050",
+        //                "ask" => "25370",
+        //                "last" => "25234"
+        //            ),
+        //            "ltc" =>   {
+        //                "bid" => "79.39192993",
+        //                "ask" => "87.98",
+        //                "last" => "87.95"
+        //            }
         //        }
-        //      }
         //    }
         //
         $result = array();
-        $prices = $this->safe_value($response, 'prices');
+        $prices = $this->safe_dict($response, 'prices', array());
         $ids = is_array($prices) ? array_keys($prices) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -329,12 +489,14 @@ class coinspot extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
+         *
          * @see https://www.coinspot.com.au/api#orderhistory
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -357,12 +519,14 @@ class coinspot extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
+         *
          * @see https://www.coinspot.com.au/api#rotransaction
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array();
@@ -375,36 +539,36 @@ class coinspot extends Exchange {
         }
         $response = $this->privatePostRoMyTransactions ($this->extend($request, $params));
         //  {
-        //   "status" => "ok",
-        //   "buyorders" => array(
-        //     array(
-        //       "otc" => false,
-        //       "market" => "ALGO/AUD",
-        //       "amount" => 386.95197925,
-        //       "created" => "2022-10-20T09:56:44.502Z",
-        //       "audfeeExGst" => 1.80018002,
-        //       "audGst" => 0.180018,
-        //       "audtotal" => 200
-        //     ),
-        //   ),
-        //   "sellorders" => array(
-        //     array(
-        //       "otc" => false,
-        //       "market" => "SOLO/ALGO",
-        //       "amount" => 154.52345614,
-        //       "total" => 115.78858204658796,
-        //       "created" => "2022-04-16T09:36:43.698Z",
-        //       "audfeeExGst" => 1.08995731,
-        //       "audGst" => 0.10899573,
-        //       "audtotal" => 118.7
-        //     ),
-        //   )
+        //      "status" => "ok",
+        //      "buyorders" => array(
+        //          array(
+        //              "otc" => false,
+        //              "market" => "ALGO/AUD",
+        //              "amount" => 386.95197925,
+        //              "created" => "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst" => 1.80018002,
+        //              "audGst" => 0.180018,
+        //              "audtotal" => 200
+        //          ),
+        //      ),
+        //      "sellorders" => array(
+        //          array(
+        //              "otc" => false,
+        //              "market" => "SOLO/ALGO",
+        //              "amount" => 154.52345614,
+        //              "total" => 115.78858204658796,
+        //              "created" => "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst" => 1.08995731,
+        //              "audGst" => 0.10899573,
+        //              "audtotal" => 118.7
+        //          ),
+        //      )
         // }
-        $buyTrades = $this->safe_value($response, 'buyorders', array());
+        $buyTrades = $this->safe_list($response, 'buyorders', array());
         for ($i = 0; $i < count($buyTrades); $i++) {
             $buyTrades[$i]['side'] = 'buy';
         }
-        $sellTrades = $this->safe_value($response, 'sellorders', array());
+        $sellTrades = $this->safe_list($response, 'sellorders', array());
         for ($i = 0; $i < count($sellTrades); $i++) {
             $sellTrades[$i]['side'] = 'sell';
         }
@@ -485,14 +649,16 @@ class coinspot extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://www.coinspot.com.au/api#placebuyorder
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $method = 'privatePostMy' . $this->capitalize($side);
@@ -505,18 +671,21 @@ class coinspot extends Exchange {
             'amount' => $amount,
             'rate' => $price,
         );
-        return $this->$method ($this->extend($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
+        return $this->parse_order($response);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://www.coinspot.com.au/api#cancelbuyorder
          * @see https://www.coinspot.com.au/api#cancelsellorder
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by coinspot cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $side = $this->safe_string($params, 'side');
         if ($side !== 'buy' && $side !== 'sell') {
@@ -541,8 +710,13 @@ class coinspot extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api === 'private') {
+        $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
+        $version = $isVersionedApi ? $api[0] : null;
+        $accessType = $isVersionedApi ? $api[1] : $api;
+        $endpoint = '/' . $this->implode_params($path, $params);
+        $fullPath = ($version !== null) ? '/' . $version . $endpoint : $endpoint;
+        $url = $this->urls['api'][$accessType] . $fullPath;
+        if ($accessType === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));

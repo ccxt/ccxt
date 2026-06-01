@@ -3,6 +3,15 @@
     "skipKeys": ["from", "to"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bitopro.com/v3/provisioning/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "spot fetchTrades",
@@ -51,6 +60,16 @@
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1m&to=1709992985&from=1709962985",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitopro.com/v3/orders/open?pair=btc_usdt",
                 "input": [
                     "BTC/USDT"
                 ]

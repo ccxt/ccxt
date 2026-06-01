@@ -18,4 +18,5 @@ function test_fetch_my_trades($exchange, $skipped_properties, $symbol) {
         test_trade($exchange, $skipped_properties, $method, $trades[$i], $symbol, $now);
     }
     assert_timestamp_order($exchange, $method, $symbol, $trades);
+    return true;
 }

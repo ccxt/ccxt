@@ -27,4 +27,5 @@ function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
             test_leverage_tier($exchange, $skipped_properties, $method, $tiers_for_symbol[$j]);
         }
     }
+    return true;
 }

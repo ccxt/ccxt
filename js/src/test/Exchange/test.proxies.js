@@ -11,6 +11,7 @@ async function testProxies(exchange, skippedProperties) {
     await testHttpProxy(exchange, skippedProperties);
     // 'httpsProxy', 'socksProxy'
     await testProxyForExceptions(exchange, skippedProperties);
+    return true;
 }
 async function testProxyUrl(exchange, skippedProperties) {
     const method = 'proxyUrl';
@@ -24,17 +25,19 @@ async function testProxyUrl(exchange, skippedProperties) {
     assert(response === proxyServerIp, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxyServerIp + '"');
     // reset the instance property
     testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 async function testHttpProxy(exchange, skippedProperties) {
     const method = 'httpProxy';
     const proxyServerIp = '5.75.153.75';
     const [proxyUrl, httpProxy, httpsProxy, socksProxy] = testSharedMethods.removeProxyOptions(exchange, skippedProperties);
-    exchange.httpProxy = 'http://' + proxyServerIp + ':8002';
+    exchange.httpProxy = 'http://' + proxyServerIp + ':8911';
     const ipCheckUrl = 'https://api.ipify.org/';
     const response = await exchange.fetch(ipCheckUrl);
     assert(response === proxyServerIp, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxyServerIp + '"');
     // reset the instance property
     testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 // with the below method we test out all variations of possible proxy options, so at least 2 of them should be set together, and such cases must throw exception
 async function testProxyForExceptions(exchange, skippedProperties) {
@@ -81,5 +84,6 @@ async function testProxyForExceptions(exchange, skippedProperties) {
     }
     // reset the instance property
     testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 export default testProxies;

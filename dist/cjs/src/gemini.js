@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
  * @augments Exchange
  */
-class gemini extends gemini$1 {
+class gemini extends gemini$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gemini',
@@ -26,7 +28,7 @@ class gemini extends gemini$1 {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
+                'margin': undefined,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -47,6 +49,7 @@ class gemini extends gemini$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -131,19 +134,29 @@ class gemini extends gemini$1 {
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/network/{token}': 5,
                         'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
+                        'v1/feepromos': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
                         'v1/trades/{symbol}': 5,
                         'v1/auction/{symbol}': 5,
                         'v1/auction/{symbol}/history': 5,
                         'v1/pricefeed': 5,
+                        'v1/fundingamount/{symbol}': 5,
+                        'v1/fundingamountreport/records.xlsx': 5,
                         'v1/book/{symbol}': 5,
                         'v1/earn/rates': 5,
+                        'v2/derivatives/candles/{symbol}/{time_frame}': 5,
+                        'v2/fxrate/{symbol}/{timestamp}': 5,
+                        'v1/riskstats/{symbol}': 5,
                     },
                 },
                 'private': {
+                    'get': {
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx': 1,
+                    },
                     'post': {
                         'v1/staking/unstake': 1,
                         'v1/staking/stake': 1,
@@ -185,6 +198,26 @@ class gemini extends gemini$1 {
                         'v1/account/create': 1,
                         'v1/account/list': 1,
                         'v1/heartbeat': 1,
+                        'v1/roles': 1,
+                        'v1/custodyaccountfees': 1,
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': 1,
+                        'v1/payments/addbank/cad': 1,
+                        'v1/transactions': 1,
+                        'v1/margin/account': 1,
+                        'v1/margin/rates': 1,
+                        'v1/margin/order/preview': 1,
+                        'v1/clearing/list': 1,
+                        'v1/clearing/broker/list': 1,
+                        'v1/clearing/broker/new': 1,
+                        'v1/clearing/trades': 1,
+                        'v1/instant/quote': 1,
+                        'v1/instant/execute': 1,
+                        'v1/account/rename': 1,
+                        'v1/oauth/revokeByToken': 1,
+                        'v1/margin': 1,
+                        'v1/perpetuals/fundingPayment': 1,
+                        'v1/perpetuals/fundingpaymentreport/records.json': 1,
+                        'v1/positions': 1,
                     },
                 },
             },
@@ -259,7 +292,7 @@ class gemini extends gemini$1 {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -271,6 +304,7 @@ class gemini extends gemini$1 {
                     'webApiRetries': 5,
                     'webApiMuteFailure': true,
                 },
+                // fetchticker should use v1, confirmed that v2 is buggy ( https://github.com/ccxt/ccxt/issues/28077 )
                 'fetchTickerMethod': 'fetchTickerV1',
                 'networks': {
                     'BTC': 'bitcoin',
@@ -293,31 +327,98 @@ class gemini extends gemini$1 {
                         'quote': 'USD',
                     },
                 },
+                'brokenPairs': ['efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd'],
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
             },
         });
     }
+    /**
+     * @method
+     * @name gemini#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         return await this.fetchCurrenciesFromWeb(params);
     }
+    /**
+     * @method
+     * @name gemini#fetchCurrenciesFromWeb
+     * @ignore
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrenciesFromWeb(params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchCurrenciesFromWeb
-         * @ignore
-         * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         //    {
@@ -339,53 +440,28 @@ class gemini extends gemini$1 {
         //        ]
         //    }
         //
-        const result = {};
         this.options['tradingPairs'] = this.safeList(data, 'tradingPairs');
         const currenciesArray = this.safeValue(data, 'currencies', []);
-        for (let i = 0; i < currenciesArray.length; i++) {
-            const currency = currenciesArray[i];
-            const id = this.safeString(currency, 0);
-            const code = this.safeCurrencyCode(id);
-            const type = this.safeString(currency, 7) ? 'fiat' : 'crypto';
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-            const networks = {};
-            const networkId = this.safeString(currency, 9);
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId);
-            }
-            if (networkCode !== undefined) {
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': undefined,
-                    'precision': precision,
-                    'limits': {
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = {
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': this.safeString(currency, 1),
+        return this.parseCurrencies(currenciesArray);
+    }
+    parseCurrency(rawCurrency) {
+        const id = this.safeString(rawCurrency, 0);
+        const code = this.safeCurrencyCode(id);
+        const type = this.safeString(rawCurrency, 7) ? 'fiat' : 'crypto';
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        const networks = {};
+        const networkId = this.safeString(rawCurrency, 9);
+        let networkCode = undefined;
+        if (networkId !== undefined) {
+            networkCode = this.networkIdToCode(networkId);
+            networks[networkCode] = {
+                'info': rawCurrency,
+                'id': networkId,
+                'network': networkCode,
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'type': type,
                 'precision': precision,
                 'limits': {
                     'deposit': {
@@ -397,20 +473,41 @@ class gemini extends gemini$1 {
                         'max': undefined,
                     },
                 },
-                'networks': networks,
             };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'id': id,
+            'code': code,
+            'name': this.safeString(rawCurrency, 1),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'type': type,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        });
     }
+    /**
+     * @method
+     * @name gemini#fetchMarkets
+     * @description retrieves data on all markets for gemini
+     * @see https://docs.gemini.com/rest-api/#symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchMarkets
-         * @description retrieves data on all markets for gemini
-         * @see https://docs.gemini.com/rest-api/#symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const method = this.safeValue(this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
         if (method === 'fetch_markets_from_web') {
             const promises = [];
@@ -561,10 +658,10 @@ class gemini extends gemini$1 {
         //
         const result = [];
         const options = this.safeDict(this.options, 'fetchMarketsFromAPI', {});
-        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
         const marketIds = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (marketIdsRaw[i] !== bugSymbol) {
+            if (!this.inArray(marketIdsRaw[i], brokenPairs)) {
                 marketIds.push(marketIdsRaw[i]);
             }
         }
@@ -601,15 +698,17 @@ class gemini extends gemini$1 {
                 const indexedTradingPairs = this.indexBy(tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
-                    const tradingPair = this.safeList(indexedTradingPairs, marketId.toUpperCase());
-                    if (tradingPair !== undefined) {
-                        result.push(this.parseMarket(tradingPair));
+                    const pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase());
+                    if (pairInfo !== undefined && !this.inArray(marketId, brokenPairs)) {
+                        result.push(this.parseMarket(pairInfo));
                     }
                 }
             }
             else {
                 for (let i = 0; i < marketIds.length; i++) {
-                    result.push(this.parseMarket(marketIds[i]));
+                    if (!this.inArray(marketIds[i], brokenPairs)) {
+                        result.push(this.parseMarket(marketIds[i]));
+                    }
                 }
             }
         }
@@ -625,8 +724,8 @@ class gemini extends gemini$1 {
         //
         //     [
         //         'BTCUSD',   // symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -645,7 +744,7 @@ class gemini extends gemini$1 {
         //         "wrap_enabled": false
         //         "product_type": "swap", // only in perps
         //         "contract_type": "linear", // only in perps
-        //         "contract_price_currency": "GUSD" // only in perps
+        //         "contract_price_currency": "GUSD"
         //     }
         //
         let marketId = undefined;
@@ -724,6 +823,7 @@ class gemini extends gemini$1 {
             inverse = false;
         }
         const type = swap ? 'swap' : 'spot';
+        const isSpot = !swap;
         return {
             'id': marketId,
             'symbol': symbol,
@@ -734,7 +834,7 @@ class gemini extends gemini$1 {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': false,
             'swap': swap,
             'future': false,
@@ -774,17 +874,17 @@ class gemini extends gemini$1 {
             'info': response,
         };
     }
+    /**
+     * @method
+     * @name gemini#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.gemini.com/rest-api/#current-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.gemini.com/rest-api/#current-order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -841,8 +941,9 @@ class gemini extends gemini$1 {
         return this.parseTicker(response, market);
     }
     async fetchTickerV1AndV2(symbol, params = {}) {
-        const tickerA = await this.fetchTickerV1(symbol, params);
-        const tickerB = await this.fetchTickerV2(symbol, params);
+        const tickerPromiseA = this.fetchTickerV1(symbol, params);
+        const tickerPromiseB = this.fetchTickerV2(symbol, params);
+        const [tickerA, tickerB] = await Promise.all([tickerPromiseA, tickerPromiseB]);
         return this.deepExtend(tickerA, {
             'open': tickerB['open'],
             'high': tickerB['high'],
@@ -853,18 +954,18 @@ class gemini extends gemini$1 {
             'info': tickerB['info'],
         });
     }
+    /**
+     * @method
+     * @name gemini#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.gemini.com/rest-api/#ticker
+     * @see https://docs.gemini.com/rest-api/#ticker-v2
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.gemini.com/rest-api/#ticker
-         * @see https://docs.gemini.com/rest-api/#ticker-v2
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
         if (method === 'fetchTickerV1') {
             return await this.fetchTickerV1(symbol, params);
@@ -968,16 +1069,16 @@ class gemini extends gemini$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name gemini#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.gemini.com/rest-api/#price-feed
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.gemini.com/rest-api/#price-feed
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const response = await this.publicGetV1Pricefeed(params);
         //
@@ -994,7 +1095,9 @@ class gemini extends gemini$1 {
         //         },
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        const result = this.parseTickers(response, symbols);
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
+        return this.removeKeysFromDict(result, brokenPairs);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1059,18 +1162,18 @@ class gemini extends gemini$1 {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name gemini#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.gemini.com/rest-api/#trade-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.gemini.com/rest-api/#trade-history
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1111,15 +1214,15 @@ class gemini extends gemini$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name gemini#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.gemini.com/rest-api/#get-notional-volume
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @see https://docs.gemini.com/rest-api/#get-notional-volume
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.privatePostV1Notionalvolume(params);
         //
@@ -1170,15 +1273,15 @@ class gemini extends gemini$1 {
         }
         return result;
     }
+    /**
+     * @method
+     * @name gemini#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.gemini.com/rest-api/#get-available-balances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.gemini.com/rest-api/#get-available-balances
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostV1Balances(params);
         return this.parseBalance(response);
@@ -1341,7 +1444,6 @@ class gemini extends gemini$1 {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': average,
             'cost': undefined,
@@ -1352,16 +1454,17 @@ class gemini extends gemini$1 {
             'trades': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name gemini#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.gemini.com/rest-api/#order-status
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://docs.gemini.com/rest-api/#order-status
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'order_id': id,
@@ -1383,7 +1486,7 @@ class gemini extends gemini$1 {
         //          "is_hidden":false,
         //          "was_forced":false,
         //          "executed_amount":"0",
-        //          "client_order_id":"1650398445709",
+        //          "client_order_id":"1650398445701",
         //          "options":[],
         //          "price":"2000.00",
         //          "original_amount":"0.01",
@@ -1392,18 +1495,18 @@ class gemini extends gemini$1 {
         //
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name gemini#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.gemini.com/rest-api/#get-active-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://docs.gemini.com/rest-api/#get-active-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostV1Orders(params);
         //
@@ -1437,20 +1540,20 @@ class gemini extends gemini$1 {
         }
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name gemini#createOrder
+     * @description create a trade order
+     * @see https://docs.gemini.com/rest-api/#new-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#createOrder
-         * @description create a trade order
-         * @see https://docs.gemini.com/rest-api/#new-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -1474,13 +1577,13 @@ class gemini extends gemini$1 {
         };
         type = this.safeString(params, 'type', type);
         params = this.omit(params, 'type');
-        const rawStopPrice = this.safeString2(params, 'stop_price', 'stopPrice');
-        params = this.omit(params, ['stop_price', 'stopPrice', 'type']);
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price', 'stopPrice']);
+        params = this.omit(params, ['triggerPrice', 'stop_price', 'stopPrice', 'type']);
         if (type === 'stopLimit') {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice parameter or a stop_price parameter for ' + type + ' orders');
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + type + ' orders');
         }
-        if (rawStopPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision(symbol, rawStopPrice);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
             request['type'] = 'exchange stop limit';
         }
         else {
@@ -1535,17 +1638,17 @@ class gemini extends gemini$1 {
         //
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name gemini#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.gemini.com/rest-api/#cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#cancelOrder
-         * @description cancels an open order
-         * @see https://docs.gemini.com/rest-api/#cancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'order_id': id,
@@ -1577,18 +1680,18 @@ class gemini extends gemini$1 {
         //
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name gemini#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.gemini.com/rest-api/#get-past-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://docs.gemini.com/rest-api/#get-past-trades
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1606,19 +1709,19 @@ class gemini extends gemini$1 {
         const response = await this.privatePostV1Mytrades(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name gemini#withdraw
+     * @description make a withdrawal
+     * @see https://docs.gemini.com/rest-api/#withdraw-crypto-funds
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#withdraw
-         * @description make a withdrawal
-         * @see https://docs.gemini.com/rest-api/#withdraw-crypto-funds
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
@@ -1665,18 +1768,18 @@ class gemini extends gemini$1 {
         }
         return this.seconds();
     }
+    /**
+     * @method
+     * @name gemini#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.gemini.com/rest-api/#transfers
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals
-         * @see https://docs.gemini.com/rest-api/#transfers
-         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {};
         if (limit !== undefined) {
@@ -1770,17 +1873,17 @@ class gemini extends gemini$1 {
             'info': depositAddress,
         };
     }
+    /**
+     * @method
+     * @name gemini#fetchDepositAddress
+     * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} [params.network]  *required* The chain of currency
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchDepositAddress
-         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the endpoint
-         * @param {string} [params.network]  *required* The chain of currency
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const groupedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
         let networkCode = undefined;
@@ -1788,17 +1891,17 @@ class gemini extends gemini$1 {
         const networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), 'currency');
         return this.safeValue(networkGroup, code);
     }
+    /**
+     * @method
+     * @name gemini#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network]  *required* The chain of currency
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
+     */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchDepositAddressesByNetwork
-         * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.network]  *required* The chain of currency
-         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         code = currency['code'];
@@ -1825,8 +1928,9 @@ class gemini extends gemini$1 {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             const nonce = this.nonce().toString();
+            const finalUrl = url;
             const request = this.extend({
-                'request': url,
+                'request': finalUrl,
                 'nonce': nonce,
             }, query);
             let payload = this.json(request);
@@ -1877,16 +1981,16 @@ class gemini extends gemini$1 {
         }
         return undefined;
     }
+    /**
+     * @method
+     * @name gemini#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.gemini.com/rest-api/#new-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
     async createDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name gemini#createDepositAddress
-         * @description create a currency deposit address
-         * @see https://docs.gemini.com/rest-api/#new-deposit-address
-         * @param {string} code unified currency code of the currency for the deposit address
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -1899,22 +2003,23 @@ class gemini extends gemini$1 {
             'currency': code,
             'address': address,
             'tag': undefined,
+            'network': undefined,
             'info': response,
         };
     }
+    /**
+     * @method
+     * @name gemini#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.gemini.com/rest-api/#candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name gemini#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.gemini.com/rest-api/#candles
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1932,6 +2037,52 @@ class gemini extends gemini$1 {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
+    /**
+     * @method
+     * @name gemini#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1RiskstatsSymbol(this.extend(request, params));
+        //
+        //    {
+        //        product_type: 'PerpetualSwapContract',
+        //        mark_price: '9.023',
+        //        index_price: '9.02072',
+        //        open_interest: '4681.9',
+        //        open_interest_notional: '42244.7837'
+        //    }
+        //
+        return this.parseOpenInterest(response, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //    {
+        //        product_type: 'PerpetualSwapContract',
+        //        mark_price: '9.023',
+        //        index_price: '9.02072',
+        //        open_interest: '4681.9',
+        //        open_interest_notional: '42244.7837'
+        //    }
+        //
+        return this.safeOpenInterest({
+            'info': interest,
+            'symbol': this.safeString(market, 'symbol'),
+            'openInterestAmount': this.safeString(interest, 'open_interest'),
+            'openInterestValue': this.safeString(interest, 'open_interest_notional'),
+            'timestamp': undefined,
+            'datetime': undefined,
+        }, market);
+    }
 }
 
-module.exports = gemini;
+exports["default"] = gemini;

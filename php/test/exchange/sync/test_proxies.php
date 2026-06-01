@@ -14,6 +14,7 @@ function test_proxies($exchange, $skipped_properties) {
     test_http_proxy($exchange, $skipped_properties);
     // 'httpsProxy', 'socksProxy'
     test_proxy_for_exceptions($exchange, $skipped_properties);
+    return true;
 }
 
 
@@ -26,9 +27,10 @@ function test_proxy_url($exchange, $skipped_properties) {
     $encoded_slash = '%2F';
     $ip_check_url = 'https' . $encoded_colon . $encoded_slash . $encoded_slash . 'api.ipify.org';
     $response = $exchange->fetch($ip_check_url);
-    assert($response === $proxy_server_ip, $exchange->id . ' ' . $method . ' test failed. Returned response is ' . $response . ' while it should be \"' . $proxy_server_ip . '\"');
+    assert($response === $proxy_server_ip, $exchange->id . ' ' . $method . ' test failed. Returned response is ' . $response . ' while it should be "' . $proxy_server_ip . '"');
     // reset the instance property
     set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_proxy, $https_proxy, $socks_proxy);
+    return true;
 }
 
 
@@ -36,12 +38,13 @@ function test_http_proxy($exchange, $skipped_properties) {
     $method = 'httpProxy';
     $proxy_server_ip = '5.75.153.75';
     [$proxy_url, $http_proxy, $https_proxy, $socks_proxy] = remove_proxy_options($exchange, $skipped_properties);
-    $exchange->http_proxy = 'http://' . $proxy_server_ip . ':8002';
+    $exchange->http_proxy = 'http://' . $proxy_server_ip . ':8911';
     $ip_check_url = 'https://api.ipify.org/';
     $response = $exchange->fetch($ip_check_url);
-    assert($response === $proxy_server_ip, $exchange->id . ' ' . $method . ' test failed. Returned response is ' . $response . ' while it should be \"' . $proxy_server_ip . '\"');
+    assert($response === $proxy_server_ip, $exchange->id . ' ' . $method . ' test failed. Returned response is ' . $response . ' while it should be "' . $proxy_server_ip . '"');
     // reset the instance property
     set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_proxy, $https_proxy, $socks_proxy);
+    return true;
 }
 
 
@@ -72,4 +75,5 @@ function test_proxy_for_exceptions($exchange, $skipped_properties) {
     }
     // reset the instance property
     set_proxy_options($exchange, $skipped_properties, $proxy_url, $http_proxy, $https_proxy, $socks_proxy);
+    return true;
 }

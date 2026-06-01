@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 use ccxt\Precise;
@@ -24,11 +24,11 @@ function example() {
             'secret' => 'YOUR_API_SECRET',
         ));
         while (true) {
-            $trades = Async\await($exchange->watch_positions());
+            $trades = \React\Async\await($exchange->watch_positions());
             var_dump($trades);
         }
     }) ();
 }
 
 
-Async\await(example());
+\React\Async\await(example());

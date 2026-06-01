@@ -18,3 +18,4 @@ def test_fetch_l2_order_book(exchange, skipped_properties, symbol):
     method = 'fetchL2OrderBook'
     order_book = exchange.fetch_l2_order_book(symbol)
     test_order_book(exchange, skipped_properties, method, order_book, symbol)
+    return True

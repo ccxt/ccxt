@@ -8,12 +8,13 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
-use React\Async;
-use React\Promise\PromiseInterface;
+use ccxt\Precise;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class gemini extends \ccxt\async\gemini {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -45,12 +46,14 @@ class gemini extends \ccxt\async\gemini {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -80,13 +83,15 @@ class gemini extends \ccxt\async\gemini {
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             *
              * get the list of most recent $trades for a list of $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
             if ($this->newUpdates) {
@@ -267,11 +272,13 @@ class gemini extends \ccxt\async\gemini {
         }
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.gemini.com/websocket-api/#candles-data-feed
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -364,11 +371,13 @@ class gemini extends \ccxt\async\gemini {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.gemini.com/websocket-api/#$market-data-version-2
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -421,11 +430,13 @@ class gemini extends \ccxt\async\gemini {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             $orderbook = Async\await($this->helper_for_watch_multiple_construct('orderbook', $symbols, $params));
             return $orderbook->limit ();
@@ -436,10 +447,12 @@ class gemini extends \ccxt\async\gemini {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
+             *
              * @see https://docs.gemini.com/websocket-api/#multi-market-data
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params));
         }) ();
@@ -487,10 +500,11 @@ class gemini extends \ccxt\async\gemini {
             $entry = $rawBidAskChanges[$i];
             $rawSide = $this->safe_string($entry, 'side');
             $price = $this->safe_number($entry, 'price');
-            $size = $this->safe_number($entry, 'remaining');
-            if ($size === 0) {
+            $sizeString = $this->safe_string($entry, 'remaining');
+            if (Precise::string_eq($sizeString, '0')) {
                 continue;
             }
+            $size = $this->parse_number($sizeString);
             if ($rawSide === 'bid') {
                 $currentBidAsk['bid'] = $price;
                 $currentBidAsk['bidVolume'] = $size;
@@ -502,13 +516,18 @@ class gemini extends \ccxt\async\gemini {
         $currentBidAsk['timestamp'] = $timestamp;
         $currentBidAsk['datetime'] = $this->iso8601($timestamp);
         $currentBidAsk['info'] = $rawBidAskChanges;
+        $bidsAsksDict = array();
+        $bidsAsksDict[$symbol] = $currentBidAsk;
         $this->bidsasks[$symbol] = $currentBidAsk;
-        $client->resolve ($currentBidAsk, $messageHash);
+        $client->resolve ($bidsAsksDict, $messageHash);
     }
 
-    public function helper_for_watch_multiple_construct(string $itemHashName, array $symbols, $params = array ()) {
+    public function helper_for_watch_multiple_construct(string $itemHashName, ?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($itemHashName, $symbols, $params) {
             Async\await($this->load_markets());
+            if ($symbols === null) {
+                throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             if (!$firstMarket['spot'] && !$firstMarket['linear']) {
@@ -630,12 +649,14 @@ class gemini extends \ccxt\async\gemini {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://docs.gemini.com/websocket-api/#order-events
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $url = $this->urls['api']['ws'] . '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
             Async\await($this->load_markets());
@@ -850,7 +871,7 @@ class gemini extends \ccxt\async\gemini {
         //         }
         //     )
         //
-        $isArray = gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message));
+        $isArray = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)));
         if ($isArray) {
             $this->handle_order($client, $message);
             return;

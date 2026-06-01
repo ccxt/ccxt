@@ -13,6 +13,7 @@ class ImplicitAPI:
     private_get_accounts_id_transactions = privateGetAccountsIdTransactions = Entry('accounts/{id}/transactions', 'private', 'GET', {'cost': 1})
     private_get_balance = privateGetBalance = Entry('balance', 'private', 'GET', {'cost': 1})
     private_get_beneficiaries = privateGetBeneficiaries = Entry('beneficiaries', 'private', 'GET', {'cost': 1})
+    private_get_send_networks = privateGetSendNetworks = Entry('send/networks', 'private', 'GET', {'cost': 1})
     private_get_fee_info = privateGetFeeInfo = Entry('fee_info', 'private', 'GET', {'cost': 1})
     private_get_funding_address = privateGetFundingAddress = Entry('funding_address', 'private', 'GET', {'cost': 1})
     private_get_listorders = privateGetListorders = Entry('listorders', 'private', 'GET', {'cost': 1})

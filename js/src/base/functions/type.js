@@ -82,7 +82,7 @@ const safeInteger2 = (o, k1, k2, $default) => {
     return isNumber(n) ? n : $default;
 };
 const safeIntegerProduct2 = (o, k1, k2, $factor, $default) => {
-    const n = asInteger(prop2(o, k1, k2));
+    const n = asFloat(prop2(o, k1, k2));
     return isNumber(n) ? parseInt(n * $factor) : $default;
 };
 const safeTimestamp2 = (o, k1, k2, $default) => {
@@ -129,7 +129,7 @@ const safeIntegerN = (o, k, $default) => {
     return isNumber(n) ? n : $default;
 };
 const safeIntegerProductN = (o, k, $factor, $default) => {
-    const n = asInteger(getValueFromKeysInArray(o, k));
+    const n = asFloat(getValueFromKeysInArray(o, k));
     return isNumber(n) ? parseInt(n * $factor) : $default;
 };
 const safeTimestampN = (o, k, $default) => {

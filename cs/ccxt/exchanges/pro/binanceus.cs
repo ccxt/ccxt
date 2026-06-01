@@ -12,7 +12,8 @@ public partial class binanceus : binance
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.binanceus();
         object restDescribe = restInstance.describe();
-        object extended = this.deepExtend(restDescribe, base.describe());
+        object parentWsDescribe = base.describeData();
+        object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binanceus" },
             { "name", "Binance US" },
@@ -27,7 +28,7 @@ public partial class binanceus : binance
                     { "web", "https://www.binance.us" },
                     { "sapi", "https://api.binance.us/sapi/v1" },
                     { "wapi", "https://api.binance.us/wapi/v3" },
-                    { "public", "https://api.binance.us/api/v1" },
+                    { "public", "https://api.binance.us/api/v3" },
                     { "private", "https://api.binance.us/api/v3" },
                     { "v3", "https://api.binance.us/api/v3" },
                     { "v1", "https://api.binance.us/api/v1" },
@@ -37,11 +38,31 @@ public partial class binanceus : binance
                 { "doc", "https://github.com/binance-us/binance-official-api-docs" },
                 { "fees", "https://www.binance.us/en/fee/schedule" },
             } },
+            { "has", new Dictionary<string, object>() {
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createReduceOnlyOrderWs", false },
+                { "createStopLossOrderWs", false },
+                { "createTakeProfitOrderWs", false },
+                { "fetchPositionForSymbolWs", false },
+                { "fetchPositionsForSymbolWs", false },
+                { "fetchPositionsWs", false },
+                { "fetchPositionWs", false },
+                { "unWatchPositions", false },
+                { "watchLiquidations", false },
+                { "watchLiquidationsForSymbols", false },
+                { "watchMarkPrice", false },
+                { "watchMarkPrices", false },
+                { "watchMyLiquidations", false },
+                { "watchMyLiquidationsForSymbols", false },
+                { "watchPosition", false },
+                { "watchPositions", false },
+            } },
             { "options", new Dictionary<string, object>() {
-                { "fetchCurrencies", false },
                 { "quoteOrderQty", false },
                 { "defaultType", "spot" },
-                { "fetchMarkets", new List<object>() {"spot"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot"} },
+                } },
             } },
         });
     }

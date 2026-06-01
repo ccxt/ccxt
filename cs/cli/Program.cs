@@ -1,4 +1,5 @@
 ﻿namespace Example;
+
 using ccxt;
 using System;
 using System.Threading.Tasks;
@@ -11,11 +12,14 @@ public static class Program
 {
 
     public static bool verbose = false;
+    public static bool noLoadMarkets = false;
 
     public class Options
     {
         public bool Verbose { get; set; }
         public bool Sandbox { get; set; }
+        public bool NoLoadMarkets { get; set; }
+        public bool Demo { get; set; }
     }
     public static string exchangesPath = System.AppDomain.CurrentDomain.BaseDirectory + "../../../../.." + "/exchanges.json"; // when using debugguer
 
@@ -33,6 +37,15 @@ public static class Program
         {
             instance.setSandboxMode(true);
         }
+        if (args.Contains("--no-load-markets"))
+        {
+            noLoadMarkets = true;
+        }
+
+        if (args.Contains("--demo"))
+        {
+            instance.enableDemoTrading(true);
+        }
     }
 
     public static void SetCredentials(Exchange instance)
@@ -43,6 +56,11 @@ public static class Program
             if (File.Exists("keys.local.json"))
             {
                 var jsonText = File.ReadAllText("keys.local.json");
+                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
+            }
+            if (File.Exists("./../../keys.local.json"))
+            {
+                var jsonText = File.ReadAllText("./../../keys.local.json");
                 localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
             }
         }
@@ -78,10 +96,9 @@ public static class Program
                 {
                     var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
                     credentialValue = Environment.GetEnvironmentVariable(parsedKey);
-                    if (credentialValue.StartsWith("-----BEGIN"))
+                    if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
                     {
                         credentialValue = credentialValue.Replace("\\n", "\n");
-
                     }
                 }
 
@@ -97,12 +114,18 @@ public static class Program
 
     public static void Main(string[] args)
     {
-
-        var file = File.ReadAllText(exchangesPath);
-        var converted = (dict)JsonHelper.Deserialize(file);
-        var ids = (list)converted["ids"];
-        List<string> strings = ids.Select(s => (string)s).ToList();
-        exchangesId = strings;
+        if (File.Exists(exchangesPath))
+        {
+            var file = File.ReadAllText(exchangesPath);
+            var converted = (dict)JsonHelper.Deserialize(file);
+            var ids = (list)converted["ids"];
+            List<string> strings = ids.Select(s => (string)s).ToList();
+            exchangesId = strings;
+        }
+        else
+        {
+            exchangesId = null;
+        }
 
         // if (true || args.Contains("--ws"))
         // {
@@ -127,7 +150,7 @@ public static class Program
         var methodName = args[1];
 
 
-        if (!exchangesId.Contains(exchangeName.ToLower()))
+        if (exchangesId != null && !exchangesId.Contains(exchangeName.ToLower()))
         {
             Helper.Red($"Exchange {exchangeName} not found!");
             return;
@@ -171,8 +194,11 @@ public static class Program
         try
         {
             Console.WriteLine(JsonConvert.SerializeObject(parameters, Formatting.Indented));
-            var task = instance.loadMarkets();
-            task.Wait();
+            if (!noLoadMarkets)
+            {
+                var task = instance.loadMarkets();
+                task.Wait();
+            }
             if (verbose)
             {
                 instance.verbose = true;

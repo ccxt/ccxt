@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 use ccxt\Precise;
@@ -22,11 +22,11 @@ function example() {
         $binance = new \ccxt\pro\binance(array());
         $subscriptions = [['BTC/USDT', '5m'], ['ETH/USDT', '5m'], ['BTC/USDT', '1h']];
         while (true) {
-            $ohlcv = Async\await($binance->watch_ohlcv_for_symbols($subscriptions));
+            $ohlcv = \React\Async\await($binance->watch_ohlcv_for_symbols($subscriptions));
             var_dump($ohlcv);
         }
     }) ();
 }
 
 
-Async\await(example());
+\React\Async\await(example());

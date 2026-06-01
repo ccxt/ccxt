@@ -6,18 +6,19 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class luno extends \ccxt\async\luno {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => null, // is in beta
                 'watchOrderBook' => true,
@@ -42,12 +43,14 @@ class luno extends \ccxt\async\luno {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -147,7 +150,7 @@ class luno extends \ccxt\async\luno {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -206,16 +209,17 @@ class luno extends \ccxt\async\luno {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
-        $orderbook = $this->orderbooks[$symbol];
         $asks = $this->safe_value($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
-            $orderbook->reset ($snapshot);
+            $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
         } else {
-            $this->handle_delta($orderbook, $message);
-            $orderbook['timestamp'] = $timestamp;
-            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $ob = $this->orderbooks[$symbol];
+            $this->handle_delta($ob, $message);
+            $ob['timestamp'] = $timestamp;
+            $ob['datetime'] = $this->iso8601($timestamp);
         }
+        $orderbook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($message, 'sequence');
         $orderbook['nonce'] = $nonce;
         $client->resolve ($orderbook, $messageHash);

@@ -1,52 +1,86 @@
 {
     "BTC/KRW": {
-        "id": "1701311981643001",
+        "id": "1779442920000001",
+        "lowercaseId": null,
         "symbol": "BTC/KRW",
         "base": "BTC",
         "quote": "KRW",
-        "baseId": "btc",
-        "quoteId": "krw",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "KRW",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.0001,
             "cost": 1e-8
         },
         "limits": {
-            "leverage": {},
-            "amount": {},
-            "price": {},
-            "cost": {}
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "quote_currency": "krw",
             "target_currency": "btc",
-            "timestamp": "1701311981643",
-            "high": "51200000.0",
-            "low": "50398000.0",
-            "first": "50545000.0",
-            "last": "50616000.0",
-            "quote_volume": "11776072588.403",
-            "target_volume": "231.99992781",
+            "timestamp": "1779442920000",
+            "high": "115720000.0",
+            "low": "114210000.0",
+            "first": "115430000.0",
+            "last": "115230000.0",
+            "quote_volume": "3449380572.7516",
+            "target_volume": "29.96109131",
             "best_asks": [
                 {
-                    "price": "50621000.0",
-                    "qty": "0.3946"
+                    "price": "115230000.0",
+                    "qty": "0.00000001"
                 }
             ],
             "best_bids": [
                 {
-                    "price": "50616000.0",
-                    "qty": "0.26926803"
+                    "price": "115220000.0",
+                    "qty": "0.0451"
                 }
             ],
-            "id": "1701311981643001"
-        }
+            "id": "1779442920000001"
+        },
+        "tierBased": false,
+        "percentage": true
     }
 }

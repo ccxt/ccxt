@@ -26,9 +26,14 @@ public partial class htx : ccxt.htx
                 { "watchTickers", false },
                 { "watchTicker", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
+                { "unWatchTicker", true },
+                { "unWatchOHLCV", true },
+                { "unWatchTrades", true },
+                { "unWatchOrderBook", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -41,22 +46,22 @@ public partial class htx : ccxt.htx
                             } },
                             { "future", new Dictionary<string, object>() {
                                 { "linear", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/linear-swap-ws" },
-                                    { "private", "wss://api.hbdm.com/linear-swap-notification" },
+                                    { "public", "wss://api.hbdm.vn/linear-swap-ws" },
+                                    { "private", "wss://api.hbdm.vn/linear-swap-notification" },
                                 } },
                                 { "inverse", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/ws" },
-                                    { "private", "wss://api.hbdm.com/notification" },
+                                    { "public", "wss://api.hbdm.vn/ws" },
+                                    { "private", "wss://api.hbdm.vn/notification" },
                                 } },
                             } },
                             { "swap", new Dictionary<string, object>() {
                                 { "inverse", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/swap-ws" },
-                                    { "private", "wss://api.hbdm.com/swap-notification" },
+                                    { "public", "wss://api.hbdm.vn/swap-ws" },
+                                    { "private", "wss://api.hbdm.vn/swap-notification" },
                                 } },
                                 { "linear", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/linear-swap-ws" },
-                                    { "private", "wss://api.hbdm.com/linear-swap-notification" },
+                                    { "public", "wss://api.hbdm.vn/linear-swap-ws" },
+                                    { "private", "wss://api.hbdm.vn/linear-swap-notification" },
                                 } },
                             } },
                         } },
@@ -96,6 +101,8 @@ public partial class htx : ccxt.htx
                 { "api", "api" },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "maxRetries", 3 },
+                    { "checksum", true },
+                    { "depth", 150 },
                 } },
                 { "ws", new Dictionary<string, object>() {
                     { "gunzip", true },
@@ -122,26 +129,30 @@ public partial class htx : ccxt.htx
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return ((object)requestId).ToString();
     }
 
+    /**
+     * @method
+     * @name htx#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         object topic = this.safeString(options, "name", "market.{marketId}.detail");
         if (isTrue(isTrue(isEqual(topic, "market.{marketId}.ticker")) && isTrue(!isEqual(getValue(market, "type"), "spot"))))
         {
@@ -152,6 +163,34 @@ public partial class htx : ccxt.htx
         });
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
         return await this.subscribePublic(url, symbol, messageHash, null, parameters);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object topic = "ticker";
+        object options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
+        object channel = this.safeString(options, "name", "market.{marketId}.detail");
+        if (isTrue(isTrue(isEqual(channel, "market.{marketId}.ticker")) && isTrue(!isEqual(getValue(market, "type"), "spot"))))
+        {
+            throw new BadRequest ((string)add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
+        }
+        object subMessageHash = this.implodeParams(channel, new Dictionary<string, object>() {
+            { "marketId", getValue(market, "id") },
+        });
+        return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
     public virtual object handleTicker(WebSocketClient client, object message)
@@ -203,18 +242,21 @@ public partial class htx : ccxt.htx
         return message;
     }
 
+    /**
+     * @method
+     * @name htx#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -227,6 +269,31 @@ public partial class htx : ccxt.htx
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchTrades
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object topic = "trades";
+        object options = this.safeDict(this.options, "watchTrades", new Dictionary<string, object>() {});
+        object channel = this.safeString(options, "name", "market.{marketId}.trade.detail");
+        object subMessageHash = this.implodeParams(channel, new Dictionary<string, object>() {
+            { "marketId", getValue(market, "id") },
+        });
+        return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
     public virtual object handleTrades(WebSocketClient client, object message)
@@ -274,19 +341,22 @@ public partial class htx : ccxt.htx
         return message;
     }
 
+    /**
+     * @method
+     * @name htx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -301,6 +371,32 @@ public partial class htx : ccxt.htx
             limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        object subMessageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
+        object topic = "ohlcv";
+        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframe}};
+        return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -342,44 +438,45 @@ public partial class htx : ccxt.htx
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, ch});
     }
 
+    /**
+     * @method
+     * @name htx#watchOrderBook
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchOrderBook
-        * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
-        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
-        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object allowedLimits = new List<object>() {20, 150};
+        object allowedLimits = new List<object>() {5, 20, 150, 400};
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
+        object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         if (isTrue(isEqual(limit, null)))
         {
-            limit = ((bool) isTrue(getValue(market, "spot"))) ? 150 : 20;
+            limit = this.safeInteger(options, "depth", 150);
         }
         if (!isTrue(this.inArray(limit, allowedLimits)))
         {
-            throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 20 and 150 only")) ;
+            throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         object messageHash = null;
         if (isTrue(getValue(market, "spot")))
         {
-            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), ((object)limit).ToString());
+            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(limit));
         } else
         {
-            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), ((object)limit).ToString()), ".high_freq");
+            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(limit)), ".high_freq");
         }
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
         object method = this.handleOrderBookSubscription;
@@ -391,6 +488,41 @@ public partial class htx : ccxt.htx
         }
         object orderbook = await this.subscribePublic(url, symbol, messageHash, method, parameters);
         return (orderbook as IOrderBook).limit();
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     */
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object topic = "orderbook";
+        object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
+        object depth = this.safeInteger(options, "depth", 150);
+        object subMessageHash = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            subMessageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(depth));
+        } else
+        {
+            subMessageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(depth)), ".high_freq");
+        }
+        if (!isTrue((getValue(market, "spot"))))
+        {
+            ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
+        }
+        return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, object message, object subscription)
@@ -470,8 +602,8 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
-
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -509,7 +641,7 @@ public partial class htx : ccxt.htx
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
         return null;
@@ -618,7 +750,11 @@ public partial class htx : ccxt.htx
         }
         if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, getValue(orderbook, "nonce")))))
         {
-            throw new InvalidNonce ((string)add(this.id, " watchOrderBook() received a mesage out of order")) ;
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+            }
         }
         object spotConditon = isTrue(getValue(market, "spot")) && isTrue((isEqual(prevSeqNum, getValue(orderbook, "nonce"))));
         object nonSpotCondition = isTrue(getValue(market, "contract")) && isTrue((isEqual(subtract(version, 1), getValue(orderbook, "nonce"))));
@@ -718,18 +854,19 @@ public partial class htx : ccxt.htx
         }
     }
 
+    /**
+     * @method
+     * @name htx#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchMyTrades
-        * @description watches information on multiple trades made by the user
-        * @param {string} symbol unified market symbol of the market trades were made in
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trade structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -835,18 +972,19 @@ public partial class htx : ccxt.htx
         return new List<object>() {channel, messageHash};
     }
 
+    /**
+     * @method
+     * @name htx#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
@@ -893,23 +1031,39 @@ public partial class htx : ccxt.htx
         //
         // spot
         //
+        //     for new order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
         //             "orderSource": "spot-web",
-        //             "orderCreateTime": 1645116048355,
         //             "accountId": 44234548,
         //             "orderPrice": "100",
         //             "orderSize": "0.05",
         //             "symbol": "ethusdt",
         //             "type": "buy-limit",
         //             "orderId": "478861479986886",
-        //             "eventType": "creation",
         //             "clientOrderId": '',
-        //             "orderStatus": "submitted"
         //         }
         //     }
+        //
+        //     for filled order, additional fields are present:
+        //
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
@@ -1025,6 +1179,9 @@ public partial class htx : ccxt.htx
                     { "symbol", getValue(market, "symbol") },
                     { "filled", this.parseNumber(filled) },
                     { "remaining", this.parseNumber(remaining) },
+                    { "price", this.safeNumber(data, "orderPrice") },
+                    { "amount", this.safeNumber(data, "orderSize") },
+                    { "info", data },
                 };
                 parsedOrder = order;
             } else
@@ -1311,20 +1468,22 @@ public partial class htx : ccxt.htx
         }, market);
     }
 
+    /**
+     * @method
+     * @name htx#watchPositions
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchPositions
-        * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-        * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
-        * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
-        * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-        * @description watch all open positions. Note: huobi has one channel for each marginMode and type
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1453,15 +1612,19 @@ public partial class htx : ccxt.htx
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, add(marginMode, ":positions")});
     }
 
+    /**
+     * @method
+     * @name htx#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name huobi#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -1830,23 +1993,47 @@ public partial class htx : ccxt.htx
         //         "ts": 1583414229143
         //     }
         //
+        // unsubscribe
+        //     {
+        //         "id": "2",
+        //         "status": "ok",
+        //         "unsubbed": "market.BTC-USDT-251003.detail",
+        //         "ts": 1759329276980
+        //     }
+        //
         object id = this.safeString(message, "id");
         object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeValue(subscriptionsById, id);
+        object subscription = this.safeDict(subscriptionsById, id);
         if (isTrue(!isEqual(subscription, null)))
         {
             object method = this.safeValue(subscription, "method");
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
-                return;
             }
             // clean up
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
         }
+        if (isTrue(inOp(message, "unsubbed")))
+        {
+            this.handleUnSubscription(client as WebSocketClient, subscription);
+        }
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    {
+        object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object unsubHash = getValue(messageHashes, i);
+            object subHash = getValue(subMessageHashes, i);
+            this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
+        }
+        this.cleanCache(subscription);
     }
 
     public virtual object handleSystemStatus(WebSocketClient client, object message)
@@ -2040,7 +2227,7 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " pong failed "), this.json(e)));
+            var error = new NetworkError(add(add(this.id, " pong failed "), this.exceptionMessage(e)));
             ((WebSocketClient)client).reset(error);
         }
     }
@@ -2129,7 +2316,7 @@ public partial class htx : ccxt.htx
                     ((WebSocketClient)client).reject(e, id);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
                     }
                 }
             }
@@ -2151,7 +2338,7 @@ public partial class htx : ccxt.htx
                     object method = "auth";
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                     }
                     return false;
                 } else
@@ -2160,7 +2347,7 @@ public partial class htx : ccxt.htx
                 }
             }
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -2511,6 +2698,34 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
+    public async virtual Task<object> unsubscribePublic(object market, object subMessageHash, object topic, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object requestId = this.requestId();
+        object request = new Dictionary<string, object>() {
+            { "unsub", subMessageHash },
+            { "id", requestId },
+        };
+        object messageHash = add("unsubscribe::", subMessageHash);
+        object isFeed = (isEqual(topic, "orderbook"));
+        object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, isFeed);
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", requestId },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+            { "messageHashes", new List<object>() {messageHash} },
+            { "symbols", new List<object>() {getValue(market, "symbol")} },
+            { "topic", topic },
+        };
+        object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+        if (isTrue(!isEqual(symbolsAndTimeframes, null)))
+        {
+            ((IDictionary<string,object>)subscription)["symbolsAndTimeframes"] = symbolsAndTimeframes;
+            parameters = this.omit(parameters, "symbolsAndTimeframes");
+        }
+        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+    }
+
     public async virtual Task<object> subscribePrivate(object channel, object messageHash, object type, object subtype, object parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2563,7 +2778,7 @@ public partial class htx : ccxt.htx
         object messageHash = "auth";
         object relativePath = ((string)url).Replace((string)add("wss://", hostname), (string)"");
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -2587,7 +2802,7 @@ public partial class htx : ccxt.htx
                 };
             }
             signatureParams = this.keysort(signatureParams);
-            object auth = this.urlencode(signatureParams);
+            object auth = this.urlencode(signatureParams, true); // true required in go
             object payload = String.Join("\n", ((IList<object>)new List<object>() {"GET", hostname, relativePath, auth}).ToArray()); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             object request = null;

@@ -8,7 +8,7 @@ include_once (__DIR__.'/../../ccxt.php');
 
 // -----------------------------------------------------------------------------
 
-error_reporting(E_ALL | E_STRICT);
+error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 use ccxt\Precise;
@@ -24,9 +24,9 @@ function example() {
             'secret' => 'MY_SECRET',
         ));
         $exchange->set_sandbox_mode(true);
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $exchange->verbose = true; // uncomment for debugging purposes if necessary
-        $orders = Async\await($exchange->create_orders([array(
+        $orders = \React\Async\await($exchange->create_orders([array(
     'symbol' => 'LTC/USDT:USDT',
     'type' => 'limit',
     'side' => 'buy',
@@ -43,4 +43,4 @@ function example() {
 }
 
 
-Async\await(example());
+\React\Async\await(example());

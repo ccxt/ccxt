@@ -9,8 +9,12 @@ use Exception; // a common import
 
 class binanceusdm extends \ccxt\pro\binance {
 
-    public function describe() {
-        return $this->deep_extend(parent::describe(), array(
+    public function describe(): mixed {
+        // eslint-disable-next-line new-cap
+        $restInstance = new \ccxt\async\binanceusdm ();
+        $restDescribe = $restInstance->describe ();
+        $extended = $this->deep_extend(parent::describe(), $restDescribe);
+        return $this->deep_extend($extended, array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',
             'urls' => array(
@@ -18,7 +22,9 @@ class binanceusdm extends \ccxt\pro\binance {
                 'doc' => 'https://developers.binance.com/en',
             ),
             'options' => array(
-                'fetchMarkets' => array( 'linear' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'linear' ),
+                ),
                 'defaultSubType' => 'linear',
             ),
             // https://binance-docs.github.io/apidocs/futures/en/#error-codes

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchLeverageTiers(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchLeverageTiers(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchLeverageTiers";
         object tiers = await exchange.fetchLeverageTiers(new List<object>() {"symbol"});
@@ -28,6 +28,7 @@ public partial class testMainClass : BaseTest
                 testLeverageTier(exchange, skippedProperties, method, getValue(tiersForSymbol, j));
             }
         }
+        return true;
     }
 
 }

@@ -22,3 +22,4 @@ async def test_fetch_funding_rate_history(exchange, skipped_properties, symbol):
     for i in range(0, len(funding_rates_history)):
         test_funding_rate_history(exchange, skipped_properties, method, funding_rates_history[i], symbol)
     test_shared_methods.assert_timestamp_order(exchange, method, symbol, funding_rates_history)
+    return True

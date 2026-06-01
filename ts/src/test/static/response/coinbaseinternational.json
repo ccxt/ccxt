@@ -314,6 +314,8 @@
               "predicted_funding": "0.000143",
               "timestamp": "2024-02-19T06:20:00.508Z"
             },
+            "markPrice":  52302.4,
+            "indexPrice": 52411.2,
             "symbol": "BTC/USDC:USDC",
             "timestamp": 1708323600508,
             "datetime": "2024-02-19T06:20:00.508Z",
@@ -471,7 +473,9 @@
               "vwap": null,
               "baseVolume": null,
               "quoteVolume": null,
-              "previousClose": null
+              "previousClose": null,
+              "markPrice":  3812.13,
+              "indexPrice": 3829.39
             },
             "BTC/USDC:USDC": {
               "info": {
@@ -507,6 +511,8 @@
               "vwap": null,
               "baseVolume": null,
               "quoteVolume": null,
+              "markPrice":  55540,
+              "indexPrice": 67328.5,
               "previousClose": null
             }
           }
@@ -1150,7 +1156,7 @@
               "txid": null,
               "timestamp": 1710383738514,
               "datetime": "2024-03-14T02:35:38.514588Z",
-              "network": "ETH",
+              "network": "ERC20",
               "address": null,
               "addressTo": "0xcdcE79F820BE9d6C5033db5c31d1AE3A8c2399bB",
               "addressFrom": null,
