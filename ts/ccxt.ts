@@ -113,6 +113,7 @@ import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
 import huobijp from  './src/huobijp.js'
 import hyperliquid from  './src/hyperliquid.js'
+import hyperliquidPrediction from  './src/hyperliquid-prediction.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
@@ -298,6 +299,7 @@ const exchanges = {
     'huobi':                  huobi,
     'huobijp':                huobijp,
     'hyperliquid':            hyperliquid,
+    'hyperliquid-prediction': hyperliquidPrediction,
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
