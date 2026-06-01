@@ -407,13 +407,11 @@ class aster extends \ccxt\async\aster {
 
     public function parse_ws_ticker($message, $marketType) {
         $event = $this->safe_string($message, 'e');
-        $part = explode('@', $event);
-        $channel = $this->safe_string($part, 1);
         $marketId = $this->safe_string($message, 's');
         $timestamp = $this->safe_integer($message, 'E');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $last = $this->safe_string($message, 'c');
-        if ($channel === 'markPriceUpdate') {
+        if ($event === 'markPriceUpdate') {
             return $this->safe_ticker(array(
                 'symbol' => $market['symbol'],
                 'timestamp' => $timestamp,
@@ -1285,7 +1283,11 @@ class aster extends \ccxt\async\aster {
                 return;
             }
             try {
-                Async\await($this->sapiPrivatePutV3ListenKey ()); // extend the expiry
+                if ($type === 'spot') {
+                    Async\await($this->sapiPrivatePutV3ListenKey ()); // extend the expiry
+                } else {
+                    Async\await($this->fapiPrivatePutV3ListenKey ()); // extend the expiry
+                }
             } catch (Exception $error) {
                 $url = $this->urls['api']['ws']['private'][$type] . '/' . $listenKey;
                 $client = $this->client($url);
@@ -1984,13 +1986,11 @@ class aster extends \ccxt\async\aster {
         $messageInner = $this->safe_dict($message, 'data', $message); // can be either wrapped in 'data' or full object itself
         $event = $this->safe_string($messageInner, 'e');
         $methods = array(
-            'ticker' => array($this, 'handle_ticker'),
+            '24hrTicker' => array($this, 'handle_ticker'),
             'aggTrade' => array($this, 'handle_trade'),
-            'depth5' => array($this, 'handle_order_book'),
-            'depth10' => array($this, 'handle_order_book'),
-            'depth20' => array($this, 'handle_order_book'),
+            'depthUpdate' => array($this, 'handle_order_book'),
             'kline' => array($this, 'handle_ohlcv'),
-            'markPrice' => array($this, 'handle_ticker'),
+            'markPriceUpdate' => array($this, 'handle_ticker'),
             'bookTicker' => array($this, 'handle_bid_ask'),
             'outboundAccountPosition' => array($this, 'handle_balance'),
             'ACCOUNT_UPDATE' => array($this, 'handle_balance_and_position'),

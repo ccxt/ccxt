@@ -734,7 +734,7 @@ class bitfinex extends Exchange {
             'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
             'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
-            'pub:map:currency:tx:fee', // maps currencies to their withdrawal $fees https://github.com/ccxt/ccxt/issues/7745,
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status', // maps withdrawal/deposit statuses, coins => 1 = enabled, 0 = maintenance
             'pub:list:currency:margin', // margin enabled currencies
@@ -769,7 +769,7 @@ class bitfinex extends Exchange {
         //             array( "YYW", "YOYOW" ),
         //             // ...
         //         ),
-        //         // $label
+        //         // label
         //         // verbose friendly names, BNT > Bancor
         //         array(
         //             array( "BAB", "Bitcoin Cash" ),
@@ -784,14 +784,14 @@ class bitfinex extends Exchange {
         //         array(
         //             array( "IOT", "Mi|MegaIOTA" ),
         //         ),
-        //         // $undl
+        //         // undl
         //         // maps derivatives symbols to their underlying currency
         //         array(
         //             array( "USTF0", "UST" ),
         //             array( "BTCF0", "BTC" ),
         //             array( "ETHF0", "ETH" ),
         //         ),
-        //         // $pool
+        //         // pool
         //         // maps symbols to underlying network/protocol they operate on
         //         array(
         //             array( 'SAN', 'ETH' ), array( 'OMG', 'ETH' ), array( 'AVT', 'ETH' ), array( "EDO", "ETH" ),
@@ -813,8 +813,8 @@ class bitfinex extends Exchange {
         //             ),
         //             // ...
         //         ),
-        //         // $fee
-        //         // maps currencies to their withdrawal $fees
+        //         // fee
+        //         // maps currencies to their withdrawal fees
         //         [
         //             ["AAA",[0,0]],
         //             ["ABS",[0,131.3]],
@@ -851,74 +851,89 @@ class bitfinex extends Exchange {
             $indexedNetworks[$networkName] = $networksList;
         }
         $ids = $this->safe_list($response, 0, array());
-        $result = array();
+        return $this->parse_currencies_custom($ids, $indexed, $indexedNetworks);
+    }
+
+    public function parse_currencies_custom($ids, $indexed, $indexedNetworks) {
+        $allowedIds = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             if (str_ends_with($id, 'F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
-            $code = $this->safe_currency_code($id);
-            $label = $this->safe_list($indexed['label'], $id, array());
-            $name = $this->safe_string($label, 1);
-            $pool = $this->safe_list($indexed['pool'], $id, array());
-            $rawType = $this->safe_string($pool, 1);
-            $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
-            $type = $isCryptoCoin ? 'crypto' : null;
-            $feeValues = $this->safe_list($indexed['fees'], $id, array());
-            $fees = $this->safe_list($feeValues, 1, array());
-            $fee = $this->safe_number($fees, 1);
-            $undl = $this->safe_list($indexed['undl'], $id, array());
-            $precision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8');
-            $networks = array();
-            $netwokIds = $this->safe_list($indexedNetworks, $id, array());
-            for ($j = 0; $j < count($netwokIds); $j++) {
-                $networkId = $netwokIds[$j];
-                $network = $this->network_id_to_code($networkId);
-                $dwStatuses = $this->safe_list($indexed['statuses'], $networkId, array());
-                $networks[$network] = array(
-                    'info' => $networkId,
-                    'id' => strtolower($networkId),
-                    'network' => $networkId,
-                    'active' => null,
-                    'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
-                    'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $result[$code] = $this->safe_currency_structure(array(
-                'id' => $id,
-                'code' => $code,
-                'info' => array( $id, $label, $pool, $feeValues, $undl ),
-                'type' => $type,
-                'name' => $name,
-                'active' => true,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $fee,
-                'precision' => $this->parse_number($precision),
+            $allowedIds[] = $id;
+        }
+        $result = array();
+        $arr = $this->to_array($allowedIds);
+        for ($i = 0; $i < count($arr); $i++) {
+            $parsed = $this->parse_currency_custom($arr[$i], $indexed, $indexedNetworks);
+            $code = $parsed['code'];
+            $result[$code] = $parsed;
+        }
+        return $result;
+    }
+
+    public function parse_currency_custom($id, $indexed, $indexedNetworks): array {
+        $code = $this->safe_currency_code($id);
+        $label = $this->safe_list($indexed['label'], $id, array());
+        $name = $this->safe_string($label, 1);
+        $pool = $this->safe_list($indexed['pool'], $id, array());
+        $rawType = $this->safe_string($pool, 1);
+        $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
+        $type = $isCryptoCoin ? 'crypto' : null;
+        $feeValues = $this->safe_list($indexed['fees'], $id, array());
+        $fees = $this->safe_list($feeValues, 1, array());
+        $fee = $this->safe_number($fees, 1);
+        $undl = $this->safe_list($indexed['undl'], $id, array());
+        $precision = $this->safe_string($this->options, 'defaultCurrencyPrecision', '8');
+        $networks = array();
+        $networkIds = $this->safe_list($indexedNetworks, $id, array());
+        for ($j = 0; $j < count($networkIds); $j++) {
+            $networkId = $networkIds[$j];
+            $network = $this->network_id_to_code($networkId, $code);
+            $dwStatuses = $this->safe_list($indexed['statuses'], $networkId, array());
+            $networks[$network] = array(
+                'info' => $networkId,
+                'id' => strtolower($networkId),
+                'network' => $networkId,
+                'active' => null,
+                'deposit' => $this->safe_integer($dwStatuses, 1) === 1,
+                'withdraw' => $this->safe_integer($dwStatuses, 2) === 1,
+                'fee' => null,
+                'precision' => null,
                 'limits' => array(
-                    'amount' => array(
+                    'withdraw' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'withdraw' => array(
-                        'min' => $fee,
-                        'max' => null,
-                    ),
                 ),
-                'networks' => $networks,
-                'margin' => $this->in_array($id, $indexed['marginables']),
-            ));
+            );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'info' => array( $id, $label, $pool, $feeValues, $undl ),
+            'type' => $type,
+            'name' => $name,
+            'active' => true,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => $fee,
+            'precision' => $this->parse_number($precision),
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $fee,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'margin' => $this->in_array($id, $indexed['marginables']),
+        ));
     }
 
     public function fetch_balance($params = array ()): array {

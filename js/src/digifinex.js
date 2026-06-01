@@ -683,6 +683,7 @@ export default class digifinex extends Exchange {
                     isAllowed = 1;
                 }
             }
+            const isActive = isAllowed ? true : false;
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -698,7 +699,7 @@ export default class digifinex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : false,
+                'active': isActive,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,

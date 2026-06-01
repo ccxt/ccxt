@@ -592,7 +592,8 @@ class yobit extends Exchange {
             Async\await($this->load_markets());
             $ids = null;
             if ($symbols === null) {
-                $ids = implode('-', $this->ids);
+                $allIds = $this->ids;
+                $ids = implode('-', $allIds);
                 // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
                 if (strlen($ids) > 2048) {
                     $numIds = count($this->ids);
@@ -1154,8 +1155,9 @@ class yobit extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            $intId = intval($id);
             $request = array(
-                'order_id' => intval($id),
+                'order_id' => $intId,
             );
             $response = Async\await($this->privatePostOrderInfo ($this->extend($request, $params)));
             $id = (string) $id;

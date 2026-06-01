@@ -275,6 +275,7 @@ func TestSafeMethods() {
 	Assert(!ccxt.IsEqual(exchange.SafeNumberOmitZero(inputDict, "floatString"), nil))
 	// tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
 	// tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+	// ccxt.Init array cache tests
 	// Test cache types - ccxt.ArrayCache
 	arrayCache := ccxt.NewArrayCache(100)
 	arrayCache.Append(map[string]any{

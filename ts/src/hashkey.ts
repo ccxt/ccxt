@@ -1174,65 +1174,64 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const result: Dict = {};
-        for (let i = 0; i < coins.length; i++) {
-            const currecy = coins[i];
-            const currencyId = this.safeString (currecy, 'coinId');
-            const code = this.safeCurrencyCode (currencyId);
-            const networks = this.safeList (currecy, 'chainTypes');
-            const parsedNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                const networkId = this.safeString (network, 'chainType');
-                const networkCode = this.networkCodeToId (networkId);
-                parsedNetworks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'limits': {
-                        'withdraw': {
-                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
-                        },
-                        'deposit': {
-                            'min': this.safeNumber (network, 'minDepositQuantity'),
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': this.safeBool (network, 'allowDeposit'),
-                    'withdraw': this.safeBool (network, 'allowWithdraw'),
-                    'fee': this.safeNumber (network, 'withdrawFee'),
-                    'precision': undefined,
-                    'info': network,
-                };
-            }
-            const rawType = this.safeString (currecy, 'tokenType');
-            const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
-            result[code] = this.safeCurrencyStructure ({
-                'id': currencyId,
-                'code': code,
-                'precision': undefined,
-                'type': type,
-                'name': this.safeString (currecy, 'coinFullName'),
-                'active': undefined,
-                'deposit': this.safeBool (currecy, 'allowDeposit'),
-                'withdraw': this.safeBool (currecy, 'allowWithdraw'),
-                'fee': undefined,
+        return this.parseCurrencies (coins);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'coinId');
+        const code = this.safeCurrencyCode (currencyId);
+        const networks = this.safeList (rawCurrency, 'chainTypes');
+        const parsedNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const network = networks[j];
+            const networkId = this.safeString (network, 'chainType');
+            const networkCode = this.networkCodeToId (networkId);
+            parsedNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': undefined,
+                        'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (network, 'minDepositQuantity'),
                         'max': undefined,
                     },
                 },
-                'networks': parsedNetworks,
-                'info': currecy,
-            });
+                'active': undefined,
+                'deposit': this.safeBool (network, 'allowDeposit'),
+                'withdraw': this.safeBool (network, 'allowWithdraw'),
+                'fee': this.safeNumber (network, 'withdrawFee'),
+                'precision': undefined,
+                'info': network,
+            };
         }
-        return result;
+        const rawType = this.safeString (rawCurrency, 'tokenType');
+        const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'code': code,
+            'precision': undefined,
+            'type': type,
+            'name': this.safeString (rawCurrency, 'coinFullName'),
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'allowDeposit'),
+            'withdraw': this.safeBool (rawCurrency, 'allowWithdraw'),
+            'fee': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': parsedNetworks,
+            'info': rawCurrency,
+        });
     }
 
     /**
@@ -3074,7 +3073,7 @@ export default class hashkey extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);
             //
             //     {
             //         "code": "0000",
@@ -3082,7 +3081,7 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            response = this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (request);
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
@@ -4372,8 +4371,8 @@ export default class hashkey extends Exchange {
             return undefined;
         }
         let errorInArray = false;
-        let responseCodeString = this.safeString (response, 'code', undefined);
-        const responseCodeInteger = this.safeInteger (response, 'code', undefined); // some codes in response are returned as '0000' others as 0
+        let responseCodeString = this.safeString (response, 'code');
+        const responseCodeInteger = this.safeInteger (response, 'code'); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger === 0) {
             const result = this.safeList (response, 'result', []); // for batch methods
             for (let i = 0; i < result.length; i++) {

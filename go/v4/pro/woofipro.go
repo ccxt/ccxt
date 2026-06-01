@@ -1174,9 +1174,9 @@ func  (this *WoofiproCore) HandleMyTrade(client any, message any)  {
  * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
- * @param since timestamp in ms of the earliest position to fetch
- * @param limit the maximum number of positions to fetch
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func  (this *WoofiproCore) WatchPositions(optionalArgs ...any) <- chan any {

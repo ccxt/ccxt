@@ -4173,7 +4173,7 @@ public partial class binance : Exchange
         //
         //     {
         //         "symbol": "BTCUSDT",
-        //         "markPrice": "11793.63104562", // mark price
+        //         "markPrice": "11793.63104563", // mark price
         //         "indexPrice": "11781.80495970", // index price
         //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
         //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -6768,9 +6768,10 @@ public partial class binance : Exchange
         object initialUppercaseType = ((string)type).ToUpper();
         object isMarketOrder = isEqual(initialUppercaseType, "MARKET");
         object isLimitOrder = isEqual(initialUppercaseType, "LIMIT");
+        object upperCaseSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "side", ((string)side).ToUpper() },
+            { "side", upperCaseSide },
         };
         object isPortfolioMargin = null;
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "createOrder", "papi", "portfolioMargin", false);
@@ -8372,9 +8373,10 @@ public partial class binance : Exchange
             return this.parseOrders(response, market);
         } else
         {
-            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+            object order = this.safeOrder(new Dictionary<string, object>() {
+                { "info", response },
+            });
+            return new List<object>() {order};
         }
     }
 
@@ -10855,7 +10857,7 @@ public partial class binance : Exchange
             object rounderString = ((object)rounder).ToString();
             object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (isTrue(isEqual(getValue(truncatedLiquidationPrice, 0), "-")))
+            if (isTrue(isTrue(!isEqual(truncatedLiquidationPrice, null)) && isTrue(isEqual(getValue(truncatedLiquidationPrice, 0), "-"))))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position

@@ -122,6 +122,7 @@ async function baseTestsInit () {
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();
+    return true;
 }
 
 export default baseTestsInit;

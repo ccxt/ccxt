@@ -566,6 +566,14 @@ class grvt(ccxt.async_support.grvt):
             self.handle_deltas_with_keys(orderbook['bids'], bids, 'price', 'size')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
+        # grvt defaults to the delta channel(v1.book.d); if the very first
+        # message is a delta, the freshly-created orderbook has symbol=null
+        # because no snapshot has reset it yet. Set it unconditionally — we
+        # know the symbol from the selector regardless of channel. Java's
+        # typed WsOrderBook surfaces self as `"symbol":null` in the output
+        # Python/JS dict-backed orderbooks happen to mask it but the
+        # unconditional assignment is correct for every language.
+        orderbook['symbol'] = symbol
         orderbook['nonce'] = sequenceNumber
         messageHash = 'orderbook::' + symbol
         self.orderbooks[symbol] = orderbook

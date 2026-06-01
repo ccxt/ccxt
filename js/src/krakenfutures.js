@@ -2051,6 +2051,7 @@ export default class krakenfutures extends Exchange {
             const innerStatus = this.safeString(order, 'status');
             const fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, 'priceTriggerOptions', {});
             const fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, 'triggerPrice');
+            const unifiedSymbol = this.safeSymbol(this.safeString(orderDictFromFetchOrder, 'symbol'), market);
             return this.safeOrder({
                 'info': order,
                 'id': this.safeString(orderDictFromFetchOrder, 'orderId'),
@@ -2059,7 +2060,7 @@ export default class krakenfutures extends Exchange {
                 'datetime': datetime,
                 'lastTradeTimestamp': undefined,
                 'lastUpdateTimestamp': this.parse8601(this.safeString(orderDictFromFetchOrder, 'lastUpdateTimestamp')),
-                'symbol': this.safeSymbol(this.safeString(orderDictFromFetchOrder, 'symbol'), market),
+                'symbol': unifiedSymbol,
                 'type': undefined,
                 'timeInForce': undefined,
                 'postOnly': undefined,

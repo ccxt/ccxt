@@ -348,7 +348,7 @@ class coinbaseinternational extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $portfolio parameter or set the default $portfolio with $this->options["portfolio"]');
     }
 
-    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params) {
+    public function handle_network_id_and_params(string $currencyCode, string $methodName, $params = array ()) {
         $networkId = null;
         list($networkId, $params) = $this->handle_option_and_params($params, $methodName, 'network_arn_id');
         if ($networkId === null) {
@@ -527,9 +527,10 @@ class coinbaseinternational extends Exchange {
         }
         $market = $this->market($symbol);
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
         $request = array(
             'instrument' => $market['id'],
-            'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+            'result_offset' => $offSet,
         );
         if ($limit !== null) {
             $request['result_limit'] = $limit;
@@ -961,8 +962,9 @@ class coinbaseinternational extends Exchange {
             return $this->fetch_paginated_call_incremental('fetchDepositsWithdrawals', $code, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
         $request = array(
-            'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+            'result_offset' => $offSet,
         );
         if ($since !== null) {
             $request['time_from'] = $this->iso8601($since);
@@ -1405,16 +1407,18 @@ class coinbaseinternational extends Exchange {
             $settleId = $quoteId;
             $symbol .= ':' . $quoteId;
         }
+        $isLinear = $isSpot ? null : ($settleId === $quoteId);
+        $isInverse = $isSpot ? null : ($settleId !== $quoteId);
         return array(
             'id' => $marketId,
             'lowercaseId' => strtolower($marketId),
             'symbol' => $symbol,
             'base' => $baseId,
             'quote' => $quoteId,
-            'settle' => $settleId ? $settleId : null,
+            'settle' => $settleId,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => $settleId ? $settleId : null,
+            'settleId' => $settleId,
             'type' => $isSpot ? 'spot' : 'swap',
             'spot' => $isSpot,
             'margin' => false,
@@ -1423,8 +1427,8 @@ class coinbaseinternational extends Exchange {
             'option' => false,
             'active' => $this->safe_string($market, 'trading_state') === 'TRADING',
             'contract' => !$isSpot,
-            'linear' => $isSpot ? null : ($settleId === $quoteId),
-            'inverse' => $isSpot ? null : ($settleId !== $quoteId),
+            'linear' => $isLinear,
+            'inverse' => $isInverse,
             'taker' => $fees['trading']['taker'],
             'maker' => $fees['trading']['maker'],
             'contractSize' => $isSpot ? null : 1,
@@ -2086,9 +2090,10 @@ class coinbaseinternational extends Exchange {
             return $this->fetch_paginated_call_incremental('fetchOpenOrders', $symbol, $since, $limit, $params, $pageKey, $maxEntriesPerRequest);
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
         $request = array(
             'portfolio' => $portfolio,
-            'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+            'result_offset' => $offSet,
         );
         $market = null;
         if ($symbol) {
@@ -2171,8 +2176,9 @@ class coinbaseinternational extends Exchange {
             $market = $this->market($symbol);
         }
         $page = $this->safe_integer($params, $pageKey, 1) - 1;
+        $offSet = $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest);
         $request = array(
-            'result_offset' => $this->safe_integer_2($params, 'offset', 'result_offset', $page * $maxEntriesPerRequest),
+            'result_offset' => $offSet,
         );
         if ($limit !== null) {
             if ($limit > 100) {

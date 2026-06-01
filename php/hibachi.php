@@ -753,7 +753,7 @@ class hibachi extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fee
-         * @param $params extra parameters
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a map of market symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
         $this->load_markets();

@@ -507,39 +507,38 @@ public partial class bullish : Exchange
         //         }, ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object name = this.safeString(currency, "name");
-            object precision = this.safeString(currency, "precision");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "name", name },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(currency, "minFee") },
-                { "precision", this.parseNumber(this.parsePrecision(precision)) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object name = this.safeString(rawCurrency, "name");
+        object precision = this.safeString(rawCurrency, "precision");
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "name", name },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", this.safeNumber(rawCurrency, "minFee") },
+            { "precision", this.parseNumber(this.parsePrecision(precision)) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "type", "crypto" },
-                { "info", currency },
-            };
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+            { "type", "crypto" },
+            { "info", rawCurrency },
+        });
     }
 
     /**

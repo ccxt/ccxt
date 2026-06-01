@@ -640,7 +640,8 @@ func (this *YobitCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
 		PanicOnError(retRes5838)
 		var ids any = nil
 		if IsTrue(IsEqual(symbols, nil)) {
-			ids = Join(this.Ids, "-")
+			var allIds any = this.Ids
+			ids = Join(allIds, "-")
 			// max URL length is 2083 symbols, including http schema, hostname, tld, etc...
 			if IsTrue(IsGreaterThan(GetArrayLength(ids), 2048)) {
 				var numIds any = GetArrayLength(this.Ids)
@@ -771,8 +772,8 @@ func (this *YobitCore) FetchTickers(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires \"symbols\" argument or use `params[\"all\"] = true` to send multiple requests for all markets")))
 		}
 
-		retRes6878 := (<-this.LoadMarkets())
-		PanicOnError(retRes6878)
+		retRes6888 := (<-this.LoadMarkets())
+		PanicOnError(retRes6888)
 		var promises any = []any{}
 		var maxLength any = this.SafeInteger(this.Options, "maxUrlLength", 2048)
 		// max URL length is 2048 symbols, including http schema, hostname, tld, etc...
@@ -949,8 +950,8 @@ func (this *YobitCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes8328 := (<-this.LoadMarkets())
-		PanicOnError(retRes8328)
+		retRes8338 := (<-this.LoadMarkets())
+		PanicOnError(retRes8338)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1007,8 +1008,8 @@ func (this *YobitCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8738 := (<-this.LoadMarkets())
-		PanicOnError(retRes8738)
+		retRes8748 := (<-this.LoadMarkets())
+		PanicOnError(retRes8748)
 
 		response := (<-this.PublicGetInfo(params))
 		PanicOnError(response)
@@ -1085,8 +1086,8 @@ func (this *YobitCore) CreateOrder(symbol any, typeVar any, side any, amount any
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
 
-		retRes9348 := (<-this.LoadMarkets())
-		PanicOnError(retRes9348)
+		retRes9358 := (<-this.LoadMarkets())
+		PanicOnError(retRes9358)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":   GetValue(market, "id"),
@@ -1147,8 +1148,8 @@ func (this *YobitCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes9798 := (<-this.LoadMarkets())
-		PanicOnError(retRes9798)
+		retRes9808 := (<-this.LoadMarkets())
+		PanicOnError(retRes9808)
 		var request any = map[string]any{
 			"order_id": ParseInt(id),
 		}
@@ -1316,10 +1317,11 @@ func (this *YobitCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes11318 := (<-this.LoadMarkets())
-		PanicOnError(retRes11318)
+		retRes11328 := (<-this.LoadMarkets())
+		PanicOnError(retRes11328)
+		var intId any = ParseInt(id)
 		var request any = map[string]any{
-			"order_id": ParseInt(id),
+			"order_id": intId,
 		}
 
 		response := (<-this.PrivatePostOrderInfo(this.Extend(request, params)))
@@ -1380,8 +1382,8 @@ func (this *YobitCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
 
-		retRes11728 := (<-this.LoadMarkets())
-		PanicOnError(retRes11728)
+		retRes11748 := (<-this.LoadMarkets())
+		PanicOnError(retRes11748)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1451,8 +1453,8 @@ func (this *YobitCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes12228 := (<-this.LoadMarkets())
-		PanicOnError(retRes12228)
+		retRes12248 := (<-this.LoadMarkets())
+		PanicOnError(retRes12248)
 		var market any = this.Market(symbol)
 		// some derived classes use camelcase notation for request fields
 		var request any = map[string]any{
@@ -1556,8 +1558,8 @@ func (this *YobitCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes13068 := (<-this.LoadMarkets())
-		PanicOnError(retRes13068)
+		retRes13088 := (<-this.LoadMarkets())
+		PanicOnError(retRes13088)
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
@@ -1618,8 +1620,8 @@ func (this *YobitCore) Withdraw(code any, amount any, address any, optionalArgs 
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes13498 := (<-this.LoadMarkets())
-		PanicOnError(retRes13498)
+		retRes13518 := (<-this.LoadMarkets())
+		PanicOnError(retRes13518)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coinName": GetValue(currency, "id"),

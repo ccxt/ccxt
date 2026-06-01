@@ -531,9 +531,11 @@ class deribit extends deribit$1["default"] {
         const optionType = this.safeString(optionParts, 3);
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
+        const id = base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType;
+        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
-            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
+            'id': id,
+            'symbol': symbolExpired,
             'base': base,
             'quote': quote,
             'settle': settle,
@@ -641,40 +643,38 @@ class deribit extends deribit$1["default"] {
         //    }
         //
         const data = this.safeList(response, 'result', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const currencyId = this.safeString(currency, 'currency');
-            const code = this.safeCurrencyCode(currencyId);
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': this.safeString(currency, 'currency_long'),
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'type': 'crypto',
-                'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(data);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'currency');
+        const code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString(rawCurrency, 'currency_long'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'type': 'crypto',
+            'fee': this.safeNumber(rawCurrency, 'withdrawal_fee'),
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+        });
     }
     codeFromOptions(methodName, params = {}) {
         const defaultCode = this.safeValue(this.options, 'code', 'BTC');

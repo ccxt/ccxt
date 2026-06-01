@@ -234,6 +234,7 @@ dead man's switch, cancel all orders after the given timeout
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
 * [bitmex](/exchanges/bitmex.md#cancelallordersafter)
+* [bitvavo](/exchanges/bitvavo.md#cancelallordersafter)
 * [bybit](/exchanges/bybit.md#cancelallordersafter)
 * [htx](/exchanges/htx.md#cancelallordersafter)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelallordersafter)
@@ -533,6 +534,7 @@ cancel multiple orders
 * [onetrading](/exchanges/onetrading.md#cancelorders)
 * [oxfun](/exchanges/oxfun.md#cancelorders)
 * [pacifica](/exchanges/pacifica.md#cancelorders)
+* [paradex](/exchanges/paradex.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
@@ -1247,6 +1249,7 @@ create a list of trade orders
 * [okx](/exchanges/okx.md#createorders)
 * [oxfun](/exchanges/oxfun.md#createorders)
 * [pacifica](/exchanges/pacifica.md#createorders)
+* [paradex](/exchanges/paradex.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---
@@ -1631,6 +1634,7 @@ edit a trade order
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
+* [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
@@ -1728,8 +1732,8 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| enabled |  | Yes |  |
-| params |  | Yes |  |
+| enabled | <code>boolean</code> | Yes | whether to enable user dex abstraction |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
 
 ##### Supported exchanges
@@ -1832,6 +1836,7 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 * [arkham](/exchanges/arkham.md#fetchaccounts)
 * [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
+* [bitvavo](/exchanges/bitvavo.md#fetchaccounts)
 * [bullish](/exchanges/bullish.md#fetchaccounts)
 * [coinbase](/exchanges/coinbase.md#fetchaccounts)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchaccounts)
@@ -3058,6 +3063,7 @@ fetch all deposits made to an account
 * [novadax](/exchanges/novadax.md#fetchdeposits)
 * [okx](/exchanges/okx.md#fetchdeposits)
 * [oxfun](/exchanges/oxfun.md#fetchdeposits)
+* [paradex](/exchanges/paradex.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdeposits)
@@ -3179,6 +3185,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [okx](/exchanges/okx.md#fetchfundinghistory)
 * [oxfun](/exchanges/oxfun.md#fetchfundinghistory)
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
+* [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
@@ -3577,6 +3584,7 @@ fetch the history of changes, actions done by the user or operations that altere
 * [bitmex](/exchanges/bitmex.md#fetchledger)
 * [bitso](/exchanges/bitso.md#fetchledger)
 * [bitstamp](/exchanges/bitstamp.md#fetchledger)
+* [bitvavo](/exchanges/bitvavo.md#fetchledger)
 * [blofin](/exchanges/blofin.md#fetchledger)
 * [bybit](/exchanges/bybit.md#fetchledger)
 * [cex](/exchanges/cex.md#fetchledger)
@@ -3756,7 +3764,6 @@ retrieves the public liquidations of a trading pair
 * [deribit](/exchanges/deribit.md#fetchliquidations)
 * [gate](/exchanges/gate.md#fetchliquidations)
 * [htx](/exchanges/htx.md#fetchliquidations)
-* [paradex](/exchanges/paradex.md#fetchliquidations)
 
 ---
 
@@ -4144,6 +4151,7 @@ retrieves the users liquidated positions
 * [bybit](/exchanges/bybit.md#fetchmyliquidations)
 * [deribit](/exchanges/deribit.md#fetchmyliquidations)
 * [gate](/exchanges/gate.md#fetchmyliquidations)
+* [paradex](/exchanges/paradex.md#fetchmyliquidations)
 
 ---
 
@@ -6348,6 +6356,7 @@ fetch the trading fees for a market
 * [bitget](/exchanges/bitget.md#fetchtradingfee)
 * [bitmart](/exchanges/bitmart.md#fetchtradingfee)
 * [bitstamp](/exchanges/bitstamp.md#fetchtradingfee)
+* [bitvavo](/exchanges/bitvavo.md#fetchtradingfee)
 * [bybit](/exchanges/bybit.md#fetchtradingfee)
 * [coinex](/exchanges/coinex.md#fetchtradingfee)
 * [coinmate](/exchanges/coinmate.md#fetchtradingfee)
@@ -6367,6 +6376,7 @@ fetch the trading fees for a market
 * [mexc](/exchanges/mexc.md#fetchtradingfee)
 * [okx](/exchanges/okx.md#fetchtradingfee)
 * [pacifica](/exchanges/pacifica.md#fetchtradingfee)
+* [paradex](/exchanges/paradex.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [weex](/exchanges/weex.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
@@ -6423,6 +6433,7 @@ fetch the trading fees for multiple markets
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
+* [paradex](/exchanges/paradex.md#fetchtradingfees)
 * [poloniex](/exchanges/poloniex.md#fetchtradingfees)
 * [toobit](/exchanges/toobit.md#fetchtradingfees)
 * [upbit](/exchanges/upbit.md#fetchtradingfees)
@@ -6548,16 +6559,17 @@ Fetch all transactions (deposits and withdrawals) made from an account.
 fetches a transfer
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | transfer id |
-| code | <code>string</code> | No | not used by mexc fetchTransfer |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 
 ##### Supported exchanges
+* [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
 
 ---
@@ -6587,6 +6599,7 @@ fetch a history of internal transfers made on an account
 * [bitget](/exchanges/bitget.md#fetchtransfers)
 * [bitmart](/exchanges/bitmart.md#fetchtransfers)
 * [bitrue](/exchanges/bitrue.md#fetchtransfers)
+* [bitvavo](/exchanges/bitvavo.md#fetchtransfers)
 * [bullish](/exchanges/bullish.md#fetchtransfers)
 * [bybit](/exchanges/bybit.md#fetchtransfers)
 * [bydfi](/exchanges/bydfi.md#fetchtransfers)
@@ -6955,9 +6968,9 @@ if the required credentials are available in options, it will pre-load the light
 **Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
 
 
-| Param |
-| --- |
-| params | 
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [lighter](/exchanges/lighter.md#preloadlighterlibrary)
@@ -7429,6 +7442,7 @@ transfer currency internally between wallets on the same account
 * [bitmart](/exchanges/bitmart.md#transfer)
 * [bitrue](/exchanges/bitrue.md#transfer)
 * [bitstamp](/exchanges/bitstamp.md#transfer)
+* [bitvavo](/exchanges/bitvavo.md#transfer)
 * [blofin](/exchanges/blofin.md#transfer)
 * [bullish](/exchanges/bullish.md#transfer)
 * [bybit](/exchanges/bybit.md#transfer)

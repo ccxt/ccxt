@@ -2078,7 +2078,7 @@ func (this *WooCore) ParseTimeInForce(timeInForce any) any {
 		"fok":       "FOK",
 		"post_only": "PO",
 	}
-	return this.SafeString(timeInForces, timeInForce, nil)
+	return this.SafeString(timeInForces, timeInForce)
 }
 func (this *WooCore) ParseOrder(order any, optionalArgs ...any) any {
 	//

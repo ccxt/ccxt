@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidProxySettings
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
@@ -1783,8 +1784,8 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         returns enableUnifiedMargin so the user can check if unified account is enabled
         :param str method: the method for which we want to check if unified margin is enabled, self is used to check options for specific methods(e.g. fetchBalance can have a specific option to enable unified margin)
- @param address
- @param shouldRefresh
+        :param str [address]: the wallet address to query; defaults to the configured walletAddress
+        :param boolean [shouldRefresh]: force a fresh request instead of returning the cached value
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns bool: enableUnifiedMargin
         """
@@ -1804,11 +1805,16 @@ class hyperliquid(Exchange, ImplicitAPI):
             try:
                 response = self.publicPostInfo(self.extend(request, params))
             except Exception as e:
+                if isinstance(e, InvalidProxySettings):
+                    raise e  # reraise self error since it means the user has a problem with their proxy settings that needs to be fixed
                 response = None  # ignore self error and assume unified margin is not enabled
             #
             # "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             #
-            enableUnifiedMargin = response == '"unifiedAccount"'
+            if response is not None:
+                response = response.replace('"', '')
+                response = response.replace('"', '')
+                enableUnifiedMargin = response == 'unifiedAccount'
             # don't cache self result if self is a different addresss
             self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache self for future calls
         return [enableUnifiedMargin, params]
@@ -1864,8 +1870,8 @@ class hyperliquid(Exchange, ImplicitAPI):
     def enable_user_dex_abstraction(self, enabled: bool, params={}):
         """
         If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
- @param enabled
- @param params
+        :param boolean enabled: whether to enable user dex abstraction
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
         :returns: dictionary response from the exchange
         """
@@ -2067,7 +2073,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 ordersToBeParsed.append({'status': order})  # tp/sl orders can return a string like "waitingForTrigger",
             else:
                 ordersToBeParsed.append(order)
-        return self.parse_orders(ordersToBeParsed, None)
+        return self.parse_orders(ordersToBeParsed)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: str, price: Str = None, params={}):
         market = self.market(symbol)
@@ -2105,10 +2111,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                 isTp = True
             else:
                 triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+            tpSlType = 'tp' if (isTp) else 'sl'
             orderType['trigger'] = {
                 'isMarket': isMarket,
                 'triggerPx': triggerPrice,
-                'tpsl': 'tp' if (isTp) else 'sl',
+                'tpsl': tpSlType,
             }
         else:
             orderType['limit'] = {
@@ -2396,9 +2403,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             cancelAction['type'] = 'cancel'
             for i in range(0, len(ids)):
+                o = self.parse_to_numeric(ids[i])
                 cancelReq.append({
                     'a': baseId,
-                    'o': self.parse_to_numeric(ids[i]),
+                    'o': o,
                 })
         cancelAction['cancels'] = cancelReq
         vaultAddress = None
@@ -2585,10 +2593,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                     isTp = True
                 else:
                     triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+                tpSlType = 'tp' if (isTp) else 'sl'
                 orderType['trigger'] = {
                     'isMarket': isMarket,
                     'triggerPx': triggerPrice,
-                    'tpsl': 'tp' if (isTp) else 'sl',
+                    'tpsl': tpSlType,
                 }
             else:
                 orderType['limit'] = {
@@ -3141,8 +3150,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         error = self.safe_string(order, 'error')
         if error is not None:
+            finalOrder = order  # java req
             return self.safe_order({
-                'info': order,
+                'info': finalOrder,
                 'status': 'rejected',
             })
         entry = self.safe_dict_n(order, ['order', 'resting', 'filled'])
@@ -3170,6 +3180,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         postOnly = None
         if tif is not None:
             postOnly = (tif == 'ALO')
+        triggerPx = self.safe_number(entry, 'triggerPx') if self.safe_bool(entry, 'isTrigger') else None
         return self.safe_order({
             'info': order,
             'id': self.safe_string(entry, 'oid'),
@@ -3185,7 +3196,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool(entry, 'reduceOnly'),
             'side': side,
             'price': self.safe_string(entry, 'limitPx'),
-            'triggerPrice': self.safe_number(entry, 'triggerPx') if self.safe_bool(entry, 'isTrigger') else None,
+            'triggerPrice': triggerPx,
             'amount': totalAmount,
             'cost': None,
             'average': self.safe_string(entry, 'avgPx'),
@@ -3440,7 +3451,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'assetPositions', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_position(data[i], None))
+            result.append(self.parse_position(data[i]))
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def parse_position(self, position: dict, market: Market = None):
@@ -3735,10 +3746,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             if vaultAddress is not None:
                 vaultAddress = self.format_vault_address(vaultAddress)
                 strAmount = strAmount + ' subaccount:' + vaultAddress
+            strAmountFinal = strAmount  # java req
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
             transferPayload: dict = {
                 'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
-                'amount': strAmount,
+                'amount': strAmountFinal,
                 'toPerp': toPerp,
                 'nonce': nonce,
             }
@@ -3748,7 +3760,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'hyperliquidChain': transferPayload['hyperliquidChain'],
                     'signatureChainId': '0x66eee',
                     'type': 'usdClassTransfer',
-                    'amount': strAmount,
+                    'amount': strAmountFinal,
                     'toPerp': toPerp,
                     'nonce': nonce,
                 },

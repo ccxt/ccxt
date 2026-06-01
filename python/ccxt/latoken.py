@@ -523,38 +523,37 @@ class latoken(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'id')
-            tag = self.safe_string(currency, 'tag')
-            code = self.safe_currency_code(tag)
-            currencyType = self.safe_string(currency, 'type')
-            isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': self.safe_string(currency, 'name'),
-                'type': 'crypto' if isCrypto else 'other',
-                'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(currency, 'fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(currency, 'minTransferAmount'),
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_currencies(response)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        id = self.safe_string(currency, 'id')
+        tag = self.safe_string(currency, 'tag')
+        code = self.safe_currency_code(tag)
+        currencyType = self.safe_string(currency, 'type')
+        isCrypto = (currencyType == 'CURRENCY_TYPE_CRYPTO' or currencyType == 'CURRENCY_TYPE_IEO')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': self.safe_string(currency, 'name'),
+            'type': 'crypto' if isCrypto else 'other',
+            'active': self.safe_string(currency, 'status') == 'CURRENCY_STATUS_ACTIVE',
+            'deposit': None,
+            'withdraw': None,
+            'fee': self.safe_number(currency, 'fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(currency, 'minTransferAmount'),
+                    'max': None,
                 },
-                'networks': {},
-            })
-        return result
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': {},
+        })
 
     def fetch_balance(self, params={}) -> Balances:
         """

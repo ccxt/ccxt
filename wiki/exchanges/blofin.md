@@ -316,6 +316,7 @@ create a trade order
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
 | params.stopLoss.price | <code>float</code> | No | stop loss order price (if not provided the order will be a market order) |
+| params.tpsl | <code>float</code> | No | whether to force to send the order to the combined TPSL oco order endpoint |
 
 
 ```javascript

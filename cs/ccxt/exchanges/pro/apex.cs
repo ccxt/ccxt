@@ -864,7 +864,7 @@ public partial class apex : ccxt.apex
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        object fetchFunctions = new List<object> {this.fetchPositions(null)};
+        object fetchFunctions = new List<object> {this.fetchPositions()};
         object promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
@@ -1052,6 +1052,16 @@ public partial class apex : ccxt.apex
                 object ret_msg = this.safeString(message, "ret_msg");
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
                 object op = this.safeString(request, "op");
+                // Benign re-subscribe notice (same shape as bitmart 90008 /
+                // krakenfutures "Already subscribed"): the original subscription
+                // is still active and delivering data on this socket. Without
+                // this short-circuit the catch-clause's `((WebSocketClient)client).reject(error,
+                // messageHash)` rejects every in-flight future on the connection
+                // because apex doesn't echo a `reqId` on these warnings.
+                if (isTrue(isTrue(!isEqual(ret_msg, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(ret_msg, "already subscribed"), 0))))
+                {
+                    return false;
+                }
                 if (isTrue(isEqual(op, "auth")))
                 {
                     throw new AuthenticationError ((string)add("Authentication failed: ", ret_msg)) ;

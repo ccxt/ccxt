@@ -1289,12 +1289,12 @@ fetch the fees for deposits and withdrawals
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes |  | Yes |  |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-coinex.fetchDepositWithdrawFees (codes[, params])
+coinex.fetchDepositWithdrawFees ([codes, params])
 ```
 
 

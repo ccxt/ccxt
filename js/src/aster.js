@@ -661,16 +661,8 @@ export default class aster extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const promises = [
-            this.sapiPublicGetV3ExchangeInfo(params),
-            this.fapiPublicGetV3ExchangeInfo(params),
-        ];
-        const results = await Promise.all(promises);
-        const sapiResult = this.safeDict(results, 0, {});
+        const sapiResult = await this.sapiPublicGetV3ExchangeInfo(params);
         const sapiRows = this.safeList(sapiResult, 'assets', []);
-        const fapiResult = this.safeDict(results, 1, {});
-        const fapiRows = this.safeList(fapiResult, 'assets', []);
-        const rows = this.arrayConcat(sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -680,40 +672,39 @@ export default class aster extends Exchange {
         //         }
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'asset');
-            const code = this.safeCurrencyCode(currencyId);
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': code,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies(sapiRows);
+    }
+    parseCurrency(rawCurrency) {
+        const currencyId = this.safeString(rawCurrency, 'asset');
+        const code = this.safeCurrencyCode(currencyId);
+        return this.safeCurrencyStructure({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': code,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'margin': this.safeBool(rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'networks': undefined,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
     /**
      * @method

@@ -22,7 +22,7 @@ function fetch_ohlcv_continuously($exchange, $symbol) {
     return Async\async(function () use ($exchange, $symbol) {
         while (true) {
             try {
-                $ohlcv = Async\await($exchange->fetch_ohlcv($symbol));
+                $ohlcv = \React\Async\await($exchange->fetch_ohlcv($symbol));
                 $ohlcv_length = count($ohlcv);
                 var_dump('Fetched ', $exchange->id, ' - ', $symbol, ' candles. last candle: ', $ohlcv[$ohlcv_length - 1]);
             } catch(Exception $e) {
@@ -45,8 +45,8 @@ function start_exchange($exchange_name, $symbols) {
             $symbol = $symbols[$i];
             $promises[] = fetch_ohlcv_continuously($ex, $symbol);
         }
-        Async\await(Promise\all($promises));
-        Async\await($ex->close());
+        \React\Async\await(\React\Promise\all($promises));
+        \React\Async\await($ex->close());
     }) ();
 }
 
@@ -61,9 +61,9 @@ function example() {
             $exchange_name = $exchanges[$i];
             $promises[] = start_exchange($exchange_name, $symbols);
         }
-        Async\await(Promise\all($promises));
+        \React\Async\await(\React\Promise\all($promises));
     }) ();
 }
 
 
-Async\await(example());
+\React\Async\await(example());

@@ -285,6 +285,7 @@ func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 	var strike any = this.SafeString(optionParts, 2)
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp any = this.Parse8601(datetime)
+	var optionTypeUnified any = Ternary(IsTrue((IsEqual(optionType, "C"))), "call", "put")
 	return map[string]any{
 		"id":             Add(Add(Add(Add(Add(Add(optionType, "-"), base), "-"), strike), "-"), expiry),
 		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType),
@@ -307,7 +308,7 @@ func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType":     Ternary(IsTrue((IsEqual(optionType, "C"))), "call", "put"),
+		"optionType":     optionTypeUnified,
 		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": nil,
@@ -529,70 +530,68 @@ func (this *DeltaCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var currencies any = this.SafeList(response, "result", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-			var currency any = GetValue(currencies, i)
-			var id any = this.SafeString(currency, "symbol")
-			var numericId any = this.SafeInteger(currency, "id")
-			var code any = this.SafeCurrencyCode(id)
-			var chains any = this.SafeList(currency, "networks", []any{})
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
-				var chain any = GetValue(chains, j)
-				var networkId any = this.SafeString(chain, "network")
-				var networkCode any = this.NetworkIdToCode(networkId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"id":       networkId,
-					"network":  networkCode,
-					"name":     this.SafeString(chain, "name"),
-					"info":     chain,
-					"active":   IsEqual(this.SafeString(chain, "status"), "enabled"),
-					"deposit":  IsEqual(this.SafeString(chain, "deposit_status"), "enabled"),
-					"withdraw": IsEqual(this.SafeString(chain, "withdrawal_status"), "enabled"),
-					"fee":      this.SafeNumber(chain, "base_withdrawal_fee"),
-					"limits": map[string]any{
-						"deposit": map[string]any{
-							"min": this.SafeNumber(chain, "min_deposit_amount"),
-							"max": nil,
-						},
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(chain, "min_withdrawal_amount"),
-							"max": nil,
-						},
-					},
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"id":        id,
-				"numericId": numericId,
-				"code":      code,
-				"name":      this.SafeString(currency, "name"),
-				"info":      currency,
-				"active":    nil,
-				"deposit":   IsEqual(this.SafeString(currency, "deposit_status"), "enabled"),
-				"withdraw":  IsEqual(this.SafeString(currency, "withdrawal_status"), "enabled"),
-				"fee":       this.SafeNumber(currency, "base_withdrawal_fee"),
-				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision"))),
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": this.SafeNumber(currency, "min_withdrawal_amount"),
-						"max": nil,
-					},
-				},
-				"networks": networks,
-				"type":     "crypto",
-			}))
-		}
 
-		ch <- result
+		ch <- this.ParseCurrencies(currencies)
 		return nil
 
 	}()
 	return ch
+}
+func (this *DeltaCore) ParseCurrency(rawCurrency any) any {
+	var id any = this.SafeString(rawCurrency, "symbol")
+	var numericId any = this.SafeInteger(rawCurrency, "id")
+	var code any = this.SafeCurrencyCode(id)
+	var chains any = this.SafeList(rawCurrency, "networks", []any{})
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
+		var chain any = GetValue(chains, j)
+		var networkId any = this.SafeString(chain, "network")
+		var networkCode any = this.NetworkIdToCode(networkId)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"id":       networkId,
+			"network":  networkCode,
+			"name":     this.SafeString(chain, "name"),
+			"info":     chain,
+			"active":   IsEqual(this.SafeString(chain, "status"), "enabled"),
+			"deposit":  IsEqual(this.SafeString(chain, "deposit_status"), "enabled"),
+			"withdraw": IsEqual(this.SafeString(chain, "withdrawal_status"), "enabled"),
+			"fee":      this.SafeNumber(chain, "base_withdrawal_fee"),
+			"limits": map[string]any{
+				"deposit": map[string]any{
+					"min": this.SafeNumber(chain, "min_deposit_amount"),
+					"max": nil,
+				},
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(chain, "min_withdrawal_amount"),
+					"max": nil,
+				},
+			},
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"id":        id,
+		"numericId": numericId,
+		"code":      code,
+		"name":      this.SafeString(rawCurrency, "name"),
+		"info":      rawCurrency,
+		"active":    nil,
+		"deposit":   IsEqual(this.SafeString(rawCurrency, "deposit_status"), "enabled"),
+		"withdraw":  IsEqual(this.SafeString(rawCurrency, "withdrawal_status"), "enabled"),
+		"fee":       this.SafeNumber(rawCurrency, "base_withdrawal_fee"),
+		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))),
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": this.SafeNumber(rawCurrency, "min_withdrawal_amount"),
+				"max": nil,
+			},
+		},
+		"networks": networks,
+		"type":     "crypto",
+	})
 }
 func (this *DeltaCore) LoadMarkets(optionalArgs ...any) <-chan any {
 	ch := make(chan any)

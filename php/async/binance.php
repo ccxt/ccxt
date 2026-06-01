@@ -4142,7 +4142,7 @@ class binance extends Exchange {
         //
         //     {
         //         "symbol" => "BTCUSDT",
-        //         "markPrice" => "11793.63104562", // mark price
+        //         "markPrice" => "11793.63104563", // mark price
         //         "indexPrice" => "11781.80495970", // index price
         //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts
         //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
@@ -6561,9 +6561,10 @@ class binance extends Exchange {
         $initialUppercaseType = strtoupper($type);
         $isMarketOrder = $initialUppercaseType === 'MARKET';
         $isLimitOrder = $initialUppercaseType === 'LIMIT';
+        $upperCaseSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
-            'side' => strtoupper($side),
+            'side' => $upperCaseSide,
         );
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
@@ -7849,7 +7850,7 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
              * @param {boolean} [$params->trigger] set to true if you would like to cancel portfolio margin account conditional orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -7882,7 +7883,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => "200",
-                        //        "msg" => "The operation of cancel all conditional open order is done."
+                        //        "msg" => "The operation of cancel all conditional open $order is done."
                         //    }
                         //
                     } else {
@@ -7890,7 +7891,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => 200,
-                        //        "msg" => "The operation of cancel all open order is done."
+                        //        "msg" => "The operation of cancel all open $order is done."
                         //    }
                         //
                     }
@@ -7900,7 +7901,7 @@ class binance extends Exchange {
                         //
                         //     {
                         //         "code" => 200,
-                        //         "msg" => "The operation of cancel all open order is done."
+                        //         "msg" => "The operation of cancel all open $order is done."
                         //     }
                         //
                     } else {
@@ -7908,7 +7909,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => 200,
-                        //        "msg" => "The operation of cancel all open order is done."
+                        //        "msg" => "The operation of cancel all open $order is done."
                         //    }
                         //
                     }
@@ -7920,7 +7921,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => "200",
-                        //        "msg" => "The operation of cancel all conditional open order is done."
+                        //        "msg" => "The operation of cancel all conditional open $order is done."
                         //    }
                         //
                     } else {
@@ -7928,7 +7929,7 @@ class binance extends Exchange {
                         //
                         //    {
                         //        "code" => 200,
-                        //        "msg" => "The operation of cancel all open order is done."
+                        //        "msg" => "The operation of cancel all open $order is done."
                         //    }
                         //
                     }
@@ -7937,7 +7938,7 @@ class binance extends Exchange {
                     //
                     //    {
                     //        "code" => 200,
-                    //        "msg" => "The operation of cancel all open order is done."
+                    //        "msg" => "The operation of cancel all open $order is done."
                     //    }
                     //
                 }
@@ -7999,10 +8000,9 @@ class binance extends Exchange {
             if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                 return $this->parse_orders($response, $market);
             } else {
+                $order = $this->safe_order(array( 'info' => $response ));
                 return array(
-                    $this->safe_order(array(
-                        'info' => $response,
-                    )),
+                    $order,
                 );
             }
         }) ();
@@ -10462,7 +10462,7 @@ class binance extends Exchange {
             $rounderString = (string) $rounder;
             $liquidationPriceRoundedString = Precise::string_add($rounderString, $liquidationPriceStringRaw);
             $truncatedLiquidationPrice = Precise::string_div($liquidationPriceRoundedString, '1', $pricePrecision);
-            if ($truncatedLiquidationPrice[0] === '-') {
+            if ($truncatedLiquidationPrice !== null && $truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more $collateral than the $size of the $position
                 $truncatedLiquidationPrice = null;

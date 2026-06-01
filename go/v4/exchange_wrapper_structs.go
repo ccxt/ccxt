@@ -6799,6 +6799,18 @@ func WithFetchLedgerByEntriesParams(params map[string]any) FetchLedgerByEntriesO
 	}
 }
 
+type FetchDepositsOrWithdrawalsHelperOptionsStruct struct {
+	Params *map[string]any
+}
+
+type FetchDepositsOrWithdrawalsHelperOptions func(opts *FetchDepositsOrWithdrawalsHelperOptionsStruct)
+
+func WithFetchDepositsOrWithdrawalsHelperParams(params map[string]any) FetchDepositsOrWithdrawalsHelperOptions {
+	return func(opts *FetchDepositsOrWithdrawalsHelperOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchCurrencyOptionsStruct struct {
 	Params *map[string]any
 }

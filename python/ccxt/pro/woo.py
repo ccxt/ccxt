@@ -1154,10 +1154,10 @@ class woo(ccxt.async_support.woo):
         https://docs.woox.io/#position-push
 
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param str[] [symbols]: list of unified market symbols
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()

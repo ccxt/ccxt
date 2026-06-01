@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.54';
+$version = '4.5.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.54';
+    const VERSION = '4.5.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -366,6 +366,7 @@ class Exchange {
         'btcturk',
         'bullish',
         'bybit',
+        'bybiteu',
         'bydfi',
         'cex',
         'coinbase',
@@ -3127,22 +3128,30 @@ class Exchange {
         return $defaultValue;
     }
 
-    public function safe_bool_2($dictionary, int|string $key1, int|string $key2, ?bool $defaultValue = null) {
+    public function safe_bool_2($dictionaryOrList, int|string $key1, int|string $key2, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key1, $key2 ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key1);
+        if (is_bool($value)) {
+            return $value;
+        }
+        $value2 = $this->safe_value($dictionaryOrList, $key2);
+        if (is_bool($value2)) {
+            return $value2;
+        }
+        return $defaultValue;
     }
 
-    public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
+    public function safe_bool($dictionaryOrList, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean $value from $dictionary or list
+         * safely extract boolean $value from dictionary or list
          * @return array(bool | null)
          */
-        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
         if (is_bool($value)) {
             return $value;
         }
@@ -3165,13 +3174,13 @@ class Exchange {
         return $defaultValue;
     }
 
-    public function safe_dict($dictionary, int|string $key, ?array $defaultValue = null) {
+    public function safe_dict($dictionaryOrList, int|string $key, ?array $defaultValue = null) {
         /**
          * @ignore
-         * safely extract a $dictionary from $dictionary or list
+         * safely extract a dictionary from dictionary or list
          * @return array(object | null)
          */
-        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
         if ($value === null) {
             return $defaultValue;
         }
@@ -3181,13 +3190,21 @@ class Exchange {
         return $defaultValue;
     }
 
-    public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
+    public function safe_dict_2($dictionaryOrList, int|string $key1, string $key2, ?array $defaultValue = null) {
         /**
          * @ignore
-         * safely extract a $dictionary from $dictionary or list
+         * safely extract a dictionary from dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key1, $key2 ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key1);
+        if (($value !== null) && (gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
+        }
+        $value2 = $this->safe_value($dictionaryOrList, $key2);
+        if (($value2 !== null) && (gettype($value2) === 'array') && (gettype($value2) !== 'array' || array_keys($value2) !== array_keys(array_keys($value2)))) {
+            return $value2;
+        }
+        return $defaultValue;
     }
 
     public function safe_list_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -3216,7 +3233,15 @@ class Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key1, $key2 ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key1);
+        if (($value !== null) && (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        $value2 = $this->safe_value($dictionaryOrList, $key2);
+        if (($value2 !== null) && (gettype($value2) === 'array' && array_keys($value2) === array_keys(array_keys($value2)))) {
+            return $value2;
+        }
+        return $defaultValue;
     }
 
     public function safe_list($dictionaryOrList, int|string $key, ?array $defaultValue = null) {
@@ -3739,6 +3764,9 @@ class Exchange {
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
             $parsed = $this->parse_currency($arr[$i]);
+            if ($parsed === null) {
+                continue;
+            }
             $code = $parsed['code'];
             $result[$code] = $parsed;
         }
@@ -4077,7 +4105,7 @@ class Exchange {
                 $this->features[$marketType] = null;
             } else {
                 if ($marketType === 'spot') {
-                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType);
                 } else {
                     $this->features[$marketType] = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
@@ -4298,7 +4326,7 @@ class Exchange {
     }
 
     public function safe_currency_structure(array $currency) {
-        // derive data from $networks => $deposit, $withdraw, $active, $fee, $limits, $precision
+        // derive data from $networks => $deposit, $withdraw, active, $fee, $limits, $precision
         $networks = $this->safe_dict($currency, 'networks', array());
         $keys = is_array($networks) ? array_keys($networks) : array();
         $length = count($keys);
@@ -4315,20 +4343,6 @@ class Exchange {
                 $currencyWithdraw = $this->safe_bool($currency, 'withdraw');
                 if ($currencyWithdraw === null || $withdraw) {
                     $currency['withdraw'] = $withdraw;
-                }
-                // set $network 'active' to false if D or W is disabled
-                $active = $this->safe_bool($network, 'active');
-                if ($active === null) {
-                    if ($deposit && $withdraw) {
-                        $currency['networks'][$key]['active'] = true;
-                    } elseif ($deposit !== null && $withdraw !== null) {
-                        $currency['networks'][$key]['active'] = false;
-                    }
-                }
-                $active = $this->safe_bool($currency['networks'][$key], 'active'); // dict might have been updated on above lines, so access directly instead of `$network` variable
-                $currencyActive = $this->safe_bool($currency, 'active');
-                if ($currencyActive === null || $active) {
-                    $currency['active'] = $active;
                 }
                 // find lowest $fee (which is more desired)
                 $fee = $this->safe_string($network, 'fee');
@@ -5971,7 +5985,7 @@ class Exchange {
         $positions = $this->to_array($positions);
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->extend($this->parse_position($positions[$i], null), $params);
+            $position = $this->extend($this->parse_position($positions[$i]), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
@@ -5986,7 +6000,7 @@ class Exchange {
         $ranks = $this->to_array($ranks);
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
-            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i]), $params);
             $result[] = $rank;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);

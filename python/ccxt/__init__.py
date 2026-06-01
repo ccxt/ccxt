@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.54'
+__version__ = '4.5.56'
 
 # ----------------------------------------------------------------------------
 
@@ -121,6 +121,7 @@ from ccxt.btcmarkets import btcmarkets                                # noqa: F4
 from ccxt.btcturk import btcturk                                      # noqa: F401
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
+from ccxt.bybiteu import bybiteu                                      # noqa: F401
 from ccxt.bydfi import bydfi                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
@@ -233,6 +234,7 @@ exchanges = [
     'btcturk',
     'bullish',
     'bybit',
+    'bybiteu',
     'bydfi',
     'cex',
     'coinbase',

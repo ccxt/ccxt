@@ -2225,9 +2225,11 @@ class oxfun(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
+        responseType = self.safe_string(params, 'responseType', 'FULL')
+        timestamp = self.safe_integer(params, 'timestamp', self.milliseconds())
         request: dict = {
-            'responseType': self.safe_string(params, 'responseType', 'FULL'),
-            'timestamp': self.safe_integer(params, 'timestamp', self.milliseconds()),
+            'responseType': responseType,
+            'timestamp': timestamp,
         }
         params = self.omit(params, ['responseType', 'timestamp'])
         recvWindow = self.safe_integer(params, 'recvWindow')
@@ -2852,7 +2854,7 @@ class oxfun(Exchange, ImplicitAPI):
         if response is None:
             return None
         if code != 200:
-            responseCode = self.safe_string(response, 'code', None)
+            responseCode = self.safe_string(response, 'code')
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)

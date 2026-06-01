@@ -15,6 +15,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: any): Currency;
     /**
      * @method
      * @name coinbaseexchange#fetchMarkets

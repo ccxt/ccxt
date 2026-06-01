@@ -1451,7 +1451,7 @@ func (this *ArkhamCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		//
 		// []  returns an empty array, even when successfully cancels orders
 		//
-		ch <- this.ParseOrders(response, nil)
+		ch <- this.ParseOrders(response)
 		return nil
 
 	}()
@@ -2077,8 +2077,9 @@ func (this *ArkhamCore) FetchDepositAddressesByNetwork(code any, optionalArgs ..
 		//    }
 		//
 		var data any = this.SafeList(response, "addresses")
+		var networkCodeUnified any = networkCode // java req
 		var parsed any = this.ParseDepositAddresses(data, nil, false, map[string]any{
-			"network": networkCode,
+			"network": networkCodeUnified,
 		})
 
 		ch <- this.IndexBy(parsed, "network")
@@ -2119,8 +2120,8 @@ func (this *ArkhamCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18738 := (<-this.LoadMarkets())
-		PanicOnError(retRes18738)
+		retRes18748 := (<-this.LoadMarkets())
+		PanicOnError(retRes18748)
 		var currency any = this.Currency(code)
 		var networkCodeAndParams any = this.HandleNetworkCodeAndParams(params)
 		var networkCode any = GetValue(networkCodeAndParams, 0)
@@ -2165,8 +2166,8 @@ func (this *ArkhamCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18988 := (<-this.LoadMarkets())
-		PanicOnError(retRes18988)
+		retRes18998 := (<-this.LoadMarkets())
+		PanicOnError(retRes18998)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -2266,8 +2267,8 @@ func (this *ArkhamCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes19838 := (<-this.LoadMarkets())
-		PanicOnError(retRes19838)
+		retRes19848 := (<-this.LoadMarkets())
+		PanicOnError(retRes19848)
 
 		response := (<-this.V1PrivateGetAccountFees(params))
 		PanicOnError(response)
@@ -2334,8 +2335,8 @@ func (this *ArkhamCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes20308 := (<-this.LoadMarkets())
-		PanicOnError(retRes20308)
+		retRes20318 := (<-this.LoadMarkets())
+		PanicOnError(retRes20318)
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2415,8 +2416,8 @@ func (this *ArkhamCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20958 := (<-this.LoadMarkets())
-		PanicOnError(retRes20958)
+		retRes20968 := (<-this.LoadMarkets())
+		PanicOnError(retRes20968)
 		var market any = this.Market(symbol)
 		var marketId any = this.SafeString(market, "id")
 		var request any = map[string]any{
@@ -2491,8 +2492,8 @@ func (this *ArkhamCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes21538 := (<-this.LoadMarkets())
-		PanicOnError(retRes21538)
+		retRes21548 := (<-this.LoadMarkets())
+		PanicOnError(retRes21548)
 		var market any = this.Market(symbol)
 		var leverageString any = this.NumberToString(leverage)
 		var marketId any = this.SafeString(market, "id")
@@ -2534,8 +2535,8 @@ func (this *ArkhamCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes21798 := (<-this.LoadMarkets())
-		PanicOnError(retRes21798)
+		retRes21808 := (<-this.LoadMarkets())
+		PanicOnError(retRes21808)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V1PrivateGetAccountPositions(params))
@@ -2664,8 +2665,8 @@ func (this *ArkhamCore) Withdraw(code any, amount any, address any, optionalArgs
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes22898 := (<-this.LoadMarkets())
-		PanicOnError(retRes22898)
+		retRes22908 := (<-this.LoadMarkets())
+		PanicOnError(retRes22908)
 
 		withdrawalAddresses := (<-this.V1PrivateGetAccountWithdrawalAddresses())
 		PanicOnError(withdrawalAddresses)
@@ -2751,8 +2752,8 @@ func (this *ArkhamCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23538 := (<-this.LoadMarkets())
-		PanicOnError(retRes23538)
+		retRes23548 := (<-this.LoadMarkets())
+		PanicOnError(retRes23548)
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverageTiers() requires a symbols argument")))
 		}
@@ -2829,11 +2830,13 @@ func (this *ArkhamCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) 
 		var marketId any = this.SafeString(info, "market")
 		market = this.SafeMarket(marketId, market, nil, "swap")
 		var maxNotional any = this.SafeNumber(tier, "positionLimit")
+		var curr any = Ternary(IsTrue(GetValue(market, "linear")), GetValue(market, "base"), GetValue(market, "quote"))
+		var notional any = minNotional
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "swap"),
-			"currency":              Ternary(IsTrue(GetValue(market, "linear")), GetValue(market, "base"), GetValue(market, "quote")),
-			"minNotional":           minNotional,
+			"currency":              curr,
+			"minNotional":           notional,
 			"maxNotional":           maxNotional,
 			"maintenanceMarginRate": this.SafeNumber(tier, "marginRate"),
 			"maxLeverage":           this.SafeInteger(tier, "leverageRate"),

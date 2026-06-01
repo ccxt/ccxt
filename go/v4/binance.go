@@ -4149,7 +4149,7 @@ func (this *BinanceCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
-	//         "markPrice": "11793.63104562", // mark price
+	//         "markPrice": "11793.63104563", // mark price
 	//         "indexPrice": "11781.80495970", // index price
 	//         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts
 	//         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
@@ -6905,9 +6905,10 @@ func (this *BinanceCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var initialUppercaseType any = ToUpper(typeVar)
 	var isMarketOrder any = IsEqual(initialUppercaseType, "MARKET")
 	var isLimitOrder any = IsEqual(initialUppercaseType, "LIMIT")
+	var upperCaseSide any = ToUpper(side)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
-		"side":   ToUpper(side),
+		"side":   upperCaseSide,
 	}
 	var isPortfolioMargin any = nil
 	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "createOrder", "papi", "portfolioMargin", false)
@@ -7237,8 +7238,8 @@ func (this *BinanceCore) CreateMarketOrderWithCost(symbol any, side any, cost an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes68398 := (<-this.LoadMarkets())
-		PanicOnError(retRes68398)
+		retRes68408 := (<-this.LoadMarkets())
+		PanicOnError(retRes68408)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketOrderWithCost() supports spot orders only")))
@@ -7247,9 +7248,9 @@ func (this *BinanceCore) CreateMarketOrderWithCost(symbol any, side any, cost an
 			"cost": cost,
 		}
 
-		retRes684715 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes684715)
-		ch <- retRes684715
+		retRes684815 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes684815)
+		ch <- retRes684815
 		return nil
 
 	}()
@@ -7274,8 +7275,8 @@ func (this *BinanceCore) CreateMarketBuyOrderWithCost(symbol any, cost any, opti
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes68618 := (<-this.LoadMarkets())
-		PanicOnError(retRes68618)
+		retRes68628 := (<-this.LoadMarkets())
+		PanicOnError(retRes68628)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
@@ -7284,9 +7285,9 @@ func (this *BinanceCore) CreateMarketBuyOrderWithCost(symbol any, cost any, opti
 			"cost": cost,
 		}
 
-		retRes686915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes686915)
-		ch <- retRes686915
+		retRes687015 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes687015)
+		ch <- retRes687015
 		return nil
 
 	}()
@@ -7311,17 +7312,17 @@ func (this *BinanceCore) CreateMarketSellOrderWithCost(symbol any, cost any, opt
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes68838 := (<-this.LoadMarkets())
-		PanicOnError(retRes68838)
+		retRes68848 := (<-this.LoadMarkets())
+		PanicOnError(retRes68848)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "quoteOrderQty", cost)
 
-		retRes688915 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
-		PanicOnError(retRes688915)
-		ch <- retRes688915
+		retRes689015 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, params))
+		PanicOnError(retRes689015)
+		ch <- retRes689015
 		return nil
 
 	}()
@@ -7361,8 +7362,8 @@ func (this *BinanceCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes69168 := (<-this.LoadMarkets())
-		PanicOnError(retRes69168)
+		retRes69178 := (<-this.LoadMarkets())
+		PanicOnError(retRes69178)
 		var market any = this.Market(symbol)
 		var defaultType any = this.SafeString2(this.Options, "fetchOrder", "defaultType", "spot")
 		var typeVar any = this.SafeString(params, "type", defaultType)
@@ -7492,17 +7493,17 @@ func (this *BinanceCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes70068 := (<-this.LoadMarkets())
-		PanicOnError(retRes70068)
+		retRes70078 := (<-this.LoadMarkets())
+		PanicOnError(retRes70078)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes701019 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-			PanicOnError(retRes701019)
-			ch <- retRes701019
+			retRes701119 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+			PanicOnError(retRes701119)
+			ch <- retRes701119
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -7817,8 +7818,8 @@ func (this *BinanceCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes72788 := (<-this.LoadMarkets())
-		PanicOnError(retRes72788)
+		retRes72798 := (<-this.LoadMarkets())
+		PanicOnError(retRes72798)
 		var market any = nil
 		var typeVar any = nil
 		var request any = map[string]any{}
@@ -7956,8 +7957,8 @@ func (this *BinanceCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any 
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
 
-		retRes73748 := (<-this.LoadMarkets())
-		PanicOnError(retRes73748)
+		retRes73758 := (<-this.LoadMarkets())
+		PanicOnError(retRes73758)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -8355,8 +8356,8 @@ func (this *BinanceCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes76878 := (<-this.LoadMarkets())
-		PanicOnError(retRes76878)
+		retRes76888 := (<-this.LoadMarkets())
+		PanicOnError(retRes76888)
 		var market any = this.Market(symbol)
 		var defaultType any = this.SafeString2(this.Options, "cancelOrder", "defaultType", "spot")
 		var typeVar any = this.SafeString(params, "type", defaultType)
@@ -8499,8 +8500,8 @@ func (this *BinanceCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes77908 := (<-this.LoadMarkets())
-		PanicOnError(retRes77908)
+		retRes77918 := (<-this.LoadMarkets())
+		PanicOnError(retRes77918)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -8582,10 +8583,11 @@ func (this *BinanceCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			ch <- this.ParseOrders(response, market)
 			return nil
 		} else {
-
-			ch <- []any{this.SafeOrder(map[string]any{
+			var order any = this.SafeOrder(map[string]any{
 				"info": response,
-			})}
+			})
+
+			ch <- []any{order}
 			return nil
 		}
 
@@ -11252,7 +11254,7 @@ func (this *BinanceCore) ParseAccountPosition(position any, optionalArgs ...any)
 		var rounderString any = ToString(rounder)
 		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
-		if IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-")) {
+		if IsTrue(IsTrue(!IsEqual(truncatedLiquidationPrice, nil)) && IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-"))) {
 			// user cannot be liquidated
 			// since he has more collateral than the size of the position
 			truncatedLiquidationPrice = nil
