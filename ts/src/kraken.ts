@@ -859,7 +859,7 @@ export default class kraken extends Exchange {
         //
         const id = this.safeString (rawCurrency, '_coin_id');
         let code = this.safeCurrencyCode (id);
-        // the below can not be reliable done in `safeCurrencyCode`, so we have to do it here
+        // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (id.indexOf ('.') < 0) {
             const altName = this.safeString (rawCurrency, 'altname');
             // handle cases like below:
