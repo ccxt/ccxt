@@ -566,60 +566,59 @@ class delta(Exchange, ImplicitAPI):
         #     }
         #
         currencies = self.safe_list(response, 'result', [])
-        result: dict = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_string(currency, 'symbol')
-            numericId = self.safe_integer(currency, 'id')
-            code = self.safe_currency_code(id)
-            chains = self.safe_list(currency, 'networks', [])
-            networks = {}
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'network')
-                networkCode = self.network_id_to_code(networkId)
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': self.safe_string(chain, 'name'),
-                    'info': chain,
-                    'active': self.safe_string(chain, 'status') == 'enabled',
-                    'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
-                    'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
-                    'fee': self.safe_number(chain, 'base_withdrawal_fee'),
-                    'limits': {
-                        'deposit': {
-                            'min': self.safe_number(chain, 'min_deposit_amount'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': self.safe_string(currency, 'name'),
-                'info': currency,  # the original payload
-                'active': None,
-                'deposit': self.safe_string(currency, 'deposit_status') == 'enabled',
-                'withdraw': self.safe_string(currency, 'withdrawal_status') == 'enabled',
-                'fee': self.safe_number(currency, 'base_withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        numericId = self.safe_integer(rawCurrency, 'id')
+        code = self.safe_currency_code(id)
+        chains = self.safe_list(rawCurrency, 'networks', [])
+        networks = {}
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'network')
+            networkCode = self.network_id_to_code(networkId)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'name': self.safe_string(chain, 'name'),
+                'info': chain,
+                'active': self.safe_string(chain, 'status') == 'enabled',
+                'deposit': self.safe_string(chain, 'deposit_status') == 'enabled',
+                'withdraw': self.safe_string(chain, 'withdrawal_status') == 'enabled',
+                'fee': self.safe_number(chain, 'base_withdrawal_fee'),
                 'limits': {
-                    'amount': {'min': None, 'max': None},
+                    'deposit': {
+                        'min': self.safe_number(chain, 'min_deposit_amount'),
+                        'max': None,
+                    },
                     'withdraw': {
-                        'min': self.safe_number(currency, 'min_withdrawal_amount'),
+                        'min': self.safe_number(chain, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
-                'networks': networks,
-                'type': 'crypto',
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'info': rawCurrency,  # the original payload
+            'active': None,
+            'deposit': self.safe_string(rawCurrency, 'deposit_status') == 'enabled',
+            'withdraw': self.safe_string(rawCurrency, 'withdrawal_status') == 'enabled',
+            'fee': self.safe_number(rawCurrency, 'base_withdrawal_fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision'))),
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'min_withdrawal_amount'),
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto',
+        })
 
     async def load_markets(self, reload=False, params={}):
         markets = await super(delta, self).load_markets(reload, params)
