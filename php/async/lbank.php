@@ -456,67 +456,67 @@ class lbank extends Exchange {
             //
             $currenciesData = $this->safe_list($response, 'data', array());
             $grouped = $this->group_by($currenciesData, 'assetCode');
-            $groupedKeys = is_array($grouped) ? array_keys($grouped) : array();
-            $result = array();
-            for ($i = 0; $i < count($groupedKeys); $i++) {
-                $id = (string) ($groupedKeys[$i]); // some currencies are numeric
-                $code = $this->safe_currency_code($id);
-                $networksRaw = $grouped[$id];
-                $networks = array();
-                for ($j = 0; $j < count($networksRaw); $j++) {
-                    $networkEntry = $networksRaw[$j];
-                    $networkId = $this->safe_string($networkEntry, 'chain');
-                    if ($networkId === null) {
-                        $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
-                    }
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($networkEntry, 'min'),
-                                'max' => null,
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($networkEntry, 'minTransfer'),
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => null,
-                        'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
-                        'fee' => $this->safe_number($networkEntry, 'fee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
-                        'info' => $networkEntry,
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => null,
-                    'name' => null,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'fee' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'info' => $networksRaw,
-                ));
-            }
-            return $result;
+            $values = is_array($grouped) ? array_values($grouped) : array();
+            return $this->parse_currencies($values);
         }) ();
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency[0], 'assetCode'); // first member is guaranteed
+        $code = $this->safe_currency_code($id);
+        $networksRaw = $rawCurrency;
+        $networks = array();
+        for ($j = 0; $j < count($networksRaw); $j++) {
+            $networkEntry = $networksRaw[$j];
+            $networkId = $this->safe_string($networkEntry, 'chain');
+            if ($networkId === null) {
+                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+            }
+            $networkCode = $this->network_id_to_code($networkId);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'minTransfer'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => $this->safe_bool($networkEntry, 'canWithDraw'),
+                'fee' => $this->safe_number($networkEntry, 'fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'transferAmtScale'))),
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'precision' => null,
+            'type' => null,
+            'name' => null,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'fee' => null,
+            'limits' => array(
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'info' => $networksRaw,
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
