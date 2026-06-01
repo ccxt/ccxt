@@ -116,6 +116,7 @@ import hyperliquid from  './src/hyperliquid.js'
 import idex from  './src/idex.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
+import kalshi from  './src/kalshi.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -123,10 +124,12 @@ import kucoinfutures from  './src/kucoinfutures.js'
 import kuna from  './src/kuna.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
+import limitless from  './src/limitless.js'
 import luno from  './src/luno.js'
 import lykke from  './src/lykke.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
+import myriad from  './src/myriad.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
@@ -139,6 +142,7 @@ import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import poloniexfutures from  './src/poloniexfutures.js'
+import polymarket from  './src/polymarket.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
@@ -217,6 +221,7 @@ import p2bPro from  './src/pro/p2b.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
+import polymarketPro from  './src/pro/polymarket.js'
 import probitPro from  './src/pro/probit.js'
 import upbitPro from  './src/pro/upbit.js'
 import vertexPro from  './src/pro/vertex.js'
@@ -296,6 +301,7 @@ const exchanges = {
     'idex':                   idex,
     'independentreserve':     independentreserve,
     'indodax':                indodax,
+    'kalshi':                 kalshi,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -303,10 +309,12 @@ const exchanges = {
     'kuna':                   kuna,
     'latoken':                latoken,
     'lbank':                  lbank,
+    'limitless':              limitless,
     'luno':                   luno,
     'lykke':                  lykke,
     'mercado':                mercado,
     'mexc':                   mexc,
+    'myriad':                 myriad,
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
@@ -319,6 +327,7 @@ const exchanges = {
     'phemex':                 phemex,
     'poloniex':               poloniex,
     'poloniexfutures':        poloniexfutures,
+    'polymarket':             polymarket,
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
@@ -397,6 +406,7 @@ const pro = {
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
+    'polymarket':             polymarketPro,
     'probit':                 probitPro,
     'upbit':                  upbitPro,
     'vertex':                 vertexPro,
