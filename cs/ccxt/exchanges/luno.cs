@@ -314,41 +314,22 @@ public partial class luno : Exchange
         //     }
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        object grouped = this.groupBy(currenciesData, "native_currency");
+        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        return this.parseCurrencies(values);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
+        object code = this.safeCurrencyCode(id);
+        object networks = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
-            object networkEntry = getValue(currenciesData, i);
-            object id = this.safeString(networkEntry, "native_currency");
-            object code = this.safeCurrencyCode(id);
-            if (!isTrue((inOp(result, code))))
-            {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", id },
-                    { "code", code },
-                    { "precision", null },
-                    { "type", null },
-                    { "name", null },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                    { "networks", new Dictionary<string, object>() {} },
-                    { "info", new Dictionary<string, object>() {} },
-                };
-            }
+            object networkEntry = getValue(rawCurrency, i);
             object networkId = this.safeString(networkEntry, "name");
             object networkCode = this.networkIdToCode(networkId);
-            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },
                 { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
@@ -368,19 +349,30 @@ public partial class luno : Exchange
                 { "precision", null },
                 { "info", networkEntry },
             };
-            // add entry in info
-            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
-            ((IList<object>)info).Add(networkEntry);
-            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
         }
-        // only after all entries are formed in currencies, restructure each entry
-        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
-        {
-            object code = getValue(allKeys, i);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
-        }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "precision", null },
+            { "type", null },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
