@@ -1,0 +1,1912 @@
+import PredictionExchange from './abstract/hyperliquid-prediction.js';
+import { Precise } from './base/Precise.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import { ecdsa } from './base/functions/crypto.js';
+import type {
+    Int, Str, Num, Dict,
+    Market, Ticker, Tickers, OrderBook, Trade, OHLCV,
+    Order, Balances, Position,
+    PredictionEvent,
+    Strings,
+} from './base/types.js';
+import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../ccxt.js';
+
+// ---------------------------------------------------------------------------
+
+/**
+ * @class hyperliquidPrediction
+ * @augments PredictionExchange
+ */
+export default class hyperliquidPrediction extends PredictionExchange {
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'hyperliquid-prediction',
+            'name': 'Hyperliquid',
+            'countries': [],
+            'rateLimit': 50,
+            'certified': false,
+            'pro': false,
+            'dex': true,
+            'has': {
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'prediction': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchCurrencies': false,
+                'fetchEvents': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPositions': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
+            },
+            'urls': {
+                'logo': 'https://hyperliquid.xyz/favicon.ico',
+                'api': {
+                    'public': 'https://api.hyperliquid.xyz',
+                    'private': 'https://api.hyperliquid.xyz',
+                },
+                'test': {
+                    'public': 'https://api.hyperliquid-testnet.xyz',
+                    'private': 'https://api.hyperliquid-testnet.xyz',
+                },
+                'www': 'https://hyperliquid.xyz',
+                'doc': 'https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api',
+                'fees': 'https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees',
+                'referral': 'https://app.hyperliquid.xyz/',
+            },
+            'api': {
+                'public': {
+                    'post': {
+                        'info': {
+                            'cost': 20,
+                            'byType': {
+                                'l2Book': 2,
+                                'allMids': 2,
+                                'spotClearinghouseState': 2,
+                                'candleSnapshot': 4,
+                                'orderStatus': 2,
+                            },
+                        },
+                    },
+                },
+                'private': {
+                    'post': {
+                        'exchange': 1,
+                    },
+                },
+            },
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'walletAddress': true,
+                'privateKey': true,
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.0002,
+                    'taker': 0.0005,
+                },
+            },
+            'options': {
+                'defaultType': 'prediction',
+                'sandboxMode': true,  // outcome markets currently deployed on testnet
+                'outcomeQuoteCurrency': 'USDH',
+                'defaultSlippage': 0.05,
+                'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'builderFee': false,
+            },
+            'exceptions': {
+                'exact': {
+                    'Order was never placed, already canceled, or filled.': OrderNotFound,
+                    'Insufficient spot balance': InsufficientFunds,
+                    'Too many cumulative requests sent': RateLimitExceeded,
+                    'Order has zero size.': InvalidOrder,
+                    'Order has invalid size': InvalidOrder,
+                    'Order price cannot be more than 80% away from the reference price': InvalidOrder,
+                    'No liquidity available for market order.': InvalidOrder,
+                },
+                'broad': {
+                    'Insufficient': InsufficientFunds,
+                },
+            },
+        });
+    }
+
+    setSandboxMode (enabled: boolean) {
+        super.setSandboxMode (enabled);
+        this.options['sandboxMode'] = enabled;
+    } 
+
+    /**
+     * Computes the encoding for an outcome side: encoding = 10 * outcomeId + side
+     * (side 0 = YES, side 1 = NO)
+     */
+    outcomeEncoding (outcomeId: number, side: number): number {
+        return (10 * outcomeId) + side;
+    }
+
+    /**
+     * Returns the asset ID for orders: 100_000_000 + encoding
+     * e.g. 100000010
+     */
+    outcomeAssetId (encoding: number): number {
+        return 100000000 + encoding;
+    }
+
+    /**
+     * Returns the coin name used in API calls: #<encoding>
+     * e.g. #10 for outcome 1 side 0
+     */
+    outcomeCoin (encoding: number): string {
+        return '#' + encoding.toString ();
+    }
+
+    /**
+     * Returns the token name: +<encoding>
+     * e.g. +10
+     */
+    outcomeToken (encoding: number): string {
+        return '+' + encoding.toString ();
+    }
+
+    /**
+     * Parses a description string of the form:
+     * class:priceBinary|underlying:BTC|expiry:20260503-0600|targetPrice:78213|period:1d
+     * into a dict.
+     */
+    parseOutcomeDescription (description: string): Dict {
+        if (!description) {
+            return {};
+        }
+        const parts = description.split ('|');
+        const result: Dict = {};
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const colonIndex = part.indexOf (':');
+            if (colonIndex > -1) {
+                const key = part.substring (0, colonIndex);
+                const value = part.substring (colonIndex + 1);
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Builds a human-readable market symbol from a parsed description and side.
+     * e.g. BTC-ABOVE-78213-20260503:YES for side 0
+     *      BTC-ABOVE-78213-20260503:NO for side 1
+     */
+    buildOutcomeSymbol (desc: Dict, side: number, outcomeId: number): string {
+        const underlying = this.safeString (desc, 'underlying', 'OUTCOME' + outcomeId.toString ());
+        const targetPrice = this.safeString (desc, 'targetPrice');
+        const expiry = this.safeString (desc, 'expiry', '');
+        // Parse expiry: "20260503-0600" → "20260503"
+        const expiryDate = expiry ? expiry.split ('-')[0] : '';
+        const label = (side === 0) ? 'YES' : 'NO';
+        let base = underlying.toUpperCase ();
+        if (targetPrice) {
+            base = base + '-ABOVE-' + targetPrice;
+        }
+        if (expiryDate) {
+            base = base + '-' + expiryDate;
+        }
+        return base + ':' + label;
+    }
+
+    /**
+     * Builds a market ID (parent symbol without YES/NO) from description.
+     * e.g. BTC-ABOVE-78213-20260503 for priceBinary outcomes
+     * or OUTCOME-9345 for non-priceBinary outcomes using the name field
+     */
+    buildOutcomeParentSymbol (desc: Dict, outcomeId: number, name = '', question: Dict = {}): string {
+        const underlying = this.safeString (desc, 'underlying');
+        if (underlying) {
+            const targetPrice = this.safeString (desc, 'targetPrice');
+            const expiry = this.safeString (desc, 'expiry', '');
+            const expiryDate = expiry ? expiry.split ('-')[0] : '';
+            let base = underlying.toUpperCase ();
+            if (targetPrice) {
+                base = base + '-ABOVE-' + targetPrice;
+            }
+            if (expiryDate) {
+                base = base + '-' + expiryDate;
+            }
+            return base;
+        }
+        const questionDescription = this.safeString (question, 'description');
+        if (questionDescription) {
+            const questionDesc = this.parseOutcomeDescription (questionDescription);
+            const questionClass = this.safeStringLower (questionDesc, 'class');
+            if (questionClass === 'pricebucket') {
+                const questionUnderlying = this.safeString (questionDesc, 'underlying');
+                const questionExpiry = this.safeString (questionDesc, 'expiry', '');
+                const expiryDate = questionExpiry ? questionExpiry.split ('-')[0] : '';
+                const thresholdsRaw = this.safeString (questionDesc, 'priceThresholds', '');
+                const indexStr = this.safeString (desc, 'index');
+                const rawDescription = this.safeStringLower (desc, 'description', '');
+                const nameLower = name.toLowerCase ();
+                if (questionUnderlying && thresholdsRaw && indexStr !== undefined) {
+                    const thresholds = thresholdsRaw.split (',').map ((x) => x.trim ()).filter ((x) => x.length > 0);
+                    const index = parseInt (indexStr, 10);
+                    if (thresholds.length > 0 && Number.isFinite (index)) {
+                        let bucketLabel: string;
+                        if (index <= 0) {
+                            bucketLabel = 'BELOW-' + thresholds[0];
+                        } else if (index >= thresholds.length) {
+                            bucketLabel = 'ABOVE-' + thresholds[thresholds.length - 1];
+                        } else {
+                            bucketLabel = 'BETWEEN-' + thresholds[index - 1] + '-' + thresholds[index];
+                        }
+                        let base = questionUnderlying.toUpperCase () + '-' + bucketLabel;
+                        if (expiryDate) {
+                            base = base + '-' + expiryDate;
+                        }
+                        return base;
+                    }
+                }
+                const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf ('fallback') >= 0) || (nameLower.indexOf ('other') >= 0);
+                if (questionUnderlying && isFallbackLike) {
+                    let base = questionUnderlying.toUpperCase () + '-OTHER';
+                    if (expiryDate) {
+                        base = base + '-' + expiryDate;
+                    }
+                    return base;
+                }
+            }
+        }
+        const questionName = this.safeString (question, 'name');
+        if (questionName) {
+            const questionSlug = questionName.toUpperCase ().replace (/[^A-Z0-9]+/g, '-').replace (/(^-|-$)/g, '');
+            if (questionSlug) {
+                const rawOutcomeName = name.toUpperCase ().trim ();
+                let outcomeSlug = rawOutcomeName.replace (/[^A-Z0-9]+/g, '-').replace (/(^-|-$)/g, '');
+                const genericOutcomeNames: Dict = {
+                    'RECURRING': true,
+                    'RECURRING-FALLBACK': true,
+                    'RECURRING-NAMED-OUTCOME': true,
+                };
+                if (outcomeSlug in genericOutcomeNames) {
+                    if (outcomeSlug.indexOf ('FALLBACK') >= 0) {
+                        outcomeSlug = 'OTHER';
+                    } else {
+                        outcomeSlug = '';
+                    }
+                }
+                if (outcomeSlug) {
+                    return questionSlug + '-' + outcomeSlug + '-' + outcomeId.toString ();
+                }
+                return questionSlug + '-' + outcomeId.toString ();
+            }
+        }
+        // Fallback: use name slugified, or OUTCOME-<id>
+        if (name) {
+            return name.toUpperCase ().replace (/[^A-Z0-9]+/g, '-').replace (/(^-|-$)/g, '') + '-' + outcomeId.toString ();
+        }
+        return 'OUTCOME-' + outcomeId.toString ();
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchMarkets
+     * @description Retrieves all Hyperliquid outcome markets from outcomeMeta.
+     * Each binary outcome becomes one CCXT prediction market with two outcomes: YES and NO.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids#outcomes
+     * @param {object} [params] extra parameters
+     * @returns {Market[]} array of market structures
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        //
+        // outcomeMeta response:
+        //
+        // {
+        //   "outcomes": [
+        //     {
+        //       "outcome": 9345,
+        //       "name": "Recurring",
+        //       "description": "class:priceBinary|underlying:BTC|expiry:20260513-0300|targetPrice:81023|period:1d",
+        //       "sideSpecs": [
+        //         { "name": "Yes" },
+        //         { "name": "No" }
+        //       ]
+        //     },
+        //     ...
+        //   ],
+        //   "questions": [
+        //     {
+        //       "question": 182,
+        //       "name": "What will Hypurr eat the most of in May 2026?",
+        //       "description": "...",
+        //       "fallbackOutcome": 7002,
+        //       "namedOutcomes": [7003, 7004, 7005],
+        //       "settledNamedOutcomes": []
+        //     },
+        //     ...
+        //   ]
+        // }
+        //
+        const response = await this.publicPostInfo (this.extend ({ 'type': 'outcomeMeta' }, params));
+        const outcomesList = this.safeList (response, 'outcomes', []);
+        const questionsList = this.safeList (response, 'questions', []);
+        const outcomesToQuestions: Dict = {};
+        for (let qi = 0; qi < questionsList.length; qi++) {
+            const question = this.safeDict (questionsList, qi, {});
+            const fallbackOutcome = this.safeInteger (question, 'fallbackOutcome');
+            if (fallbackOutcome !== undefined) {
+                outcomesToQuestions[fallbackOutcome.toString ()] = question;
+            }
+            const namedOutcomes = this.safeList (question, 'namedOutcomes', []);
+            for (let ni = 0; ni < namedOutcomes.length; ni++) {
+                const namedOutcomeId = this.safeInteger (namedOutcomes, ni);
+                if (namedOutcomeId !== undefined) {
+                    outcomesToQuestions[namedOutcomeId.toString ()] = question;
+                }
+            }
+        }
+        const markets: Market[] = [];
+        if (this.outcomes === undefined) {
+            this.outcomes = {};
+        }
+        if (this.outcomes_by_id === undefined) {
+            this.outcomes_by_id = {};
+        }
+        for (let i = 0; i < outcomesList.length; i++) {
+            const outcomeInfo = this.safeDict (outcomesList, i, {});
+            const outcomeId = this.safeInteger (outcomeInfo, 'outcome', i);
+            const linkedQuestion = this.safeDict (outcomesToQuestions, outcomeId.toString (), {});
+            const market = this.parseOutcomeMarket (outcomeInfo, outcomeId, linkedQuestion);
+            markets.push (market);
+            // Build outcomes dictionary from market outcomes
+            const marketOutcomes = this.safeList (market as any, 'outcomes', []);
+            for (let oi = 0; oi < marketOutcomes.length; oi++) {
+                const outcome = this.safeDict (marketOutcomes, oi, {});
+                const outcomeSymbol = this.safeString (outcome, 'symbol');
+                const outcomeId_ = this.safeString (outcome, 'id');
+                if (outcomeSymbol !== undefined) {
+                    this.outcomes[outcomeSymbol] = outcome;
+                }
+                if (outcomeId_ !== undefined) {
+                    this.outcomes_by_id[outcomeId_] = outcome;
+                }
+            }
+        }
+        return markets;
+    }
+
+    /**
+     * Parses a single binary outcome market into a CCXT Market structure with outcomes[].
+     * @param outcomeInfo raw entry from outcomeMeta outcomes array
+     * @param outcomeId integer outcome id
+     */
+    parseOutcomeMarket (outcomeInfo: Dict, outcomeId: number, question: Dict = {}): Market {
+        const description = this.safeString (outcomeInfo, 'description', '');
+        const name = this.safeString (outcomeInfo, 'name', '');
+        const sideSpecs = this.safeList (outcomeInfo, 'sideSpecs', []);
+        const desc = this.parseOutcomeDescription (description);
+        const parentSymbol = this.buildOutcomeParentSymbol (desc, outcomeId, name, question);
+        const yesEncoding = this.outcomeEncoding (outcomeId, 0);
+        const noEncoding = this.outcomeEncoding (outcomeId, 1);
+        const yesOutcomeSymbol = parentSymbol + ':YES';
+        const noOutcomeSymbol = parentSymbol + ':NO';
+        // Parse expiry from description
+        const expiry = this.safeString (desc, 'expiry');
+        let expiryMs: Int = undefined;
+        let expiryDatetime: Str = undefined;
+        if (expiry) {
+            // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
+            const expParts = expiry.split ('-');
+            if (expParts.length >= 1 && expParts[0].length === 8) {
+                const ymd = expParts[0];
+                const hm = (expParts.length >= 2) ? expParts[1] : '0000';
+                const isoStr = ymd.substring (0, 4) + '-' + ymd.substring (4, 6) + '-' + ymd.substring (6, 8) + 'T' + hm.substring (0, 2) + ':' + hm.substring (2, 4) + ':00Z';
+                expiryMs = this.parse8601 (isoStr);
+                expiryDatetime = isoStr;
+            }
+        }
+        // Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
+        const yesLabel = (this.safeString (this.safeDict (sideSpecs, 0, {}), 'name', 'YES')).toUpperCase ();
+        const noLabel = (this.safeString (this.safeDict (sideSpecs, 1, {}), 'name', 'NO')).toUpperCase ();
+        const quoteCurrency = this.safeString (this.options, 'outcomeQuoteCurrency', 'USDH');
+        const szDecimals = 4;  // outcomes use 4 decimal places
+        const active = true;
+        const outcomes: any[] = [
+            {
+                'id': this.outcomeCoin (yesEncoding),
+                'symbol': yesOutcomeSymbol,
+                'marketSymbol': parentSymbol,
+                'label': yesLabel,
+                'active': active,
+                'info': {
+                    'encoding': yesEncoding,
+                    'assetId': this.outcomeAssetId (yesEncoding),
+                    'coinName': this.outcomeCoin (yesEncoding),
+                    'tokenName': this.outcomeToken (yesEncoding),
+                    'side': 0,
+                    'outcomeId': outcomeId,
+                    'name': name,
+                    'description': description,
+                    'parsedDescription': desc,
+                },
+            },
+            {
+                'id': this.outcomeCoin (noEncoding),
+                'symbol': noOutcomeSymbol,
+                'marketSymbol': parentSymbol,
+                'label': noLabel,
+                'active': active,
+                'info': {
+                    'encoding': noEncoding,
+                    'assetId': this.outcomeAssetId (noEncoding),
+                    'coinName': this.outcomeCoin (noEncoding),
+                    'tokenName': this.outcomeToken (noEncoding),
+                    'side': 1,
+                    'outcomeId': outcomeId,
+                    'name': name,
+                    'description': description,
+                    'parsedDescription': desc,
+                },
+            },
+        ];
+        return this.safeMarketStructure ({
+            'id': outcomeId.toString (),
+            'symbol': parentSymbol,
+            'base': parentSymbol.split ('/')[0],
+            'quote': quoteCurrency,
+            'settle': undefined,
+            'baseId': outcomeId.toString (),
+            'quoteId': quoteCurrency,
+            'settleId': undefined,
+            'type': 'prediction',
+            'spot': false,
+            'margin': undefined,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'prediction': true,
+            'active': active,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': 0.0005,
+            'maker': 0.0002,
+            'contractSize': undefined,
+            'expiry': expiryMs,
+            'expiryDatetime': expiryDatetime,
+            'strike': undefined,
+            'optionType': undefined,
+            'percentage': true,
+            'tierBased': false,
+            'feeSide': 'get',
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (szDecimals.toString ())),
+                'price': 0.0001,
+            },
+            'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': 0.0001, 'max': 0.9999 },
+                'cost': { 'min': this.parseNumber ('1'), 'max': undefined },
+            },
+            'outcomes': outcomes,
+            'info': this.extend (outcomeInfo, {
+                'outcomeId': outcomeId,
+                'parentSymbol': parentSymbol,
+                'description': description,
+                'parsedDescription': desc,
+            }),
+            'created': undefined,
+        }) as Market;
+    }
+
+    /**
+     * Calculates an appropriate price precision tick size given midPx and szDecimals.
+     */
+    calculatePricePrecision (midPx: number, szDecimals: number): number {
+        if (midPx <= 0) {
+            return 0.0001;
+        }
+        const midStr = this.numberToString (midPx);
+        const parts = midStr.split ('.');
+        const intPart = parts[0];
+        const significantDigits = Math.max (5, intPart.length);
+        const maxDecimals = 8 - szDecimals;
+        const pricePrecisionDecimals = Math.max (1, Math.min (maxDecimals, significantDigits - intPart.length));
+        return parseFloat ('0.' + '0'.repeat (pricePrecisionDecimals - 1) + '1');
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchTicker
+     * @description Fetches a ticker for a single outcome market using the L2 order book snapshot.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+     * @param {string} outcome unified outcome symbol (e.g. 'BTC-ABOVE-78213-20260503:YES')
+     * @param {object} [params] extra parameters
+     * @returns {Ticker} a ticker structure
+     */
+    async fetchTicker (outcome: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        await this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const coin = this.safeString (info, 'coinName');
+        const request: Dict = {
+            'type': 'l2Book',
+            'coin': coin,
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "coin": "#10",
+        //         "levels": [
+        //             [ { "n": "2", "px": "0.44", "sz": "500" } ],   // bids [0]
+        //             [ { "n": "2", "px": "0.46", "sz": "400" } ]    // asks [1]
+        //         ],
+        //         "time": 1704290104840
+        //     }
+        //
+        const ticker = this.parseTicker (response, market);
+        ticker['symbol'] = this.safeString (outcomeObj, 'symbol', outcome);
+        return ticker;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchTickers
+     * @description Fetches all outcome market tickers using allMids then optionally enriches with l2Book.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-all-mids-for-all-actively-traded-coins
+     * @param {string[]} [outcomes] filter by outcome ids or symbols
+     * @param {object} [params] extra parameters
+     * @returns {Tickers} dict of ticker structures
+     */
+    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const requestedOutcomeSymbols: Dict = {};
+        if (outcomes !== undefined) {
+            for (let i = 0; i < outcomes.length; i++) {
+                const requested = outcomes[i];
+                await this.checkEventsAndMarkets (requested);
+                const requestedOutcomeObj = this.outcome (requested);
+                const requestedSymbol = this.safeString (requestedOutcomeObj, 'symbol', requested);
+                requestedOutcomeSymbols[requestedSymbol] = true;
+            }
+        }
+        const response = await this.publicPostInfo (this.extend ({ 'type': 'allMids' }, params));
+        //
+        // { "mids": { "#10": "0.45", "#11": "0.55", ... } }
+        //
+        const mids = this.safeDict (response, 'mids', response);
+        const tickers: Tickers = {};
+        const outcomesMap = this.outcomes || {};
+        const outcomeSymbols = Object.keys (outcomesMap);
+        for (let i = 0; i < outcomeSymbols.length; i++) {
+            const outcomeSymbol = outcomeSymbols[i];
+            if (outcomes !== undefined && !(outcomeSymbol in requestedOutcomeSymbols)) {
+                continue;
+            }
+            const outcomeObj = this.safeDict (outcomesMap, outcomeSymbol, {});
+            const info = this.safeDict (outcomeObj, 'info', {});
+            const coin = this.safeString (info, 'coinName');
+            const mid = this.safeNumber (mids, coin);
+            if (mid === undefined) {
+                continue;
+            }
+            const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+            const market = this.market (marketSymbol);
+            // Build minimal ticker from mid price
+            const ticker = this.parseTicker ({ 'levels': [ [], [] ], 'mid': mid, 'time': this.milliseconds () }, market);
+            ticker['symbol'] = outcomeSymbol;
+            tickers[outcomeSymbol] = ticker;
+        }
+        return tickers;
+    }
+
+    /**
+     * Parses a raw l2Book response (or a synthetic mid dict) into a CCXT Ticker.
+     * @param raw l2Book response or { mid, time } object
+     * @param market
+     */
+    parseTicker (raw: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "coin": "#10",
+        //         "levels": [
+        //             [ { "n": "2", "px": "0.44", "sz": "500" } ],   // bids [0]
+        //             [ { "n": "2", "px": "0.46", "sz": "400" } ]    // asks [1]
+        //         ],
+        //         "time": 1704290104840
+        //     }
+        //
+        const now = this.milliseconds ();
+        const timestamp = this.safeInteger (raw, 'time', now);
+        const symbol = this.safeSymbol (undefined, market);
+        const levels = this.safeList (raw, 'levels', []);
+        const rawBids = this.safeList (levels, 0, []);
+        const rawAsks = this.safeList (levels, 1, []);
+        const topBid = this.safeDict (rawBids, 0);
+        const topAsk = this.safeDict (rawAsks, 0);
+        const bid = topBid !== undefined ? this.safeNumber (topBid, 'px') : undefined;
+        const ask = topAsk !== undefined ? this.safeNumber (topAsk, 'px') : undefined;
+        const bidVolume = topBid !== undefined ? this.safeNumber (topBid, 'sz') : undefined;
+        const askVolume = topAsk !== undefined ? this.safeNumber (topAsk, 'sz') : undefined;
+        // Use synthetic mid if no l2Book
+        let mid = this.safeNumber (raw, 'mid');
+        if (mid === undefined && bid !== undefined && ask !== undefined) {
+            mid = (bid + ask) / 2;
+        }
+        // For prediction market context from info (if available)
+        const ctx = market ? this.safeDict (this.safeDict (market as any, 'info', {}), 'ctx', {}) : {};
+        const dayVolume = this.safeNumber (ctx, 'dayNtlVlm');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
+            'vwap': undefined,
+            'open': undefined,
+            'close': mid,
+            'last': mid,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': mid,
+            'baseVolume': undefined,
+            'quoteVolume': dayVolume,
+            'info': raw,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOrderBook
+     * @description Fetches L2 order book for an outcome market.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+     * @param {string} outcome unified outcome symbol
+     * @param {Int} [limit] max depth levels (not used by Hyperliquid but accepted)
+     * @param {object} [params] extra parameters
+     * @returns {OrderBook} order book structure
+     */
+    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        await this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const request: Dict = {
+            'type': 'l2Book',
+            'coin': this.safeString (info, 'coinName'),
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "coin": "#10",
+        //         "levels": [
+        //             [ { "n": "5", "px": "0.44", "sz": "500" }, ... ],   // bids [0]
+        //             [ { "n": "5", "px": "0.46", "sz": "400" }, ... ]    // asks [1]
+        //         ],
+        //         "time": 1704290104840
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'time');
+        const levels = this.safeList (response, 'levels', []);
+        const rawBids = this.safeList (levels, 0, []);
+        const rawAsks = this.safeList (levels, 1, []);
+        const bids: any[] = [];
+        const asks: any[] = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const entry = rawBids[i];
+            bids.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const entry = rawAsks[i];
+            asks.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
+        }
+        return this.parseOrderBook ({ 'bids': bids, 'asks': asks }, this.safeString (outcomeObj, 'symbol', outcome), timestamp);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOHLCV
+     * @description Fetches candlestick OHLCV data for an outcome market.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+     * @param {string} outcome unified outcome symbol
+     * @param {string} timeframe '1m', '5m', '15m', '1h', '4h', '1d', etc.
+     * @param {Int} [since] timestamp in ms of earliest candle
+     * @param {Int} [limit] max number of candles
+     * @param {object} [params] extra parameters
+     * @param {Int} [params.until] end timestamp in ms
+     * @returns {OHLCV[]} list of OHLCV arrays
+     */
+    async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        await this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const until = this.safeInteger (params, 'until', this.milliseconds ());
+        let startTime = since;
+        if (since === undefined) {
+            const tf = this.parseTimeframe (timeframe);
+            const candleCount = (limit !== undefined) ? limit : 100;
+            startTime = this.sum (until, (tf * candleCount * -1000));
+            if (startTime < 0) {
+                startTime = 0;
+            }
+        }
+        const request: Dict = {
+            'type': 'candleSnapshot',
+            'req': {
+                'coin': this.safeString (info, 'coinName'),
+                'interval': this.safeString (this.timeframes, timeframe, timeframe),
+                'startTime': startTime,
+                'endTime': until,
+            },
+        };
+        params = this.omit (params, 'until');
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "T": 1704287699999,   // close time
+        //             "c": "0.45",
+        //             "h": "0.47",
+        //             "i": "1m",
+        //             "l": "0.43",
+        //             "n": 46,              // number of trades
+        //             "o": "0.44",
+        //             "s": "#10",
+        //             "t": 1704286800000,   // open time
+        //             "v": "1234.5"
+        //         }
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    /**
+     * Parses a single Hyperliquid candle object into a CCXT OHLCV tuple.
+     */
+    parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "T": 1704287699999,   // close time
+        //         "c": "0.45",
+        //         "h": "0.47",
+        //         "i": "1m",
+        //         "l": "0.43",
+        //         "n": 46,              // number of trades
+        //         "o": "0.44",
+        //         "s": "#10",
+        //         "t": 1704286800000,   // open time
+        //         "v": "1234.5"
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchBalance
+     * @description Fetches spot balance (outcomes use spot-like balance).
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+     * @param {object} [params] extra parameters
+     * @param {string} [params.user] wallet address (defaults to this.walletAddress)
+     * @returns {Balances} balance structure
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
+        const request: Dict = {
+            'type': 'spotClearinghouseState',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "balances": [
+        //             { "coin": "USDC",  "hold": "0.0", "total": "100.0" },
+        //             { "coin": "+10",   "hold": "0.0", "total": "50.0" }, // outcome token
+        //             { "coin": "+11",   "hold": "0.0", "total": "25.0" }
+        //         ]
+        //     }
+        //
+        const result: Dict = {
+            'info': response,
+        };
+        const balances = this.safeList (response, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const coin = this.safeString (balance, 'coin');
+            const total = this.safeString (balance, 'total');
+            const used = this.safeString (balance, 'hold');
+            const account = this.account ();
+            account['total'] = total;
+            account['used'] = used;
+            result[coin] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchPositions
+     * @description Fetches outcome token positions from spot clearinghouse state. Outcome tokens appear as spot token balances starting with '+'.
+     * @param {string[]} [outcomes] filter by outcome ids or symbols
+     * @param {object} [params] extra parameters
+     * @param {string} [params.user] wallet address
+     * @returns {Position[]} array of position structures
+     */
+    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const requestedOutcomeSymbols: Dict = {};
+        if (outcomes !== undefined) {
+            for (let i = 0; i < outcomes.length; i++) {
+                const requested = outcomes[i];
+                await this.checkEventsAndMarkets (requested);
+                const requestedOutcomeObj = this.outcome (requested);
+                const requestedSymbol = this.safeString (requestedOutcomeObj, 'symbol', requested);
+                requestedOutcomeSymbols[requestedSymbol] = true;
+            }
+        }
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
+        const request: Dict = {
+            'type': 'spotClearinghouseState',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const balances = this.safeList (response, 'balances', []);
+        const positions: Position[] = [];
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const coin = this.safeString (balance, 'coin');
+            // Outcome tokens start with '+'
+            if (!coin || !coin.startsWith ('+')) {
+                continue;
+            }
+            const totalStr = this.safeString (balance, 'total');
+            const total = this.parseNumber (totalStr);
+            if (total === undefined || total === 0) {
+                continue;
+            }
+            const outcomeId = '#' + coin.slice (1); // +10 -> #10
+            const outcomeObj = this.safeOutcome (outcomeId);
+            if (outcomes !== undefined) {
+                const outcomeSymbol = this.safeString (outcomeObj, 'symbol');
+                if (outcomeSymbol === undefined || !(outcomeSymbol in requestedOutcomeSymbols)) {
+                    continue;
+                }
+            }
+            positions.push (this.parsePosition (balance, outcomeObj));
+        }
+        return positions;
+    }
+
+    /**
+     * Parses a spot balance entry for an outcome token into a CCXT Position.
+     */
+    parsePosition (position: Dict, outcomeObj: any = undefined): Position {
+        const totalStr = this.safeString (position, 'total');
+        const total = this.parseNumber (totalStr);
+        const holdStr = this.safeString (position, 'hold');
+        const hold = this.parseNumber (holdStr);
+        const entryNtlStr = this.safeString (position, 'entryNtl');
+        const entryNotional = this.parseNumber (entryNtlStr);
+        let entryPrice: Num = undefined;
+        if (entryNotional !== undefined && total !== undefined && total > 0) {
+            entryPrice = entryNotional / total;
+        }
+        return {
+            'id': undefined,
+            'symbol': this.safeString (outcomeObj, 'symbol'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'isolated': false,
+            'hedged': undefined,
+            'side': 'long',
+            'contracts': total,
+            'contractSize': 1,
+            'entryPrice': entryPrice,
+            'markPrice': undefined,
+            'notional': entryNotional,
+            'leverage': undefined,
+            'collateral': hold,
+            'initialMargin': undefined,
+            'maintenanceMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'unrealizedPnl': undefined,
+            'realizedPnl': undefined,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': 'cross',
+            'marginType': 'cross',
+            'percentage': undefined,
+            'info': position,
+        } as unknown as Position;
+    }
+
+    // -----------------------------------------------------------------------
+    // Orders — create / cancel
+    // -----------------------------------------------------------------------
+
+    findOutcomeInMarket (market: Market, sideHint: Str = undefined): Dict {
+        const outcomesList = this.safeList (market as any, 'outcomes', []);
+        const normalizedHint = sideHint ? sideHint.toUpperCase () : undefined;
+        if (normalizedHint !== undefined) {
+            for (let i = 0; i < outcomesList.length; i++) {
+                const oc = this.safeDict (outcomesList, i, {});
+                const ocSymbol = this.safeString (oc, 'symbol', '');
+                const ocLabel = this.safeStringUpper (oc, 'label');
+                if (ocLabel === normalizedHint || ocSymbol.endsWith (':' + normalizedHint)) {
+                    return oc;
+                }
+            }
+        }
+        for (let i = 0; i < outcomesList.length; i++) {
+            const oc = this.safeDict (outcomesList, i, {});
+            const info = this.safeDict (oc, 'info', {});
+            if (this.safeInteger (info, 'side') === 0) {
+                return oc;
+            }
+        }
+        return this.safeDict (outcomesList, 0, {});
+    }
+
+    parseOutcomeInputSideHint (outcomeInput: string): Str {
+        if (!outcomeInput) {
+            return undefined;
+        }
+        const colonIndex = outcomeInput.lastIndexOf (':');
+        if (colonIndex > -1 && colonIndex < outcomeInput.length - 1) {
+            const side = outcomeInput.slice (colonIndex + 1).toUpperCase ();
+            if (side === 'YES' || side === 'NO') {
+                return side;
+            }
+        }
+        const lower = outcomeInput.toLowerCase ();
+        if (lower.endsWith ('-yes')) {
+            return 'YES';
+        }
+        if (lower.endsWith ('-no')) {
+            return 'NO';
+        }
+        return undefined;
+    }
+
+    resolveOutcomeInput (outcomeInput: string): Dict {
+        if (outcomeInput === undefined) {
+            throw new ArgumentsRequired (this.id + ' resolveOutcomeInput() requires an outcome symbol or id');
+        }
+        if (this.outcomes === undefined || this.outcomes_by_id === undefined) {
+            throw new ExchangeError (this.id + ' outcomes not loaded');
+        }
+        const sideHint = this.parseOutcomeInputSideHint (outcomeInput);
+        const candidates: string[] = [ outcomeInput ];
+        if (outcomeInput.startsWith ('+')) {
+            candidates.push ('#' + outcomeInput.slice (1));
+        }
+        if (/^\d+$/.test (outcomeInput)) {
+            candidates.push ('#' + outcomeInput); // encoding id without #
+            const numeric = parseInt (outcomeInput, 10);
+            if (Number.isFinite (numeric)) {
+                candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 0))); // raw outcome id -> YES encoding
+                candidates.push (this.outcomeCoin (this.outcomeEncoding (numeric, 1))); // raw outcome id -> NO encoding
+            }
+        }
+        for (let i = 0; i < candidates.length; i++) {
+            const key = candidates[i];
+            if (key in this.outcomes) {
+                return this.safeDict (this.outcomes, key, {});
+            }
+            if (key in this.outcomes_by_id) {
+                return this.safeDict (this.outcomes_by_id, key, {});
+            }
+        }
+        if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
+            const market = this.safeMarket (outcomeInput);
+            const found = this.findOutcomeInMarket (market, sideHint || 'YES');
+            if (Object.keys (found).length > 0) {
+                return found;
+            }
+        }
+        throw new ArgumentsRequired (this.id + ' cannot resolve outcome from input: ' + outcomeInput + '. Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.');
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#createOrder
+     * @description Creates a limit or market order for an outcome market.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @param {string} outcome unified outcome symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {string} side 'buy' or 'sell'
+     * @param {number} amount quantity of outcome tokens
+     * @param {number} [price] limit price (0–1 range for prediction markets)
+     * @param {object} [params] extra parameters
+     * @param {string} [params.timeInForce] 'Gtc' | 'Ioc' | 'Alo'  (default 'Gtc')
+     * @param {boolean} [params.postOnly] if true sets timeInForce to 'Alo'
+     * @param {boolean} [params.reduceOnly] if true, marks the order as reduce only so it can only decrease an existing position
+     * @param {string} [params.slippage] slippage for market orders (default 5%)
+     * @param {string} [params.clientOrderId] hex cloid
+     * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
+     * @returns {Order}
+     */
+    async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        await this.initializeClient ();
+        await this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const market = this.market (this.safeString (outcomeObj, 'marketSymbol'));
+        const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+        const nonce = this.milliseconds ();
+        const isBuy = (side.toUpperCase () === 'BUY');
+        const isMarket = (type.toUpperCase () === 'MARKET');
+        const assetId = this.safeInteger (outcomeInfo, 'assetId');
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        const defaultSlippage = this.safeString (this.options, 'defaultSlippage', '0.05');
+        const slippage = this.safeString (params, 'slippage', defaultSlippage);
+        let defaultTif = isMarket ? 'Ioc' : 'Gtc';
+        if (postOnly) {
+            defaultTif = 'Alo';
+        }
+        let tif = this.capitalize (this.safeStringLower (params, 'timeInForce', defaultTif));
+        if (price === undefined) {
+            if (isMarket) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.');
+            }
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
+        }
+        let px: string;
+        if (isMarket) {
+            const priceStr = this.numberToString (price);
+            px = isBuy ? Precise.stringMul (priceStr, Precise.stringAdd ('1', slippage)) : Precise.stringMul (priceStr, Precise.stringSub ('1', slippage));
+            px = this.priceToPrecision (this.safeString (outcomeObj, 'marketSymbol'), px);
+        } else {
+            px = this.priceToPrecision (this.safeString (outcomeObj, 'marketSymbol'), price);
+        }
+        const sz = this.amountToPrecision (this.safeString (outcomeObj, 'marketSymbol'), amount);
+        const orderType: Dict = {
+            'limit': { 'tif': tif },
+        };
+        const orderObj: Dict = {
+            'a': assetId,
+            'b': isBuy,
+            'p': px,
+            's': sz,
+            'r': reduceOnly,
+            't': orderType,
+        };
+        if (clientOrderId !== undefined) {
+            orderObj['c'] = clientOrderId;
+        }
+        let vaultAddress: Str = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
+        const orderAction: Dict = {
+            'type': 'order',
+            'orders': [ orderObj ],
+            'grouping': 'na',
+        };
+        const signature = this.signL1Action (orderAction, nonce, vaultAddress);
+        const request: Dict = {
+            'action': orderAction,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": { "statuses": [ { "resting": { "oid": 12345 } } ] }
+        //         }
+        //     }
+        //
+        const responseObj = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseObj, 'data', {});
+        const statuses = this.safeList (data, 'statuses', []);
+        const firstStatus = this.safeDict (statuses, 0, {});
+        const resting = this.safeDict (firstStatus, 'resting', {});
+        const filled = this.safeDict (firstStatus, 'filled', {});
+        const oid = this.safeString (resting, 'oid', this.safeString (filled, 'oid'));
+        return this.safeOrder ({
+            'id': oid,
+            'clientOrderId': clientOrderId,
+            'info': response,
+            'timestamp': nonce,
+            'datetime': this.iso8601 (nonce),
+            'status': resting['oid'] !== undefined ? 'open' : 'closed',
+            'symbol': this.safeString (outcomeObj, 'symbol', outcome),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': this.safeNumber (filled, 'totalSz'),
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': undefined,
+            'trades': [],
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#cancelOrder
+     * @description Cancels a single open order.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+     * @param {string} id order id
+     * @param {string} outcome unified outcome symbol
+     * @param {object} [params] extra parameters
+     * @param {string} [params.clientOrderId] cancel by client order id
+     * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
+     * @returns {Order}
+     */
+    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
+        const orders = await this.cancelOrders ([ id ], outcome, params);
+        return this.safeDict (orders, 0) as Order;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#cancelOrders
+     * @description Cancels multiple open orders.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+     * @param {string[]} ids order ids
+     * @param {string} outcome unified outcome symbol (required)
+     * @param {object} [params] extra parameters
+     * @returns {Order[]}
+     */
+    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<Order[]> {
+        this.checkRequiredCredentials ();
+        if (outcome === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires an outcome argument');
+        }
+        await this.loadMarkets ();
+        await this.initializeClient ();
+        await this.checkEventsAndMarkets (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+        const assetId = this.safeInteger (outcomeInfo, 'assetId');
+        const nonce = this.milliseconds ();
+        const clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
+        params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        const cancelReq: any[] = [];
+        const cancelAction: Dict = { 'type': 'cancel', 'cancels': [] };
+        if (clientOrderId !== undefined) {
+            const cloids = Array.isArray (clientOrderId) ? clientOrderId : [ clientOrderId ];
+            cancelAction['type'] = 'cancelByCloid';
+            for (let i = 0; i < cloids.length; i++) {
+                cancelReq.push ({ 'asset': assetId, 'cloid': cloids[i] });
+            }
+        } else {
+            cancelAction['type'] = 'cancel';
+            for (let i = 0; i < ids.length; i++) {
+                cancelReq.push ({ 'a': assetId, 'o': this.parseToNumeric (ids[i]) });
+            }
+        }
+        cancelAction['cancels'] = cancelReq;
+        let vaultAddress: Str = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
+        const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
+        const request: Dict = {
+            'action': cancelAction,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
+        const response = await this.privatePostExchange (request);
+        const innerResponse = this.safeDict (response, 'response');
+        const data = this.safeDict (innerResponse, 'data');
+        const statuses = this.safeList (data, 'statuses', []);
+        const outcomeSymbol = this.safeString (outcomeObj, 'symbol', outcome);
+        const requestIds = (clientOrderId !== undefined) ? (Array.isArray (clientOrderId) ? clientOrderId : [ clientOrderId ]) : ids;
+        const orders: Order[] = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            const error = this.safeString (status, 'error');
+            if (error !== undefined) {
+                throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + this.safeString (requestIds, i, this.safeString (requestIds, 0)) + ': ' + error);
+            }
+            const success = (status === 'success') || (this.safeString (status, 'status') === 'success');
+            if (!success) {
+                throw new ExchangeError (this.id + ' cancelOrders() received an unexpected status: ' + this.json (status));
+            }
+            const requestId = this.safeString (requestIds, i, this.safeString (requestIds, 0));
+            const order: Dict = {
+                'id': requestId,
+                'clientOrderId': clientOrderId !== undefined ? requestId : undefined,
+                'info': status,
+                'status': 'canceled',
+                'symbol': outcomeSymbol,
+                'outcome': outcomeSymbol,
+                'outcomeId': this.safeString (outcomeObj, 'id'),
+                'timestamp': this.milliseconds (),
+                'datetime': this.iso8601 (this.milliseconds ()),
+            };
+            orders.push (this.safeOrder (order) as Order);
+        }
+        return orders;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOpenOrders
+     * @description Fetches currently open orders for the user.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+     * @param {string} [outcome] filter by outcome symbol
+     * @param {Int} [since] only return orders updated since this timestamp in ms
+     * @param {Int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters
+     * @param {string} [params.user] wallet address
+     * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
+     * @returns {Order[]}
+     */
+    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
+        let method: Str;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
+        const request: Dict = { 'type': method, 'user': userAddress };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const ordersWithStatus: any[] = [];
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
+            ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
+        }
+        const parsed = this.parseOrders (ordersWithStatus, undefined, since, undefined);
+        let symbol: Str = undefined;
+        if (outcome !== undefined) {
+            await this.checkEventsAndMarkets (outcome);
+            const outcomeObj = this.outcome (outcome);
+            symbol = this.safeString (outcomeObj, 'symbol');
+        }
+        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as Order[];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOrders
+     * @description Fetches all historical orders for the user.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-historical-orders
+     * @param {string} [outcome] filter by outcome symbol
+     * @param {Int} [since] only return orders updated since this timestamp in ms
+     * @param {Int} [limit] max number of orders to return
+     * @param {object} [params] extra parameters
+     * @param {string} [params.user] wallet address
+     * @returns {Order[]}
+     */
+    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
+        const request: Dict = { 'type': 'historicalOrders', 'user': userAddress };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        // Deduplicate by oid keeping most recent statusTimestamp
+        const deduped: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const raw = response[i];
+            let entry = this.safeDict (raw, 'order');
+            if (entry === undefined) {
+                entry = raw;
+            }
+            const oid = this.safeString (entry, 'oid');
+            if (oid !== undefined) {
+                if (!(oid in deduped)) {
+                    deduped[oid] = raw;
+                } else {
+                    const existingTs = this.safeInteger (deduped[oid], 'statusTimestamp');
+                    const currentTs = this.safeInteger (raw, 'statusTimestamp');
+                    if (currentTs !== undefined && (existingTs === undefined || currentTs > existingTs)) {
+                        deduped[oid] = raw;
+                    }
+                }
+            }
+        }
+        const parsed = this.parseOrders (Object.values (deduped), undefined, since, undefined);
+        let symbol: Str = undefined;
+        if (outcome !== undefined) {
+            await this.checkEventsAndMarkets (outcome);
+            const outcomeObj = this.outcome (outcome);
+            symbol = this.safeString (outcomeObj, 'symbol');
+        }
+        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as Order[];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchOrder
+     * @description Fetches a single order by id.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+     * @param {string} id order id
+     * @param {string} [outcome] outcome symbol
+     * @param {object} [params] extra parameters
+     * @param {string} [params.user] wallet address
+     * @param {string} [params.clientOrderId] fetch by client order id instead
+     * @returns {Order}
+     */
+    async fetchOrder (id: string, outcome: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const request: Dict = { 'type': 'orderStatus', 'user': userAddress };
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['oid'] = clientOrderId;
+        } else {
+            const isCloid = id.length >= 34;
+            request['oid'] = isCloid ? id : this.parseToNumeric (id);
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const orderWrapper = this.safeDict (response, 'order', response);
+        const parsed = this.parseOrder (orderWrapper, undefined);
+        if (outcome !== undefined) {
+            await this.checkEventsAndMarkets (outcome);
+            const outcomeObj = this.outcome (outcome);
+            const expected = this.safeString (outcomeObj, 'symbol');
+            if (this.safeString (parsed, 'symbol') !== expected) {
+                throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' is not in outcome ' + expected);
+            }
+        }
+        return parsed;
+    }
+
+    /**
+     * Parses a raw Hyperliquid order object into a unified CCXT Order.
+     */
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // from frontendOpenOrders:
+        // {
+        //   "coin": "#10",
+        //   "limitPx": "0.44",
+        //   "oid": 12345,
+        //   "origSz": "100",
+        //   "side": "B",
+        //   "sz": "100",
+        //   "timestamp": 1704346468838
+        // }
+        //
+        // from historicalOrders / orderStatus:
+        // {
+        //   "order": { "coin": "#10", "limitPx": "0.44", "oid": "12345", "origSz": "100", "side": "B", "sz": "100", "tif": "Gtc", "timestamp": "1704346468838" },
+        //   "status": "open",
+        //   "statusTimestamp": 1704346468838
+        // }
+        //
+        let entry = this.safeDict (order, 'order', order);
+        const status = this.parseOrderStatus (this.safeString2 (order, 'ccxtStatus', 'status'));
+        const coin = this.safeString (entry, 'coin');
+        const outcomeObj = this.safeOutcome (coin, market as any);
+        const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const side = this.safeString (entry, 'side') === 'B' ? 'buy' : 'sell';
+        const totalAmount = this.safeString (entry, 'origSz');
+        const remaining = this.safeString (entry, 'sz');
+        const filled = remaining !== undefined && totalAmount !== undefined ? Precise.stringSub (totalAmount, remaining) : undefined;
+        const timestamp = this.safeInteger (entry, 'timestamp');
+        const tifRaw = this.safeString (entry, 'tif');
+        const tif = this.parseTimeInForce (tifRaw);
+        const postOnly = (tif === 'PO');
+        return this.safeOrder ({
+            'id': this.safeString (entry, 'oid'),
+            'clientOrderId': this.safeString (entry, 'cloid'),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': this.safeString (outcomeObj, 'symbol'),
+            'type': this.parseOrderType (this.safeString (entry, 'orderType', 'limit')),
+            'timeInForce': tif,
+            'postOnly': postOnly,
+            'reduceOnly': this.safeBool (entry, 'reduceOnly', false),
+            'side': side,
+            'price': this.safeNumber (entry, 'limitPx'),
+            'triggerPrice': this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
+            'amount': this.parseNumber (totalAmount),
+            'cost': undefined,
+            'average': this.safeNumber (entry, 'avgPx'),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
+            'fee': undefined,
+            'trades': [],
+        }, resolvedMarket);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'triggered': 'open',
+            'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
+        };
+        if (status === undefined) {
+            return undefined;
+        }
+        if (status.endsWith ('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith ('Canceled')) {
+            return 'canceled';
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status: Str): Str {
+        const statuses: Dict = {
+            'stop limit': 'limit',
+            'stop market': 'market',
+        };
+        const statusLower = status ? status.toLowerCase () : undefined;
+        return this.safeString (statuses, statusLower, statusLower);
+    }
+
+    parseTimeInForce (timeInForce: Str): Str {
+        const statuses: Dict = {
+            'gtc': 'GTC',
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'alo': 'PO',
+        };
+        const tifLower = timeInForce ? timeInForce.toLowerCase () : undefined;
+        return this.safeString (statuses, tifLower, timeInForce);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchMyTrades
+     * @description Fetches the authenticated user's fill history.
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+     * @param {string} [outcome] filter by outcome symbol
+     * @param {Int} [since] start timestamp in ms
+     * @param {Int} [limit] max number of trades to return
+     * @param {object} [params] extra parameters
+     * @param {string} [params.user] wallet address
+     * @param {Int} [params.until] end timestamp in ms
+     * @returns {Trade[]}
+     */
+    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let userAddress: Str;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchMyTrades', params);
+        const request: Dict = { 'user': userAddress };
+        if (since !== undefined) {
+            request['type'] = 'userFillsByTime';
+            request['startTime'] = since;
+        } else {
+            request['type'] = 'userFills';
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        const parsed = this.parseTrades (response, undefined, since, undefined);
+        let symbol: Str = undefined;
+        if (outcome !== undefined) {
+            await this.checkEventsAndMarkets (outcome);
+            const outcomeObj = this.outcome (outcome);
+            symbol = this.safeString (outcomeObj, 'symbol');
+        }
+        return this.filterBySymbolSinceLimit (parsed, symbol, since, limit) as Trade[];
+    }
+
+    /**
+     * Parses a single Hyperliquid fill into a CCXT Trade.
+     */
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // {
+        //   "closedPnl": "0.19343",
+        //   "coin": "#10",
+        //   "crossed": true,
+        //   "dir": "Open Long",
+        //   "fee": "0.050062",
+        //   "feeToken": "USDC",
+        //   "hash": "0x...",
+        //   "liquidationMarkPx": null,
+        //   "oid": 12345,
+        //   "px": "0.44",
+        //   "side": "B",
+        //   "startPosition": "0",
+        //   "sz": "100",
+        //   "tid": 128423918764978,
+        //   "time": 1704262888911
+        // }
+        //
+        const timestamp = this.safeInteger (trade, 'time');
+        const price = this.safeString (trade, 'px');
+        const amount = this.safeString (trade, 'sz');
+        const coin = this.safeString (trade, 'coin');
+        const outcomeObj = this.safeOutcome (coin, market as any);
+        const marketSymbol = this.safeString (outcomeObj, 'marketSymbol');
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const rawSide = this.safeString (trade, 'side');
+        const side = (rawSide === 'B') ? 'buy' : 'sell';
+        const fee = this.safeNumber (trade, 'fee');
+        const feeCurrency = this.safeString (trade, 'feeToken', 'USDC');
+        const outcomeSymbol = this.safeString (outcomeObj, 'symbol');
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'tid'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': outcomeSymbol,
+            'outcome': outcomeSymbol,
+            'outcomeId': this.safeString (outcomeObj, 'id'),
+            'order': this.safeString (trade, 'oid'),
+            'type': 'limit',
+            'side': side,
+            'takerOrMaker': this.safeBool (trade, 'crossed') ? 'taker' : 'maker',
+            'price': this.parseNumber (price),
+            'amount': this.parseNumber (amount),
+            'cost': price !== undefined && amount !== undefined ? this.parseNumber (Precise.stringMul (price, amount)) : undefined,
+            'fee': fee !== undefined ? { 'cost': fee, 'currency': feeCurrency } : undefined,
+        }, resolvedMarket);
+    }
+
+    // -----------------------------------------------------------------------
+    // Events  (group outcome markets by underlying)
+    // -----------------------------------------------------------------------
+
+    /**
+     * @method
+     * @name hyperliquid#fetchEvents
+     * @description Groups outcome markets by their underlying (e.g. BTC-ABOVE-78213) into event structures. Each event contains both the YES and NO markets.
+     * @param {string[]} [queries] filter by query strings (matches description/symbol)
+     * @param {object} [params] extra parameters
+     * @returns {PredictionEvent[]} array of event structures
+     */
+    async fetchEvents (queries: string[] = [], params = {}): Promise<any[]> {
+        await this.loadMarkets ();
+        const marketValues = Object.values (this.markets);
+        // Group markets by parentSymbol
+        const groupMap: Dict = {};
+        const lowerQueries = queries.map (q => q.toLowerCase ());
+        for (let i = 0; i < marketValues.length; i++) {
+            const mkt = marketValues[i] as Market;
+            if (!this.safeBool (mkt as any, 'prediction', false)) {
+                continue;
+            }
+            const info = this.safeDict (mkt as any, 'info', {});
+            const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString (mkt, 'symbol'));
+            // Apply query filter
+            if (lowerQueries.length > 0) {
+                const description = (this.safeString (info, 'description') || '').toLowerCase ();
+                const symLower = (parentSymbol || '').toLowerCase ();
+                let matches = false;
+                for (let qi = 0; qi < lowerQueries.length; qi++) {
+                    if (description.indexOf (lowerQueries[qi]) !== -1 || symLower.indexOf (lowerQueries[qi]) !== -1) {
+                        matches = true;
+                        break;
+                    }
+                }
+                if (!matches) {
+                    continue;
+                }
+            }
+            if (!groupMap[parentSymbol]) {
+                groupMap[parentSymbol] = [];
+            }
+            (groupMap[parentSymbol] as Market[]).push (mkt);
+        }
+        const events: any[] = [];
+        const groupKeys = Object.keys (groupMap);
+        for (let gi = 0; gi < groupKeys.length; gi++) {
+            const key = groupKeys[gi];
+            const groupMarkets = groupMap[key] as Market[];
+            const event = this.parseEvent ({ 'parentSymbol': key, 'markets': groupMarkets });
+            events.push (event);
+        }
+        if (!this.events) {
+            this.events = {};
+        }
+        for (let i = 0; i < events.length; i++) {
+            const ev = events[i];
+            this.events[ev['symbol']] = ev;
+        }
+        return events;
+    }
+
+    /**
+     * Parses a grouped set of outcome markets into a unified PredictionEvent.
+     */
+    parseEvent (raw: Dict): PredictionEvent {
+        const parentSymbol = this.safeString (raw, 'parentSymbol');
+        const markets = this.safeList (raw, 'markets', []) as Market[];
+        // Extract info from first market
+        const firstMarket = (markets.length > 0) ? markets[0] : {};
+        const firstInfo = this.safeDict (firstMarket as any, 'info', {});
+        const desc = this.safeDict (firstInfo, 'parsedDescription', {});
+        const underlying = this.safeString (desc, 'underlying');
+        const targetPrice = this.safeString (desc, 'targetPrice');
+        const expiryRaw = this.safeString (desc, 'expiry');
+        let expiryMs: Int = undefined;
+        let expiryDatetime: Str = undefined;
+        if (expiryRaw) {
+            const parts = expiryRaw.split ('-');
+            if (parts.length >= 1 && parts[0].length === 8) {
+                const ymd = parts[0];
+                const hm = (parts.length >= 2) ? parts[1] : '0000';
+                const isoStr = ymd.substring (0, 4) + '-' + ymd.substring (4, 6) + '-' + ymd.substring (6, 8) + 'T' + hm.substring (0, 2) + ':' + hm.substring (2, 4) + ':00Z';
+                expiryMs = this.parse8601 (isoStr);
+                expiryDatetime = isoStr;
+            }
+        }
+        const firstExpiry = this.safeInteger (firstMarket as any, 'expiry');
+        return this.extend ({
+            'id': parentSymbol,
+            'slug': parentSymbol,
+            'symbol': parentSymbol,
+            'title': underlying !== undefined ? (underlying + (targetPrice ? ' ABOVE ' + targetPrice : '') + (expiryRaw ? ' @ ' + expiryRaw : '')) : parentSymbol,
+            'markets': markets,
+            'underlying': underlying,
+            'targetPrice': targetPrice,
+            'class': this.safeString (desc, 'class'),
+            'period': this.safeString (desc, 'period'),
+            'url': undefined,
+            'image': undefined,
+            'created': undefined,
+            'createdDatetime': undefined,
+            'end': expiryMs || firstExpiry,
+            'endDatetime': expiryDatetime,
+            'category': 'crypto',
+            'lastUpdatedAt': undefined,
+            'resolutionSource': 'Hyperliquid mark price',
+            'resolved': undefined,
+            'info': raw,
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // Precision helpers
+    // -----------------------------------------------------------------------
+
+    amountToPrecision (outcome: string, amount: any): string {
+        const market = this.market (outcome);
+        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.0001);
+        // Convert precision to decimal places
+        const decimals = prec > 0 ? Math.round (-Math.log10 (prec)) : 4;
+        return this.decimalToPrecision (amount, 1 /* ROUND */, decimals, 2 /* DECIMAL_PLACES */, this.paddingMode);
+    }
+
+    priceToPrecision (outcome: string, price: any): string {
+        const market = this.market (outcome);
+        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
+        const decimals = prec > 0 ? Math.round (-Math.log10 (prec)) : 4;
+        return this.decimalToPrecision (price, 1 /* ROUND */, decimals, 2 /* DECIMAL_PLACES */, this.paddingMode);
+    }
+
+    // -----------------------------------------------------------------------
+    // EIP-712 / L1 action signing (same as upstream Hyperliquid)
+    // -----------------------------------------------------------------------
+
+    hashMessage (message: any): string {
+        return '0x' + this.hash (message, keccak, 'hex');
+    }
+
+    signHash (hash: string, privateKey: string): Dict {
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'].padStart (64, '0');
+        const s = signature['s'].padStart (64, '0');
+        return {
+            'r': '0x' + r,
+            's': '0x' + s,
+            'v': signature['v'],
+        };
+    }
+
+    signMessage (message: any, privateKey: string): Dict {
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64));
+    }
+
+    constructPhantomAgent (hash: any, isTestnet = true): Dict {
+        const source = isTestnet ? 'b' : 'a';
+        return {
+            'source': source,
+            'connectionId': hash,
+        };
+    }
+
+    actionHash (action: Dict, vaultAddress: Str, nonce: number): any {
+        const dataBinary = this.packb (action);
+        const dataHex = this.binaryToBase16 (dataBinary);
+        let data = dataHex;
+        data += '00000' + this.intToBase16 (nonce);
+        if (vaultAddress === undefined) {
+            data += '00';
+        } else {
+            data += '01';
+            data += vaultAddress;
+        }
+        return this.hash (this.base16ToBinary (data), keccak, 'binary');
+    }
+
+    signL1Action (action: Dict, nonce: number, vaultAddress: Str = undefined): Dict {
+        this.checkRequiredCredentials ();
+        const hash = this.actionHash (action, vaultAddress, nonce);
+        const isTestnet = this.safeBool (this.options, 'sandboxMode', true);
+        const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
+        const zeroAddress = this.safeString (this.options, 'zeroAddress');
+        const domain: Dict = {
+            'chainId': 1337,
+            'name': 'Exchange',
+            'verifyingContract': zeroAddress,
+            'version': '1',
+        };
+        const messageTypes: Dict = {
+            'Agent': [
+                { 'name': 'source', 'type': 'string' },
+                { 'name': 'connectionId', 'type': 'bytes32' },
+            ],
+        };
+        const msg = this.ethEncodeStructuredData (domain, messageTypes, phantomAgent);
+        return this.signMessage (msg, this.privateKey);
+    }
+
+    // -----------------------------------------------------------------------
+    // Client initialisation (approve builder fee if enabled)
+    // -----------------------------------------------------------------------
+
+    async initializeClient () {
+        const buildFee = this.safeBool (this.options, 'builderFee', false);
+        if (!buildFee) {
+            return;
+        }
+        // builder fee approval would go here if needed
+    }
+
+    // -----------------------------------------------------------------------
+    // Address helpers
+    // -----------------------------------------------------------------------
+
+    handlePublicAddress (methodName: string, params: Dict): [ string, Dict ] {
+        let userAux: Str = undefined;
+        [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
+        let user = userAux;
+        [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
+        if (user !== undefined && user !== '') {
+            return [ user, params ];
+        }
+        if (this.walletAddress !== undefined && this.walletAddress !== '') {
+            return [ this.walletAddress, params ];
+        }
+        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a user parameter or walletAddress to be set');
+    }
+
+    formatVaultAddress (address: Str = undefined): Str {
+        if (address === undefined) {
+            return undefined;
+        }
+        let normalized = address;
+        if (normalized.startsWith ('0x') || normalized.startsWith ('0X')) {
+            normalized = normalized.slice (2);
+        }
+        return normalized.toLowerCase ();
+    }
+
+    // -----------------------------------------------------------------------
+    // HTTP request signing
+    // -----------------------------------------------------------------------
+
+    sign (path: any, api: any = 'public', method = 'POST', params: Dict = {}, headers: Dict = undefined, body: any = undefined) {
+        const apiGroup: string = Array.isArray (api) ? api[0] : api;
+        const sandboxMode = this.safeBool (this.options, 'sandboxMode', true);
+        let baseUrl: string;
+        if (sandboxMode) {
+            const testUrls = this.safeDict (this.urls, 'test', {});
+            baseUrl = this.safeString (testUrls, apiGroup, this.safeString (testUrls, 'public', ''));
+        } else {
+            const apiUrls = this.safeDict (this.urls, 'api', {});
+            baseUrl = this.safeString (apiUrls, apiGroup, this.safeString (apiUrls, 'public', ''));
+        }
+        const url = baseUrl + '/' + path;
+        if (method === 'POST') {
+            headers = { 'Content-Type': 'application/json' };
+            body = this.json (params);
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    // -----------------------------------------------------------------------
+    // Error handling
+    // -----------------------------------------------------------------------
+
+    handleErrors (code: number, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (!response) {
+            return undefined;
+        }
+        const status = this.safeString (response, 'status', '');
+        if (status === 'err') {
+            const message = this.safeString (response, 'response', body);
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
+        // Check for error statuses in order responses
+        const responsePayload = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responsePayload, 'data', {});
+        const statuses = this.safeList (data, 'statuses', []);
+        for (let i = 0; i < statuses.length; i++) {
+            const message = this.safeString (statuses[i], 'error');
+            if (message !== undefined) {
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+                throw new ExchangeError (feedback);
+            }
+        }
+        return undefined;
+    }
+
+    calculateRateLimiterCost (api: any, method: string, path: string, params: Dict, config: Dict = {}) {
+        if (('byType' in config) && ('type' in params)) {
+            const type = params['type'];
+            const byType = config['byType'] as Dict;
+            if (type in byType) {
+                return byType[type];
+            }
+        }
+        return this.safeValue (config, 'cost', 1);
+    }
+}
