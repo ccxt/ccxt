@@ -1194,6 +1194,9 @@ export default class htx extends Exchange {
                     // 'BCC': 'BCC', BCH's somewhat chain
                     // 'DBC1': 'DBC1',
                 },
+                'networksById': {
+                    'MATIC': 'MATIC',
+                },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice': true,
