@@ -1998,6 +1998,7 @@ export default class gate extends Exchange {
         //       },
         //    ]
         //
+        this.options['currenciesByIdForIsLeveragedCurrency'] = this.indexBy (response, 'currency');
         return this.parseCurrencies (response);
     }
 
